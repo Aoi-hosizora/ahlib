@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 type LinkedHashMap struct {
@@ -59,7 +60,7 @@ func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
 		}
 		str := fmt.Sprintf("\"%s\":%s", field, string(b))
 		buf.Write([]byte(str))
-		if idx < len(l.i) - 1 {
+		if idx < len(l.i)-1 {
 			buf.Write([]byte(","))
 		}
 	}
@@ -74,4 +75,40 @@ func (l *LinkedHashMap) String() string {
 		return ""
 	}
 	return string(buf)
+}
+
+func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
+	lhm := new(LinkedHashMap)
+	if object == nil {
+		return nil
+	}
+	// check ptr and struct
+	val := reflect.ValueOf(object)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if !val.IsValid() || val.Kind() != reflect.Struct {
+		// could not convert from string / number ...
+		return nil
+	}
+	relType := val.Type()
+
+	// val, retType
+	for i := 0; i < relType.NumField(); i++ {
+		// ignore null
+		tag := relType.Field(i).Tag.Get("json")
+		if tag == "" {
+			tag = relType.Field(i).Name
+		}
+		omitempty := strings.Index(tag, "omitempty") != -1
+
+		// use json field as map key
+		field := strings.Split(tag, ",")[0]
+		value := val.Field(i).Interface()
+
+		if field != "-" && (!omitempty || value != nil) {
+			lhm.Set(field, value)
+		}
+	}
+	return lhm
 }
