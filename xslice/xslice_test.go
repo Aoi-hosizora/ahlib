@@ -1,4 +1,4 @@
-package xcollection
+package xslice
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -46,28 +46,27 @@ func TestIts(t *testing.T) {
 	assert.Equal(t, Its([]interface{}{0, "1"}, reflect.TypeOf(0)), nil)
 }
 
-var cmx = struct {
-	F1 string
-	F2 float32     `json:"-"`
-	F3 []int       `json:"ff3"`
-	F4 interface{} `json:"f4,omitempty"`
-	F5 interface{}
-}{"3", 4.5, []int{6, 7, 8}, nil, nil}
-
-func TestLinkedHashMap(t *testing.T) {
-	m := new(LinkedHashMap)
-	m.Set("b", "bb")
-	m.Set("d", "dd")
-	m.Set("a", "aa")
-	m.Set("c", "cc")
-	m.Remove("d")
-	m.Set("a", 123)
-	m.Set("o", cmx)
-	assert.Equal(t, m.String(), "{\"b\":\"bb\",\"a\":123,\"c\":\"cc\",\"o\":{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}}")
-	assert.Equal(t, new(LinkedHashMap).String(), "{}")
+func TestIndexOfSlice(t *testing.T) {
+	s := []int{1, 5, 2, 1, 2, 3}
+	assert.Equal(t, IndexOfSlice(Sti(s), 1), 0)
+	assert.Equal(t, IndexOfSlice(Sti(s), 6), -1)
+	assert.Equal(t, IndexOfSlice(Sti(s), nil), -1)
 }
 
-func TestObjectToLinkedHashMap(t *testing.T) {
-	assert.Equal(t, ObjectToLinkedHashMap(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
-	assert.Equal(t, ObjectToLinkedHashMap(nil) == nil, true)
+func TestDeleteInSlice(t *testing.T) {
+	s := []int{1, 5, 2, 1, 2, 3, 1}
+
+	s = Its(DeleteInSlice(Sti(s), 1, 1), reflect.TypeOf(0)).([]int)
+	assert.Equal(t, s, []int{5, 2, 1, 2, 3, 1})
+	s = Its(DeleteInSlice(Sti(s), 1, 2), reflect.TypeOf(0)).([]int)
+	assert.Equal(t, s, []int{5, 2, 2, 3})
+	s = Its(DeleteInSlice(Sti(s), 6, 1), reflect.TypeOf(0)).([]int)
+	assert.Equal(t, s, []int{5, 2, 2, 3})
+	s = Its(DeleteInSlice(Sti(s), 2, -1), reflect.TypeOf(0)).([]int)
+	assert.Equal(t, s, []int{5, 3})
+	s = Its(DeleteInSlice(Sti(s), nil, -1), reflect.TypeOf(0)).([]int)
+	assert.Equal(t, s, []int{5, 3})
+
+	ss := Its(DeleteInSlice(nil, 2, -1), reflect.TypeOf(0))
+	assert.Equal(t, ss == nil, true)
 }

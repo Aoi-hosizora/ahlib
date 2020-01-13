@@ -1,6 +1,17 @@
-package xcollection
+package xslice
 
-import "reflect"
+import (
+	"math/rand"
+	"reflect"
+)
+
+func Shuffle(array []interface{}, source rand.Source) {
+	random := rand.New(source)
+	for i := len(array) - 1; i > 0; i-- {
+		j := random.Intn(i + 1)
+		array[i], array[j] = array[j], array[i]
+	}
+}
 
 // Convert specific slice to slice that element type in interface{}
 // Example:
@@ -49,6 +60,9 @@ func IndexOfSlice(slice []interface{}, value interface{}) (index int) {
 }
 
 func DeleteInSlice(slice []interface{}, value interface{}, n int) []interface{} {
+	if slice == nil {
+		return nil
+	}
 	cnt := 0
 	if n <= 0 {
 		n = len(slice)

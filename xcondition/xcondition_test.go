@@ -1,19 +1,19 @@
 package xcondition
 
 import (
-	"github.com/Aoi-hosizora/ahlib/xcollection"
+	"github.com/Aoi-hosizora/ahlib/xslice"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestIfThen(t *testing.T) {
-	assert.Equal(t, IfThen(1 == 1, "a"), "a")
-	assert.Equal(t, IfThen(1 != 1, "a"), nil)
+	assert.Equal(t, IfThen(true, "a"), "a")
+	assert.Equal(t, IfThen(false, "a"), nil)
 }
 
 func TestIfThenElse(t *testing.T) {
-	assert.Equal(t, IfThenElse(1 == 1, "a", "b"), "a")
-	assert.Equal(t, IfThenElse(1 != 1, "a", "b"), "b")
+	assert.Equal(t, IfThenElse(true, "a", "b"), "a")
+	assert.Equal(t, IfThenElse(false, "a", "b"), "b")
 }
 
 func TestDefaultIfNil(t *testing.T) {
@@ -31,8 +31,8 @@ func TestFirstNotNil(t *testing.T) {
 }
 
 func TestChoose(t *testing.T) {
-	arr := xcollection.Sti([...]int{1, 2})
-	slc := xcollection.Sti([]int{1, 2})
+	arr := xslice.Sti([...]int{1, 2})
+	slc := xslice.Sti([]int{1, 2})
 	assert.Equal(t, Choose(0, arr), 1)
 	assert.Equal(t, Choose(1, arr), 2)
 	assert.Equal(t, Choose(2, arr), nil)
