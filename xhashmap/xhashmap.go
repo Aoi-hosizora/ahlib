@@ -36,6 +36,15 @@ func (l *LinkedHashMap) Get(key string) (value interface{}, exist bool) {
 	return
 }
 
+func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value interface{}) {
+	l._checkLinkedHashMap()
+	value, exist := l.m[key]
+	if !exist {
+		return defaultValue
+	}
+	return value
+}
+
 func (l *LinkedHashMap) Remove(key string) (value interface{}, exist bool) {
 	l._checkLinkedHashMap()
 	value, exist = l.m[key]
@@ -43,6 +52,11 @@ func (l *LinkedHashMap) Remove(key string) (value interface{}, exist bool) {
 
 	l.i = xslice.Its(xslice.DeleteInSlice(xslice.Sti(l.i), key, -1), reflect.TypeOf("")).([]string)
 	return
+}
+
+func (l *LinkedHashMap) Clear() {
+	l.m = nil
+	l.i = nil
 }
 
 func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
@@ -59,8 +73,7 @@ func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return []byte{}, err
 		}
-		str := fmt.Sprintf("\"%s\":%s", field, string(b))
-		buf.Write([]byte(str))
+		buf.Write([]byte(fmt.Sprintf("\"%s\":%s", field, string(b))))
 		if idx < len(l.i)-1 {
 			buf.Write([]byte(","))
 		}

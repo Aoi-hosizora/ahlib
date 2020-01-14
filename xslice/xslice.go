@@ -59,6 +59,7 @@ func IndexOfSlice(slice []interface{}, value interface{}) (index int) {
 	return -1
 }
 
+// Delete the value in slice, n is delete time, -1 for all
 func DeleteInSlice(slice []interface{}, value interface{}, n int) []interface{} {
 	if slice == nil {
 		return nil
