@@ -15,3 +15,35 @@ func Uncapitalize(str string) string {
 	}
 	return strings.Replace(str, string(str[0]), strings.ToLower(string(str[0])), 1)
 }
+
+func PrettyJson(jsonString string, intent int, char string) string {
+	repeat := func(count int, char string) string {
+		out := ""
+		for idx := 0; idx < count; idx++ {
+			out += char
+		}
+		return out
+	}
+
+	curr := 0
+	out := ""
+	for _, c := range jsonString {
+		switch c {
+		case '{', '[':
+			curr++
+			out += string(c) + "\n" + repeat(curr*intent, char)
+		case '}', ']':
+			curr--
+			out += "\n" + repeat(curr*intent, char) + string(c)
+		case ',':
+			out += ",\n" + repeat(curr*intent, char)
+		case ':':
+			out += ": "
+		case ' ', '\n', '\t':
+			// pass
+		default:
+			out += string(c)
+		}
+	}
+	return out
+}

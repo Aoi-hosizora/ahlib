@@ -7,77 +7,105 @@ import (
 
 // Save all mapper between entities
 type EntitiesMapper struct {
-	_entities []*Entity
+	_entities []*EntityMapper
 }
 
-// Save all map rule between specific _from and _to entity type
-type Entity struct {
-	_from    reflect.Type
-	_to      reflect.Type
-	_mapper  *EntitiesMapper
-	_mapRule []*_mapRule
+// Save all map rule between specific _fromType and _toType entity type
+type EntityMapper struct {
+	_mapper *EntitiesMapper
+
+	_fromType reflect.Type
+	_toType   reflect.Type
+
+	_directRule []*_fieldDirectMapRule
+	_nestRule   []*_fieldNestMapRule
 }
 
-// Save a map rule between specific structField
-type _mapRule struct {
-	_to      reflect.StructField
+// Save the direct map rule between specific structField
+type _fieldDirectMapRule struct {
+	_toField reflect.StructField
 	_mapFunc MapFunc
 }
 
+// Save the nest map rule between specific structField
+type _fieldNestMapRule struct {
+	_fromField reflect.StructField
+	_toField   reflect.StructField
+}
+
+// Map Function from interface{} (is fromModel type) to interface{} (is toModel field type)
 type MapFunc func(interface{}) interface{}
 
 var (
-	CreateMapperFromInvalidError = errors.New("could not create mapper by non-ptr and non-struct model")
-	MapToModelNilError           = errors.New("could not map to a nil model")
-	MapDifferentKindError        = errors.New("could not map to a different kind of type")
-	MapSmallSieArrayError        = errors.New("could not map to a small size of array")
-	MapToNotSupportKindError     = errors.New("could not map a non-ptr/non-slice/non-array/non-struct model")
+	_createMapperFromInvalidPanic = errors.New("createMapper: could not create mapper by non-ptr and non-struct model")
+
+	MapToModelNilError       = errors.New("could not map to a nil model")
+	MapDifferentKindError    = errors.New("could not map to a different kind of type")
+	MapSmallSieArrayError    = errors.New("could not map to a small size of array")
+	MapToNotSupportKindError = errors.New("could not map a non-ptr/non-slice/non-array/non-struct model")
 )
 
-// Create a entity from entitiesMapper, not add into entitiesMapper yet
-func CreateMapper(fromModel interface{}, toModel interface{}) *Entity {
-	m := new(EntitiesMapper)
-	return m.CreateMapper(fromModel, toModel)
+// Create a entity from entitiesMapper
+func NewEntitiesMapper() *EntitiesMapper {
+	return new(EntitiesMapper)
 }
 
 // CreateMapper of *EntitiesMapper
 // panic when fromModel or toModel is non-ptr and non-struct
-func (e *EntitiesMapper) CreateMapper(fromModel interface{}, toModel interface{}) *Entity {
+func (e *EntitiesMapper) CreateMapper(fromModel interface{}, toModel interface{}) *EntityMapper {
 	checkEl := func(model interface{}) reflect.Type {
 		t := reflect.TypeOf(model)
 		if t.Kind() == reflect.Ptr {
 			t = t.Elem()
 		}
 		if t.Kind() != reflect.Struct {
-			panic(CreateMapperFromInvalidError)
+			panic(_createMapperFromInvalidPanic)
 		}
 		return t
 	}
 
-	return &Entity{
-		_from:   checkEl(fromModel),
-		_to:     checkEl(toModel),
-		_mapper: e,
+	return &EntityMapper{
+		_fromType: checkEl(fromModel),
+		_toType:   checkEl(toModel),
+		_mapper:   e,
 	}
 }
 
 // Add entity mapper rule to entitiesMapper
-func (e *Entity) Build() *EntitiesMapper {
+func (e *EntityMapper) Build() *EntitiesMapper {
 	e._mapper._entities = append(e._mapper._entities, e)
 	return e._mapper
 }
 
-// Add user defined field mapper rule, ignore if this field not exist
-func (e *Entity) ForMember(toFieldString string, mapFunc MapFunc) *Entity {
-	toField, ok := e._to.FieldByName(toFieldString)
+// Add direct field mapper rule, ignore if toField is not exist
+func (e *EntityMapper) ForMember(toFieldString string, mapFunc MapFunc) *EntityMapper {
+	toField, ok := e._toType.FieldByName(toFieldString)
 	if !ok {
 		return e
 	}
-	rule := &_mapRule{
-		_to:      toField,
+	rule := &_fieldDirectMapRule{
+		_toField: toField,
 		_mapFunc: mapFunc,
 	}
-	e._mapRule = append(e._mapRule, rule)
+	e._directRule = append(e._directRule, rule)
+	return e
+}
+
+// Add nest field mapper rule, ignore if fromField or toField is not exist
+func (e *EntityMapper) ForNest(fromFieldString string, toFieldString string) *EntityMapper {
+	fromField, ok := e._fromType.FieldByName(fromFieldString)
+	if !ok {
+		return e
+	}
+	toField, ok := e._toType.FieldByName(toFieldString)
+	if !ok {
+		return e
+	}
+	rule := &_fieldNestMapRule{
+		_fromField: fromField,
+		_toField:   toField,
+	}
+	e._nestRule = append(e._nestRule, rule)
 	return e
 }
 
@@ -98,9 +126,14 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 
 	switch kind {
 	case reflect.Ptr:
-		// toModelElem := reflect.ValueOf(toModel).Elem()
+		// get elem of the from(ptr) -> map elem as toElem -> put toElem to to(ptr)
 		toModelElem := reflect.New(reflect.TypeOf(toModel).Elem()).Elem()
-		fromElem := reflect.ValueOf(from).Elem()
+		fromValue := reflect.ValueOf(from)
+		if fromValue.IsNil() {
+			return nil, nil
+		}
+		// from field not nil
+		fromElem := fromValue.Elem()
 		toElem, err := e.Map(toModelElem.Interface(), fromElem.Interface())
 		if err != nil {
 			return nil, err
@@ -109,14 +142,13 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 		toValue.Elem().Set(reflect.ValueOf(toElem))
 		return toValue.Interface(), nil
 	case reflect.Slice:
+		// get elem of the from(slice) -> map all elem as toElem -> put toElem to to(slice)
 		fromValue := reflect.ValueOf(from)
 		fromLen := fromValue.Len()
 		toValue := reflect.MakeSlice(toType, fromLen, fromLen)
 		if fromLen == 0 {
 			return toValue.Interface(), nil
 		}
-		// call of reflect.Value.Elem on slice Value
-		// toModelElem := reflect.ValueOf(toModel).Elem()
 		toModelElem := reflect.New(reflect.TypeOf(toModel).Elem()).Elem()
 		for idx := 0; idx < fromLen; idx++ {
 			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface())
@@ -127,6 +159,7 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 		}
 		return toValue.Interface(), nil
 	case reflect.Array:
+		// check fromArr and toArr size -> get elem of the from(array) -> map all elem as toElem -> put toElem to to(array)
 		fromValue := reflect.ValueOf(from)
 		fromLen := fromValue.Len()
 		toValue := reflect.New(toType).Elem()
@@ -146,12 +179,12 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 		}
 		return toValue.Interface(), nil
 	case reflect.Struct:
+		// after switch
 	default:
 		return nil, MapToNotSupportKindError
 	}
 
-	// !!!!!!
-	// copy same field
+	// copy same name and same type of field in struct
 	fromValue := reflect.ValueOf(from)
 	toValue := reflect.New(reflect.TypeOf(toModel)).Elem()
 	for idx := 0; idx < toType.NumField(); idx++ {
@@ -162,10 +195,10 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 		}
 	}
 
-	// find the first map rule
-	var mapEntity *Entity
+	// find the first map rule of (fromType, toType) tuple
+	var mapEntity *EntityMapper
 	for _, entity := range e._entities {
-		if entity._from == fromType && entity._to == toType {
+		if entity._fromType == fromType && entity._toType == toType {
 			mapEntity = entity
 			break
 		}
@@ -174,9 +207,26 @@ func (e *EntitiesMapper) Map(toModel interface{}, from interface{}) (interface{}
 		return toValue.Interface(), nil
 	}
 
-	// map through rule
-	for _, rule := range mapEntity._mapRule {
-		toValue.FieldByIndex(rule._to.Index).Set(reflect.ValueOf(rule._mapFunc(from)))
+	// map through the found rule
+
+	// direct, through _mapFunc
+	for _, rule := range mapEntity._directRule {
+		toValue.FieldByIndex(rule._toField.Index).Set(reflect.ValueOf(rule._mapFunc(from)))
 	}
+
+	// nest, through e.Map
+	for _, rule := range mapEntity._nestRule {
+		toFieldValue := toValue.FieldByIndex(rule._toField.Index)
+		fromFieldValue := fromValue.FieldByIndex(rule._fromField.Index)
+		// from field not nil
+		if fromFieldValue.Kind() != reflect.Ptr || !fromFieldValue.IsNil() {
+			toFieldNew, err := e.Map(toFieldValue.Interface(), fromFieldValue.Interface())
+			if err != nil {
+				return nil, err
+			}
+			toFieldValue.Set(reflect.ValueOf(toFieldNew))
+		}
+	}
+
 	return toValue.Interface(), nil
 }

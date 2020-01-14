@@ -34,7 +34,7 @@ func FirstNotNil(values ...interface{}) interface{} {
 }
 
 // choose slice, check len of args and choose the num one (from zero)
-func ChooseSlice(num int, args []interface{}) interface{} {
+func _choose(num int, args []interface{}) interface{} {
 	if len(args) >= num + 1 {
 		return args[num]
 	}
@@ -42,13 +42,13 @@ func ChooseSlice(num int, args []interface{}) interface{} {
 }
 
 func First(args ...interface{}) interface{} {
-	return ChooseSlice(0, args)
+	return _choose(0, args)
 }
 
 func Second(args ...interface{}) interface{} {
-	return ChooseSlice(1, args)
+	return _choose(1, args)
 }
 
 func Third(args ...interface{}) interface{} {
-	return ChooseSlice(2, args)
+	return _choose(2, args)
 }

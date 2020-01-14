@@ -1,7 +1,6 @@
 package xcondition
 
 import (
-	"github.com/Aoi-hosizora/ahlib/xslice"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,13 +27,6 @@ func TestFirstNotNil(t *testing.T) {
 	assert.Equal(t, FirstNotNil(1, nil), 1)
 	assert.Equal(t, FirstNotNil(nil, nil, 1), 1)
 	assert.Equal(t, FirstNotNil(nil, nil, nil, nil), nil)
-}
-
-func TestChooseSlice(t *testing.T) {
-	slc := xslice.Sti([]int{1, 2})
-	assert.Equal(t, ChooseSlice(0, slc), 1)
-	assert.Equal(t, ChooseSlice(1, slc), 2)
-	assert.Equal(t, ChooseSlice(2, slc), nil)
 }
 
 var (
