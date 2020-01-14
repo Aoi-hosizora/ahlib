@@ -1,6 +1,9 @@
 package xstring
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 func Capitalize(str string) string {
 	if len(str) == 0 {
@@ -14,6 +17,15 @@ func Uncapitalize(str string) string {
 		return ""
 	}
 	return strings.Replace(str, string(str[0]), strings.ToLower(string(str[0])), 1)
+}
+
+// return string(byte[]), return "" if err
+func MarshalJson(object interface{}) string {
+	j, err := json.Marshal(object)
+	if err != nil {
+		return ""
+	}
+	return string(j)
 }
 
 func PrettyJson(jsonString string, intent int, char string) string {
