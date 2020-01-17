@@ -44,19 +44,19 @@ type Controller struct {
 	PD  int       `di:"d"` // inject data by name
 }
 
-func NewServiceA(dic DiContainer) *ServiceA {
+func NewServiceA(dic *DiContainer) *ServiceA {
 	a := &ServiceA{}
 	dic.Inject(a)
 	return &ServiceA{}
 }
 
-func NewServiceB(dic DiContainer) *ServiceB {
+func NewServiceB(dic *DiContainer) *ServiceB {
 	b := &ServiceB{}
 	dic.Inject(b)
 	return b
 }
 
-func NewServiceC(dic DiContainer) *ServiceC {
+func NewServiceC(dic *DiContainer) *ServiceC {
 	c := &ServiceC{}
 	dic.Inject(c)
 	return c
@@ -82,4 +82,8 @@ func Test_DiContainer_Inject(t *testing.T) {
 	assert.Equal(t, ctrl.SSB.C(2), 4)
 	assert.Equal(t, ctrl.SC == nil, true)
 	assert.Equal(t, ctrl.PD, 123)
+
+	assert.Equal(t, HasNilDi(ctrl), false)
+	ctrl2 := &Controller{}
+	assert.Equal(t, HasNilDi(ctrl2), true)
 }

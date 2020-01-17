@@ -20,7 +20,7 @@ var (
 func (e *EntityMapper) CreateMapper(fromModel interface{}, toModel interface{}) *Entity {
 	checkEl := func(model interface{}) reflect.Type {
 		t := reflect.TypeOf(model)
-		if t.Kind() == reflect.Ptr {
+		for t.Kind() == reflect.Ptr {
 			t = t.Elem()
 		}
 		if t.Kind() != reflect.Struct {
