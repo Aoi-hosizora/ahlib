@@ -71,6 +71,7 @@ func TestEntitiesMapper_Map(t *testing.T) {
 
 	dtoTest1 := &Dto{Flag: 0.333, Name: "First=Last", Age: 20, Nest: &NestDto{T: 2, Extra2: "before extra after extra000"}}
 	dtoTest2 := Dto{Flag: 0.444, Name: "Third=Fourth", Age: 10, Nest: nil}
+	dtoTest3 := &Dto{Flag: 0.333, Name: "First=Last_Extra_Disposable", Age: 20, Nest: &NestDto{T: 2, Extra2: "before extra after extra000"}}
 
 	pos1 := []*Po{po1, &po2}
 	pos2 := [...]*Po{po1, &po2}
@@ -80,20 +81,38 @@ func TestEntitiesMapper_Map(t *testing.T) {
 	dtosTest2 := [...]*Dto{dtoTest1, &dtoTest2}
 	dtosTest3 := []Dto{*dtoTest1, dtoTest2}
 
+	// directly map pointer
 	dto1 := xcondition.First(_mapper.Map(&Dto{}, po1)).(*Dto)
 	fmt.Println(xstring.MarshalJson(dto1))
 	assert.Equal(t, dto1, dtoTest1)
 
+	// directly map struct
 	dto2 := xcondition.First(_mapper.Map(Dto{}, po2)).(Dto)
 	fmt.Println(xstring.MarshalJson(dto2))
 	assert.Equal(t, dto2, dtoTest2)
 
+	// map pointer with disposable option
+	dto6 := xcondition.First(_mapper.Map(&Dto{}, po1, NewMapOption(&Po{}, &Dto{}, func(i interface{}, j interface{}) interface{} {
+		to := j.(Dto)
+		to.Name += "_Extra"
+		return to
+	}), NewMapOption(&Po{}, &Dto{}, func(i interface{}, j interface{}) interface{} {
+		to := j.(Dto)
+		to.Name += "_Disposable"
+		return to
+	}))).(*Dto)
+	fmt.Println(xstring.MarshalJson(dto6))
+	assert.Equal(t, dto6, dtoTest3)
+
+	// map slice of pointer
 	dto3 := xcondition.First(_mapper.Map([]*Dto{}, pos1)).([]*Dto)
 	assert.Equal(t, dto3, dtosTest1)
 
+	// map array
 	dto4 := xcondition.First(_mapper.Map([2]*Dto{}, pos2)).([2]*Dto)
 	assert.Equal(t, dto4, dtosTest2)
 
+	// map slice of struct
 	dto5 := xcondition.First(_mapper.Map([]Dto{}, pos3)).([]Dto)
 	assert.Equal(t, dto5, dtosTest3)
 }

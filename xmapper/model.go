@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+// public: MapFunc ExtraMapFunc EntityMapper DisposableMapOption
+
 // Map Function from interface{} (is fromModel type) to interface{} (is toModel field type)
 type MapFunc func(interface{}) interface{}
 
@@ -12,18 +14,18 @@ type ExtraMapFunc func(interface{}, interface{}) interface{}
 
 // Save all mapper between entities
 type EntityMapper struct {
-	_entities []*Entity
+	_entities []*entity
 }
 
 // Save all map rule between specific _fromType and _toType entity type
-type Entity struct {
+type entity struct {
 	_mapper *EntityMapper
 
 	_fromType reflect.Type
 	_toType   reflect.Type
 
 	// Save map rule between specific field
-	// *_fieldDirectMapRule, *_fieldFromMapRule, ExtraMapFunc
+	// *_fieldDirectMapRule, *_fieldFromMapRule, _mapFunc
 	_rules []_mapRule
 }
 
@@ -41,6 +43,12 @@ type _fieldFromMapRule struct {
 	_fromField reflect.StructField
 	_toField   reflect.StructField
 	_isNest    bool
+}
+
+type DisposableMapOption struct {
+	_fromType reflect.Type
+	_toType   reflect.Type
+	_mapFunc  ExtraMapFunc
 }
 
 // Create a entity from entitiesMapper

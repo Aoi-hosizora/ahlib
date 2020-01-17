@@ -15,31 +15,32 @@ var (
 	mapExtraFunctionReturnError = errors.New("could not map extra function to a different type")
 )
 
+// check element and struct type
+func _checkEl(model interface{}) reflect.Type {
+	t := reflect.TypeOf(model)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		panic(createMapperFromInvalidPanic)
+	}
+	return t
+}
+
 // Create or modify mapper of *EntityMapper
 // panic when fromModel or toModel is non-ptr and non-struct
-func (e *EntityMapper) CreateMapper(fromModel interface{}, toModel interface{}) *Entity {
-	checkEl := func(model interface{}) reflect.Type {
-		t := reflect.TypeOf(model)
-		for t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
-		if t.Kind() != reflect.Struct {
-			panic(createMapperFromInvalidPanic)
-		}
-		return t
-	}
+func (e *EntityMapper) CreateMapper(fromModel interface{}, toModel interface{}) *entity {
+	_fromType := _checkEl(fromModel)
+	_toType := _checkEl(toModel)
 
-	_fromType := checkEl(fromModel)
-	_toType := checkEl(toModel)
-
-	// Use exist Entity
+	// Use exist entity
 	for _, entity := range e._entities {
 		if entity._fromType == _fromType && entity._toType == _toType {
 			return entity
 		}
 	}
 
-	return &Entity{
+	return &entity{
 		_fromType: _fromType,
 		_toType:   _toType,
 		_mapper:   e,
@@ -47,12 +48,25 @@ func (e *EntityMapper) CreateMapper(fromModel interface{}, toModel interface{}) 
 }
 
 // Add entity mapper rule to entitiesMapper
-func (e *Entity) Build() *EntityMapper {
+func (e *entity) Build() *EntityMapper {
 	e._mapper._entities = append(e._mapper._entities, e)
 	return e._mapper
 }
 
-func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, error) {
+// Create DisposableMapOption for Map
+func NewMapOption(fromModel interface{}, toModel interface{}, extraMapFunc ExtraMapFunc) *DisposableMapOption {
+	_fromType := _checkEl(fromModel)
+	_toType := _checkEl(toModel)
+
+	return &DisposableMapOption{
+		_fromType: _fromType,
+		_toType:   _toType,
+		_mapFunc:  extraMapFunc,
+	}
+}
+
+// options: for disposable map options
+func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*DisposableMapOption) (interface{}, error) {
 	if toModel == nil {
 		return nil, mapToModelNilError
 	}
@@ -67,6 +81,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		return nil, mapDifferentKindError
 	}
 
+	// handle kind of type,generate all struct type
 	switch kind {
 	case reflect.Ptr:
 		// get elem of the from(ptr) -> map elem as toElem -> put toElem to to(ptr)
@@ -77,7 +92,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		}
 		// from field not nil
 		fromElem := fromValue.Elem()
-		toElem, err := e.Map(toModelElem.Interface(), fromElem.Interface())
+		toElem, err := e.Map(toModelElem.Interface(), fromElem.Interface(), options...)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +109,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		}
 		toModelElem := reflect.New(reflect.TypeOf(toModel).Elem()).Elem()
 		for idx := 0; idx < fromLen; idx++ {
-			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface())
+			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface(), options...)
 			if err != nil {
 				return nil, err
 			}
@@ -114,7 +129,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		}
 		toModelElem := reflect.New(reflect.TypeOf(toModel).Elem()).Elem()
 		for idx := 0; idx < fromLen; idx++ {
-			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface())
+			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface(), options...)
 			if err != nil {
 				return nil, err
 			}
@@ -127,6 +142,8 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		return nil, mapToNotSupportKindError
 	}
 
+	// --------- struct ---------
+
 	// copy same name and same type of field in struct
 	fromValue := reflect.ValueOf(from)
 	toValue := reflect.New(reflect.TypeOf(toModel)).Elem()
@@ -138,49 +155,69 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}) (interface{}, 
 		}
 	}
 
+	// match map type and option
+
 	// find the first map rule of (fromType, toType) tuple
-	var mapEntity *Entity
+	var mapEntity *entity
 	for _, entity := range e._entities {
+		// already non-ptr
 		if entity._fromType == fromType && entity._toType == toType {
 			mapEntity = entity
 			break
 		}
 	}
-	if mapEntity == nil {
-		return toValue.Interface(), nil
+	// find all disposable map option for order
+	var matchedOptions []*DisposableMapOption
+	for _, option := range options {
+		// already non-ptr
+		if option._fromType == fromType && option._toType == toType {
+			matchedOptions = append(matchedOptions, option)
+		}
 	}
 
-	// map through the found rule
-	// for functions register order
-	for _, rule := range mapEntity._rules {
-		switch rule.(type) {
-		case *_fieldDirectMapRule: // direct, through _mapFunc
-			r := rule.(*_fieldDirectMapRule)
-			toValue.FieldByIndex(r._toField.Index).Set(reflect.ValueOf(r._mapFunc(from)))
-		case *_fieldFromMapRule:
-			r := rule.(*_fieldFromMapRule)
-			if r._isNest { // nest, through e.Map
-				toFieldValue := toValue.FieldByIndex(r._toField.Index)
-				fromFieldValue := fromValue.FieldByIndex(r._fromField.Index)
-				// from field not nil
-				if fromFieldValue.Kind() != reflect.Ptr || !fromFieldValue.IsNil() {
-					toFieldNew, err := e.Map(toFieldValue.Interface(), fromFieldValue.Interface())
-					if err != nil {
-						return nil, err
+	// matched map entity type
+	if mapEntity != nil {
+		// map through the found rule
+		// for functions register order
+		for _, rule := range mapEntity._rules {
+			switch rule.(type) {
+			case *_fieldDirectMapRule: // direct, through _mapFunc
+				r := rule.(*_fieldDirectMapRule)
+				toValue.FieldByIndex(r._toField.Index).Set(reflect.ValueOf(r._mapFunc(from)))
+			case *_fieldFromMapRule:
+				r := rule.(*_fieldFromMapRule)
+				if r._isNest { // nest, through e.Map
+					toFieldValue := toValue.FieldByIndex(r._toField.Index)
+					fromFieldValue := fromValue.FieldByIndex(r._fromField.Index)
+					// from field not nil
+					if fromFieldValue.Kind() != reflect.Ptr || !fromFieldValue.IsNil() {
+						toFieldNew, err := e.Map(toFieldValue.Interface(), fromFieldValue.Interface(), options...)
+						if err != nil {
+							return nil, err
+						}
+						toFieldValue.Set(reflect.ValueOf(toFieldNew))
 					}
-					toFieldValue.Set(reflect.ValueOf(toFieldNew))
+				} else { // copy
+					toValue.FieldByIndex(r._toField.Index).Set(fromValue.FieldByIndex(r._fromField.Index))
 				}
-			} else { // copy
-				toValue.FieldByIndex(r._toField.Index).Set(fromValue.FieldByIndex(r._fromField.Index))
+			case ExtraMapFunc: // _mapFunc
+				r := rule.(ExtraMapFunc)
+				extraValue := r(fromValue.Interface(), toValue.Interface())
+				if reflect.TypeOf(extraValue) != toType {
+					return nil, mapExtraFunctionReturnError
+				}
+				toValue = reflect.ValueOf(extraValue)
 			}
-		case ExtraMapFunc: // ExtraMapFunc
-			r := rule.(ExtraMapFunc)
-			extraValue := r(fromValue.Interface(), toValue.Interface())
-			if reflect.TypeOf(extraValue) != toType {
-				return nil, mapExtraFunctionReturnError
-			}
-			toValue = reflect.ValueOf(extraValue)
 		}
+	}
+
+	// map through the options
+	for _, option := range matchedOptions {
+		extraValue := option._mapFunc(fromValue.Interface(), toValue.Interface())
+		if reflect.TypeOf(extraValue) != toType {
+			return nil, mapExtraFunctionReturnError
+		}
+		toValue = reflect.ValueOf(extraValue)
 	}
 
 	return toValue.Interface(), nil

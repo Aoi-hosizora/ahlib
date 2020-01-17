@@ -1,7 +1,7 @@
 package xmapper
 
 // Add direct field mapper rule, ignore if toField is not exist
-func (e *Entity) ForMember(toFieldString string, mapFunc MapFunc) *Entity {
+func (e *entity) ForMember(toFieldString string, mapFunc MapFunc) *entity {
 	toField, ok := e._toType.FieldByName(toFieldString)
 	if !ok {
 		return e
@@ -15,7 +15,7 @@ func (e *Entity) ForMember(toFieldString string, mapFunc MapFunc) *Entity {
 }
 
 // Add nest field mapper rule, ignore if fromField or toField is not exist
-func (e *Entity) ForNest(fromFieldString string, toFieldString string) *Entity {
+func (e *entity) ForNest(fromFieldString string, toFieldString string) *entity {
 	fromField, ok := e._fromType.FieldByName(fromFieldString)
 	if !ok {
 		return e
@@ -34,7 +34,7 @@ func (e *Entity) ForNest(fromFieldString string, toFieldString string) *Entity {
 }
 
 // Add copy field mapper rule, ignore if (fromField or toField is not exist) or (field type if different)
-func (e *Entity) ForCopy(fromFieldString string, toFieldString string) *Entity {
+func (e *entity) ForCopy(fromFieldString string, toFieldString string) *entity {
 	fromField, ok := e._fromType.FieldByName(fromFieldString)
 	if !ok {
 		return e
@@ -56,7 +56,7 @@ func (e *Entity) ForCopy(fromFieldString string, toFieldString string) *Entity {
 }
 
 // Add extra function mapper rule
-func (e *Entity) ForExtra(extraMapFunc ExtraMapFunc) *Entity {
+func (e *entity) ForExtra(extraMapFunc ExtraMapFunc) *entity {
 	e._rules = append(e._rules, extraMapFunc)
 	return e
 }
