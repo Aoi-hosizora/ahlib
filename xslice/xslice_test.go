@@ -3,7 +3,6 @@ package xslice
 import (
 	"github.com/stretchr/testify/assert"
 	"math/rand"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -39,34 +38,38 @@ func TestSti(t *testing.T) {
 func TestIts(t *testing.T) {
 	i := []interface{}{interface{}("123"), interface{}("456")}
 	s := []string{"123", "456"}
-	assert.Equal(t, Its(i, reflect.TypeOf("")), interface{}(s))
-	assert.Equal(t, Its(i, reflect.TypeOf(0)), nil)
-	assert.Equal(t, Its(nil, reflect.TypeOf(0)), nil)
+	assert.Equal(t, Its(i, ""), interface{}(s))
+	assert.Equal(t, Its(i, 0), nil)
+	assert.Equal(t, Its(nil, 0), nil)
 	assert.Equal(t, Its(nil, nil), nil)
-	assert.Equal(t, Its([]interface{}{0, "1"}, reflect.TypeOf(0)), nil)
+	assert.Equal(t, Its([]interface{}{0, "1"}, 0), nil)
 }
 
-func TestIndexOfSlice(t *testing.T) {
+func TestIndexOf(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3}
-	assert.Equal(t, IndexOfSlice(Sti(s), 1), 0)
-	assert.Equal(t, IndexOfSlice(Sti(s), 6), -1)
-	assert.Equal(t, IndexOfSlice(Sti(s), nil), -1)
+	assert.Equal(t, IndexOf(Sti(s), 1), 0)
+	assert.Equal(t, IndexOf(Sti(s), 6), -1)
+	assert.Equal(t, IndexOf(Sti(s), nil), -1)
 }
 
-func TestDeleteInSlice(t *testing.T) {
+func TestDelete(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3, 1}
 
-	s = Its(DeleteInSlice(Sti(s), 1, 1), reflect.TypeOf(0)).([]int)
+	s = Its(Delete(Sti(s), 1, 1), 0).([]int)
 	assert.Equal(t, s, []int{5, 2, 1, 2, 3, 1})
-	s = Its(DeleteInSlice(Sti(s), 1, 2), reflect.TypeOf(0)).([]int)
+	s = Its(Delete(Sti(s), 1, 2), 0).([]int)
 	assert.Equal(t, s, []int{5, 2, 2, 3})
-	s = Its(DeleteInSlice(Sti(s), 6, 1), reflect.TypeOf(0)).([]int)
+	s = Its(Delete(Sti(s), 6, 1), 0).([]int)
 	assert.Equal(t, s, []int{5, 2, 2, 3})
-	s = Its(DeleteInSlice(Sti(s), 2, -1), reflect.TypeOf(0)).([]int)
+	s = Its(Delete(Sti(s), 2, -1), 0).([]int)
 	assert.Equal(t, s, []int{5, 3})
-	s = Its(DeleteInSlice(Sti(s), nil, -1), reflect.TypeOf(0)).([]int)
+	s = Its(Delete(Sti(s), nil, -1), 0).([]int)
 	assert.Equal(t, s, []int{5, 3})
 
-	ss := Its(DeleteInSlice(nil, 2, -1), reflect.TypeOf(0))
+	ss := Its(Delete(nil, 2, -1), 0)
 	assert.Equal(t, ss == nil, true)
+}
+
+func TestDeleteAll(t *testing.T) {
+	assert.Equal(t, Its(DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), 0).([]int), []int{5, 2, 2, 3})
 }

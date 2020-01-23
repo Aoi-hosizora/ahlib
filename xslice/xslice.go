@@ -34,9 +34,10 @@ func Sti(slice interface{}) []interface{} {
 
 // Convert slice that element type is interface{} to specific slice
 // Example:
-// 		Its([]interface{}{interface{}(0), interface{}(1)}, reflect.TypeOf(0)).([]int) -> []int{0, 1}
-func Its(slice []interface{}, elType reflect.Type) interface{} {
-	if slice == nil || elType == nil {
+// 		Its([]interface{}{interface{}(0), interface{}(1)}, 0).([]int) -> []int{0, 1}
+func Its(slice []interface{}, elModel interface{}) interface{} {
+	elType := reflect.TypeOf(elModel)
+	if slice == nil || elModel == nil {
 		return nil
 	}
 	si := reflect.MakeSlice(reflect.SliceOf(elType), len(slice), len(slice))
@@ -50,7 +51,7 @@ func Its(slice []interface{}, elType reflect.Type) interface{} {
 	return si.Interface()
 }
 
-func IndexOfSlice(slice []interface{}, value interface{}) (index int) {
+func IndexOf(slice []interface{}, value interface{}) (index int) {
 	for idx, val := range slice {
 		if val == value {
 			return idx
@@ -60,7 +61,9 @@ func IndexOfSlice(slice []interface{}, value interface{}) (index int) {
 }
 
 // Delete the value in slice, n is delete time, -1 for all
-func DeleteInSlice(slice []interface{}, value interface{}, n int) []interface{} {
+// Example:
+// 		Its(Delete(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1, 1), 0).([]int) == []int{5, 2, 1, 2, 3, 1}
+func Delete(slice []interface{}, value interface{}, n int) []interface{} {
 	if slice == nil {
 		return nil
 	}
@@ -68,7 +71,7 @@ func DeleteInSlice(slice []interface{}, value interface{}, n int) []interface{} 
 	if n <= 0 {
 		n = len(slice)
 	}
-	idx := IndexOfSlice(slice, value)
+	idx := IndexOf(slice, value)
 	for idx != -1 && cnt < n {
 		if len(slice) == idx+1 {
 			slice = slice[:idx]
@@ -76,7 +79,11 @@ func DeleteInSlice(slice []interface{}, value interface{}, n int) []interface{} 
 			slice = append(slice[:idx], slice[idx+1:]...)
 		}
 		cnt++
-		idx = IndexOfSlice(slice, value)
+		idx = IndexOf(slice, value)
 	}
 	return slice
+}
+
+func DeleteAll(slice []interface{}, value interface{}) []interface{} {
+	return Delete(slice, value, -1)
 }

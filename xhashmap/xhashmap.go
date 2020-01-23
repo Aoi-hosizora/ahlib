@@ -50,7 +50,7 @@ func (l *LinkedHashMap) Remove(key string) (value interface{}, exist bool) {
 	value, exist = l.m[key]
 	delete(l.m, key)
 
-	l.i = xslice.Its(xslice.DeleteInSlice(xslice.Sti(l.i), key, -1), reflect.TypeOf("")).([]string)
+	l.i = xslice.Its(xslice.Delete(xslice.Sti(l.i), key, -1), reflect.TypeOf("")).([]string)
 	return
 }
 
