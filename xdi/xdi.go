@@ -1,6 +1,7 @@
 package xdi
 
 import (
+	"github.com/Aoi-hosizora/ahlib/xcommon"
 	"reflect"
 )
 
@@ -56,14 +57,13 @@ func (d *DiContainer) GetProvideByName(name string) (service interface{}, exist 
 // diTag: "" || - -> ignore
 // diTag: ~       -> auto inject
 // diTag: name    -> inject by name
-func (d *DiContainer) Inject(ctrl interface{}) {
-	var ctrlType = reflect.TypeOf(ctrl)
-	for ctrlType.Kind() == reflect.Ptr {
-		ctrlType = ctrlType.Elem()
-	}
+func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
+	var ctrlType = xcommon.ElemType(ctrl)
+	var ctrlValue = xcommon.ElemValue(ctrl)
 	if ctrlType.Kind() != reflect.Struct {
 		panic("Object for injection should be struct, have " + ctrlType.String())
 	}
+	allInjected = true
 
 	for fieldIdx := 0; fieldIdx < ctrlType.NumField(); fieldIdx++ {
 		field := ctrlType.Field(fieldIdx)
@@ -73,17 +73,16 @@ func (d *DiContainer) Inject(ctrl interface{}) {
 		}
 
 		var service interface{}
-		var ok bool
+		var exist bool
 		if diTag == "~" {
-			service, ok = d._provByType[field.Type]
+			service, exist = d._provByType[field.Type]
 		} else {
-			service, ok = d._provByName[diTag]
+			service, exist = d._provByName[diTag]
 		}
-		if ok {
-			ctrlValue := reflect.ValueOf(ctrl)
-			for ctrlValue.Kind() == reflect.Ptr {
-				ctrlValue = ctrlValue.Elem()
-			}
+
+		if !exist {
+			allInjected = false
+		} else {
 			ctrlField := ctrlValue.Field(fieldIdx)
 
 			if ctrlField.IsValid() && ctrlField.CanSet() {
@@ -92,16 +91,15 @@ func (d *DiContainer) Inject(ctrl interface{}) {
 			}
 		}
 	}
+	return allInjected
 }
 
-// check if di field is nil
-func HasNilDi(ctrl interface{}) bool {
-	var ctrlType = reflect.TypeOf(ctrl)
-	for ctrlType.Kind() == reflect.Ptr {
-		ctrlType = ctrlType.Elem()
-	}
+// check if all field needed inject is not nil
+func AllInjected(ctrl interface{}) bool {
+	var ctrlType = xcommon.ElemType(ctrl)
+	var ctrlValue = xcommon.ElemValue(ctrl)
 	if ctrlType.Kind() != reflect.Struct {
-		panic("Object for injection should be struct, have " + ctrlType.String())
+		return true
 	}
 
 	for idx := 0; idx < ctrlType.NumField(); idx++ {
@@ -111,17 +109,10 @@ func HasNilDi(ctrl interface{}) bool {
 			continue
 		}
 
-		ctrlValue := reflect.ValueOf(ctrl)
-		for ctrlValue.Kind() == reflect.Ptr {
-			ctrlValue = ctrlValue.Elem()
-		}
 		ctrlField := ctrlValue.Field(idx)
-
-		if ctrlField.IsValid() && ctrlField.CanSet() {
-			if ctrlField.IsZero() {
-				return true
-			}
+		if ctrlField.IsValid() && ctrlField.CanSet() && ctrlField.IsZero() {
+			return false
 		}
 	}
-	return false
+	return true
 }

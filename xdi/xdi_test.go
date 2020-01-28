@@ -73,7 +73,7 @@ func Test_DiContainer_Inject(t *testing.T) {
 	dic.ProvideByName("d", 123)
 
 	ctrl := &Controller{}
-	dic.Inject(ctrl)
+	ok := dic.Inject(ctrl)
 
 	assert.Equal(t, ctrl.SA.A(), 2)
 	assert.Equal(t, ctrl.SB.B("a"), "a123")
@@ -83,7 +83,14 @@ func Test_DiContainer_Inject(t *testing.T) {
 	assert.Equal(t, ctrl.SC == nil, true)
 	assert.Equal(t, ctrl.PD, 123)
 
-	assert.Equal(t, HasNilDi(ctrl), false)
 	ctrl2 := &Controller{}
-	assert.Equal(t, HasNilDi(ctrl2), true)
+	ctrl3 := &struct{ Other int `di:"o"` }{}
+
+	assert.Equal(t, ok, true)
+	assert.Equal(t, AllInjected(ctrl), true)
+	assert.Equal(t, AllInjected(ctrl2), false)
+	assert.Equal(t, dic.Inject(ctrl2), true)
+	assert.Equal(t, AllInjected(ctrl3), false)
+	assert.Equal(t, dic.Inject(ctrl3), false)
+	// assert.Equal(t, dic.Inject(nil), true) -> panic
 }
