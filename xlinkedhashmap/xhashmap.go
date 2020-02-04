@@ -1,4 +1,4 @@
-package xhashmap
+package xlinkedhashmap
 
 import (
 	"bytes"
@@ -14,15 +14,14 @@ type LinkedHashMap struct {
 	i []string
 }
 
-func (l *LinkedHashMap) _checkLinkedHashMap() {
-	if l.m == nil {
-		l.m = make(map[string]interface{})
-		l.i = make([]string, 0)
+func NewLinkedHashMap() *LinkedHashMap {
+	return &LinkedHashMap{
+		m: make(map[string]interface{}),
+		i: make([]string, 0),
 	}
 }
 
 func (l *LinkedHashMap) Set(key string, value interface{}) {
-	l._checkLinkedHashMap()
 	_, exist := l.m[key]
 	l.m[key] = value
 	if !exist {
@@ -31,13 +30,11 @@ func (l *LinkedHashMap) Set(key string, value interface{}) {
 }
 
 func (l *LinkedHashMap) Get(key string) (value interface{}, exist bool) {
-	l._checkLinkedHashMap()
 	value, exist = l.m[key]
 	return
 }
 
 func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value interface{}) {
-	l._checkLinkedHashMap()
 	value, exist := l.m[key]
 	if !exist {
 		return defaultValue
@@ -46,11 +43,10 @@ func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value 
 }
 
 func (l *LinkedHashMap) Remove(key string) (value interface{}, exist bool) {
-	l._checkLinkedHashMap()
 	value, exist = l.m[key]
 	delete(l.m, key)
 
-	l.i = xslice.Its(xslice.Delete(xslice.Sti(l.i), key, -1), reflect.TypeOf("")).([]string)
+	l.i = xslice.Its(xslice.DeleteAll(xslice.Sti(l.i), key), "").([]string)
 	return
 }
 
@@ -60,7 +56,6 @@ func (l *LinkedHashMap) Clear() {
 }
 
 func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
-	l._checkLinkedHashMap()
 	ov := make([]interface{}, len(l.i))
 	for idx, field := range l.i {
 		ov[idx] = l.m[field]
@@ -83,7 +78,6 @@ func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
 }
 
 func (l *LinkedHashMap) String() string {
-	l._checkLinkedHashMap()
 	buf, err := l.MarshalJSON()
 	if err != nil {
 		return ""
@@ -92,7 +86,7 @@ func (l *LinkedHashMap) String() string {
 }
 
 func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
-	lhm := new(LinkedHashMap)
+	lhm := NewLinkedHashMap()
 	if object == nil {
 		return nil
 	}

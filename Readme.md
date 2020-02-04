@@ -9,8 +9,10 @@ Some useful golang functions library for personal use, inspired by [shomali11/ut
 ### Implementation
 
 + xcondition
-+ xhashmap
++ xlinkedhashmap
 + xslice
++ xset
 + xstring
 + xmapper
 + xdi
++ xcommon

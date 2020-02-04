@@ -52,6 +52,13 @@ func TestIndexOf(t *testing.T) {
 	assert.Equal(t, IndexOf(Sti(s), nil), -1)
 }
 
+func TestContains(t *testing.T) {
+	s := []int{1, 5, 2, 1, 2, 3}
+	assert.Equal(t, Contains(Sti(s), 1), true)
+	assert.Equal(t, Contains(Sti(s), 6), false)
+	assert.Equal(t, Contains(Sti(s), nil), false)
+}
+
 func TestDelete(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3, 1}
 
@@ -72,4 +79,10 @@ func TestDelete(t *testing.T) {
 
 func TestDeleteAll(t *testing.T) {
 	assert.Equal(t, Its(DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), 0).([]int), []int{5, 2, 2, 3})
+}
+
+func TestSliceDiff(t *testing.T) {
+	slice1 := []int{1, 2, 1, 3, 4, 3}
+	slice2 := []int{1, 5, 6, 4}
+	assert.Equal(t, Its(SliceDiff(Sti(slice1), Sti(slice2)), 0).([]int), []int{2, 3, 3})
 }
