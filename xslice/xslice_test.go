@@ -7,24 +7,6 @@ import (
 	"time"
 )
 
-func TestShuffle(t *testing.T) {
-	source := rand.NewSource(time.Now().UnixNano())
-
-	emptyArray := make([]interface{}, 0)
-	Shuffle(emptyArray, source)
-	assert.Equal(t, emptyArray, []interface{}{})
-
-	oneElementArray := []interface{}{11}
-	Shuffle(oneElementArray, source)
-	assert.Equal(t, oneElementArray, []interface{}{11})
-
-	array := []interface{}{"a", "b", "c"}
-	Shuffle(array, source)
-	assert.Contains(t, array, "a")
-	assert.Contains(t, array, "b")
-	assert.Contains(t, array, "c")
-}
-
 func TestSti(t *testing.T) {
 	s := []string{"123", "456"}
 	i := []interface{}{interface{}("123"), interface{}("456")}
@@ -41,6 +23,29 @@ func TestIts(t *testing.T) {
 	assert.Equal(t, Its(i, ""), interface{}(s))
 	assert.Equal(t, Its(nil, 0), nil)
 	assert.Equal(t, Its(nil, nil), nil)
+}
+
+func TestShuffle(t *testing.T) {
+	source := rand.NewSource(time.Now().UnixNano())
+
+	emptySlice := make([]interface{}, 0)
+	Shuffle(emptySlice, source)
+	assert.Equal(t, emptySlice, []interface{}{})
+
+	oneElementSlice := []interface{}{11}
+	Shuffle(oneElementSlice, source)
+	assert.Equal(t, oneElementSlice, []interface{}{11})
+
+	slice := []interface{}{"a", "b", "c"}
+	Shuffle(slice, source)
+	assert.Contains(t, slice, "a")
+	assert.Contains(t, slice, "b")
+	assert.Contains(t, slice, "c")
+}
+
+func TestReverse(t *testing.T) {
+	assert.Equal(t, Reverse(Sti([]int{1, 2, 3, 4, 5, 6})), Sti([]int{6, 5, 4, 3, 2, 1}))
+	assert.Equal(t, Reverse(Sti([]int{})), Sti([]int{}))
 }
 
 func TestIndexOf(t *testing.T) {
@@ -76,11 +81,11 @@ func TestDelete(t *testing.T) {
 }
 
 func TestDeleteAll(t *testing.T) {
-	assert.Equal(t, Its(DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), 0).([]int), []int{5, 2, 2, 3})
+	assert.Equal(t, DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), Sti([]int{5, 2, 2, 3}))
 }
 
 func TestSliceDiff(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
-	assert.Equal(t, Its(SliceDiff(Sti(slice1), Sti(slice2)), 0).([]int), []int{2, 3, 3})
+	assert.Equal(t, SliceDiff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
 }
