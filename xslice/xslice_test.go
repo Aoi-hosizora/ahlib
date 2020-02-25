@@ -65,15 +65,15 @@ func TestContains(t *testing.T) {
 func TestDelete(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3, 1}
 
-	s = Its(Delete(Sti(s), 1, 1), 0).([]int)
+	s = ItsOfInt(Delete(Sti(s), 1, 1))
 	assert.Equal(t, s, []int{5, 2, 1, 2, 3, 1})
-	s = Its(Delete(Sti(s), 1, 2), 0).([]int)
+	s = ItsOfInt(Delete(Sti(s), 1, 2))
 	assert.Equal(t, s, []int{5, 2, 2, 3})
-	s = Its(Delete(Sti(s), 6, 1), 0).([]int)
+	s = ItsOfInt(Delete(Sti(s), 6, 1))
 	assert.Equal(t, s, []int{5, 2, 2, 3})
-	s = Its(Delete(Sti(s), 2, -1), 0).([]int)
+	s = ItsOfInt(Delete(Sti(s), 2, -1))
 	assert.Equal(t, s, []int{5, 3})
-	s = Its(Delete(Sti(s), nil, -1), 0).([]int)
+	s = ItsOfInt(Delete(Sti(s), nil, -1))
 	assert.Equal(t, s, []int{5, 3})
 
 	ss := Its(Delete(nil, 2, -1), 0)

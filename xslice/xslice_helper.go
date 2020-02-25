@@ -36,3 +36,91 @@ func Its(slice []interface{}, model interface{}) interface{} {
 	}
 	return si.Interface()
 }
+
+func ItsOfInt(slice []interface{}) []int {
+	out := make([]int, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(int)
+	}
+	return out
+}
+
+func ItsOfUint(slice []interface{}) []uint {
+	out := make([]uint, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint)
+	}
+	return out
+}
+
+func ItsOfUint32(slice []interface{}) []uint32 {
+	out := make([]uint32, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint32)
+	}
+	return out
+}
+
+func ItsOfUint64(slice []interface{}) []uint64 {
+	out := make([]uint64, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint64)
+	}
+	return out
+}
+
+func ItsOfInt32(slice []interface{}) []int32 {
+	out := make([]int32, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(int32)
+	}
+	return out
+}
+
+func ItsOfInt64(slice []interface{}) []int64 {
+	out := make([]int64, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(int64)
+	}
+	return out
+}
+
+func ItsOfFloat32(slice []interface{}) []float32 {
+	out := make([]float32, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(float32)
+	}
+	return out
+}
+
+func ItsOfFloat64(slice []interface{}) []float64 {
+	out := make([]float64, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(float64)
+	}
+	return out
+}
+
+func ItsOfString(slice []interface{}) []string {
+	out := make([]string, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(string)
+	}
+	return out
+}
+
+func ItsOfByte(slice []interface{}) []byte {
+	out := make([]byte, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(byte)
+	}
+	return out
+}
+
+func ItsOfRune(slice []interface{}) []rune {
+	out := make([]rune, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(rune)
+	}
+	return out
+}
