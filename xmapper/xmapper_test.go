@@ -119,9 +119,19 @@ func TestEntitiesMapper_Map(t *testing.T) {
 	assert.Equal(t, dto5, dtosTest3)
 }
 
+type NestParam struct {
+	A int
+}
+
+type NestParamPo struct {
+	A int
+}
+
 type Param struct {
 	Name string
 	Id   int
+	T    string
+	Nest NestParam
 }
 
 type ParamPo struct {
@@ -129,6 +139,8 @@ type ParamPo struct {
 	LastName  string
 	Id        int
 	Other     float32
+	T2        string
+	Nest      NestParamPo
 }
 
 func TestEntityMapper_MapProp(t *testing.T) {
@@ -147,14 +159,21 @@ func TestEntityMapper_MapProp(t *testing.T) {
 			}
 			return to
 		}).
+		ForCopy("T", "T2").
+		ForNest("Nest", "Nest").
+		Build().
+		CreateMapper(&NestParam{}, &NestParamPo{}).
+		ForMember("A", func(from interface{}) interface{} {
+			return from.(NestParam).A + 1
+		}).
 		Build()
 
-	param := &Param{Name: "Ab Cd", Id: 10}
+	param := &Param{Name: "Ab Cd", Id: 10, T: "123", Nest: NestParam{A: 2}}
 	po := &ParamPo{Other: 0.5}
-	poTest := &ParamPo{FirstName: "Ab", LastName: "Cd", Id: 11, Other: 0.5}
+	poTest := &ParamPo{FirstName: "Ab", LastName: "Cd", Id: 11, Other: 0.5, T2: "123", Nest: NestParamPo{A: 3}}
 
 	err := _mapper.MapProp(param, po)
-	log.Println(err)
+	log.Println(po, err)
 
 	assert.Equal(t, po, poTest)
 }
