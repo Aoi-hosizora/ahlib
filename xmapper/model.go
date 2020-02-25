@@ -7,10 +7,10 @@ import (
 // public: MapFunc ExtraMapFunc EntityMapper MapOption
 
 // Map Function from interface{} (is fromModel type) to interface{} (is toModel field type)
-type MapFunc func(fromNonPtr interface{}) (outNonPtr interface{})
+type MapFunc func(fromNonPtr interface{}) interface{}
 
 // Map Function, the last process of map, using fromObject and toObject
-type ExtraMapFunc func(fromNonPtr interface{}, toNonPtr interface{}) (outNonPtr interface{})
+type ExtraMapFunc func(fromNonPtr interface{}, toNonPtr interface{}) interface{}
 
 // Save all mapper between entities
 type EntityMapper struct {

@@ -11,6 +11,11 @@ var (
 	ErrMapToSmallArray = errors.New("could not map to a smaller array")
 	ErrNotSupportType  = errors.New("could not map a non-ptr/non-slice/non-array/non-struct model")
 	ErrExtraToDiffType = errors.New("could not use extra function to map to a different type")
+
+	ErrMapPropFromNil   = errors.New("could not map property from nil")
+	ErrMapPropToNil     = errors.New("could not map property to nil")
+	ErrMapPropNotPtr    = errors.New("could not map property from non-ptr data")
+	ErrMapPropNotStruct = errors.New("could not map property from non-struct data")
 )
 
 // check element and struct type
@@ -129,9 +134,8 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Ma
 		return nil, ErrNotSupportType
 	}
 
-	// --------- struct ---------
+	// -------------------- same field --------------------
 
-	// copy same name and same type of field in struct
 	fromValue := reflect.ValueOf(from)
 	toValue := reflect.New(reflect.TypeOf(toModel)).Elem()
 	for idx := 0; idx < toType.NumField(); idx++ {
@@ -142,7 +146,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Ma
 		}
 	}
 
-	// match map type and option
+	// -------------------- map rule --------------------
 
 	// find the first map rule of (fromType, toType) tuple
 	var mapEntity *entity
@@ -151,14 +155,6 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Ma
 		if entity._fromType == fromType && entity._toType == toType {
 			mapEntity = entity
 			break
-		}
-	}
-	// find all disposable map option for order
-	var matchedOptions []*MapOption
-	for _, option := range options {
-		// already non-ptr
-		if option._fromType == fromType && option._toType == toType {
-			matchedOptions = append(matchedOptions, option)
 		}
 	}
 
@@ -198,6 +194,17 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Ma
 		}
 	}
 
+	// -------------------- map option --------------------
+
+	// find all disposable map option for order
+	var matchedOptions []*MapOption
+	for _, option := range options {
+		// already non-ptr
+		if option._fromType == fromType && option._toType == toType {
+			matchedOptions = append(matchedOptions, option)
+		}
+	}
+
 	// map through the options
 	for _, option := range matchedOptions {
 		extraValue := option._mapFunc(fromValue.Interface(), toValue.Interface())
@@ -208,4 +215,104 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Ma
 	}
 
 	return toValue.Interface(), nil
+}
+
+func (e *EntityMapper) MapProp(fromPtr interface{}, toPtr interface{}, options ...*MapOption) error {
+	if fromPtr == nil {
+		return ErrMapPropFromNil
+	}
+	if toPtr == nil {
+		return ErrMapPropToNil
+	}
+	fromType := reflect.TypeOf(fromPtr)
+	toType := reflect.TypeOf(toPtr)
+	if fromType.Kind() != reflect.Ptr || toType.Kind() != reflect.Ptr {
+		return ErrMapPropNotPtr
+	}
+	if fromType.Elem().Kind() != reflect.Struct || toType.Elem().Kind() != reflect.Struct {
+		return ErrMapPropNotStruct
+	}
+	fromType = fromType.Elem()
+	toType = toType.Elem()
+	fromValue := reflect.ValueOf(fromPtr).Elem()
+	toValue := reflect.ValueOf(toPtr).Elem()
+
+	// -------------------- same field --------------------
+
+	for idx := 0; idx < toType.NumField(); idx++ {
+		toField := toType.Field(idx)
+		if fromField, ok := fromType.FieldByName(toField.Name); ok && fromField.Type == toField.Type {
+			toValue.FieldByIndex(toField.Index).Set(fromValue.FieldByIndex(fromField.Index))
+		}
+	}
+
+	// -------------------- map rule --------------------
+
+	// find the first map rule of (fromType, toType) tuple
+	var mapEntity *entity
+	for _, entity := range e._entities {
+		// already non-ptr
+		if entity._fromType == fromType && entity._toType == toType {
+			mapEntity = entity
+			break
+		}
+	}
+
+	// matched map entity type
+	if mapEntity != nil {
+		// map through the found rule
+		// for functions register order
+		for _, rule := range mapEntity._rules {
+			switch rule.(type) {
+			case *_fieldDirectMapRule: // direct, through _mapFunc
+				r := rule.(*_fieldDirectMapRule)
+				toValue.FieldByIndex(r._toField.Index).Set(reflect.ValueOf(r._mapFunc(fromValue.Interface()))) // <<<
+			case *_fieldSelfMapRule:
+				r := rule.(*_fieldSelfMapRule)
+				if r._isNest { // nest, through e.Map
+					toFieldValue := toValue.FieldByIndex(r._toField.Index)
+					fromFieldValue := fromValue.FieldByIndex(r._fromField.Index)
+					// from field not nil
+					if fromFieldValue.Kind() != reflect.Ptr || !fromFieldValue.IsNil() {
+						toFieldNew, err := e.Map(toFieldValue.Interface(), fromFieldValue.Interface())
+						if err != nil {
+							return err
+						}
+						toFieldValue.Set(reflect.ValueOf(toFieldNew)) // <<<
+					}
+				} else { // copy
+					toValue.FieldByIndex(r._toField.Index).Set(fromValue.FieldByIndex(r._fromField.Index)) // <<<
+				}
+			case ExtraMapFunc: // _mapFunc
+				r := rule.(ExtraMapFunc)
+				extraValue := r(fromValue.Interface(), toValue.Interface())
+				if reflect.TypeOf(extraValue) != toType {
+					return ErrExtraToDiffType
+				}
+				toValue.Set(reflect.ValueOf(extraValue)) // <<<
+			}
+		}
+	}
+
+	// -------------------- map option --------------------
+
+	// find all disposable map option for order
+	var matchedOptions []*MapOption
+	for _, option := range options {
+		// already non-ptr
+		if option._fromType == fromType && option._toType == toType {
+			matchedOptions = append(matchedOptions, option)
+		}
+	}
+
+	// map through the options
+	for _, option := range matchedOptions {
+		extraValue := option._mapFunc(fromValue.Interface(), toValue.Interface())
+		if reflect.TypeOf(extraValue) != toType {
+			return ErrExtraToDiffType
+		}
+		toValue.Set(reflect.ValueOf(extraValue)) // <<<
+	}
+
+	return nil
 }

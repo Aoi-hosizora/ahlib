@@ -5,6 +5,8 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/Aoi-hosizora/ahlib/xstring"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"strings"
 	"testing"
 	"time"
 )
@@ -37,10 +39,10 @@ type NestDto struct {
 func TestEntitiesMapper_Map(t *testing.T) {
 	_mapper := NewEntityMapper().
 		CreateMapper(&NestPo{}, &NestDto{}).
-		ForMember("T", func(t interface{}) interface{} {
+		ForMember("T", func(t interface{}) interface{} { // map between member
 			return t.(NestPo).T + 1
 		}).
-		ForCopy("Extra1", "Extra2").
+		ForCopy("Extra1", "Extra2"). // map from copy
 		Build().
 		CreateMapper(&Po{}, &Dto{}).
 		ForMember("Name", func(po interface{}) interface{} {
@@ -49,13 +51,13 @@ func TestEntitiesMapper_Map(t *testing.T) {
 		ForMember("Age", func(po interface{}) interface{} {
 			return time.Now().Year() - po.(Po).Birth.Year()
 		}).
-		ForNest("Nest", "Nest").
+		ForNest("Nest", "Nest"). // map nest
 		Build().
 		CreateMapper(&NestPo{}, &NestDto{}).
 		ForMember("Extra2", func(i interface{}) interface{} {
 			return i.(NestPo).Extra1 + "000"
 		}).
-		ForExtra(func(i interface{}, j interface{}) interface{} {
+		ForExtra(func(i interface{}, j interface{}) interface{} { // map extra function
 			poFrom := i.(NestPo)
 			dtoTo := j.(NestDto)
 			dtoTo.Extra2 = "before " + poFrom.Extra1 + " after " + dtoTo.Extra2
@@ -115,4 +117,44 @@ func TestEntitiesMapper_Map(t *testing.T) {
 	// map slice of struct
 	dto5 := xcondition.First(_mapper.Map([]Dto{}, pos3)).([]Dto)
 	assert.Equal(t, dto5, dtosTest3)
+}
+
+type Param struct {
+	Name string
+	Id   int
+}
+
+type ParamPo struct {
+	FirstName string
+	LastName  string
+	Id        int
+	Other     float32
+}
+
+func TestEntityMapper_MapProp(t *testing.T) {
+	_mapper := NewEntityMapper().
+		CreateMapper(&Param{}, &ParamPo{}).
+		ForMember("Id", func(param interface{}) interface{} {
+			return param.(Param).Id + 1
+		}).
+		ForExtra(func(param interface{}, po interface{}) interface{} {
+			from := param.(Param)
+			to := po.(ParamPo)
+			sp := strings.Split(from.Name, " ")
+			if len(sp) >= 2 {
+				to.FirstName = sp[0]
+				to.LastName = sp[1]
+			}
+			return to
+		}).
+		Build()
+
+	param := &Param{Name: "Ab Cd", Id: 10}
+	po := &ParamPo{Other: 0.5}
+	poTest := &ParamPo{FirstName: "Ab", LastName: "Cd", Id: 11, Other: 0.5}
+
+	err := _mapper.MapProp(param, po)
+	log.Println(err)
+
+	assert.Equal(t, po, poTest)
 }
