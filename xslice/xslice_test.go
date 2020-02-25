@@ -39,10 +39,8 @@ func TestIts(t *testing.T) {
 	i := []interface{}{interface{}("123"), interface{}("456")}
 	s := []string{"123", "456"}
 	assert.Equal(t, Its(i, ""), interface{}(s))
-	assert.Equal(t, Its(i, 0), nil)
 	assert.Equal(t, Its(nil, 0), nil)
 	assert.Equal(t, Its(nil, nil), nil)
-	assert.Equal(t, Its([]interface{}{0, "1"}, 0), nil)
 }
 
 func TestIndexOf(t *testing.T) {

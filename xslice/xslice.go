@@ -5,24 +5,14 @@ import (
 	"reflect"
 )
 
-func Shuffle(slice []interface{}, source rand.Source) {
-	random := rand.New(source)
-	for i := len(slice) - 1; i > 0; i-- {
-		j := random.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
-}
-
-// Convert specific slice to slice that element type in interface{}
 // Example:
 // 		Sti([]int{0, 1}) -> []interface{}{interface{}(0), interface{}(1)}
 func Sti(slice interface{}) []interface{} {
 	if slice == nil {
 		return nil
 	}
-	t := reflect.TypeOf(slice)
 	v := reflect.ValueOf(slice)
-	if v.IsValid() && t.Kind() != reflect.Slice {
+	if v.IsValid() && v.Kind() != reflect.Slice {
 		return nil
 	}
 	arr := make([]interface{}, v.Len())
@@ -32,23 +22,28 @@ func Sti(slice interface{}) []interface{} {
 	return arr
 }
 
-// Convert slice that element type is interface{} to specific slice
 // Example:
 // 		Its([]interface{}{interface{}(0), interface{}(1)}, 0).([]int) -> []int{0, 1}
-func Its(slice []interface{}, elModel interface{}) interface{} {
-	elType := reflect.TypeOf(elModel)
-	if slice == nil || elModel == nil {
+func Its(slice []interface{}, model interface{}) interface{} {
+	if slice == nil || model == nil {
 		return nil
 	}
-	si := reflect.MakeSlice(reflect.SliceOf(elType), len(slice), len(slice))
+	t := reflect.TypeOf(model)
+	si := reflect.MakeSlice(reflect.SliceOf(t), len(slice), len(slice))
 	for idx := range slice {
 		v := reflect.ValueOf(slice[idx])
-		if v.Type() != elType {
-			return nil
-		}
 		si.Index(idx).Set(v)
+		// -> panic
 	}
 	return si.Interface()
+}
+
+func Shuffle(slice []interface{}, source rand.Source) {
+	random := rand.New(source)
+	for i := len(slice) - 1; i > 0; i-- {
+		j := random.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
 }
 
 func IndexOf(slice []interface{}, value interface{}) (index int) {

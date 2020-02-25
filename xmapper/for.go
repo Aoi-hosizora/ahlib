@@ -24,7 +24,7 @@ func (e *entity) ForNest(fromFieldString string, toFieldString string) *entity {
 	if !ok {
 		return e
 	}
-	rule := &_fieldFromMapRule{
+	rule := &_fieldSelfMapRule{
 		_fromField: fromField,
 		_toField:   toField,
 		_isNest:    true,
@@ -46,7 +46,7 @@ func (e *entity) ForCopy(fromFieldString string, toFieldString string) *entity {
 	if fromField.Type != toField.Type {
 		return e
 	}
-	rule := &_fieldFromMapRule{
+	rule := &_fieldSelfMapRule{
 		_fromField: fromField,
 		_toField:   toField,
 		_isNest:    false,

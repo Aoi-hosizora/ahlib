@@ -6,13 +6,11 @@ import (
 )
 
 var (
-	createMapperFromInvalidPanic = errors.New("createMapper: could not create mapper by non-ptr and non-struct model")
-
-	mapToModelNilError          = errors.New("could not map to a nil model")
-	mapDifferentKindError       = errors.New("could not map to a different kind of type")
-	mapSmallSieArrayError       = errors.New("could not map to a small size of array")
-	mapToNotSupportKindError    = errors.New("could not map a non-ptr/non-slice/non-array/non-struct model")
-	mapExtraFunctionReturnError = errors.New("could not map extra function to a different type")
+	ErrMapToNil        = errors.New("could not map to a nil model")
+	ErrMapToDiffType   = errors.New("could not map to a different kind of type")
+	ErrMapToSmallArray = errors.New("could not map to a smaller array")
+	ErrNotSupportType  = errors.New("could not map a non-ptr/non-slice/non-array/non-struct model")
+	ErrExtraToDiffType = errors.New("could not use extra function to map to a different type")
 )
 
 // check element and struct type
@@ -22,7 +20,7 @@ func _checkEl(model interface{}) reflect.Type {
 		t = t.Elem()
 	}
 	if t.Kind() != reflect.Struct {
-		panic(createMapperFromInvalidPanic)
+		panic("createMapper: could not create mapper by non-ptr and non-struct model")
 	}
 	return t
 }
@@ -53,12 +51,12 @@ func (e *entity) Build() *EntityMapper {
 	return e._mapper
 }
 
-// Create DisposableMapOption for Map
-func NewMapOption(fromModel interface{}, toModel interface{}, extraMapFunc ExtraMapFunc) *DisposableMapOption {
+// Create MapOption for Map
+func NewMapOption(fromModel interface{}, toModel interface{}, extraMapFunc ExtraMapFunc) *MapOption {
 	_fromType := _checkEl(fromModel)
 	_toType := _checkEl(toModel)
 
-	return &DisposableMapOption{
+	return &MapOption{
 		_fromType: _fromType,
 		_toType:   _toType,
 		_mapFunc:  extraMapFunc,
@@ -66,9 +64,9 @@ func NewMapOption(fromModel interface{}, toModel interface{}, extraMapFunc Extra
 }
 
 // options: for disposable map options
-func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*DisposableMapOption) (interface{}, error) {
+func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*MapOption) (interface{}, error) {
 	if toModel == nil {
-		return nil, mapToModelNilError
+		return nil, ErrMapToNil
 	}
 	if from == nil {
 		return nil, nil
@@ -78,7 +76,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 	toType := reflect.TypeOf(toModel)
 	kind := fromType.Kind()
 	if kind != toType.Kind() {
-		return nil, mapDifferentKindError
+		return nil, ErrMapToDiffType
 	}
 
 	// handle kind of type,generate all struct type
@@ -99,30 +97,19 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 		toValue := reflect.New(reflect.TypeOf(toModel).Elem())
 		toValue.Elem().Set(reflect.ValueOf(toElem))
 		return toValue.Interface(), nil
-	case reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		// get elem of the from(slice) -> map all elem as toElem -> put toElem to to(slice)
-		fromValue := reflect.ValueOf(from)
-		fromLen := fromValue.Len()
-		toValue := reflect.MakeSlice(toType, fromLen, fromLen)
-		if fromLen == 0 {
-			return toValue.Interface(), nil
-		}
-		toModelElem := reflect.New(reflect.TypeOf(toModel).Elem()).Elem()
-		for idx := 0; idx < fromLen; idx++ {
-			toElem, err := e.Map(toModelElem.Interface(), fromValue.Index(idx).Interface(), options...)
-			if err != nil {
-				return nil, err
-			}
-			toValue.Index(idx).Set(reflect.ValueOf(toElem))
-		}
-		return toValue.Interface(), nil
-	case reflect.Array:
 		// check fromArr and toArr size -> get elem of the from(array) -> map all elem as toElem -> put toElem to to(array)
 		fromValue := reflect.ValueOf(from)
 		fromLen := fromValue.Len()
-		toValue := reflect.New(toType).Elem()
-		if fromLen > toValue.Len() { // check length
-			return nil, mapSmallSieArrayError
+		var toValue reflect.Value
+		if kind == reflect.Slice {
+			toValue = reflect.MakeSlice(toType, fromLen, fromLen)
+		} else {
+			toValue = reflect.New(toType).Elem()
+			if fromLen > toValue.Len() { // check length
+				return nil, ErrMapToSmallArray
+			}
 		}
 		if fromLen == 0 {
 			return toValue.Interface(), nil
@@ -139,7 +126,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 	case reflect.Struct:
 		// after switch
 	default:
-		return nil, mapToNotSupportKindError
+		return nil, ErrNotSupportType
 	}
 
 	// --------- struct ---------
@@ -167,7 +154,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 		}
 	}
 	// find all disposable map option for order
-	var matchedOptions []*DisposableMapOption
+	var matchedOptions []*MapOption
 	for _, option := range options {
 		// already non-ptr
 		if option._fromType == fromType && option._toType == toType {
@@ -184,8 +171,8 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 			case *_fieldDirectMapRule: // direct, through _mapFunc
 				r := rule.(*_fieldDirectMapRule)
 				toValue.FieldByIndex(r._toField.Index).Set(reflect.ValueOf(r._mapFunc(from)))
-			case *_fieldFromMapRule:
-				r := rule.(*_fieldFromMapRule)
+			case *_fieldSelfMapRule:
+				r := rule.(*_fieldSelfMapRule)
 				if r._isNest { // nest, through e.Map
 					toFieldValue := toValue.FieldByIndex(r._toField.Index)
 					fromFieldValue := fromValue.FieldByIndex(r._fromField.Index)
@@ -204,7 +191,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 				r := rule.(ExtraMapFunc)
 				extraValue := r(fromValue.Interface(), toValue.Interface())
 				if reflect.TypeOf(extraValue) != toType {
-					return nil, mapExtraFunctionReturnError
+					return nil, ErrExtraToDiffType
 				}
 				toValue = reflect.ValueOf(extraValue)
 			}
@@ -215,7 +202,7 @@ func (e *EntityMapper) Map(toModel interface{}, from interface{}, options ...*Di
 	for _, option := range matchedOptions {
 		extraValue := option._mapFunc(fromValue.Interface(), toValue.Interface())
 		if reflect.TypeOf(extraValue) != toType {
-			return nil, mapExtraFunctionReturnError
+			return nil, ErrExtraToDiffType
 		}
 		toValue = reflect.ValueOf(extraValue)
 	}
