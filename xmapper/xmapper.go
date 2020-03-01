@@ -22,11 +22,15 @@ func NewEntityMapper() *EntityMapper {
 }
 
 func NewMapper(from interface{}, to interface{}, mapFunc MapFunc) *Mapper {
+	if reflect.TypeOf(from).Kind() != reflect.Ptr || reflect.TypeOf(to).Kind() != reflect.Ptr {
+		panic(ErrNotPtr)
+	}
 	return &Mapper{from: from, to: to, mapFunc: mapFunc}
 }
 
 var (
 	ErrMapperNotFound = errors.New("mapper type not found")
+	ErrNotPtr         = errors.New("mapper type is not pointer")
 )
 
 func (e *EntityMapper) AddMapper(newMapper *Mapper) {
@@ -70,6 +74,7 @@ func (e *EntityMapper) Map(from interface{}, toModel interface{}, options ...Map
 		toType = toType.Elem()
 	}
 	toValue := reflect.New(toType).Elem()
+	// log.Print(toValue.IsNil())
 	for idx := 0; idx < cnt; idx++ {
 		toTmp := reflect.New(toValue.Type())
 		toTmp.Elem().Set(toValue)
