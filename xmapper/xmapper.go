@@ -26,7 +26,6 @@ func NewMapper(from interface{}, to interface{}, mapFunc MapFunc) *Mapper {
 }
 
 var (
-	ErrNotPtr         = errors.New("model need to be pointer")
 	ErrMapperNotFound = errors.New("mapper type not found")
 )
 
@@ -41,9 +40,6 @@ func (e *EntityMapper) AddMapper(newMapper *Mapper) {
 }
 
 func (e *EntityMapper) MapProp(from interface{}, to interface{}, options ...MapFunc) error {
-	if reflect.TypeOf(from).Kind() != reflect.Ptr || reflect.TypeOf(to).Kind() != reflect.Ptr {
-		return ErrNotPtr
-	}
 	var mapper *Mapper
 	for _, m := range e.mappers {
 		if reflect.TypeOf(m.from) == reflect.TypeOf(from) && reflect.TypeOf(m.to) == reflect.TypeOf(to) {
@@ -67,15 +63,24 @@ func (e *EntityMapper) MapProp(from interface{}, to interface{}, options ...MapF
 }
 
 func (e *EntityMapper) Map(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
-	if reflect.TypeOf(toModel).Kind() != reflect.Ptr {
-		return nil, ErrNotPtr
+	cnt := 0
+	toType := reflect.TypeOf(toModel)
+	for toType.Kind() == reflect.Ptr {
+		cnt += 1
+		toType = toType.Elem()
 	}
-	to := reflect.New(reflect.TypeOf(toModel).Elem()).Interface()
-	err := e.MapProp(from, to, options...)
+	toValue := reflect.New(toType).Elem()
+	for idx := 0; idx < cnt; idx++ {
+		toTmp := reflect.New(toValue.Type())
+		toTmp.Elem().Set(toValue)
+		toValue = toTmp
+	}
+
+	err := e.MapProp(from, toValue.Interface(), options...)
 	if err != nil {
 		return nil, err
 	}
-	return to, nil
+	return toValue.Interface(), nil
 }
 
 func (e *EntityMapper) MapSlice(from []interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {

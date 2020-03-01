@@ -4,7 +4,6 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/Aoi-hosizora/ahlib/xslice"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"testing"
 	"time"
 )
@@ -95,15 +94,37 @@ func TestEntityMapper(t *testing.T) {
 	poArr := []*Po{po1, po2}
 	dtoArr := []*Dto{dto1, dto2}
 
-	err := entityMapper.MapProp(param, po)
-	log.Println(po, err)
+	_ = entityMapper.MapProp(param, po)
+	// log.Println(po, err)
 	assert.Equal(t, po, po1)
 
-	dtoOut, err := entityMapper.Map(po1, &Dto{})
-	log.Println(dtoOut, err)
+	dtoOut, _ := entityMapper.Map(po1, &Dto{})
+	// log.Println(dtoOut, err)
 	assert.Equal(t, dtoOut.(*Dto), dto1)
 
-	dtoArrOut, err := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{})
-	log.Println(dtoArrOut, err)
+	dtoArrOut, _ := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{})
+	// log.Println(dtoArrOut, err)
 	assert.Equal(t, dtoArrOut.([]*Dto), dtoArr)
+}
+
+func TestErr(t *testing.T) {
+	type TestPo struct {
+		Id int
+	}
+	type TestDto struct {
+		Id int
+	}
+	entityMapper := NewEntityMapper()
+	entityMapper.AddMapper(NewMapper(TestPo{}, TestDto{}, func(from interface{}, to interface{}) error {
+		po := from.(TestPo)
+		dto := to.(TestDto)
+		dto.Id = po.Id
+		return nil
+	}))
+
+	po := TestPo{Id: 1}
+	dto := TestDto{Id: 1}
+	dtoOut, _ := entityMapper.Map(po, TestDto{})
+	// log.Println(dtoOut, err)
+	assert.Equal(t, dtoOut.([]TestDto), dto)
 }
