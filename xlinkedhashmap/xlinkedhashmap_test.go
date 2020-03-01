@@ -11,7 +11,8 @@ var cmx = struct {
 	F3 []int       `json:"ff3"`
 	F4 interface{} `json:"f4,omitempty"`
 	F5 interface{}
-}{"3", 4.5, []int{6, 7, 8}, nil, nil}
+	F6 string `json:"f6,omitempty"`
+}{"3", 4.5, []int{6, 7, 8}, nil, nil, ""}
 
 func TestLinkedHashMap(t *testing.T) {
 	m := NewLinkedHashMap()

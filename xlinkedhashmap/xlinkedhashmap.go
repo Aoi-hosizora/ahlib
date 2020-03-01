@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xcommon"
 	"github.com/Aoi-hosizora/ahlib/xslice"
-	"reflect"
 	"strings"
 )
 
@@ -91,14 +91,7 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 		return nil
 	}
 	// check ptr and struct
-	val := reflect.ValueOf(object)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	if !val.IsValid() || val.Kind() != reflect.Struct {
-		// could not convert from string / number ...
-		return nil
-	}
+	val := xcommon.ElemValue(object)
 	relType := val.Type()
 
 	// val, retType
@@ -114,7 +107,7 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 		field := strings.Split(tag, ",")[0]
 		value := val.Field(i).Interface()
 
-		if field != "-" && (!omitempty || value != nil) {
+		if field != "-" && (!omitempty || (value != nil && value != "")) {
 			lhm.Set(field, value)
 		}
 	}

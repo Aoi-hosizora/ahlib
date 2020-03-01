@@ -74,7 +74,6 @@ func (e *EntityMapper) Map(from interface{}, toModel interface{}, options ...Map
 		toType = toType.Elem()
 	}
 	toValue := reflect.New(toType).Elem()
-	// log.Print(toValue.IsNil())
 	for idx := 0; idx < cnt; idx++ {
 		toTmp := reflect.New(toValue.Type())
 		toTmp.Elem().Set(toValue)
