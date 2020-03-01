@@ -76,7 +76,7 @@ func TestDelete(t *testing.T) {
 	s = ItsOfInt(Delete(Sti(s), nil, -1))
 	assert.Equal(t, s, []int{5, 3})
 
-	ss := Its(Delete(nil, 2, -1), 0)
+	ss := ItsOfInt(Delete(nil, 2, -1))
 	assert.Equal(t, ss == nil, true)
 }
 
