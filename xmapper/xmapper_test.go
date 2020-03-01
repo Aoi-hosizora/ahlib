@@ -40,15 +40,15 @@ type InfoDto struct {
 }
 
 func TestEntityMapper(t *testing.T) {
-	entityMapper := NewEntityMapper()
-	entityMapper.AddMapper(NewMapper(&InfoPo{}, &InfoDto{}, func(from interface{}, to interface{}) error {
+	entityMapper := NewEntityMappers()
+	entityMapper.AddMapper(NewEntityMapper(&InfoPo{}, &InfoDto{}, func(from interface{}, to interface{}) error {
 		po := from.(*InfoPo)
 		dto := to.(*InfoDto)
 		dto.CountAddOne = po.Count + 1
 		dto.Age = time.Now().Year() - po.Birthday.Year()
 		return nil
 	}))
-	entityMapper.AddMapper(NewMapper(&Po{}, &Dto{}, func(from interface{}, to interface{}) error {
+	entityMapper.AddMapper(NewEntityMapper(&Po{}, &Dto{}, func(from interface{}, to interface{}) error {
 		po := from.(*Po)
 		dto := to.(*Dto)
 		dto.Id = po.Id
@@ -57,7 +57,7 @@ func TestEntityMapper(t *testing.T) {
 		dto.Info = xcondition.First(entityMapper.Map(po.Info, &InfoDto{})).(*InfoDto)
 		return nil
 	}))
-	entityMapper.AddMapper(NewMapper(&Param{}, &Po{}, func(from interface{}, to interface{}) error {
+	entityMapper.AddMapper(NewEntityMapper(&Param{}, &Po{}, func(from interface{}, to interface{}) error {
 		param := from.(*Param)
 		po := to.(*Po)
 		po.FirstName = param.FirstName
