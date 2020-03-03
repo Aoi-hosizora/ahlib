@@ -13,7 +13,7 @@ type Po struct{}
 func TestNewPropertyMappers(t *testing.T) {
 	mapper := NewPropertyMappers()
 
-	mapper.AddMapping(NewPropertyMapper(&Dto{}, &Po{}, map[string]*PropertyMapperValue{
+	mapper.AddMapper(NewPropertyMapper(&Dto{}, &Po{}, map[string]*PropertyMapperValue{
 		"uid":      NewPropertyMapperValue([]string{"uid"}, false),
 		"username": NewPropertyMapperValue([]string{"lastName", "firstName"}, false),
 		"age":      NewPropertyMapperValue([]string{"birthday"}, true),

@@ -5,7 +5,7 @@ import (
 )
 
 type PropertyMappers struct {
-	mappings []*PropertyMapper
+	mappers []*PropertyMapper
 }
 
 type PropertyMapper struct {
@@ -20,7 +20,7 @@ type PropertyMapperValue struct {
 }
 
 func NewPropertyMappers() *PropertyMappers {
-	return &PropertyMappers{mappings: make([]*PropertyMapper, 0)}
+	return &PropertyMappers{mappers: make([]*PropertyMapper, 0)}
 }
 
 func NewPropertyMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper {
@@ -37,18 +37,18 @@ func NewPropertyMapperValue(destProps []string, revert bool) *PropertyMapperValu
 	return &PropertyMapperValue{destProps: destProps, revert: revert}
 }
 
-func (p *PropertyMappers) AddMapping(newMapping *PropertyMapper) {
-	for _, mapping := range p.mappings {
+func (p *PropertyMappers) AddMapper(newMapping *PropertyMapper) {
+	for _, mapping := range p.mappers {
 		if reflect.TypeOf(mapping.from) == reflect.TypeOf(newMapping.from) || reflect.TypeOf(mapping.to) == reflect.TypeOf(newMapping.to) {
 			mapping.dict = newMapping.dict
 			return
 		}
 	}
-	p.mappings = append(p.mappings, newMapping)
+	p.mappers = append(p.mappers, newMapping)
 }
 
 func (p *PropertyMappers) GetPropertyMapping(from interface{}, to interface{}) *PropertyMapper {
-	for _, m := range p.mappings {
+	for _, m := range p.mappers {
 		if reflect.TypeOf(m.from) == reflect.TypeOf(from) && reflect.TypeOf(m.to) == reflect.TypeOf(to) {
 			return m
 		}

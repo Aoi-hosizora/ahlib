@@ -1,4 +1,4 @@
-package xmapper
+package xentity
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xcondition"

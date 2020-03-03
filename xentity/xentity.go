@@ -1,4 +1,4 @@
-package xmapper
+package xentity
 
 import (
 	"errors"

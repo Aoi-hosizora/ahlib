@@ -6,14 +6,14 @@ Some useful golang functions library for personal use, inspired by [shomali11/ut
 
 + See `xxx_test.go`
 
-### Implementation
+### Functions
 
 + xcondition
 + xlinkedhashmap
 + xslice
 + xset
 + xstring
-+ xmapper
-+ xdi
++ xentity (mapper)
++ xproperty (mapper)
++ xdi (inject)
 + xcommon
-+ xproperty
