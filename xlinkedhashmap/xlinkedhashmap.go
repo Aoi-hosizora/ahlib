@@ -107,8 +107,10 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 		field := strings.Split(tag, ",")[0]
 		value := val.Field(i).Interface()
 
-		if field != "-" && (!omitempty || (value != nil && value != "")) {
-			lhm.Set(field, value)
+		if field != "-" {
+			if !omitempty || (value != nil && value != "") {
+				lhm.Set(field, value)
+			}
 		}
 	}
 	return lhm

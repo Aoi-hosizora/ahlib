@@ -102,7 +102,7 @@ func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...Ma
 func (e *EntityMappers) MapSlice(from []interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
 	to := reflect.New(reflect.SliceOf(reflect.TypeOf(toModel))).Elem()
 	for idx := range from {
-		val, err := e.Map(from[idx], toModel)
+		val, err := e.Map(from[idx], toModel, options...)
 		if err != nil {
 			return nil, err
 		}

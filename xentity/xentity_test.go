@@ -41,14 +41,14 @@ type InfoDto struct {
 
 func TestEntityMapper(t *testing.T) {
 	entityMapper := NewEntityMappers()
-	entityMapper.AddMapper(NewEntityMapper(&InfoPo{}, &InfoDto{}, func() interface{} { return &InfoDto{} }, func(from interface{}, to interface{}) error {
+	entityMapper.AddMapper(NewEntityMapper(&InfoPo{}, func() interface{} { return &InfoDto{} }, func(from interface{}, to interface{}) error {
 		po := from.(*InfoPo)
 		dto := to.(*InfoDto)
 		dto.CountAddOne = po.Count + 1
 		dto.Age = time.Now().Year() - po.Birthday.Year()
 		return nil
 	}))
-	entityMapper.AddMapper(NewEntityMapper(&Po{}, &Dto{}, func() interface{} { return &Dto{} }, func(from interface{}, to interface{}) error {
+	entityMapper.AddMapper(NewEntityMapper(&Po{}, func() interface{} { return &Dto{} }, func(from interface{}, to interface{}) error {
 		po := from.(*Po)
 		dto := to.(*Dto)
 		dto.Id = po.Id
@@ -57,7 +57,7 @@ func TestEntityMapper(t *testing.T) {
 		dto.Info = xcondition.First(entityMapper.Map(po.Info, &InfoDto{})).(*InfoDto)
 		return nil
 	}))
-	entityMapper.AddMapper(NewEntityMapper(&Param{}, &Po{}, func() interface{} { return &Po{} }, func(from interface{}, to interface{}) error {
+	entityMapper.AddMapper(NewEntityMapper(&Param{}, func() interface{} { return &Po{} }, func(from interface{}, to interface{}) error {
 		param := from.(*Param)
 		po := to.(*Po)
 		po.FirstName = param.FirstName
@@ -78,8 +78,12 @@ func TestEntityMapper(t *testing.T) {
 		Id: 1, FirstName: "First", LastName: "Last", Score: 9.8,
 		Info: &InfoPo{Count: 20, Birthday: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.Local)},
 	}
+	dto11 := &Dto{
+		Id: 1, Name: "Last First Last", Score: 10,
+		Info: &InfoDto{CountAddOne: 21, Age: 20},
+	}
 	dto1 := &Dto{
-		Id: 1, Name: "Last First", Score: 9,
+		Id: 1, Name: "Last First", Score: 20,
 		Info: &InfoDto{CountAddOne: 21, Age: 20},
 	}
 
@@ -88,7 +92,7 @@ func TestEntityMapper(t *testing.T) {
 		Info: &InfoPo{Count: 1, Birthday: time.Date(2019, time.January, 1, 0, 0, 0, 0, time.Local)},
 	}
 	dto2 := &Dto{
-		Id: 2, Name: "Last2 First2", Score: 0,
+		Id: 2, Name: "Last2 First2", Score: 20,
 		Info: &InfoDto{CountAddOne: 2, Age: 1},
 	}
 
@@ -99,11 +103,21 @@ func TestEntityMapper(t *testing.T) {
 	log.Println(po, err)
 	assert.Equal(t, po, po1)
 
-	dtoOut, err := entityMapper.Map(po1, &Dto{})
+	dtoOut, err := entityMapper.Map(po1, &Dto{}, func(from interface{}, to interface{}) error {
+		po := from.(*Po)
+		dto := to.(*Dto)
+		dto.Score = int(po.Score + 0.2)
+		dto.Name += " " + po.LastName
+		return nil
+	})
 	log.Println(dtoOut, err)
-	assert.Equal(t, dtoOut.(*Dto), dto1)
+	assert.Equal(t, dtoOut.(*Dto), dto11)
 
-	dtoArrOut, err := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{})
+	dtoArrOut, err := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{}, func(from interface{}, to interface{}) error {
+		dto := to.(*Dto)
+		dto.Score = 20
+		return nil
+	})
 	log.Println(dtoArrOut, err)
 	assert.Equal(t, dtoArrOut.([]*Dto), dtoArr)
 }
