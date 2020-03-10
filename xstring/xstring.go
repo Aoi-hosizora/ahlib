@@ -1,7 +1,6 @@
 package xstring
 
 import (
-	"encoding/json"
 	"strings"
 )
 
@@ -19,42 +18,24 @@ func Uncapitalize(str string) string {
 	return strings.Replace(str, string(str[0]), strings.ToLower(string(str[0])), 1)
 }
 
-// return string(byte[]), return "" if err
-func MarshalJson(object interface{}) string {
-	j, err := json.Marshal(object)
-	if err != nil {
-		return ""
-	}
-	return string(j)
+func IsUppercase(char rune) bool {
+	return char >= []rune("A")[0] && char <= []rune("Z")[0]
 }
 
-func PrettyJson(jsonString string, intent int, char string) string {
-	repeat := func(count int, char string) string {
-		out := ""
-		for idx := 0; idx < count; idx++ {
-			out += char
-		}
-		return out
-	}
+func IsLowercase(char rune) bool {
+	return char >= []rune("a")[0] && char <= []rune("z")[0]
+}
 
-	curr := 0
+func ToSnakeCase(str string) string {
 	out := ""
-	for _, c := range jsonString {
-		switch c {
-		case '{', '[':
-			curr++
-			out += string(c) + "\n" + repeat(curr*intent, char)
-		case '}', ']':
-			curr--
-			out += "\n" + repeat(curr*intent, char) + string(c)
-		case ',':
-			out += ",\n" + repeat(curr*intent, char)
-		case ':':
-			out += ": "
-		case ' ', '\n', '\t':
-			// pass
-		default:
-			out += string(c)
+	newStr := Uncapitalize(str)
+	for _, ch := range []rune(newStr) {
+		if IsUppercase(ch) {
+			out += "_" + strings.ToLower(string(ch))
+		} else if ch == []rune(" ")[0] {
+			out += "_"
+		} else {
+			out += string(ch)
 		}
 	}
 	return out

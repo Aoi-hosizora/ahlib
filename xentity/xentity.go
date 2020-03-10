@@ -12,25 +12,26 @@ type EntityMappers struct {
 type MapFunc func(from interface{}, to interface{}) error
 
 type EntityMapper struct {
-	from        interface{}
-	to          interface{}
-	constructor func() interface{}
-	mapFunc     MapFunc
+	from    interface{}
+	to      interface{}
+	ctor    func() interface{}
+	mapFunc MapFunc
 }
 
 func NewEntityMappers() *EntityMappers {
 	return &EntityMappers{mappers: []*EntityMapper{}}
 }
 
-func NewEntityMapper(from interface{}, to interface{}, constructor func() interface{}, mapFunc MapFunc) *EntityMapper {
+func NewEntityMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
+	to := ctor()
 	if reflect.TypeOf(from).Kind() != reflect.Ptr || reflect.TypeOf(to).Kind() != reflect.Ptr {
 		panic(ErrNotPtr)
 	}
 	return &EntityMapper{
-		from:        from,
-		to:          to,
-		constructor: constructor,
-		mapFunc:     mapFunc,
+		from:    from,
+		to:      to,
+		ctor:    ctor,
+		mapFunc: mapFunc,
 	}
 }
 
@@ -84,16 +85,20 @@ func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...Map
 	return e._map(mapper, from, to, options...)
 }
 
+// Example:
+//     mapper.Map(&Po{}, &Dto{})
 func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
 	mapper, err := e._find(from, toModel)
 	if err != nil {
 		return nil, err
 	}
-	to := mapper.constructor()
+	to := mapper.ctor()
 	err = e._map(mapper, from, to, options...)
 	return to, err
 }
 
+// Example:
+//     mapper.Map([]*Po{}, &Dto{})
 func (e *EntityMappers) MapSlice(from []interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
 	to := reflect.New(reflect.SliceOf(reflect.TypeOf(toModel))).Elem()
 	for idx := range from {

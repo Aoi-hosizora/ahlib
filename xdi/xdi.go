@@ -11,14 +11,18 @@ type DiContainer struct {
 }
 
 func NewDiContainer() *DiContainer {
-	var dic = &DiContainer{}
-	dic._provByType = make(map[reflect.Type]interface{})
-	dic._provByName = make(map[string]interface{})
+	var dic = &DiContainer{
+		_provByType: make(map[reflect.Type]interface{}),
+		_provByName: make(map[string]interface{}),
+	}
 	return dic
 }
 
 // service: can be normal type or struct
 func (d *DiContainer) Provide(service interface{}) {
+	if service == nil {
+		panic("could not provide nil service")
+	}
 	t := reflect.TypeOf(service)
 	d._provByType[t] = service
 }
@@ -26,18 +30,22 @@ func (d *DiContainer) Provide(service interface{}) {
 // name: could not be ~, can be normal type or struct
 func (d *DiContainer) ProvideByName(name string, service interface{}) {
 	if name == "~" {
-		panic("Could not preserved key ~ as the name of service")
+		panic("could not provide service using ~ name")
 	}
 	d._provByName[name] = service
 }
 
 // interfacePtr: (*Interface)(nil), impl: Struct or *Struct
 func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
-	it := reflect.TypeOf(interfacePtr).Elem()
+	it := reflect.TypeOf(interfacePtr)
+	if reflect.TypeOf(it).Kind() != reflect.Ptr {
+		panic("parameter of impl could be only ptr")
+	}
+	it = it.Elem()
 	st := reflect.TypeOf(impl)
 	// fmt.Println(it, st)
 	if !st.Implements(it) {
-		panic("Could not implement type of " + it.String() + " by " + st.String())
+		panic("could not implement type of " + it.String() + " by " + st.String())
 	}
 	d._provByType[it] = impl
 }

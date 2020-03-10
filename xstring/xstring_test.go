@@ -70,3 +70,11 @@ func TestPrettyJson(t *testing.T) {
 		"}"
 	assert.Equal(t, PrettyJson(from, 4, " "), to)
 }
+
+func TestToSnakeCase(t *testing.T) {
+	assert.Equal(t, ToSnakeCase(""), "")
+	assert.Equal(t, ToSnakeCase("AoiHosizora"), "aoi_hosizora")
+	assert.Equal(t, ToSnakeCase("abc0d1EdF"), "abc0d1_ed_f")
+	assert.Equal(t, ToSnakeCase("私達isわたしたち"), "私達isわたしたち")
+	assert.Equal(t, ToSnakeCase("a bC"), "a_b_c")
+}
