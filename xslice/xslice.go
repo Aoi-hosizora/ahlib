@@ -81,3 +81,20 @@ func SliceDiff(s1 []interface{}, s2 []interface{}) []interface{} {
 	}
 	return result
 }
+
+func ContentEqual(s1 []interface{}, s2 []interface{}) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for _, item := range s1 {
+		if !Contains(s2, item) {
+			return false
+		}
+	}
+	for _, item := range s2 {
+		if !Contains(s1, item) {
+			return false
+		}
+	}
+	return true
+}

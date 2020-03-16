@@ -1,6 +1,7 @@
 package xslice
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -35,6 +36,14 @@ func Its(slice []interface{}, model interface{}) interface{} {
 		// -> panic
 	}
 	return si.Interface()
+}
+
+func ItsToString(slice []interface{}) []string {
+	out := make([]string, len(slice))
+	for idx := range slice {
+		out[idx] = fmt.Sprintf("%v", slice[idx])
+	}
+	return out
 }
 
 func ItsOfInt(slice []interface{}) []int {
