@@ -78,3 +78,12 @@ func TestToSnakeCase(t *testing.T) {
 	assert.Equal(t, ToSnakeCase("私達isわたしたち"), "私達isわたしたち")
 	assert.Equal(t, ToSnakeCase("a bC"), "a_b_c")
 }
+
+func TestRemoveSpaces(t *testing.T) {
+	assert.Equal(t, RemoveSpaces(""), "")
+	assert.Equal(t, RemoveSpaces("a b  c d   e f"), "a b c d e f")
+	assert.Equal(t, RemoveSpaces("a b 	 c d   e f"), "a b c d e f")
+	assert.Equal(t, RemoveSpaces("a b \n	 c d   e f"), "a b c d e f")
+	assert.Equal(t, RemoveSpaces("\n"), "")
+	assert.Equal(t, RemoveSpaces("\n	"), "")
+}
