@@ -1,6 +1,7 @@
 package xstring
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -18,12 +19,19 @@ func Uncapitalize(str string) string {
 	return strings.Replace(str, string(str[0]), strings.ToLower(string(str[0])), 1)
 }
 
+func ToRune(char string) rune {
+	if char == "" {
+		return 0
+	}
+	return []rune(char)[0]
+}
+
 func IsUppercase(char rune) bool {
-	return char >= []rune("A")[0] && char <= []rune("Z")[0]
+	return char >= ToRune("A") && char <= ToRune("Z")
 }
 
 func IsLowercase(char rune) bool {
-	return char >= []rune("a")[0] && char <= []rune("z")[0]
+	return char >= ToRune("a") && char <= ToRune("z")
 }
 
 func ToSnakeCase(str string) string {
@@ -32,7 +40,7 @@ func ToSnakeCase(str string) string {
 	for _, ch := range []rune(newStr) {
 		if IsUppercase(ch) {
 			out += "_" + strings.ToLower(string(ch))
-		} else if ch == []rune(" ")[0] {
+		} else if ch == ToRune(" ") {
 			out += "_"
 		} else {
 			out += string(ch)
@@ -58,4 +66,19 @@ func RemoveSpaces(str string) string {
 		newStr = replace(newStr)
 	}
 	return strings.TrimSpace(newStr)
+}
+
+func RenderLatency(ns float64) string {
+	us := ns / 1e3
+	ms := us / 1e3
+	s := ms / 1e3
+	if s >= 1 {
+		return fmt.Sprintf("%.4fs", s)
+	} else if ms >= 1 {
+		return fmt.Sprintf("%.4fms", ms)
+	} else if us >= 1 {
+		return fmt.Sprintf("%.4fµs", us)
+	} else {
+		return fmt.Sprintf("%.4fns", ns)
+	}
 }

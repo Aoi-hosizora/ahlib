@@ -63,10 +63,17 @@ func TestThird(t *testing.T) {
 	assert.Equal(t, Third(1, 2, 3, 4), 3)
 }
 
-
 func TestLast(t *testing.T) {
 	assert.Equal(t, Last(f1()), 1)
 	assert.Equal(t, Last(f2()), 2)
 	assert.Equal(t, Last(f4()), 4)
 	assert.Equal(t, Last(1, 2, 3, 4), 4)
+}
+
+func TestNatural(t *testing.T) {
+	assert.Equal(t, Natural(0), 0.0)
+	assert.Equal(t, Natural(1), 1.0)
+	assert.Equal(t, Natural(-1), 0.0)
+	assert.Equal(t, Natural(-1), 0.0)
+	assert.Equal(t, Natural(0.1), 0.1)
 }

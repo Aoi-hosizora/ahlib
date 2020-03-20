@@ -3,25 +3,22 @@ package xcondition
 func IfThen(condition bool, a interface{}) interface{} {
 	if condition {
 		return a
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func IfThenElse(condition bool, a interface{}, b interface{}) interface{} {
 	if condition {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
 	if value != nil {
 		return value
-	} else {
-		return defaultValue
 	}
+	return defaultValue
 }
 
 func FirstNotNil(values ...interface{}) interface{} {
@@ -55,4 +52,11 @@ func Third(args ...interface{}) interface{} {
 
 func Last(args ...interface{}) interface{} {
 	return _choose(len(args)-1, args)
+}
+
+func Natural(num float64) float64 {
+	if num < 0 {
+		return 0
+	}
+	return num
 }

@@ -79,6 +79,26 @@ func TestToSnakeCase(t *testing.T) {
 	assert.Equal(t, ToSnakeCase("a bC"), "a_b_c")
 }
 
+func TestIsLowercase(t *testing.T) {
+	assert.Equal(t, IsLowercase(ToRune("A")), false)
+	assert.Equal(t, IsLowercase(ToRune("Z")), false)
+	assert.Equal(t, IsLowercase(ToRune("a")), true)
+	assert.Equal(t, IsLowercase(ToRune("z")), true)
+	assert.Equal(t, IsLowercase(ToRune("0")), false)
+	assert.Equal(t, IsLowercase(ToRune("")), false)
+	assert.Equal(t, IsLowercase(ToRune("我")), false)
+}
+
+func TestIsUppercase(t *testing.T) {
+	assert.Equal(t, IsUppercase(ToRune("A")), true)
+	assert.Equal(t, IsUppercase(ToRune("Z")), true)
+	assert.Equal(t, IsUppercase(ToRune("a")), false)
+	assert.Equal(t, IsUppercase(ToRune("z")), false)
+	assert.Equal(t, IsUppercase(ToRune("0")), false)
+	assert.Equal(t, IsUppercase(ToRune("")), false)
+	assert.Equal(t, IsUppercase(ToRune("我")), false)
+}
+
 func TestRemoveSpaces(t *testing.T) {
 	assert.Equal(t, RemoveSpaces(""), "")
 	assert.Equal(t, RemoveSpaces("a b  c d   e f"), "a b c d e f")
@@ -86,4 +106,12 @@ func TestRemoveSpaces(t *testing.T) {
 	assert.Equal(t, RemoveSpaces("a b \n	 c d   e f"), "a b c d e f")
 	assert.Equal(t, RemoveSpaces("\n"), "")
 	assert.Equal(t, RemoveSpaces("\n	"), "")
+}
+
+func TestRenderLatency(t *testing.T) {
+	assert.Equal(t, RenderLatency(0), "0.0000ns")
+	assert.Equal(t, RenderLatency(999), "999.0000ns")
+	assert.Equal(t, RenderLatency(10000), "10.0000µs")
+	assert.Equal(t, RenderLatency(1000000), "1.0000ms")
+	assert.Equal(t, RenderLatency(10000000000), "10.0000s")
 }
