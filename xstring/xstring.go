@@ -1,7 +1,6 @@
 package xstring
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -66,19 +65,4 @@ func RemoveSpaces(str string) string {
 		newStr = replace(newStr)
 	}
 	return strings.TrimSpace(newStr)
-}
-
-func RenderLatency(ns float64) string {
-	us := ns / 1e3
-	ms := us / 1e3
-	s := ms / 1e3
-	if s >= 1 {
-		return fmt.Sprintf("%.4fs", s)
-	} else if ms >= 1 {
-		return fmt.Sprintf("%.4fms", ms)
-	} else if us >= 1 {
-		return fmt.Sprintf("%.4fµs", us)
-	} else {
-		return fmt.Sprintf("%.4fns", ns)
-	}
 }

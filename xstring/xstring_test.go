@@ -107,11 +107,3 @@ func TestRemoveSpaces(t *testing.T) {
 	assert.Equal(t, RemoveSpaces("\n"), "")
 	assert.Equal(t, RemoveSpaces("\n	"), "")
 }
-
-func TestRenderLatency(t *testing.T) {
-	assert.Equal(t, RenderLatency(0), "0.0000ns")
-	assert.Equal(t, RenderLatency(999), "999.0000ns")
-	assert.Equal(t, RenderLatency(10000), "10.0000µs")
-	assert.Equal(t, RenderLatency(1000000), "1.0000ms")
-	assert.Equal(t, RenderLatency(10000000000), "10.0000s")
-}
