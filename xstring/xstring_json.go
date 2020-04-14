@@ -13,7 +13,7 @@ func MarshalJson(object interface{}) string {
 	return string(j)
 }
 
-func PrettyJson(jsonString string, intent int, char string) string {
+func PrettifyJson(jsonString string, intent int, char string) string {
 	repeat := func(count int, char string) string {
 		out := ""
 		for idx := 0; idx < count; idx++ {

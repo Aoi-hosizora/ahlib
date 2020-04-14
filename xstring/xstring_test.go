@@ -51,7 +51,7 @@ func TestRandLetterNumberString(t *testing.T) {
 	log.Println(RandString(32, LowercaseLetterNumberRunes))
 }
 
-func TestPrettyJson(t *testing.T) {
+func TestPrettifyJson(t *testing.T) {
 	from := "{\"a\": \"b\", \"c\": {\"d\": \"e\", \"f\": 0}, \"g\": [{\"h\": 1}, {\"h\": 1}]}"
 	to := "{\n" +
 		"    \"a\": \"b\",\n" +
@@ -68,7 +68,7 @@ func TestPrettyJson(t *testing.T) {
 		"        }\n" +
 		"    ]\n" +
 		"}"
-	assert.Equal(t, PrettyJson(from, 4, " "), to)
+	assert.Equal(t, PrettifyJson(from, 4, " "), to)
 }
 
 func TestToSnakeCase(t *testing.T) {

@@ -1,6 +1,7 @@
 package xdi
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcommon"
 	"reflect"
 )
@@ -18,10 +19,19 @@ func NewDiContainer() *DiContainer {
 	return dic
 }
 
+var (
+	provideNilPanic        = "could not provide nil service"
+	providePreservePanic   = "could not provide service using ~ name"
+	provideNonPtrImplPanic = "could not provide a non pointer implementation"
+	notImplPanic           = "could not implement type %s by %s"
+	injectNonStructPanic   = "object for injection should be struct, have %s with %s"
+	injectFailedPanic      = "there are some fields could not be injected"
+)
+
 // service: can be normal type or struct
 func (d *DiContainer) Provide(service interface{}) {
 	if service == nil {
-		panic("could not provide nil service")
+		panic(provideNilPanic)
 	}
 	t := reflect.TypeOf(service)
 	d._provByType[t] = service
@@ -30,7 +40,7 @@ func (d *DiContainer) Provide(service interface{}) {
 // name: could not be ~, can be normal type or struct
 func (d *DiContainer) ProvideByName(name string, service interface{}) {
 	if name == "~" {
-		panic("could not provide service using ~ name")
+		panic(providePreservePanic)
 	}
 	d._provByName[name] = service
 }
@@ -39,13 +49,12 @@ func (d *DiContainer) ProvideByName(name string, service interface{}) {
 func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
 	it := reflect.TypeOf(interfacePtr)
 	if reflect.TypeOf(it).Kind() != reflect.Ptr {
-		panic("parameter of impl could be only ptr")
+		panic(provideNonPtrImplPanic)
 	}
 	it = it.Elem()
 	st := reflect.TypeOf(impl)
-	// fmt.Println(it, st)
 	if !st.Implements(it) {
-		panic("could not implement type of " + it.String() + " by " + st.String())
+		panic(fmt.Sprintf(notImplPanic, it.String(), st.String()))
 	}
 	d._provByType[it] = impl
 }
@@ -65,21 +74,23 @@ func (d *DiContainer) GetProvideByName(name string) (service interface{}, exist 
 // diTag: "" || - -> ignore
 // diTag: ~       -> auto inject
 // diTag: name    -> inject by name
-func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
+func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 	var ctrlType = xcommon.ElemType(ctrl)
 	var ctrlValue = xcommon.ElemValue(ctrl)
 	if ctrlType.Kind() != reflect.Struct {
-		panic("Object for injection should be struct, have " + ctrlType.String())
+		panic(fmt.Sprintf(injectNonStructPanic, ctrlType.Kind().String(), ctrlType.String()))
 	}
-	allInjected = true
+	allInjected := true
 
 	for fieldIdx := 0; fieldIdx < ctrlType.NumField(); fieldIdx++ {
+		// check
 		field := ctrlType.Field(fieldIdx)
 		diTag := field.Tag.Get("di")
 		if diTag == "-" || diTag == "" {
 			continue
 		}
 
+		// find
 		var service interface{}
 		var exist bool
 		if diTag == "~" {
@@ -88,39 +99,28 @@ func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
 			service, exist = d._provByName[diTag]
 		}
 
+		// exist
 		if !exist {
 			allInjected = false
-		} else {
-			ctrlField := ctrlValue.Field(fieldIdx)
-
-			if ctrlField.IsValid() && ctrlField.CanSet() {
-				srvValue := reflect.ValueOf(service)
-				ctrlField.Set(srvValue)
+			if force {
+				panic(injectFailedPanic)
 			}
+			continue
+		}
+
+		// inject
+		ctrlField := ctrlValue.Field(fieldIdx)
+		if ctrlField.IsValid() && ctrlField.CanSet() {
+			ctrlField.Set(reflect.ValueOf(service))
 		}
 	}
 	return allInjected
 }
 
-// check if all field needed inject is not nil
-func AllInjected(ctrl interface{}) bool {
-	var ctrlType = xcommon.ElemType(ctrl)
-	var ctrlValue = xcommon.ElemValue(ctrl)
-	if ctrlType.Kind() != reflect.Struct {
-		return true
-	}
+func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
+	return d.inject(ctrl, false)
+}
 
-	for idx := 0; idx < ctrlType.NumField(); idx++ {
-		field := ctrlType.Field(idx)
-		diTag := field.Tag.Get("di")
-		if diTag == "" || diTag == "-" {
-			continue
-		}
-
-		ctrlField := ctrlValue.Field(idx)
-		if ctrlField.IsValid() && ctrlField.CanSet() && ctrlField.IsZero() {
-			return false
-		}
-	}
-	return true
+func (d *DiContainer) InjectForce(ctrl interface{}) {
+	d.inject(ctrl, true)
 }

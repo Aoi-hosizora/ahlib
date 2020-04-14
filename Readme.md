@@ -11,9 +11,9 @@ Some useful golang functions library for personal use, inspired by [shomali11/ut
 + xcondition
 + xlinkedhashmap
 + xslice
-+ xset
 + xstring
 + xentity (mapper)
 + xproperty (mapper)
 + xdi (inject)
 + xcommon
++ xnumber

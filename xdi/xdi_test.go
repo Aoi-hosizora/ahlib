@@ -87,10 +87,8 @@ func Test_DiContainer_Inject(t *testing.T) {
 	ctrl3 := &struct{ Other int `di:"o"` }{}
 
 	assert.Equal(t, ok, true)
-	assert.Equal(t, AllInjected(ctrl), true)
-	assert.Equal(t, AllInjected(ctrl2), false)
 	assert.Equal(t, dic.Inject(ctrl2), true)
-	assert.Equal(t, AllInjected(ctrl3), false)
 	assert.Equal(t, dic.Inject(ctrl3), false)
+	// dic.InjectForce(ctrl3) -> panic
 	// assert.Equal(t, dic.Inject(nil), true) -> panic
 }

@@ -53,10 +53,3 @@ func Third(args ...interface{}) interface{} {
 func Last(args ...interface{}) interface{} {
 	return _choose(len(args)-1, args)
 }
-
-func Natural(num float64) float64 {
-	if num < 0 {
-		return 0
-	}
-	return num
-}
