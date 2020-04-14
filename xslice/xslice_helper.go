@@ -110,6 +110,22 @@ func ItsOfFloat64(slice []interface{}) []float64 {
 	return out
 }
 
+func ItsOfComplex64(slice []interface{}) []complex64 {
+	out := make([]complex64, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(complex64)
+	}
+	return out
+}
+
+func ItsOfComplex128(slice []interface{}) []complex128 {
+	out := make([]complex128, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(complex128)
+	}
+	return out
+}
+
 func ItsOfString(slice []interface{}) []string {
 	out := make([]string, len(slice))
 	for idx := range slice {

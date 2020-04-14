@@ -3,6 +3,7 @@ package xslice
 import (
 	"github.com/stretchr/testify/assert"
 	"math/rand"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -88,4 +89,26 @@ func TestSliceDiff(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
 	assert.Equal(t, SliceDiff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
+}
+
+func TestEqual(t *testing.T) {
+	s1 := []int{1, 2, 5, 6, 7}
+	s2 := []int{2, 1, 7, 5, 6}
+	s3 := []int{1, 5, 6, 7}
+	s4 := []int{1, 5, 8, 7}
+	s5 := []int{1, 2, 2, 5, 6, 7}
+	assert.Equal(t, Equal(Sti(s1), Sti(s2)), true)
+	assert.Equal(t, Equal(Sti(s1), Sti(s3)), false)
+	assert.Equal(t, Equal(Sti(s1), Sti(s4)), false)
+	assert.Equal(t, Equal(Sti(s1), Sti(s5)), false)
+}
+
+func TestMap(t *testing.T) {
+	s1 := []int{1, 2, 3, 4, 5}
+	s2 := []string{"1", "2", "3", "4", "5"}
+	s3 := []int{2, 3, 4, 5, 6}
+	s4 := []float32{1.0, 2.0, 3.0, 4.0, 5.0}
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return strconv.Itoa(i.(int)) }), Sti(s2))
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return i.(int) + 1 }), Sti(s3))
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return float32(i.(int)) }), Sti(s4))
 }

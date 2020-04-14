@@ -37,9 +37,15 @@ func Contains(slice []interface{}, value interface{}) bool {
 	return IndexOf(slice, value) != -1
 }
 
+func Map(slice []interface{}, mapFunc func(interface{}) interface{}) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = mapFunc(slice[idx])
+	}
+	return out
+}
+
 // Delete the value in slice, n is delete time, -1 for all
-// Example:
-// 		Its(Delete(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1, 1), 0).([]int) == []int{5, 2, 1, 2, 3, 1}
 func Delete(slice []interface{}, value interface{}, n int) []interface{} {
 	if slice == nil {
 		return nil
@@ -82,7 +88,7 @@ func SliceDiff(s1 []interface{}, s2 []interface{}) []interface{} {
 	return result
 }
 
-func ContentEqual(s1 []interface{}, s2 []interface{}) bool {
+func Equal(s1 []interface{}, s2 []interface{}) bool {
 	if len(s1) != len(s2) {
 		return false
 	}
