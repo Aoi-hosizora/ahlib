@@ -17,3 +17,4 @@ Some useful golang functions library for personal use, inspired by [shomali11/ut
 + xdi (inject)
 + xcommon
 + xnumber
++ xcolor

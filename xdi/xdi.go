@@ -2,8 +2,8 @@ package xdi
 
 import (
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"github.com/Aoi-hosizora/ahlib/xcommon"
-	"log"
 	"reflect"
 )
 
@@ -12,7 +12,7 @@ type DiContainer struct {
 	_provByName    map[string]interface{}
 	ProvideLogMode bool
 	InjectLogMode  bool
-	LogFunc        func(method string, name string, t string)
+	LogFunc        func(method string, parent string, name string, t string) // yellow for type, red for name
 }
 
 func NewDiContainer() *DiContainer {
@@ -22,8 +22,14 @@ func NewDiContainer() *DiContainer {
 		ProvideLogMode: true,
 		InjectLogMode:  true,
 	}
-	dic.LogFunc = func(method string, name string, t string) {
-		log.Printf("[XDI] %s: %s (%s)", method, name, t)
+	dic.LogFunc = func(method string, parent string, name string, t string) {
+		method += ":"
+		if parent != "" {
+			parent = fmt.Sprintf("(%s).", xcolor.Yellow.Paint(parent))
+		}
+		name = xcolor.Red.Paint(name)
+		t = xcolor.Yellow.Paint(t)
+		fmt.Printf("[XDI] %-12s %s%s (%s)\n", method, parent, name, t)
 	}
 	return dic
 }
@@ -45,7 +51,7 @@ func (d *DiContainer) Provide(service interface{}) {
 	t := reflect.TypeOf(service)
 	d._provByType[t] = service
 	if d.ProvideLogMode {
-		d.LogFunc("Provide", "_", t.String())
+		d.LogFunc("Provide", "", "_", t.String())
 	}
 }
 
@@ -56,7 +62,7 @@ func (d *DiContainer) ProvideByName(name string, service interface{}) {
 	}
 	d._provByName[name] = service
 	if d.ProvideLogMode {
-		d.LogFunc("ProvideName", name, reflect.TypeOf(service).String())
+		d.LogFunc("ProvideName", "", name, reflect.TypeOf(service).String())
 	}
 }
 
@@ -73,7 +79,7 @@ func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
 	}
 	d._provByType[it] = impl
 	if d.ProvideLogMode {
-		d.LogFunc("ProvideImpl", "_", it.String())
+		d.LogFunc("ProvideImpl", "", "_", it.String())
 	}
 }
 
@@ -132,7 +138,7 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		if fieldValue.IsValid() && fieldValue.CanSet() {
 			fieldValue.Set(reflect.ValueOf(service))
 			if d.InjectLogMode {
-				d.LogFunc("Inject", fieldType.Name, fieldType.Type.String())
+				d.LogFunc("Inject", reflect.TypeOf(ctrl).String(), fieldType.Name, fieldType.Type.String())
 			}
 		}
 	}
@@ -143,6 +149,6 @@ func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
 	return d.inject(ctrl, false)
 }
 
-func (d *DiContainer) InjectForce(ctrl interface{}) {
+func (d *DiContainer) MustInject(ctrl interface{}) {
 	d.inject(ctrl, true)
 }

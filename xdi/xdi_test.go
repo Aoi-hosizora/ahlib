@@ -89,6 +89,6 @@ func Test_DiContainer_Inject(t *testing.T) {
 	assert.Equal(t, ok, true)
 	assert.Equal(t, dic.Inject(ctrl2), true)
 	assert.Equal(t, dic.Inject(ctrl3), false)
-	// dic.InjectForce(ctrl3) -> panic
+	// dic.MustInject(ctrl3) -> panic
 	// assert.Equal(t, dic.Inject(nil), true) -> panic
 }
