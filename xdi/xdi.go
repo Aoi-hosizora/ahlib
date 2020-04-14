@@ -3,18 +3,27 @@ package xdi
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcommon"
+	"log"
 	"reflect"
 )
 
 type DiContainer struct {
-	_provByType map[reflect.Type]interface{}
-	_provByName map[string]interface{}
+	_provByType    map[reflect.Type]interface{}
+	_provByName    map[string]interface{}
+	ProvideLogMode bool
+	InjectLogMode  bool
+	LogFunc        func(method string, name string, t string)
 }
 
 func NewDiContainer() *DiContainer {
 	var dic = &DiContainer{
-		_provByType: make(map[reflect.Type]interface{}),
-		_provByName: make(map[string]interface{}),
+		_provByType:    make(map[reflect.Type]interface{}),
+		_provByName:    make(map[string]interface{}),
+		ProvideLogMode: true,
+		InjectLogMode:  true,
+	}
+	dic.LogFunc = func(method string, name string, t string) {
+		log.Printf("[XDI] %s: %s (%s)", method, name, t)
 	}
 	return dic
 }
@@ -35,6 +44,9 @@ func (d *DiContainer) Provide(service interface{}) {
 	}
 	t := reflect.TypeOf(service)
 	d._provByType[t] = service
+	if d.ProvideLogMode {
+		d.LogFunc("Provide", "_", t.String())
+	}
 }
 
 // name: could not be ~, can be normal type or struct
@@ -43,6 +55,9 @@ func (d *DiContainer) ProvideByName(name string, service interface{}) {
 		panic(providePreservePanic)
 	}
 	d._provByName[name] = service
+	if d.ProvideLogMode {
+		d.LogFunc("ProvideName", name, reflect.TypeOf(service).String())
+	}
 }
 
 // interfacePtr: (*Interface)(nil), impl: Struct or *Struct
@@ -57,6 +72,9 @@ func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
 		panic(fmt.Sprintf(notImplPanic, it.String(), st.String()))
 	}
 	d._provByType[it] = impl
+	if d.ProvideLogMode {
+		d.LogFunc("ProvideImpl", "_", it.String())
+	}
 }
 
 // get data by type
@@ -109,9 +127,13 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		}
 
 		// inject
-		ctrlField := ctrlValue.Field(fieldIdx)
-		if ctrlField.IsValid() && ctrlField.CanSet() {
-			ctrlField.Set(reflect.ValueOf(service))
+		fieldType := ctrlType.Field(fieldIdx)
+		fieldValue := ctrlValue.Field(fieldIdx)
+		if fieldValue.IsValid() && fieldValue.CanSet() {
+			fieldValue.Set(reflect.ValueOf(service))
+			if d.InjectLogMode {
+				d.LogFunc("Inject", fieldType.Name, fieldType.Type.String())
+			}
 		}
 	}
 	return allInjected
