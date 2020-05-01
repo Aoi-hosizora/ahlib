@@ -1,6 +1,8 @@
 package xdi
 
 import (
+	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -84,11 +86,38 @@ func Test_DiContainer_Inject(t *testing.T) {
 	assert.Equal(t, ctrl.PD, 123)
 
 	ctrl2 := &Controller{}
-	ctrl3 := &struct{ Other int `di:"o"` }{}
+	ctrl3 := &struct {
+		Other int `di:"o"`
+	}{}
 
 	assert.Equal(t, ok, true)
 	assert.Equal(t, dic.Inject(ctrl2), true)
 	assert.Equal(t, dic.Inject(ctrl3), false)
 	// dic.MustInject(ctrl3) -> panic
 	// assert.Equal(t, dic.Inject(nil), true) -> panic
+
+	SetLogMode(true, true)
+	SetLogFunc(_di._logFunc)
+
+	type Itf interface {
+		Error() string
+	}
+	ctrl4 := &struct {
+		S string `di:"~"`
+	}{}
+	assert.Equal(t, Inject(ctrl4), false)
+
+	ctrl5 := &struct {
+		T int     `di:"t"`
+		I int     `di:"-"`
+		D float64 `di:"~"`
+		E Itf     `di:"~"`
+	}{}
+	ProvideByName("t", 1)
+	Provide(0.1)
+	ProvideImpl((*Itf)(nil), fmt.Errorf("err"))
+	MustInject(ctrl5)
+	assert.Equal(t, ctrl5.E.Error(), "err")
+	assert.Equal(t, xcondition.First(GetProvide(0.)), 0.1)
+	assert.Equal(t, xcondition.First(GetProvideByName("t")), 1)
 }

@@ -7,29 +7,32 @@ import (
 	"reflect"
 )
 
+// DiContainer log function, yellow for type, red for name
+type LogFunc func(kind string, parentName string, fieldName string, fieldType string)
+
 type DiContainer struct {
-	_provByType    map[reflect.Type]interface{}
-	_provByName    map[string]interface{}
-	ProvideLogMode bool
-	InjectLogMode  bool
-	LogFunc        func(method string, parent string, name string, t string) // yellow for type, red for name
+	_provByType     map[reflect.Type]interface{}
+	_provByName     map[string]interface{}
+	_provideLogMode bool
+	_injectLogMode  bool
+	_logFunc        LogFunc
 }
 
 func NewDiContainer() *DiContainer {
 	var dic = &DiContainer{
-		_provByType:    make(map[reflect.Type]interface{}),
-		_provByName:    make(map[string]interface{}),
-		ProvideLogMode: true,
-		InjectLogMode:  true,
-	}
-	dic.LogFunc = func(method string, parent string, name string, t string) {
-		method += ":"
-		if parent != "" {
-			parent = fmt.Sprintf("(%s).", xcolor.Yellow.Paint(parent))
-		}
-		name = xcolor.Red.Paint(name)
-		t = xcolor.Yellow.Paint(t)
-		fmt.Printf("[XDI] %-12s %s%s (%s)\n", method, parent, name, t)
+		_provByType:     make(map[reflect.Type]interface{}),
+		_provByName:     make(map[string]interface{}),
+		_provideLogMode: true,
+		_injectLogMode:  true,
+		_logFunc: func(method string, parent string, name string, t string) {
+			method += ":"
+			if parent != "" {
+				parent = fmt.Sprintf("(%s).", xcolor.Yellow.Paint(parent))
+			}
+			name = xcolor.Red.Paint(name)
+			t = xcolor.Yellow.Paint(t)
+			fmt.Printf("[XDI] %-12s %s%s (%s)\n", method, parent, name, t)
+		},
 	}
 	return dic
 }
@@ -43,6 +46,19 @@ var (
 	injectFailedPanic      = "there are some fields could not be injected"
 )
 
+// setup a DiContainer log mode, log when Provide and Inject
+func (d *DiContainer) SetLogMode(provideLogMode bool, injectLogMode bool) {
+	_di._provideLogMode = provideLogMode
+	_di._injectLogMode = injectLogMode
+}
+
+// setup a DiContainer how to log
+// kind: Provide or Inject
+// parentName: field's parent when inject
+func (d *DiContainer) SetLogFunc(logFunc LogFunc) {
+	_di._logFunc = logFunc
+}
+
 // service: can be normal type or struct
 func (d *DiContainer) Provide(service interface{}) {
 	if service == nil {
@@ -50,8 +66,8 @@ func (d *DiContainer) Provide(service interface{}) {
 	}
 	t := reflect.TypeOf(service)
 	d._provByType[t] = service
-	if d.ProvideLogMode {
-		d.LogFunc("Provide", "", "_", t.String())
+	if d._provideLogMode {
+		d._logFunc("Provide", "", "_", t.String())
 	}
 }
 
@@ -61,8 +77,8 @@ func (d *DiContainer) ProvideByName(name string, service interface{}) {
 		panic(providePreservePanic)
 	}
 	d._provByName[name] = service
-	if d.ProvideLogMode {
-		d.LogFunc("ProvideName", "", name, reflect.TypeOf(service).String())
+	if d._provideLogMode {
+		d._logFunc("ProvideName", "", name, reflect.TypeOf(service).String())
 	}
 }
 
@@ -78,8 +94,8 @@ func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
 		panic(fmt.Sprintf(notImplPanic, it.String(), st.String()))
 	}
 	d._provByType[it] = impl
-	if d.ProvideLogMode {
-		d.LogFunc("ProvideImpl", "", "_", it.String())
+	if d._provideLogMode {
+		d._logFunc("ProvideImpl", "", "_", it.String())
 	}
 }
 
@@ -137,8 +153,8 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		fieldValue := ctrlValue.Field(fieldIdx)
 		if fieldValue.IsValid() && fieldValue.CanSet() {
 			fieldValue.Set(reflect.ValueOf(service))
-			if d.InjectLogMode {
-				d.LogFunc("Inject", reflect.TypeOf(ctrl).String(), fieldType.Name, fieldType.Type.String())
+			if d._injectLogMode {
+				d._logFunc("Inject", reflect.TypeOf(ctrl).String(), fieldType.Name, fieldType.Type.String())
 			}
 		}
 	}
@@ -151,4 +167,55 @@ func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
 
 func (d *DiContainer) MustInject(ctrl interface{}) {
 	d.inject(ctrl, true)
+}
+
+// A DiContainer that used for global
+var _di = NewDiContainer()
+
+// A global Provide function for DiContainer
+func Provide(service interface{}) {
+	_di.Provide(service)
+}
+
+// A global ProvideByName function for DiContainer
+func ProvideByName(name string, service interface{}) {
+	_di.ProvideByName(name, service)
+}
+
+// A global ProvideImpl function for DiContainer
+func ProvideImpl(interfacePtr interface{}, impl interface{}) {
+	_di.ProvideImpl(interfacePtr, impl)
+}
+
+// A global GetProvide function for DiContainer
+func GetProvide(srvType interface{}) (service interface{}, exist bool) {
+	return _di.GetProvide(srvType)
+}
+
+// A global Provide function for DiContainer
+func GetProvideByName(name string) (service interface{}, exist bool) {
+	return _di.GetProvideByName(name)
+}
+
+// A global Inject function for DiContainer
+func Inject(ctrl interface{}) (allInjected bool) {
+	return _di.Inject(ctrl)
+}
+
+// A global MustInject function for DiContainer
+func MustInject(ctrl interface{}) {
+	_di.MustInject(ctrl)
+}
+
+// A global SetLogMode function for DiContainer
+// only for global DiContainer, not work for NewDiContainer
+func SetLogMode(provideLogMode bool, injectLogMode bool) {
+	_di._provideLogMode = provideLogMode
+	_di._injectLogMode = injectLogMode
+}
+
+// A global SetLogFunc function for DiContainer
+// only for global DiContainer, not work for NewDiContainer
+func SetLogFunc(logFunc LogFunc) {
+	_di._logFunc = logFunc
 }
