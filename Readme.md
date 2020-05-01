@@ -10,12 +10,12 @@ Some useful golang functions library for personal use, inspired by [shomali11/ut
 
 + xcondition
 + xlinkedhashmap
-+ xslice
++ **xslice**
 + xstring
-+ xentity (mapper)
-+ xproperty (mapper)
-+ xdi (inject)
++ **xentity**
++ **xproperty**
++ **xdi**
 + xcommon
 + xnumber
 + xcolor
-+ xstack
++ xruntime
