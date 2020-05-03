@@ -23,6 +23,7 @@ func (s *Stack) String() string {
 }
 
 func GetStack(skip int) []*Stack {
+	skip++
 	out := make([]*Stack, 0)
 	for i := skip; ; i++ {
 		pc, filename, lineNumber, ok := runtime.Caller(i)
@@ -52,6 +53,15 @@ func GetStack(skip int) []*Stack {
 	}
 
 	return out
+}
+
+func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, line int, content string) {
+	stacks = GetStack(skip + 1)
+	if len(stacks) == 0 {
+		return []*Stack{}, "", "", -1, ""
+	}
+	top := stacks[0]
+	return stacks, top.Filename, top.Function, top.Line, top.Content
 }
 
 func PrintStacks(stacks []*Stack) {
