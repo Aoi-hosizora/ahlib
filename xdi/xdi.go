@@ -2,8 +2,8 @@ package xdi
 
 import (
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"github.com/Aoi-hosizora/ahlib/xcommon"
+	"github.com/gookit/color"
 	"reflect"
 )
 
@@ -27,10 +27,10 @@ func NewDiContainer() *DiContainer {
 		_logFunc: func(method string, parent string, name string, t string) {
 			method += ":"
 			if parent != "" {
-				parent = fmt.Sprintf("(%s).", xcolor.Yellow.Paint(parent))
+				parent = fmt.Sprintf("(%s).", color.Yellow.Sprint(parent))
 			}
-			name = xcolor.Red.Paint(name)
-			t = xcolor.Yellow.Paint(t)
+			name = color.Yellow.Sprint(name)
+			t = color.Yellow.Sprint(t)
 			fmt.Printf("[XDI] %-12s %s%s (%s)\n", method, parent, name, t)
 		},
 	}

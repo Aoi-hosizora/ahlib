@@ -3,7 +3,7 @@ package xruntime
 import (
 	"bytes"
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcolor"
+	"github.com/gookit/color"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
@@ -66,6 +66,6 @@ func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname stri
 
 func PrintStacks(stacks []*Stack) {
 	for _, s := range stacks {
-		fmt.Println(xcolor.Red.Paint(s.String()))
+		fmt.Println(color.Red.Sprint(s.String()))
 	}
 }
