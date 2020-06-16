@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcommon"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"github.com/Aoi-hosizora/ahlib/xslice"
 	"strings"
 )
@@ -91,7 +91,7 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 		return nil
 	}
 	// check ptr and struct
-	val := xcommon.ElemValue(object)
+	val := xreflect.ElemValue(object)
 	relType := val.Type()
 
 	// val, retType

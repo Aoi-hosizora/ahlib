@@ -1,4 +1,4 @@
-package xcommon
+package xreflect
 
 import "reflect"
 

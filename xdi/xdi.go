@@ -2,7 +2,7 @@ package xdi
 
 import (
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcommon"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"github.com/gookit/color"
 	"reflect"
 )
@@ -115,8 +115,8 @@ func (d *DiContainer) GetProvideByName(name string) (service interface{}, exist 
 // diTag: ~       -> auto inject
 // diTag: name    -> inject by name
 func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
-	var ctrlType = xcommon.ElemType(ctrl)
-	var ctrlValue = xcommon.ElemValue(ctrl)
+	var ctrlType = xreflect.ElemType(ctrl)
+	var ctrlValue = xreflect.ElemValue(ctrl)
 	if ctrlType.Kind() != reflect.Struct {
 		panic(fmt.Sprintf(injectNonStructPanic, ctrlType.Kind().String(), ctrlType.String()))
 	}

@@ -101,9 +101,9 @@ func TestIsUppercase(t *testing.T) {
 
 func TestRemoveSpaces(t *testing.T) {
 	assert.Equal(t, RemoveSpaces(""), "")
-	assert.Equal(t, RemoveSpaces("a b  c d   e f"), "a b c d e f")
+	assert.Equal(t, RemoveSpaces("a b  c 　d   e f"), "a b c d e f")
 	assert.Equal(t, RemoveSpaces("a b 	 c d   e f"), "a b c d e f")
 	assert.Equal(t, RemoveSpaces("a b \n	 c d   e f"), "a b c d e f")
-	assert.Equal(t, RemoveSpaces("\n"), "")
-	assert.Equal(t, RemoveSpaces("\n	"), "")
+	assert.Equal(t, RemoveSpaces("\n　"), "")
+	assert.Equal(t, RemoveSpaces("　\n	"), "")
 }

@@ -1,6 +1,7 @@
 package xstring
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -49,20 +50,7 @@ func ToSnakeCase(str string) string {
 }
 
 func RemoveSpaces(str string) string {
-	replace := func(src string) string {
-		return strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(src,
-					"\t", " "),
-				"\n", " "),
-			"  ", " ")
-	}
-
-	length := len(str)
-	newStr := replace(str)
-	for length != len(newStr) {
-		length = len(newStr)
-		newStr = replace(newStr)
-	}
-	return strings.TrimSpace(newStr)
+	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
+	str = r.ReplaceAllString(str, " ")
+	return strings.TrimSpace(str)
 }

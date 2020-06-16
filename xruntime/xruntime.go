@@ -10,16 +10,16 @@ import (
 )
 
 type Stack struct {
-	Index    int
-	Filename string
-	Function string
-	Pc       uintptr
-	Line     int
-	Content  string
+	Index     int
+	Filename  string
+	Function  string
+	Pc        uintptr
+	LineIndex int
+	Line      string
 }
 
 func (s *Stack) String() string {
-	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", s.Filename, s.Line, s.Pc, s.Function, s.Content)
+	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", s.Filename, s.LineIndex, s.Pc, s.Function, s.Line)
 }
 
 func GetStack(skip int) []*Stack {
@@ -43,25 +43,25 @@ func GetStack(skip int) []*Stack {
 			}
 		}
 		out = append(out, &Stack{
-			Index:    i,
-			Filename: filename,
-			Function: function,
-			Pc:       pc,
-			Line:     lineNumber,
-			Content:  lineContent,
+			Index:     i,
+			Filename:  filename,
+			Function:  function,
+			Pc:        pc,
+			LineIndex: lineNumber,
+			Line:      lineContent,
 		})
 	}
 
 	return out
 }
 
-func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, line int, content string) {
+func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, lineIndex int, line string) {
 	stacks = GetStack(skip + 1)
 	if len(stacks) == 0 {
 		return []*Stack{}, "", "", -1, ""
 	}
 	top := stacks[0]
-	return stacks, top.Filename, top.Function, top.Line, top.Content
+	return stacks, top.Filename, top.Function, top.LineIndex, top.Line
 }
 
 func PrintStacks(stacks []*Stack) {

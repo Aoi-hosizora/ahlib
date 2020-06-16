@@ -13,7 +13,7 @@ func Sti(slice interface{}) []interface{} {
 	}
 	v := reflect.ValueOf(slice)
 	if v.IsValid() && v.Kind() != reflect.Slice {
-		return nil
+		panic("interface{} is not a slice")
 	}
 	arr := make([]interface{}, v.Len())
 	for idx := 0; idx < v.Len(); idx++ {
