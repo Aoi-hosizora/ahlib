@@ -1,0 +1,58 @@
+package xlogger
+
+import (
+	"fmt"
+	"io"
+	"os"
+	"sync"
+	"time"
+)
+
+type StdLogger struct {
+	mu  *sync.Mutex
+	out io.Writer
+	buf []byte
+}
+
+func NewStdLogger(mu *sync.Mutex, out io.Writer) *StdLogger {
+	return &StdLogger{mu: mu, out: out}
+}
+
+func (l *StdLogger) Output(s string) {
+	now := time.Now()
+	t := fmt.Sprintf("[%s] ", now.Format(time.RFC3339))
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.buf = l.buf[:0]
+	l.buf = append(l.buf, []byte(t)...)
+	l.buf = append(l.buf, s...)
+	if len(s) == 0 || s[len(s)-1] != '\n' {
+		l.buf = append(l.buf, '\n')
+	}
+	_, _ = l.out.Write(l.buf)
+}
+
+func (l *StdLogger) Outputf(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+	l.Output(s)
+}
+
+func (l *StdLogger) Outputln(format string) {
+	s := fmt.Sprintln(format)
+	l.Output(s)
+}
+
+var _stdLogger = NewStdLogger(&sync.Mutex{}, os.Stderr)
+
+func Output(s string) {
+	_stdLogger.Output(s)
+}
+
+func Outputf(format string, v ...interface{}) {
+	_stdLogger.Outputf(format, v...)
+}
+
+func Outputln(format string) {
+	_stdLogger.Outputln(format)
+}
