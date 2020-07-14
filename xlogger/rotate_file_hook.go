@@ -7,10 +7,6 @@ import (
 )
 
 type RotateFileConfig struct {
-	Level     logrus.Level
-	Formatter logrus.Formatter
-	Filename  string
-
 	// MaxSize is the maximum size in megabytes of the log file before it gets
 	// rotated. It defaults to 100 megabytes.
 	MaxSize int
@@ -33,6 +29,10 @@ type RotateFileConfig struct {
 	// Compress determines if the rotated log files should be compressed
 	// using gzip. The default is not to perform compression.
 	Compress bool
+
+	Filename  string
+	Level     logrus.Level
+	Formatter logrus.Formatter
 }
 
 type RotateFileHook struct {
@@ -40,7 +40,7 @@ type RotateFileHook struct {
 	logWriter io.Writer
 }
 
-func NewRotateFileHook(config *RotateFileConfig) (logrus.Hook, error) {
+func NewRotateFileHook(config *RotateFileConfig) logrus.Hook {
 	return &RotateFileHook{
 		config: config,
 		logWriter: &lumberjack.Logger{
@@ -51,14 +51,14 @@ func NewRotateFileHook(config *RotateFileConfig) (logrus.Hook, error) {
 			LocalTime:  config.LocalTime,
 			Compress:   config.Compress,
 		},
-	}, nil
+	}
 }
 
 func (r *RotateFileHook) Levels() []logrus.Level {
 	return logrus.AllLevels[:r.config.Level+1]
 }
 
-func (r *RotateFileHook) Fire(entry *logrus.Entry) (err error) {
+func (r *RotateFileHook) Fire(entry *logrus.Entry) error {
 	b, err := r.config.Formatter.Format(entry)
 	if err != nil {
 		return err
