@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type CustomerFormatter struct {
+type CustomFormatter struct {
 	RuntimeCaller func(*runtime.Frame) (function string, file string)
 	ForceColor    bool
 
@@ -18,13 +18,13 @@ type CustomerFormatter struct {
 	terminalInitOnce sync.Once
 }
 
-func (f *CustomerFormatter) init(entry *logrus.Entry) {
+func (f *CustomFormatter) init(entry *logrus.Entry) {
 	if entry.Logger != nil {
 		f.isTerminal = checkIfTerminal(entry.Logger.Out)
 	}
 }
 
-func (f *CustomerFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	f.terminalInitOnce.Do(func() {
 		f.init(entry)
 	})

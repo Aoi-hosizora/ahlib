@@ -9,13 +9,13 @@ import (
 )
 
 type StdLogger struct {
-	mu  *sync.Mutex
+	mu  sync.Mutex
 	out io.Writer
 	buf []byte
 }
 
-func NewStdLogger(mu *sync.Mutex, out io.Writer) *StdLogger {
-	return &StdLogger{mu: mu, out: out}
+func NewStdLogger(out io.Writer) *StdLogger {
+	return &StdLogger{out: out}
 }
 
 func (l *StdLogger) Output(s string) {
@@ -43,7 +43,7 @@ func (l *StdLogger) Outputln(format string) {
 	l.Output(s)
 }
 
-var _stdLogger = NewStdLogger(&sync.Mutex{}, os.Stderr)
+var _stdLogger = NewStdLogger(os.Stderr)
 
 func Output(s string) {
 	_stdLogger.Output(s)
