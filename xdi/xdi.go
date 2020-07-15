@@ -8,117 +8,126 @@ import (
 )
 
 // DiContainer log function, yellow for type, red for name
+// kind: ProvideType or Inject
+// parentName: field's parent when inject
 type LogFunc func(kind string, parentName string, fieldName string, fieldType string)
 
 type DiContainer struct {
-	_provByType     map[reflect.Type]interface{}
-	_provByName     map[string]interface{}
-	_provideLogMode bool
-	_injectLogMode  bool
-	_logFunc        LogFunc
+	provByType map[reflect.Type]interface{}
+	provByName map[string]interface{}
+
+	provideLog bool
+	injectLog  bool
+	logFunc    LogFunc
 }
 
 func NewDiContainer() *DiContainer {
-	var dic = &DiContainer{
-		_provByType:     make(map[reflect.Type]interface{}),
-		_provByName:     make(map[string]interface{}),
-		_provideLogMode: true,
-		_injectLogMode:  true,
-		_logFunc: func(method string, parent string, name string, t string) {
-			method += ":"
-			if parent != "" {
-				parent = fmt.Sprintf("(%s).", color.Yellow.Sprint(parent))
+	return &DiContainer{
+		provByType: make(map[reflect.Type]interface{}),
+		provByName: make(map[string]interface{}),
+		provideLog: true,
+		injectLog:  true,
+		logFunc: func(kind string, parentName string, fieldName string, fieldType string) {
+			kind += ":"
+			if parentName != "" {
+				parentName = fmt.Sprintf("(%s).", color.Yellow.Sprint(parentName))
 			}
-			name = color.Yellow.Sprint(name)
-			t = color.Yellow.Sprint(t)
-			fmt.Printf("[XDI] %-12s %s%s (%s)\n", method, parent, name, t)
+			fieldName = color.Yellow.Sprint(fieldName)
+			fieldType = color.Yellow.Sprint(fieldType)
+			fmt.Printf("[XDI] %-12s %s%s (%s)\n", kind, parentName, fieldName, fieldType)
 		},
 	}
-	return dic
 }
 
-var (
-	provideNilPanic        = "could not provide nil service"
-	providePreservePanic   = "could not provide service using ~ name"
-	provideNonPtrImplPanic = "could not provide a non pointer implementation"
-	notImplPanic           = "could not implement type %s by %s"
-	injectNonStructPanic   = "object for injection should be struct, have %s with %s"
-	injectFailedPanic      = "there are some fields could not be injected"
-)
-
-// setup a DiContainer log mode, log when Provide and Inject
-func (d *DiContainer) SetLogMode(provideLogMode bool, injectLogMode bool) {
-	_di._provideLogMode = provideLogMode
-	_di._injectLogMode = injectLogMode
+func (d *DiContainer) SetLogMode(provideLog bool, injectLog bool) {
+	_di.provideLog = provideLog
+	_di.injectLog = injectLog
 }
 
-// setup a DiContainer how to log
-// kind: Provide or Inject
-// parentName: field's parent when inject
 func (d *DiContainer) SetLogFunc(logFunc LogFunc) {
-	_di._logFunc = logFunc
+	_di.logFunc = logFunc
 }
 
-// service: can be normal type or struct
-func (d *DiContainer) Provide(service interface{}) {
+func (d *DiContainer) ProvideType(service interface{}) {
 	if service == nil {
-		panic(provideNilPanic)
+		panic("could not provide nil service")
 	}
 	t := reflect.TypeOf(service)
-	d._provByType[t] = service
-	if d._provideLogMode {
-		d._logFunc("Provide", "", "_", t.String())
+
+	d.provByType[t] = service
+	if d.provideLog {
+		d.logFunc("Type", "", "_", t.String())
 	}
 }
 
-// name: could not be ~, can be normal type or struct
-func (d *DiContainer) ProvideByName(name string, service interface{}) {
-	if name == "~" {
-		panic(providePreservePanic)
-	}
-	d._provByName[name] = service
-	if d._provideLogMode {
-		d._logFunc("ProvideName", "", name, reflect.TypeOf(service).String())
-	}
-}
-
-// interfacePtr: (*Interface)(nil), impl: Struct or *Struct
-func (d *DiContainer) ProvideImpl(interfacePtr interface{}, impl interface{}) {
-	it := reflect.TypeOf(interfacePtr)
+func (d *DiContainer) ProvideImpl(itfNilPtr interface{}, impl interface{}) {
+	it := reflect.TypeOf(itfNilPtr)
 	if reflect.TypeOf(it).Kind() != reflect.Ptr {
-		panic(provideNonPtrImplPanic)
+		panic("first parameter of ProvideImpl must be pointer of interface")
 	}
 	it = it.Elem()
+
 	st := reflect.TypeOf(impl)
 	if !st.Implements(it) {
-		panic(fmt.Sprintf(notImplPanic, it.String(), st.String()))
+		panic(fmt.Sprintf("could not implement type %s by %s", it.String(), st.String()))
 	}
-	d._provByType[it] = impl
-	if d._provideLogMode {
-		d._logFunc("ProvideImpl", "", "_", it.String())
+
+	d.provByType[it] = impl
+	if d.provideLog {
+		d.logFunc("Impl", "", "_", it.String())
 	}
 }
 
-// get data by type
-func (d *DiContainer) GetProvide(srvType interface{}) (service interface{}, exist bool) {
-	service, exist = d._provByType[reflect.TypeOf(srvType)]
+func (d *DiContainer) ProvideName(name string, service interface{}) {
+	if name == "~" {
+		panic("could not provide service using '~' name")
+	}
+
+	d.provByName[name] = service
+	if d.provideLog {
+		d.logFunc("Name", "", name, reflect.TypeOf(service).String())
+	}
+}
+
+func (d *DiContainer) GetByType(srvType interface{}) (service interface{}, exist bool) {
+	if srvType == nil {
+		panic("could not get nil type service")
+	}
+	service, exist = d.provByType[reflect.TypeOf(srvType)]
 	return
 }
 
-// get data by name
-func (d *DiContainer) GetProvideByName(name string) (service interface{}, exist bool) {
-	service, exist = d._provByName[name]
+func (d *DiContainer) GetByName(name string) (service interface{}, exist bool) {
+	service, exist = d.provByName[name]
 	return
 }
 
+func (d *DiContainer) GetByTypeForce(srvType interface{}) interface{} {
+	service, exist := d.GetByType(srvType)
+	if !exist {
+		panic(fmt.Sprintf("service with type %s is not found", reflect.TypeOf(srvType).String()))
+	}
+	return service
+}
+
+func (d *DiContainer) GetByNameForce(name string) interface{} {
+	service, exist := d.GetByName(name)
+	if !exist {
+		panic(fmt.Sprintf("service with name %s is not found", name))
+	}
+	return service
+}
+
+// Using tips:
+//
 // diTag: "" || - -> ignore
 // diTag: ~       -> auto inject
 // diTag: name    -> inject by name
 func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
-	var ctrlType = xreflect.ElemType(ctrl)
-	var ctrlValue = xreflect.ElemValue(ctrl)
+	ctrlType := xreflect.ElemType(ctrl)
+	ctrlValue := xreflect.ElemValue(ctrl)
 	if ctrlType.Kind() != reflect.Struct {
-		panic(fmt.Sprintf(injectNonStructPanic, ctrlType.Kind().String(), ctrlType.String()))
+		panic(fmt.Sprintf("object for injection should be struct, have %s with %s", ctrlType.Kind().String(), ctrlType.String()))
 	}
 	allInjected := true
 
@@ -134,16 +143,16 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		var service interface{}
 		var exist bool
 		if diTag == "~" {
-			service, exist = d._provByType[field.Type]
+			service, exist = d.provByType[field.Type]
 		} else {
-			service, exist = d._provByName[diTag]
+			service, exist = d.provByName[diTag]
 		}
 
 		// exist
 		if !exist {
 			allInjected = false
 			if force {
-				panic(injectFailedPanic)
+				panic("there are some fields could not be injected")
 			}
 			continue
 		}
@@ -153,8 +162,8 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		fieldValue := ctrlValue.Field(fieldIdx)
 		if fieldValue.IsValid() && fieldValue.CanSet() {
 			fieldValue.Set(reflect.ValueOf(service))
-			if d._injectLogMode {
-				d._logFunc("Inject", reflect.TypeOf(ctrl).String(), fieldType.Name, fieldType.Type.String())
+			if d.injectLog {
+				d.logFunc("Inject", reflect.TypeOf(ctrl).String(), fieldType.Name, fieldType.Type.String())
 			}
 		}
 	}
@@ -172,50 +181,51 @@ func (d *DiContainer) MustInject(ctrl interface{}) {
 // A DiContainer that used for global
 var _di = NewDiContainer()
 
-// A global Provide function for DiContainer
-func Provide(service interface{}) {
-	_di.Provide(service)
-}
-
-// A global ProvideByName function for DiContainer
-func ProvideByName(name string, service interface{}) {
-	_di.ProvideByName(name, service)
-}
-
-// A global ProvideImpl function for DiContainer
-func ProvideImpl(interfacePtr interface{}, impl interface{}) {
-	_di.ProvideImpl(interfacePtr, impl)
-}
-
-// A global GetProvide function for DiContainer
-func GetProvide(srvType interface{}) (service interface{}, exist bool) {
-	return _di.GetProvide(srvType)
-}
-
-// A global Provide function for DiContainer
-func GetProvideByName(name string) (service interface{}, exist bool) {
-	return _di.GetProvideByName(name)
-}
-
-// A global Inject function for DiContainer
-func Inject(ctrl interface{}) (allInjected bool) {
-	return _di.Inject(ctrl)
-}
-
-// A global MustInject function for DiContainer
-func MustInject(ctrl interface{}) {
-	_di.MustInject(ctrl)
-}
-
 // A global SetLogMode function for DiContainer
 // only for global DiContainer, not work for NewDiContainer
 func SetLogMode(provideLogMode bool, injectLogMode bool) {
-	_di._provideLogMode = provideLogMode
-	_di._injectLogMode = injectLogMode
+	_di.provideLog = provideLogMode
+	_di.injectLog = injectLogMode
 }
 
 // A global SetLogFunc function for DiContainer
 // only for global DiContainer, not work for NewDiContainer
 func SetLogFunc(logFunc LogFunc) {
-	_di._logFunc = logFunc
+	_di.logFunc = logFunc
+}
+
+func ProvideType(service interface{}) {
+	_di.ProvideType(service)
+}
+
+func ProvideImpl(interfacePtr interface{}, impl interface{}) {
+	_di.ProvideImpl(interfacePtr, impl)
+}
+
+func ProvideName(name string, service interface{}) {
+	_di.ProvideName(name, service)
+}
+
+func GetByType(srvType interface{}) (service interface{}, exist bool) {
+	return _di.GetByType(srvType)
+}
+
+func GetByName(name string) (service interface{}, exist bool) {
+	return _di.GetByName(name)
+}
+
+func GetByTypeForce(srvType interface{}) interface{} {
+	return _di.GetByTypeForce(srvType)
+}
+
+func GetByNameForce(name string) interface{} {
+	return _di.GetByNameForce(name)
+}
+
+func Inject(ctrl interface{}) (allInjected bool) {
+	return _di.Inject(ctrl)
+}
+
+func MustInject(ctrl interface{}) {
+	_di.MustInject(ctrl)
 }

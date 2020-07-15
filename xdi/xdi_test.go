@@ -67,12 +67,12 @@ func NewServiceC(dic *DiContainer) *ServiceC {
 func Test_DiContainer_Inject(t *testing.T) {
 	dic := NewDiContainer()
 
-	dic.ProvideByName("a", NewServiceA(dic))
+	dic.ProvideName("a", NewServiceA(dic))
 	dic.ProvideImpl((*IServiceA)(nil), *NewServiceA(dic))
-	dic.Provide(NewServiceB(dic))
+	dic.ProvideType(NewServiceB(dic))
 	dic.ProvideImpl((*IServiceB)(nil), NewServiceB(dic))
 	dic.ProvideImpl((*IServiceC)(nil), NewServiceC(dic))
-	dic.ProvideByName("d", 123)
+	dic.ProvideName("d", 123)
 
 	ctrl := &Controller{}
 	ok := dic.Inject(ctrl)
@@ -97,7 +97,7 @@ func Test_DiContainer_Inject(t *testing.T) {
 	// assert.Equal(t, dic.Inject(nil), true) -> panic
 
 	SetLogMode(true, true)
-	SetLogFunc(_di._logFunc)
+	SetLogFunc(_di.logFunc)
 
 	type Itf interface {
 		Error() string
@@ -113,11 +113,13 @@ func Test_DiContainer_Inject(t *testing.T) {
 		D float64 `di:"~"`
 		E Itf     `di:"~"`
 	}{}
-	ProvideByName("t", 1)
-	Provide(0.1)
+	ProvideName("t", 1)
+	ProvideType(0.1)
 	ProvideImpl((*Itf)(nil), fmt.Errorf("err"))
 	MustInject(ctrl5)
 	assert.Equal(t, ctrl5.E.Error(), "err")
-	assert.Equal(t, xcondition.First(GetProvide(0.)), 0.1)
-	assert.Equal(t, xcondition.First(GetProvideByName("t")), 1)
+	assert.Equal(t, xcondition.First(GetByType(0.)), 0.1)
+	assert.Equal(t, xcondition.First(GetByName("t")), 1)
+	assert.Equal(t, GetByTypeForce(0.), 0.1)
+	assert.Equal(t, GetByNameForce("t"), 1)
 }
