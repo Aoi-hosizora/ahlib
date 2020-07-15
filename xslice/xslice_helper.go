@@ -38,6 +38,7 @@ func Its(slice []interface{}, model interface{}) interface{} {
 	return si.Interface()
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsToString(slice []interface{}) []string {
 	out := make([]string, len(slice))
 	for idx := range slice {
@@ -46,6 +47,7 @@ func ItsToString(slice []interface{}) []string {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfInt(slice []interface{}) []int {
 	out := make([]int, len(slice))
 	for idx := range slice {
@@ -54,6 +56,7 @@ func ItsOfInt(slice []interface{}) []int {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfUint(slice []interface{}) []uint {
 	out := make([]uint, len(slice))
 	for idx := range slice {
@@ -62,6 +65,7 @@ func ItsOfUint(slice []interface{}) []uint {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfUint32(slice []interface{}) []uint32 {
 	out := make([]uint32, len(slice))
 	for idx := range slice {
@@ -70,6 +74,7 @@ func ItsOfUint32(slice []interface{}) []uint32 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfUint64(slice []interface{}) []uint64 {
 	out := make([]uint64, len(slice))
 	for idx := range slice {
@@ -78,6 +83,7 @@ func ItsOfUint64(slice []interface{}) []uint64 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfInt32(slice []interface{}) []int32 {
 	out := make([]int32, len(slice))
 	for idx := range slice {
@@ -86,6 +92,7 @@ func ItsOfInt32(slice []interface{}) []int32 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfInt64(slice []interface{}) []int64 {
 	out := make([]int64, len(slice))
 	for idx := range slice {
@@ -94,6 +101,7 @@ func ItsOfInt64(slice []interface{}) []int64 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfFloat32(slice []interface{}) []float32 {
 	out := make([]float32, len(slice))
 	for idx := range slice {
@@ -102,6 +110,7 @@ func ItsOfFloat32(slice []interface{}) []float32 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfFloat64(slice []interface{}) []float64 {
 	out := make([]float64, len(slice))
 	for idx := range slice {
@@ -110,6 +119,7 @@ func ItsOfFloat64(slice []interface{}) []float64 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfComplex64(slice []interface{}) []complex64 {
 	out := make([]complex64, len(slice))
 	for idx := range slice {
@@ -118,6 +128,7 @@ func ItsOfComplex64(slice []interface{}) []complex64 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfComplex128(slice []interface{}) []complex128 {
 	out := make([]complex128, len(slice))
 	for idx := range slice {
@@ -126,6 +137,7 @@ func ItsOfComplex128(slice []interface{}) []complex128 {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfString(slice []interface{}) []string {
 	out := make([]string, len(slice))
 	for idx := range slice {
@@ -134,6 +146,7 @@ func ItsOfString(slice []interface{}) []string {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfByte(slice []interface{}) []byte {
 	out := make([]byte, len(slice))
 	for idx := range slice {
@@ -142,6 +155,7 @@ func ItsOfByte(slice []interface{}) []byte {
 	return out
 }
 
+// noinspection GoUnusedExportedFunction
 func ItsOfRune(slice []interface{}) []rune {
 	out := make([]rune, len(slice))
 	for idx := range slice {

@@ -18,6 +18,10 @@ func NewStdLogger(out io.Writer) *StdLogger {
 	return &StdLogger{out: out}
 }
 
+func (l *StdLogger) Writer() io.Writer {
+	return l.out
+}
+
 func (l *StdLogger) Output(s string) {
 	now := time.Now()
 	t := fmt.Sprintf("[%s] ", now.Format(time.RFC3339))
@@ -47,7 +51,7 @@ var _stdLogger = NewStdLogger(os.Stderr)
 
 // noinspection GoUnusedExportedFunction
 func Writer() io.Writer {
-	return _stdLogger.out
+	return _stdLogger.Writer()
 }
 
 func Output(s string) {
