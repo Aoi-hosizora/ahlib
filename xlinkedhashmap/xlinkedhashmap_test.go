@@ -30,4 +30,5 @@ func TestLinkedHashMap(t *testing.T) {
 func TestObjectToLinkedHashMap(t *testing.T) {
 	assert.Equal(t, ObjectToLinkedHashMap(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
 	assert.Equal(t, ObjectToLinkedHashMap(nil) == nil, true)
+	assert.Equal(t, FromInterface(nil) == nil, true)
 }

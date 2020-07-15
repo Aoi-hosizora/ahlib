@@ -1,7 +1,7 @@
 // +build linux aix
 // +build !js
 
-package xlogger
+package xterminal
 
 import "golang.org/x/sys/unix"
 

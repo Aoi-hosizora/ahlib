@@ -1,6 +1,6 @@
 // +build !appengine,!js,!windows,!nacl,!plan9
 
-package xlogger
+package xterminal
 
 import (
 	"io"

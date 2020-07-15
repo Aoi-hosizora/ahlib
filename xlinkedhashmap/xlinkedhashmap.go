@@ -115,3 +115,8 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 	}
 	return lhm
 }
+
+// A copy function for ObjectToLinkedHashMap
+func FromInterface(object interface{}) *LinkedHashMap {
+	return ObjectToLinkedHashMap(object)
+}

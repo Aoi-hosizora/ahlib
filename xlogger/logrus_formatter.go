@@ -3,6 +3,7 @@ package xlogger
 import (
 	"bytes"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/sirupsen/logrus"
 	"runtime"
 	"strings"
@@ -20,7 +21,7 @@ type CustomFormatter struct {
 
 func (f *CustomFormatter) init(entry *logrus.Entry) {
 	if entry.Logger != nil {
-		f.isTerminal = checkIfTerminal(entry.Logger.Out)
+		f.isTerminal = xterminal.InitTerminal(entry.Logger.Out)
 	}
 }
 

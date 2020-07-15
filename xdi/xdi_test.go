@@ -3,7 +3,9 @@ package xdi
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcondition"
+	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -65,6 +67,8 @@ func NewServiceC(dic *DiContainer) *ServiceC {
 }
 
 func Test_DiContainer_Inject(t *testing.T) {
+	xterminal.InitTerminal(os.Stdout)
+
 	dic := NewDiContainer()
 
 	dic.ProvideName("a", NewServiceA(dic))

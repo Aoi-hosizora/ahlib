@@ -56,7 +56,8 @@ func GetStack(skip int) []*Stack {
 }
 
 func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, lineIndex int, line string) {
-	stacks = GetStack(skip + 1)
+	skip++
+	stacks = GetStack(skip)
 	if len(stacks) == 0 {
 		return []*Stack{}, "", "", -1, ""
 	}

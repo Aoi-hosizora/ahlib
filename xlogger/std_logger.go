@@ -45,6 +45,11 @@ func (l *StdLogger) Outputln(format string) {
 
 var _stdLogger = NewStdLogger(os.Stderr)
 
+// noinspection GoUnusedExportedFunction
+func Writer() io.Writer {
+	return _stdLogger.out
+}
+
 func Output(s string) {
 	_stdLogger.Output(s)
 }

@@ -1,6 +1,6 @@
 // +build !appengine,!js,windows
 
-package xlogger
+package xterminal
 
 import (
 	sequences "github.com/konsorten/go-windows-terminal-sequences"

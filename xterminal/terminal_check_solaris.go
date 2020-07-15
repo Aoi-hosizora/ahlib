@@ -1,4 +1,4 @@
-package xlogger
+package xterminal
 
 import (
 	"golang.org/x/sys/unix"

@@ -1,11 +1,11 @@
-// +build appengine
+// +build js nacl plan9
 
-package xlogger
+package xterminal
 
 import (
 	"io"
 )
 
 func checkIfTerminal(w io.Writer) bool {
-	return true
+	return false
 }

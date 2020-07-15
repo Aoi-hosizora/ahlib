@@ -1,6 +1,6 @@
 // +build js
 
-package xlogger
+package xterminal
 
 func isTerminal(fd int) bool {
 	return false
