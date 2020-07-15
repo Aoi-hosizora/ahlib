@@ -19,3 +19,4 @@
 + xnumber
 + xruntime
 + **xlogger**
++ xterminal
