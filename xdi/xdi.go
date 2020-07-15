@@ -3,14 +3,19 @@ package xdi
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xreflect"
+	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/gookit/color"
+	"os"
 	"reflect"
+	"sync"
 )
 
-// DiContainer log function, yellow for type, red for name
-// kind: ProvideType or Inject
-// parentName: field's parent when inject
-type LogFunc func(kind string, parentName string, fieldName string, fieldType string)
+// DiContainer log function
+// Yellow color used for type (field and parent), red color used for name (field)
+//
+// kind: Name | Impl | Type | Inject
+// parentName: _ if not Inject else parentType
+type LogFunc func(kind string, parentType string, fieldName string, fieldType string)
 
 type DiContainer struct {
 	provByType map[reflect.Type]interface{}
@@ -21,20 +26,34 @@ type DiContainer struct {
 	logFunc    LogFunc
 }
 
+var initOnce sync.Once
+
 func NewDiContainer() *DiContainer {
 	return &DiContainer{
 		provByType: make(map[reflect.Type]interface{}),
 		provByName: make(map[string]interface{}),
 		provideLog: true,
 		injectLog:  true,
-		logFunc: func(kind string, parentName string, fieldName string, fieldType string) {
+		logFunc: func(kind string, parentType string, fieldName string, fieldType string) {
+			initOnce.Do(func() {
+				color.ForceOpenColor()
+				xterminal.InitTerminal(os.Stdout)
+			})
+
+			/*
+				[XDI] Name:    a (*xdi.ServiceA)                  -> RED{a} YELLOW{*xdi.ServiceA}
+				[XDI] Impl:    _ (xdi.IServiceA)                  -> RED{_} YELLOW{xdi.IServiceA}
+				[XDI] Type:    _ (*xdi.ServiceB)                  -> RED{_} YELLOW{*xdi.ServiceB}
+				[XDI] Inject:  (*xdi.ServiceB).SA (xdi.IServiceA) -> YELLOW{*xdi.ServiceB} RED{SA} YELLOW{xdi.IServiceA}
+			*/
+
 			kind += ":"
-			if parentName != "" {
-				parentName = fmt.Sprintf("(%s).", color.Yellow.Sprint(parentName))
+			if parentType != "" {
+				parentType = fmt.Sprintf("(%s).", color.Yellow.Sprint(parentType))
 			}
-			fieldName = color.Yellow.Sprint(fieldName)
+			fieldName = color.Red.Sprint(fieldName)
 			fieldType = color.Yellow.Sprint(fieldType)
-			fmt.Printf("[XDI] %-12s %s%s (%s)\n", kind, parentName, fieldName, fieldType)
+			fmt.Printf("[XDI] %-8s %s%s (%s)\n", kind, parentType, fieldName, fieldType)
 		},
 	}
 }
