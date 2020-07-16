@@ -37,10 +37,7 @@ func NewMapper(from interface{}, to interface{}, dict map[string]*PropertyMapper
 	return &PropertyMapper{from: from, to: to, dict: dict}
 }
 
-func NewValue(destProps []string, revert bool) *PropertyMapperValue {
-	if destProps == nil {
-		destProps = make([]string, 0)
-	}
+func NewValue(revert bool, destProps ...string) *PropertyMapperValue {
 	return &PropertyMapperValue{destProps: destProps, revert: revert}
 }
 

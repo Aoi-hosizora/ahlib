@@ -7,7 +7,7 @@
 + `type PropertyMapperValue struct {}`
 + `New() *PropertyMappers`
 + `NewMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper`
-+ `NewValue(destProps []string, revert bool) *PropertyMapperValue`
++ `NewValue(revert bool, destProps ...string) *PropertyMapperValue`
 + `(p *PropertyMappers) AddMapper(mapper *PropertyMapper)`
 + `(p *PropertyMappers) AddMappers(mappers ...*PropertyMapper)`
 + `(p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
