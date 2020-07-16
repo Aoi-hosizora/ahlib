@@ -3,10 +3,12 @@ package xruntime
 import (
 	"bytes"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/gookit/color"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 type Stack struct {
@@ -67,6 +69,16 @@ func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname stri
 
 func PrintStacks(stacks []*Stack) {
 	for _, s := range stacks {
-		fmt.Println(color.Red.Sprint(s.String()))
+		fmt.Println(s.String())
+	}
+}
+
+func PrintStacksRed(stacks []*Stack) {
+	xterminal.ForceColor()
+	for _, s := range stacks {
+		l := s.String()
+		for _, s := range strings.Split(l, "\n") {
+			fmt.Println(color.Red.Render(s))
+		}
 	}
 }

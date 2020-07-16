@@ -54,14 +54,17 @@ func Writer() io.Writer {
 	return _stdLogger.Writer()
 }
 
+// noinspection GoUnusedExportedFunction
 func Output(s string) {
 	_stdLogger.Output(s)
 }
 
+// noinspection GoUnusedExportedFunction
 func Outputf(format string, v ...interface{}) {
 	_stdLogger.Outputf(format, v...)
 }
 
+// noinspection GoUnusedExportedFunction
 func Outputln(format string) {
 	_stdLogger.Outputln(format)
 }

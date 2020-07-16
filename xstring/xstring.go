@@ -1,8 +1,11 @@
 package xstring
 
 import (
+	"encoding/json"
+	"math/rand"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func Capitalize(str string) string {
@@ -53,4 +56,91 @@ func RemoveSpaces(str string) string {
 	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
 	str = r.ReplaceAllString(str, " ")
 	return strings.TrimSpace(str)
+}
+
+// return string(byte[]), return "" if err
+func MarshalJson(object interface{}) string {
+	j, err := json.Marshal(object)
+	if err != nil {
+		return ""
+	}
+	return string(j)
+}
+
+func PrettifyJson(jsonString string, intent int, char string) string {
+	repeat := func(count int, char string) string {
+		out := ""
+		for idx := 0; idx < count; idx++ {
+			out += char
+		}
+		return out
+	}
+
+	curr := 0
+	out := ""
+	for _, c := range jsonString {
+		switch c {
+		case '{', '[':
+			curr++
+			out += string(c) + "\n" + repeat(curr*intent, char)
+		case '}', ']':
+			curr--
+			out += "\n" + repeat(curr*intent, char) + string(c)
+		case ',':
+			out += ",\n" + repeat(curr*intent, char)
+		case ':':
+			out += ": "
+		case ' ', '\n', '\t':
+			// pass
+		default:
+			out += string(c)
+		}
+	}
+	return out
+}
+
+func CurrentTimeUuid(count int) string {
+	return TimeUuid(time.Now(), count)
+}
+
+// count: [0, 21+]
+func TimeUuid(t time.Time, count int) string {
+	nanosecondLayout := "20060102150405.0000000"
+	uuid := t.Format(nanosecondLayout)
+	uuid = uuid[:14] + uuid[15:]
+
+	if count <= len(uuid) {
+		return uuid[:count]
+	} else {
+		return uuid + RandNumberString(count-len(uuid))
+	}
+}
+
+func RandString(count int, runes []rune) string {
+	b := make([]rune, count)
+	for i := range b {
+		b[i] = runes[rand.Intn(len(runes))]
+	}
+	return string(b)
+}
+
+var (
+	CapitalLetterRunes   = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	LowercaseLetterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+	NumberRunes          = []rune("0123456789")
+
+	LetterRunes                = append(CapitalLetterRunes, LowercaseLetterRunes...)
+	LetterNumberRunes          = append(LetterRunes, NumberRunes...)
+	CapitalLetterNumberRunes   = append(CapitalLetterRunes, NumberRunes...)
+	LowercaseLetterNumberRunes = append(LowercaseLetterRunes, NumberRunes...)
+)
+
+// Capital + Lowercase
+func RandLetterString(count int) string {
+	return RandString(count, LetterRunes)
+}
+
+// Only number
+func RandNumberString(count int) string {
+	return RandString(count, NumberRunes)
 }

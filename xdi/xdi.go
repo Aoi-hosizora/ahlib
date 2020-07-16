@@ -5,7 +5,6 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/gookit/color"
-	"os"
 	"reflect"
 	"sync"
 )
@@ -28,8 +27,6 @@ type DiContainer struct {
 	logFunc    LogFunc
 }
 
-var initOnce sync.Once
-
 func NewDiContainer() *DiContainer {
 	return &DiContainer{
 		provByType: make(map[reflect.Type]interface{}),
@@ -37,10 +34,7 @@ func NewDiContainer() *DiContainer {
 		provideLog: true,
 		injectLog:  true,
 		logFunc: func(kind string, parentType string, fieldName string, fieldType string) {
-			initOnce.Do(func() {
-				color.ForceOpenColor()
-				xterminal.InitTerminal(os.Stdout)
-			})
+			xterminal.ForceColor()
 
 			/*
 				[XDI] Name:    a (*xdi.ServiceA)                  -> RED{a} YELLOW{*xdi.ServiceA}

@@ -14,6 +14,8 @@ func TestGetStack(t *testing.T) {
 
 func TestPrintStacks(t *testing.T) {
 	PrintStacks(GetStack(0))
+	fmt.Println()
+	PrintStacksRed(GetStack(0))
 }
 
 func TestGetStackWithInfo(t *testing.T) {
