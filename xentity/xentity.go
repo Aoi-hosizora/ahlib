@@ -2,6 +2,7 @@ package xentity
 
 import (
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xslice"
 	"reflect"
 )
 
@@ -83,6 +84,7 @@ func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...Map
 	if err != nil {
 		return err
 	}
+
 	return e._map(mapper, from, to, options...)
 }
 
@@ -93,6 +95,7 @@ func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...Ma
 	if err != nil {
 		return nil, err
 	}
+
 	to := mapper.ctor()
 	err = e._map(mapper, from, to, options...)
 	return to, err
@@ -100,15 +103,19 @@ func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...Ma
 
 // Example:
 //     mapper.Map([]*Po{}, &Dto{})
-func (e *EntityMappers) MapSlice(from []interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
-	to := reflect.New(reflect.SliceOf(reflect.TypeOf(toModel))).Elem()
-	for idx := range from {
-		val, err := e.Map(from[idx], toModel, options...)
+func (e *EntityMappers) MapSlice(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
+	fromSlice := xslice.Sti(from)
+	toType := reflect.SliceOf(reflect.TypeOf(toModel))
+
+	to := reflect.MakeSlice(toType, len(fromSlice), len(fromSlice))
+	for idx := range fromSlice {
+		val, err := e.Map(fromSlice[idx], toModel, options...)
 		if err != nil {
 			return nil, err
 		}
-		to.Set(reflect.Append(to, reflect.ValueOf(val)))
+		to.Index(idx).Set(reflect.ValueOf(val))
 	}
+
 	return to.Interface(), nil
 }
 
@@ -128,7 +135,7 @@ func (e *EntityMappers) MustMap(from interface{}, toModel interface{}, options .
 	return i
 }
 
-func (e *EntityMappers) MustMapSlice(from []interface{}, toModel interface{}, options ...MapFunc) interface{} {
+func (e *EntityMappers) MustMapSlice(from interface{}, toModel interface{}, options ...MapFunc) interface{} {
 	i, err := e.MapSlice(from, toModel, options...)
 	if err != nil {
 		panic(err)
@@ -164,7 +171,7 @@ func Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, err
 }
 
 // noinspection GoUnusedExportedFunction
-func MapSlice(from []interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
+func MapSlice(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.MapSlice(from, to, options...)
 }
 
@@ -179,6 +186,6 @@ func MustMap(from interface{}, to interface{}, options ...MapFunc) interface{} {
 }
 
 // noinspection GoUnusedExportedFunction
-func MustMapSlice(from []interface{}, to interface{}, options ...MapFunc) interface{} {
+func MustMapSlice(from interface{}, to interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMapSlice(from, to, options...)
 }
