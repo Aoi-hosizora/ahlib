@@ -11,12 +11,12 @@ type Dto struct{}
 type Po struct{}
 
 func TestNewPropertyMappers(t *testing.T) {
-	mapper := NewPropertyMappers()
+	mapper := New()
 
-	mapper.AddMapper(NewPropertyMapper(&Dto{}, &Po{}, map[string]*PropertyMapperValue{
-		"uid":      NewPropertyMapperValue([]string{"uid"}, false),
-		"username": NewPropertyMapperValue([]string{"lastName", "firstName"}, false),
-		"age":      NewPropertyMapperValue([]string{"birthday"}, true),
+	mapper.AddMapper(NewMapper(&Dto{}, &Po{}, map[string]*PropertyMapperValue{
+		"uid":      NewValue([]string{"uid"}, false),
+		"username": NewValue([]string{"lastName", "firstName"}, false),
+		"age":      NewValue([]string{"birthday"}, true),
 	}))
 
 	pm := mapper.GetMapperDefault(&Dto{}, &Po{})

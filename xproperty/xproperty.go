@@ -26,18 +26,18 @@ type PropertyMapperValue struct {
 	revert    bool
 }
 
-func NewPropertyMappers() *PropertyMappers {
+func New() *PropertyMappers {
 	return &PropertyMappers{mappers: make([]*PropertyMapper, 0)}
 }
 
-func NewPropertyMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper {
+func NewMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper {
 	if dict == nil {
 		dict = make(map[string]*PropertyMapperValue)
 	}
 	return &PropertyMapper{from: from, to: to, dict: dict}
 }
 
-func NewPropertyMapperValue(destProps []string, revert bool) *PropertyMapperValue {
+func NewValue(destProps []string, revert bool) *PropertyMapperValue {
 	if destProps == nil {
 		destProps = make([]string, 0)
 	}
@@ -72,12 +72,12 @@ func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*Property
 func (p *PropertyMappers) GetMapperDefault(from interface{}, to interface{}) *PropertyMapper {
 	m, err := p.GetMapper(from, to)
 	if err != nil {
-		return NewPropertyMapper(from, to, map[string]*PropertyMapperValue{})
+		return NewMapper(from, to, map[string]*PropertyMapperValue{})
 	}
 	return m
 }
 
-var _mappers = NewPropertyMappers()
+var _mappers = New()
 
 // noinspection GoUnusedExportedFunction
 func AddMapper(mapper *PropertyMapper) {

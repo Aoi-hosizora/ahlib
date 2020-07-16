@@ -21,11 +21,11 @@ type EntityMapper struct {
 	mapFunc MapFunc
 }
 
-func NewEntityMappers() *EntityMappers {
+func New() *EntityMappers {
 	return &EntityMappers{mappers: []*EntityMapper{}}
 }
 
-func NewEntityMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
+func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
 	to := ctor()
 	if reflect.TypeOf(from).Kind() != reflect.Ptr || reflect.TypeOf(to).Kind() != reflect.Ptr {
 		panic("mapper type is not pointer")
@@ -143,7 +143,7 @@ func (e *EntityMappers) MustMapSlice(from interface{}, toModel interface{}, opti
 	return i
 }
 
-var _mappers = NewEntityMappers()
+var _mappers = New()
 
 // noinspection GoUnusedExportedFunction
 func AddMapper(mapper *EntityMapper) {
