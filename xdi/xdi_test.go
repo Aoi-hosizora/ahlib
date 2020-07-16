@@ -64,10 +64,14 @@ func NewServiceC(dic *DiContainer) *ServiceC {
 	return c
 }
 
+const (
+	a ServiceName = "a"
+)
+
 func Test_DiContainer_Inject(t *testing.T) {
 	dic := NewDiContainer()
 
-	dic.ProvideName("a", NewServiceA(dic))
+	dic.ProvideName(a, NewServiceA(dic))
 	dic.ProvideImpl((*IServiceA)(nil), *NewServiceA(dic))
 	dic.ProvideType(NewServiceB(dic))
 	dic.ProvideImpl((*IServiceB)(nil), NewServiceB(dic))

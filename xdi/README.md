@@ -19,6 +19,8 @@
 ### For Global
 
 + `type LogFunc func(kind string, parentType string, fieldName string, fieldType string)`
++ `type ServiceName string`
++ `(s *ServiceName) String() string`
 + `NewDiContainer() *DiContainer`
 + `SetLogMode(provideLog bool, injectLog bool)`
 + `SetLogFunc(logFunc LogFunc)`

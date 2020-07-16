@@ -16,9 +16,16 @@ import (
 // parentName: _ if not Inject else parentType
 type LogFunc func(kind string, parentType string, fieldName string, fieldType string)
 
+// Global service name type (prevent package import cycle)
+type ServiceName string
+
+func (s *ServiceName) String() string {
+	return string(*s)
+}
+
 type DiContainer struct {
 	provByType map[reflect.Type]interface{}
-	provByName map[string]interface{}
+	provByName map[ServiceName]interface{}
 	muByType   sync.Mutex
 	muByName   sync.Mutex
 
@@ -30,7 +37,7 @@ type DiContainer struct {
 func NewDiContainer() *DiContainer {
 	return &DiContainer{
 		provByType: make(map[reflect.Type]interface{}),
-		provByName: make(map[string]interface{}),
+		provByName: make(map[ServiceName]interface{}),
 		provideLog: true,
 		injectLog:  true,
 		logFunc: func(kind string, parentType string, fieldName string, fieldType string) {
@@ -97,7 +104,7 @@ func (d *DiContainer) ProvideImpl(itfNilPtr interface{}, impl interface{}) {
 	}
 }
 
-func (d *DiContainer) ProvideName(name string, service interface{}) {
+func (d *DiContainer) ProvideName(name ServiceName, service interface{}) {
 	if name == "~" {
 		panic("could not provide service using '~' name")
 	}
@@ -106,7 +113,7 @@ func (d *DiContainer) ProvideName(name string, service interface{}) {
 	d.provByName[name] = service
 	d.muByName.Unlock()
 	if d.provideLog {
-		d.logFunc("Name", "", name, reflect.TypeOf(service).String())
+		d.logFunc("Name", "", string(name), reflect.TypeOf(service).String())
 	}
 }
 
@@ -118,7 +125,7 @@ func (d *DiContainer) GetByType(srvType interface{}) (service interface{}, exist
 	return
 }
 
-func (d *DiContainer) GetByName(name string) (service interface{}, exist bool) {
+func (d *DiContainer) GetByName(name ServiceName) (service interface{}, exist bool) {
 	service, exist = d.provByName[name]
 	return
 }
@@ -131,7 +138,7 @@ func (d *DiContainer) GetByTypeForce(srvType interface{}) interface{} {
 	return service
 }
 
-func (d *DiContainer) GetByNameForce(name string) interface{} {
+func (d *DiContainer) GetByNameForce(name ServiceName) interface{} {
 	service, exist := d.GetByName(name)
 	if !exist {
 		panic(fmt.Sprintf("service with name %s is not found", name))
@@ -166,7 +173,7 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		if diTag == "~" {
 			service, exist = d.provByType[field.Type]
 		} else {
-			service, exist = d.provByName[diTag]
+			service, exist = d.provByName[ServiceName(diTag)]
 		}
 
 		// exist
@@ -223,7 +230,7 @@ func ProvideImpl(interfacePtr interface{}, impl interface{}) {
 	_di.ProvideImpl(interfacePtr, impl)
 }
 
-func ProvideName(name string, service interface{}) {
+func ProvideName(name ServiceName, service interface{}) {
 	_di.ProvideName(name, service)
 }
 
@@ -231,7 +238,7 @@ func GetByType(srvType interface{}) (service interface{}, exist bool) {
 	return _di.GetByType(srvType)
 }
 
-func GetByName(name string) (service interface{}, exist bool) {
+func GetByName(name ServiceName) (service interface{}, exist bool) {
 	return _di.GetByName(name)
 }
 
@@ -239,7 +246,7 @@ func GetByTypeForce(srvType interface{}) interface{} {
 	return _di.GetByTypeForce(srvType)
 }
 
-func GetByNameForce(name string) interface{} {
+func GetByNameForce(name ServiceName) interface{} {
 	return _di.GetByNameForce(name)
 }
 
