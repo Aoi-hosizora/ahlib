@@ -1,22 +1,29 @@
 package xproperty
 
 import (
+	"fmt"
 	"reflect"
 )
 
+// A whole mappers container
 type PropertyMappers struct {
 	mappers []*PropertyMapper
 }
 
+// An entity mapper
 type PropertyMapper struct {
 	from interface{}
 	to   interface{}
 	dict map[string]*PropertyMapperValue // dto -> po
 }
 
+// A destination mapping property
+// Example:
+//     name -> first last
+//     age -> birth
 type PropertyMapperValue struct {
-	destProps []string // name -> first last
-	revert    bool     // age -> birth
+	destProps []string
+	revert    bool
 }
 
 func NewPropertyMappers() *PropertyMappers {
@@ -37,21 +44,57 @@ func NewPropertyMapperValue(destProps []string, revert bool) *PropertyMapperValu
 	return &PropertyMapperValue{destProps: destProps, revert: revert}
 }
 
-func (p *PropertyMappers) AddMapper(newMapping *PropertyMapper) {
-	for _, mapping := range p.mappers {
-		if reflect.TypeOf(mapping.from) == reflect.TypeOf(newMapping.from) || reflect.TypeOf(mapping.to) == reflect.TypeOf(newMapping.to) {
-			mapping.dict = newMapping.dict
+func (p *PropertyMappers) AddMapper(mapper *PropertyMapper) {
+	for _, m := range p.mappers {
+		if reflect.TypeOf(m.from) == reflect.TypeOf(mapper.from) || reflect.TypeOf(m.to) == reflect.TypeOf(mapper.to) {
+			m.dict = mapper.dict
 			return
 		}
 	}
-	p.mappers = append(p.mappers, newMapping)
+	p.mappers = append(p.mappers, mapper)
 }
 
-func (p *PropertyMappers) GetPropertyMapping(from interface{}, to interface{}) *PropertyMapper {
+func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
+	for _, m := range mappers {
+		p.AddMapper(m)
+	}
+}
+
+func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
 	for _, m := range p.mappers {
 		if reflect.TypeOf(m.from) == reflect.TypeOf(from) && reflect.TypeOf(m.to) == reflect.TypeOf(to) {
-			return m
+			return m, nil
 		}
 	}
-	return NewPropertyMapper(from, to, map[string]*PropertyMapperValue{})
+	return nil, fmt.Errorf("mapper type not found")
+}
+
+func (p *PropertyMappers) GetMapperDefault(from interface{}, to interface{}) *PropertyMapper {
+	m, err := p.GetMapper(from, to)
+	if err != nil {
+		return NewPropertyMapper(from, to, map[string]*PropertyMapperValue{})
+	}
+	return m
+}
+
+var _mappers = NewPropertyMappers()
+
+// noinspection GoUnusedExportedFunction
+func AddMapper(mapper *PropertyMapper) {
+	_mappers.AddMapper(mapper)
+}
+
+// noinspection GoUnusedExportedFunction
+func AddMappers(mappers ...*PropertyMapper) {
+	_mappers.AddMappers(mappers...)
+}
+
+// noinspection GoUnusedExportedFunction
+func GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
+	return _mappers.GetMapper(from, to)
+}
+
+// noinspection GoUnusedExportedFunction
+func GetMapperDefault(from interface{}, to interface{}) *PropertyMapper {
+	return _mappers.GetMapperDefault(from, to)
 }

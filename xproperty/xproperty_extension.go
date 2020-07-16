@@ -33,5 +33,5 @@ func (p *PropertyMapper) ApplyOrderBy(source string) string {
 		}
 	}
 
-	return strings.Join(result, ",")
+	return strings.Join(result, ", ")
 }

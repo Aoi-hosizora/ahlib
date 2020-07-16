@@ -19,9 +19,8 @@ func TestNewPropertyMappers(t *testing.T) {
 		"age":      NewPropertyMapperValue([]string{"birthday"}, true),
 	}))
 
-	pm := mapper.GetPropertyMapping(&Dto{}, &Po{})
-
+	pm := mapper.GetMapperDefault(&Dto{}, &Po{})
 	query := pm.ApplyOrderBy("uid desc,age,username")
 	log.Println(query)
-	assert.Equal(t, query, "uid DESC,birthday DESC,lastName ASC,firstName ASC")
+	assert.Equal(t, query, "uid DESC, birthday DESC, lastName ASC, firstName ASC")
 }
