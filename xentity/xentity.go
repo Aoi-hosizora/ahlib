@@ -1,16 +1,18 @@
 package xentity
 
 import (
-	"errors"
+	"fmt"
 	"reflect"
 )
 
+// A whole mappers container
 type EntityMappers struct {
 	mappers []*EntityMapper
 }
 
 type MapFunc func(from interface{}, to interface{}) error
 
+// An entity mapper
 type EntityMapper struct {
 	from    interface{}
 	to      interface{}
@@ -25,7 +27,7 @@ func NewEntityMappers() *EntityMappers {
 func NewEntityMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
 	to := ctor()
 	if reflect.TypeOf(from).Kind() != reflect.Ptr || reflect.TypeOf(to).Kind() != reflect.Ptr {
-		panic(ErrNotPtr)
+		panic("mapper type is not pointer")
 	}
 	return &EntityMapper{
 		from:    from,
@@ -35,32 +37,29 @@ func NewEntityMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc)
 	}
 }
 
-var (
-	ErrMapperNotFound = errors.New("mapper type not found")
-	ErrNotPtr         = errors.New("mapper type is not pointer")
-)
-
-func (e *EntityMappers) AddMapper(newMapper *EntityMapper) {
-	for _, mapper := range e.mappers {
-		if mapper.from == newMapper.from && mapper.to == newMapper.to {
-			mapper.mapFunc = newMapper.mapFunc
+func (e *EntityMappers) AddMapper(mapper *EntityMapper) {
+	for _, m := range e.mappers {
+		if m.from == mapper.from && m.to == mapper.to {
+			m.mapFunc = mapper.mapFunc
 			return
 		}
 	}
-	e.mappers = append(e.mappers, newMapper)
+	e.mappers = append(e.mappers, mapper)
 }
 
-func (e *EntityMappers) _find(from interface{}, to interface{}) (*EntityMapper, error) {
-	var mapper *EntityMapper
+func (e *EntityMappers) AddMappers(mappers ...*EntityMapper) {
+	for _, m := range mappers {
+		e.AddMapper(m)
+	}
+}
+
+func (e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
 	for _, m := range e.mappers {
 		if reflect.TypeOf(m.from) == reflect.TypeOf(from) && reflect.TypeOf(m.to) == reflect.TypeOf(to) {
-			mapper = m
+			return m, nil
 		}
 	}
-	if mapper == nil {
-		return nil, ErrMapperNotFound
-	}
-	return mapper, nil
+	return nil, fmt.Errorf("mapper type not found")
 }
 
 func (e *EntityMappers) _map(mapper *EntityMapper, from interface{}, to interface{}, options ...MapFunc) error {
@@ -77,8 +76,10 @@ func (e *EntityMappers) _map(mapper *EntityMapper, from interface{}, to interfac
 	return nil
 }
 
+// Example:
+//     mapper.Map(&Po{}, &Dto{})
 func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...MapFunc) error {
-	mapper, err := e._find(from, to)
+	mapper, err := e.GetMapper(from, to)
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...Map
 // Example:
 //     mapper.Map(&Po{}, &Dto{})
 func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
-	mapper, err := e._find(from, toModel)
+	mapper, err := e.GetMapper(from, toModel)
 	if err != nil {
 		return nil, err
 	}
@@ -109,4 +110,75 @@ func (e *EntityMappers) MapSlice(from []interface{}, toModel interface{}, option
 		to.Set(reflect.Append(to, reflect.ValueOf(val)))
 	}
 	return to.Interface(), nil
+}
+
+func (e *EntityMappers) MustMapProp(from interface{}, to interface{}, options ...MapFunc) {
+	err := e.MapProp(from, to, options...)
+	if err != nil {
+		panic(err)
+
+	}
+}
+
+func (e *EntityMappers) MustMap(from interface{}, toModel interface{}, options ...MapFunc) interface{} {
+	i, err := e.Map(from, toModel, options...)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func (e *EntityMappers) MustMapSlice(from []interface{}, toModel interface{}, options ...MapFunc) interface{} {
+	i, err := e.MapSlice(from, toModel, options...)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+var _mappers = NewEntityMappers()
+
+// noinspection GoUnusedExportedFunction
+func AddMapper(mapper *EntityMapper) {
+	_mappers.AddMapper(mapper)
+}
+
+// noinspection GoUnusedExportedFunction
+func AddMappers(mappers ...*EntityMapper) {
+	_mappers.AddMappers(mappers...)
+}
+
+// noinspection GoUnusedExportedFunction
+func GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
+	return _mappers.GetMapper(from, to)
+}
+
+// noinspection GoUnusedExportedFunction
+func MapProp(from interface{}, to interface{}, options ...MapFunc) error {
+	return _mappers.MapProp(from, to, options...)
+}
+
+// noinspection GoUnusedExportedFunction
+func Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
+	return _mappers.Map(from, to, options...)
+}
+
+// noinspection GoUnusedExportedFunction
+func MapSlice(from []interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
+	return _mappers.MapSlice(from, to, options...)
+}
+
+// noinspection GoUnusedExportedFunction
+func MustMapProp(from interface{}, to interface{}, options ...MapFunc) {
+	_mappers.MustMapProp(from, to, options...)
+}
+
+// noinspection GoUnusedExportedFunction
+func MustMap(from interface{}, to interface{}, options ...MapFunc) interface{} {
+	return _mappers.MustMap(from, to, options...)
+}
+
+// noinspection GoUnusedExportedFunction
+func MustMapSlice(from []interface{}, to interface{}, options ...MapFunc) interface{} {
+	return _mappers.MustMapSlice(from, to, options...)
 }

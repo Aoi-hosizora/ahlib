@@ -20,6 +20,8 @@ type LogFunc func(kind string, parentType string, fieldName string, fieldType st
 type DiContainer struct {
 	provByType map[reflect.Type]interface{}
 	provByName map[string]interface{}
+	muByType   sync.Mutex
+	muByName   sync.Mutex
 
 	provideLog bool
 	injectLog  bool
@@ -73,7 +75,9 @@ func (d *DiContainer) ProvideType(service interface{}) {
 	}
 	t := reflect.TypeOf(service)
 
+	d.muByType.Lock()
 	d.provByType[t] = service
+	d.muByType.Unlock()
 	if d.provideLog {
 		d.logFunc("Type", "", "_", t.String())
 	}
@@ -91,7 +95,9 @@ func (d *DiContainer) ProvideImpl(itfNilPtr interface{}, impl interface{}) {
 		panic(fmt.Sprintf("could not implement type %s by %s", it.String(), st.String()))
 	}
 
+	d.muByType.Lock()
 	d.provByType[it] = impl
+	d.muByType.Unlock()
 	if d.provideLog {
 		d.logFunc("Impl", "", "_", it.String())
 	}
@@ -102,7 +108,9 @@ func (d *DiContainer) ProvideName(name string, service interface{}) {
 		panic("could not provide service using '~' name")
 	}
 
+	d.muByName.Lock()
 	d.provByName[name] = service
+	d.muByName.Unlock()
 	if d.provideLog {
 		d.logFunc("Name", "", name, reflect.TypeOf(service).String())
 	}
