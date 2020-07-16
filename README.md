@@ -20,7 +20,6 @@
 + xruntime
 + **xlogger**
 + xterminal
-+ xdto
 
 ### Dependency
 
