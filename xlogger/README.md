@@ -7,13 +7,14 @@
 + `type CustomFormatter struct {}`
 + `(f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error)`
 
-### Rotate File Hook
+### Logrus Rotate Hook
 
 + `type RotateFileConfig struct {}`
 + `type RotateFileHook struct {}`
 + `NewRotateFileHook(config *RotateFileConfig) logrus.Hook`
-+ `(r *RotateFileHook) Levels() []logrus.Level`
-+ `(r *RotateFileHook) Fire(entry *logrus.Entry) error`
++ `type RotateLogConfig struct {}`
++ `type RotateLogHook struct {}`
++ `NewRotateLogHook(config *RotateLogConfig) logrus.Hook`
 
 ### StdLogger
 
