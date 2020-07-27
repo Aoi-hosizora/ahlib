@@ -70,9 +70,9 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		default:
 			levelColor = 36 // blue
 		}
-		_, _ = fmt.Fprintf(b, "\x1b[%dm%s\x1b[0m[%s]%s %-44s ", levelColor, levelText, now, caller, message)
+		_, _ = fmt.Fprintf(b, "\x1b[%dm%s\x1b[0m [%s]%s %-44s ", levelColor, levelText, now, caller, message)
 	} else {
-		_, _ = fmt.Fprintf(b, "%s[%s]%s %-44s ", levelText, now, caller, message)
+		_, _ = fmt.Fprintf(b, "%s [%s]%s %-44s ", levelText, now, caller, message)
 	}
 
 	b.WriteByte('\n')
