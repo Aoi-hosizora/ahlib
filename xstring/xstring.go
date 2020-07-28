@@ -144,3 +144,22 @@ func RandLetterString(count int) string {
 func RandNumberString(count int) string {
 	return RandString(count, NumberRunes)
 }
+
+func MaskToken(token string) string {
+	switch len(token) {
+	case 0:
+		return ""
+	case 1:
+		return "*"
+	case 2:
+		return "*" + token[1:]
+	case 3:
+		return "**" + token[2:3]
+	case 4:
+		return token[0:1] + "**" + token[3:4]
+	case 5:
+		return token[0:1] + "***" + token[4:5]
+	default:
+		return token[0:2] + strings.Repeat("*", len(token)-4) + token[len(token)-2:] // <<< Default
+	}
+}

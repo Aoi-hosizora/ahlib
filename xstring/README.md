@@ -16,3 +16,4 @@
 + `RandString(count int, runes []rune) string`
 + `RandLetterString(count int) string`
 + `RandNumberString(count int) string`
++ `MaskToken(token string) string`

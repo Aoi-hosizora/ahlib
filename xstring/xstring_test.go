@@ -107,3 +107,14 @@ func TestRemoveSpaces(t *testing.T) {
 	assert.Equal(t, RemoveSpaces("\n　"), "")
 	assert.Equal(t, RemoveSpaces("　\n	"), "")
 }
+
+func TestMaskToken(t *testing.T) {
+	assert.Equal(t, MaskToken(""), "")
+	assert.Equal(t, MaskToken(" "), "*")
+	assert.Equal(t, MaskToken("a"), "*")
+	assert.Equal(t, MaskToken("aa"), "*a")
+	assert.Equal(t, MaskToken("aaa"), "**a")
+	assert.Equal(t, MaskToken("aaaa"), "a**a")
+	assert.Equal(t, MaskToken("aaaaa"), "a***a")
+	assert.Equal(t, MaskToken("aaaaaa"), "aa**aa")
+}
