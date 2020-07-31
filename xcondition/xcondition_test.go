@@ -1,7 +1,9 @@
 package xcondition
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"testing"
 )
 
@@ -27,6 +29,17 @@ func TestFirstNotNil(t *testing.T) {
 	assert.Equal(t, FirstNotNil(1, nil), 1)
 	assert.Equal(t, FirstNotNil(nil, nil, 1), 1)
 	assert.Equal(t, FirstNotNil(nil, nil, nil, nil), nil)
+}
+
+func TestPanicIfErr(t *testing.T) {
+	a := func(err bool) (int, error) {
+		if err {
+			return 0, fmt.Errorf("test error")
+		}
+		return 1, nil
+	}
+	log.Println(PanicIfErr(a(false)))
+	log.Println(PanicIfErr(a(true)))
 }
 
 var (

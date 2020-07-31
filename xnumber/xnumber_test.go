@@ -42,3 +42,16 @@ func TestParse(t *testing.T) {
 	log.Println(ParseFloat32("0.7"))
 	log.Println(ParseFloat64("0.7"))
 }
+
+func TestFormat(t *testing.T) {
+	log.Println("\"" + FormatInt(9223372036854775807, 10) + "\"")
+	log.Println("\"" + FormatUint(18446744073709551615, 10) + "\"")
+	log.Println("\"" + FormatInt8(127, 10) + "\"")
+	log.Println("\"" + FormatUint8(255, 10) + "\"")
+	log.Println("\"" + FormatInt16(32767, 10) + "\"")
+	log.Println("\"" + FormatUint16(65535, 10) + "\"")
+	log.Println("\"" + FormatInt32(2147483647, 10) + "\"")
+	log.Println("\"" + FormatUint32(4294967295, 10) + "\"")
+	log.Println("\"" + FormatInt64(9223372036854775807, 10) + "\"")
+	log.Println("\"" + FormatUint64(18446744073709551615, 10) + "\"")
+}

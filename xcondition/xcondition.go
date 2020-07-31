@@ -30,6 +30,13 @@ func FirstNotNil(values ...interface{}) interface{} {
 	return nil
 }
 
+func PanicIfErr(i interface{}, err error) interface{} {
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
 // choose slice, check len of args and choose the num one (from zero)
 func _choose(num int, args []interface{}) interface{} {
 	if len(args) >= num+1 {
