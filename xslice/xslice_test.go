@@ -2,6 +2,7 @@ package xslice
 
 import (
 	"github.com/stretchr/testify/assert"
+	"log"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -9,44 +10,60 @@ import (
 )
 
 func TestSti(t *testing.T) {
-	s := []string{"123", "456"}
-	i := []interface{}{interface{}("123"), interface{}("456")}
-	assert.Equal(t, Sti(s), i)
-	assert.Equal(t, Sti(""), []interface{}(nil))
+	assert.Equal(t, Sti([]string{"123", "456"}), []interface{}{"123", "456"})
+	// assert.Equal(t, Sti(""), []interface{}(nil))
 	assert.Equal(t, Sti([]string{}), []interface{}{})
-	assert.Equal(t, Sti("") == nil, true)
+	// assert.Equal(t, Sti("") == nil, true)
 	assert.Equal(t, Sti(nil) == nil, true)
 }
 
 func TestIts(t *testing.T) {
-	i := []interface{}{interface{}("123"), interface{}("456")}
-	s := []string{"123", "456"}
-	assert.Equal(t, Its(i, ""), interface{}(s))
+	assert.Equal(t, Its([]interface{}{"123", "456"}, ""), []string{"123", "456"})
 	assert.Equal(t, Its(nil, 0), nil)
-	assert.Equal(t, Its(nil, nil), nil)
+	// assert.Equal(t, Its(nil, nil), nil)
+
+	log.Println(ItsOfInt([]interface{}{}))
+	log.Println(ItsOfInt([]interface{}{1, 2}))
+	log.Println(ItsOfInt8([]interface{}{int8(1), int8(2)}))
+	log.Println(ItsOfInt16([]interface{}{int16(1), int16(2)}))
+	log.Println(ItsOfInt32([]interface{}{int32(1), int32(2)}))
+	log.Println(ItsOfInt64([]interface{}{int64(1), int64(2)}))
+	log.Println(ItsOfUint([]interface{}{uint(1), uint(2)}))
+	log.Println(ItsOfUint8([]interface{}{uint8(1), uint8(2)}))
+	log.Println(ItsOfUint16([]interface{}{uint16(1), uint16(2)}))
+	log.Println(ItsOfUint32([]interface{}{uint32(1), uint32(2)}))
+	log.Println(ItsOfUint64([]interface{}{uint64(1), uint64(2)}))
+	log.Println(ItsOfFloat32([]interface{}{float32(0.1), float32(2.0)}))
+	log.Println(ItsOfFloat64([]interface{}{0.1, 2.0}))
+	log.Println(ItsOfString([]interface{}{"1", "2"}))
+	log.Println(ItsToString([]interface{}{1, 2, 3}))
 }
 
 func TestShuffle(t *testing.T) {
 	source := rand.NewSource(time.Now().UnixNano())
-
-	emptySlice := make([]interface{}, 0)
-	Shuffle(emptySlice, source)
-	assert.Equal(t, emptySlice, []interface{}{})
-
-	oneElementSlice := []interface{}{11}
-	Shuffle(oneElementSlice, source)
-	assert.Equal(t, oneElementSlice, []interface{}{11})
-
-	slice := []interface{}{"a", "b", "c"}
-	Shuffle(slice, source)
-	assert.Contains(t, slice, "a")
-	assert.Contains(t, slice, "b")
-	assert.Contains(t, slice, "c")
+	a := []interface{}{1, 2, 3, 4}
+	Shuffle(a, source)
+	log.Println(a)
+	Shuffle(a, source)
+	log.Println(a)
 }
 
 func TestReverse(t *testing.T) {
-	assert.Equal(t, Reverse(Sti([]int{1, 2, 3, 4, 5, 6})), Sti([]int{6, 5, 4, 3, 2, 1}))
-	assert.Equal(t, Reverse(Sti([]int{})), Sti([]int{}))
+	a := []interface{}{1, 2, 3, 4}
+	Reverse(a)
+	assert.Equal(t, a, []interface{}{4, 3, 2, 1})
+	Reverse(a)
+	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+}
+
+func TestMap(t *testing.T) {
+	s1 := []int{1, 2, 3, 4, 5}
+	s2 := []string{"1", "2", "3", "4", "5"}
+	s3 := []int{2, 3, 4, 5, 6}
+	s4 := []float32{1.0, 2.0, 3.0, 4.0, 5.0}
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return strconv.Itoa(i.(int)) }), Sti(s2))
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return i.(int) + 1 }), Sti(s3))
+	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return float32(i.(int)) }), Sti(s4))
 }
 
 func TestIndexOf(t *testing.T) {
@@ -54,6 +71,9 @@ func TestIndexOf(t *testing.T) {
 	assert.Equal(t, IndexOf(Sti(s), 1), 0)
 	assert.Equal(t, IndexOf(Sti(s), 6), -1)
 	assert.Equal(t, IndexOf(Sti(s), nil), -1)
+	assert.Equal(t, IndexOfWith([]interface{}{1, 2, 3, 4, 5}, 3, func(i, j interface{}) bool {
+		return i.(int) == j.(int)-1
+	}), 1)
 }
 
 func TestContains(t *testing.T) {
@@ -61,6 +81,9 @@ func TestContains(t *testing.T) {
 	assert.Equal(t, Contains(Sti(s), 1), true)
 	assert.Equal(t, Contains(Sti(s), 6), false)
 	assert.Equal(t, Contains(Sti(s), nil), false)
+	assert.Equal(t, ContainsWith(Sti(s), 4, func(i, j interface{}) bool {
+		return i.(int) == j.(int)-1
+	}), true)
 }
 
 func TestDelete(t *testing.T) {
@@ -88,7 +111,7 @@ func TestDeleteAll(t *testing.T) {
 func TestSliceDiff(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
-	assert.Equal(t, SliceDiff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
+	assert.Equal(t, Diff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
 }
 
 func TestEqual(t *testing.T) {
@@ -101,14 +124,4 @@ func TestEqual(t *testing.T) {
 	assert.Equal(t, Equal(Sti(s1), Sti(s3)), false)
 	assert.Equal(t, Equal(Sti(s1), Sti(s4)), false)
 	assert.Equal(t, Equal(Sti(s1), Sti(s5)), false)
-}
-
-func TestMap(t *testing.T) {
-	s1 := []int{1, 2, 3, 4, 5}
-	s2 := []string{"1", "2", "3", "4", "5"}
-	s3 := []int{2, 3, 4, 5, 6}
-	s4 := []float32{1.0, 2.0, 3.0, 4.0, 5.0}
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return strconv.Itoa(i.(int)) }), Sti(s2))
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return i.(int) + 1 }), Sti(s3))
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return float32(i.(int)) }), Sti(s4))
 }
