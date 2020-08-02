@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 func Capitalize(str string) string {
@@ -162,4 +163,20 @@ func MaskToken(token string) string {
 	default:
 		return token[0:2] + strings.Repeat("*", len(token)-4) + token[len(token)-2:] // <<< Default
 	}
+}
+
+// Unsafe case to []byte.
+func StringToBytes(str string) []byte {
+	if str == "" {
+		return []byte{}
+	}
+	return *(*[]byte)(unsafe.Pointer(&str))
+}
+
+// Unsafe case to string.
+func BytesToString(bs []byte) string {
+	if bs == nil || len(bs) == 0 {
+		return ""
+	}
+	return *(*string)(unsafe.Pointer(&bs))
 }

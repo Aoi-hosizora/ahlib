@@ -17,3 +17,5 @@
 + `RandLetterString(count int) string`
 + `RandNumberString(count int) string`
 + `MaskToken(token string) string`
++ `StringToBytes(str string) []byte`
++ `BytesToString(bs []byte) string`

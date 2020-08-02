@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
+	"time"
 )
 
 func TestCapitalize(t *testing.T) {
@@ -117,4 +118,63 @@ func TestMaskToken(t *testing.T) {
 	assert.Equal(t, MaskToken("aaaa"), "a**a")
 	assert.Equal(t, MaskToken("aaaaa"), "a***a")
 	assert.Equal(t, MaskToken("aaaaaa"), "aa**aa")
+}
+
+func TestStringToBytes(t *testing.T) {
+	assert.Equal(t, StringToBytes(""), []byte{})
+	assert.Equal(t, StringToBytes("abcdefg"), []byte("abcdefg"))
+
+	cnt := 200000000
+
+	bs1 := make([]byte, cnt, cnt)
+	bs2 := make([]byte, cnt, cnt)
+	for i := 0; i < cnt; i++ {
+		bs1[i] = 'A'
+	}
+	for i := 0; i < cnt; i++ {
+		bs2[i] = 'B'
+	}
+	str1 := string(bs1)
+	str2 := string(bs2)
+
+	start := time.Now()
+	bs01 := []byte(str1)
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	bs02 := StringToBytes(str2)
+	log.Println(time.Now().Sub(start).String())
+
+	assert.Equal(t, bs01, bs1)
+	assert.Equal(t, bs02, bs2)
+}
+
+func TestBytesToString(t *testing.T) {
+	assert.Equal(t, BytesToString(nil), "")
+	assert.Equal(t, BytesToString([]byte{}), "")
+	assert.Equal(t, BytesToString([]byte("abcdefg")), "abcdefg")
+
+	cnt := 200000000
+
+	bs1 := make([]byte, cnt, cnt)
+	bs2 := make([]byte, cnt, cnt)
+	for i := 0; i < cnt; i++ {
+		bs1[i] = 'A'
+	}
+	for i := 0; i < cnt; i++ {
+		bs2[i] = 'B'
+	}
+	str1 := string(bs1)
+	str2 := string(bs2)
+
+	start := time.Now()
+	str01 := string(bs1)
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	str02 := BytesToString(bs2)
+	log.Println(time.Now().Sub(start).String())
+
+	assert.Equal(t, str01, str1)
+	assert.Equal(t, str02, str2)
 }
