@@ -76,22 +76,18 @@ func (p *PropertyMappers) GetMapperDefault(from interface{}, to interface{}) *Pr
 
 var _mappers = New()
 
-// noinspection GoUnusedExportedFunction
 func AddMapper(mapper *PropertyMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// noinspection GoUnusedExportedFunction
 func AddMappers(mappers ...*PropertyMapper) {
 	_mappers.AddMappers(mappers...)
 }
 
-// noinspection GoUnusedExportedFunction
 func GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
 	return _mappers.GetMapper(from, to)
 }
 
-// noinspection GoUnusedExportedFunction
 func GetMapperDefault(from interface{}, to interface{}) *PropertyMapper {
 	return _mappers.GetMapperDefault(from, to)
 }

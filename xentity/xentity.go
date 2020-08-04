@@ -145,47 +145,38 @@ func (e *EntityMappers) MustMapSlice(from interface{}, toModel interface{}, opti
 
 var _mappers = New()
 
-// noinspection GoUnusedExportedFunction
 func AddMapper(mapper *EntityMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// noinspection GoUnusedExportedFunction
 func AddMappers(mappers ...*EntityMapper) {
 	_mappers.AddMappers(mappers...)
 }
 
-// noinspection GoUnusedExportedFunction
 func GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
 	return _mappers.GetMapper(from, to)
 }
 
-// noinspection GoUnusedExportedFunction
 func MapProp(from interface{}, to interface{}, options ...MapFunc) error {
 	return _mappers.MapProp(from, to, options...)
 }
 
-// noinspection GoUnusedExportedFunction
 func Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.Map(from, to, options...)
 }
 
-// noinspection GoUnusedExportedFunction
 func MapSlice(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.MapSlice(from, to, options...)
 }
 
-// noinspection GoUnusedExportedFunction
 func MustMapProp(from interface{}, to interface{}, options ...MapFunc) {
 	_mappers.MustMapProp(from, to, options...)
 }
 
-// noinspection GoUnusedExportedFunction
 func MustMap(from interface{}, to interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMap(from, to, options...)
 }
 
-// noinspection GoUnusedExportedFunction
 func MustMapSlice(from interface{}, to interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMapSlice(from, to, options...)
 }

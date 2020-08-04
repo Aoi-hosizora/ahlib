@@ -27,7 +27,6 @@ type RotateLogHook struct {
 	logWriter io.Writer
 }
 
-// noinspection GoUnusedExportedFunction
 func NewRotateLogHook(config *RotateLogConfig) logrus.Hook {
 	fileName := path.Join(config.Filepath, config.Filename)
 

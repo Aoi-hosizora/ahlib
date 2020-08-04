@@ -25,7 +25,6 @@ type RotateFileHook struct {
 	logWriter io.Writer
 }
 
-// noinspection GoUnusedExportedFunction
 func NewRotateFileHook(config *RotateFileConfig) logrus.Hook {
 	return &RotateFileHook{
 		config: config,
