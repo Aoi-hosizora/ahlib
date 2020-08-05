@@ -138,6 +138,17 @@ func TestContains(t *testing.T) {
 	}), true)
 }
 
+func TestCount(t *testing.T) {
+	s := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
+	assert.Equal(t, Count(s, 1), 2)
+	assert.Equal(t, Count(s, 2), 3)
+	assert.Equal(t, Count(s, 3), 1)
+	assert.Equal(t, Count(s, 4), 0)
+	assert.Equal(t, Count(s, 5), 2)
+	assert.Equal(t, Count(s, 6), 1)
+	assert.Equal(t, Count(s, ""), 0)
+}
+
 func TestDelete(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3, 1}
 
@@ -160,20 +171,45 @@ func TestDeleteAll(t *testing.T) {
 	assert.Equal(t, DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), Sti([]int{5, 2, 2, 3}))
 }
 
-func TestSliceDiff(t *testing.T) {
+func TestDiff(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
 	assert.Equal(t, Diff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
+}
+
+func TestUnion(t *testing.T) {
+	slice1 := []int{1, 2, 1, 3, 4, 3}
+	slice2 := []int{1, 5, 6, 4}
+	assert.Equal(t, Union(Sti(slice1), Sti(slice2)), Sti([]int{1, 2, 1, 3, 4, 3, 5, 6}))
+}
+
+func TestIntersection(t *testing.T) {
+	slice1 := []int{1, 2, 1, 3, 4, 3}
+	slice2 := []int{1, 5, 6, 4}
+	assert.Equal(t, Intersection(Sti(slice1), Sti(slice2)), Sti([]int{1, 1, 4}))
 }
 
 func TestEqual(t *testing.T) {
 	s1 := []int{1, 2, 5, 6, 7}
 	s2 := []int{2, 1, 7, 5, 6}
 	s3 := []int{1, 5, 6, 7}
-	s4 := []int{1, 5, 8, 7}
+	s4 := []int{1, 7, 6, 5}
 	s5 := []int{1, 2, 2, 5, 6, 7}
 	assert.Equal(t, Equal(Sti(s1), Sti(s2)), true)
 	assert.Equal(t, Equal(Sti(s1), Sti(s3)), false)
 	assert.Equal(t, Equal(Sti(s1), Sti(s4)), false)
 	assert.Equal(t, Equal(Sti(s1), Sti(s5)), false)
+	assert.Equal(t, Equal(Sti(s3), Sti(s4)), true)
+}
+
+func TestToSet(t *testing.T) {
+	s1 := []interface{}{1, 2, 3, 1, 2, 3, 4, 5, 6}
+	s2 := make([]interface{}, 0)
+	s3 := []interface{}{1}
+	s4 := []interface{}{1, 1, 1, 1, 1}
+
+	assert.Equal(t, ToSet(s1), []interface{}{1, 2, 3, 4, 5, 6})
+	assert.Equal(t, ToSet(s2), []interface{}{})
+	assert.Equal(t, ToSet(s3), []interface{}{1})
+	assert.Equal(t, ToSet(s4), []interface{}{1})
 }

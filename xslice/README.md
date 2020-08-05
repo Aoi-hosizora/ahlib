@@ -9,14 +9,22 @@
 + `IndexOf(slice []interface{}, value interface{}) int`
 + `ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool`
 + `Contains(slice []interface{}, value interface{}) bool`
++ `CountWith(slice []interface{}, value interface{}, equaller Equaller) int`
++ `Count(slice []interface{}, value interface{}) int`
 + `DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
 + `Delete(slice []interface{}, value interface{}, n int) []interface{}`
 + `DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{}`
 + `DeleteAll(slice []interface{}, value interface{}) []interface{}`
 + `DiffWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
 + `Diff(s1 []interface{}, s2 []interface{}) []interface{}`
++ `UnionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
++ `Union(s1 []interface{}, s2 []interface{}) []interface{}`
++ `IntersectionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
++ `Intersection(s1 []interface{}, s2 []interface{}) []interface{}`
 + `EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool`
 + `Equal(s1 []interface{}, s2 []interface{}) bool`
++ `ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
++ `ToSet(s []interface{}) []interface{}`
 
 ### Helper Functions
 
