@@ -3,7 +3,7 @@ package xreflect
 import "reflect"
 
 func ElemType(i interface{}) reflect.Type {
-	var t = reflect.TypeOf(i)
+	t := reflect.TypeOf(i)
 	for t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
@@ -11,9 +11,9 @@ func ElemType(i interface{}) reflect.Type {
 }
 
 func ElemValue(i interface{}) reflect.Value {
-	var t = reflect.ValueOf(i)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
+	v := reflect.ValueOf(i)
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
 	}
-	return t
+	return v
 }

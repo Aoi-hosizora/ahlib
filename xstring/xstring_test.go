@@ -19,15 +19,19 @@ func TestUncapitalize(t *testing.T) {
 	assert.Equal(t, Uncapitalize(""), "")
 }
 
-func TestMarshalJson(t *testing.T) {
-	a := struct {
-		F1 string `json:"f1"`
-		F2 struct{ F3 int }
-	}{
-		F1: "a",
-		F2: struct{ F3 int }{F3: 3},
-	}
-	assert.Equal(t, MarshalJson(a), "{\"f1\":\"a\",\"F2\":{\"F3\":3}}")
+func TestToRuneToByte(t *testing.T) {
+	log.Printf("%T", 'a')         // int32
+	log.Printf("%T", ToRune("a")) // int32
+	log.Printf("%T", ToByte("a")) // uint8
+	log.Printf("%T", "a"[0])      // uint8
+
+	assert.Equal(t, ToRune("a"), 'a')
+	assert.Equal(t, ToRune("bcd"), 'b')
+	assert.Equal(t, ToRune(""), rune(0))
+
+	assert.Equal(t, ToByte("a"), byte('a'))
+	assert.Equal(t, ToByte("bcd"), byte('b'))
+	assert.Equal(t, ToByte(""), byte(0))
 }
 
 func TestCurrentTimeUuid(t *testing.T) {
@@ -41,6 +45,8 @@ func TestRandLetterNumberString(t *testing.T) {
 	log.Println(RandLetterString(20))
 	log.Println(RandNumberString(20))
 	log.Println(RandNumberString(20))
+	log.Println(RandLetterNumberString(20))
+	log.Println(RandLetterNumberString(20))
 
 	log.Println(RandString(32, CapitalLetterRunes))
 	log.Println(RandString(32, LowercaseLetterRunes))

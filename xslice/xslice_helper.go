@@ -6,28 +6,24 @@ import (
 )
 
 // Example:
-// 		Sti([]int{0, 1}) -> []interface{}{interface{}(0), interface{}(1)}
+// 		Sti([]int{0, 1}) -> []interface{}{0, 1}
 func Sti(slice interface{}) []interface{} {
 	if slice == nil {
 		return nil
 	}
-	v := reflect.ValueOf(slice)
-	if !v.IsValid() {
-		panic("value of interface{} is invalid")
-	}
-	if v.Kind() != reflect.Slice {
-		panic("type of interface{} is not a slice")
-	}
 
-	arr := make([]interface{}, v.Len())
-	for idx := 0; idx < v.Len(); idx++ {
+	v := reflect.ValueOf(slice)
+	l := v.Len()
+
+	arr := make([]interface{}, l)
+	for idx := 0; idx < l; idx++ {
 		arr[idx] = v.Index(idx).Interface()
 	}
 	return arr
 }
 
 // Example:
-// 		Its([]interface{}{interface{}(0), interface{}(1)}, 0).([]int) -> []int{0, 1}
+// 		Its([]interface{}{0, 1}, 0).([]int) -> []int{0, 1}
 func Its(slice []interface{}, model interface{}) interface{} {
 	if model == nil {
 		panic("model could not be nil")
@@ -35,14 +31,16 @@ func Its(slice []interface{}, model interface{}) interface{} {
 	if slice == nil {
 		return nil
 	}
+
 	t := reflect.TypeOf(model)
-	si := reflect.MakeSlice(reflect.SliceOf(t), len(slice), len(slice))
+	l := len(slice)
+
+	out := reflect.MakeSlice(reflect.SliceOf(t), l, l)
 	for idx := range slice {
 		v := reflect.ValueOf(slice[idx])
-		si.Index(idx).Set(v)
-		// -> panic
+		out.Index(idx).Set(v)
 	}
-	return si.Interface()
+	return out.Interface()
 }
 
 func ItsToString(slice []interface{}) []string {
@@ -57,6 +55,22 @@ func ItsOfString(slice []interface{}) []string {
 	out := make([]string, len(slice))
 	for idx := range slice {
 		out[idx] = slice[idx].(string)
+	}
+	return out
+}
+
+func ItsOfByte(slice []interface{}) []byte {
+	out := make([]byte, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(byte)
+	}
+	return out
+}
+
+func ItsOfRune(slice []interface{}) []rune {
+	out := make([]rune, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(rune)
 	}
 	return out
 }

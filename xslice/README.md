@@ -24,6 +24,8 @@
 + `Its(slice []interface{}, model interface{}) interface{}`
 + `ItsToString(slice []interface{}) []string`
 + `ItsOfString(slice []interface{}) []string`
++ `ItsOfByte(slice []interface{}) []byte`
++ `ItsOfRune(slice []interface{}) []rune`
 + `ItsOfInt(slice []interface{}) []int`
 + `ItsOfUint(slice []interface{}) []uint`
 + `ItsOfInt8(slice []interface{}) []int8`

@@ -1,7 +1,6 @@
 package xstring
 
 import (
-	"encoding/json"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -13,14 +12,20 @@ func Capitalize(str string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	return strings.Replace(str, string(str[0]), strings.ToUpper(string(str[0])), 1)
+	return strings.ToUpper(string(str[0])) + str[1:]
 }
 
 func Uncapitalize(str string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	return strings.Replace(str, string(str[0]), strings.ToLower(string(str[0])), 1)
+	return strings.ToLower(string(str[0])) + str[1:]
+}
+
+func RemoveSpaces(str string) string {
+	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
+	str = r.ReplaceAllString(str, " ")
+	return strings.TrimSpace(str)
 }
 
 func ToRune(char string) rune {
@@ -28,6 +33,13 @@ func ToRune(char string) rune {
 		return 0
 	}
 	return []rune(char)[0]
+}
+
+func ToByte(char string) byte {
+	if char == "" {
+		return 0
+	}
+	return char[0]
 }
 
 func IsUppercase(char rune) bool {
@@ -51,21 +63,6 @@ func ToSnakeCase(str string) string {
 		}
 	}
 	return out
-}
-
-func RemoveSpaces(str string) string {
-	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
-	str = r.ReplaceAllString(str, " ")
-	return strings.TrimSpace(str)
-}
-
-// return string(byte[]), return "" if err
-func MarshalJson(object interface{}) string {
-	j, err := json.Marshal(object)
-	if err != nil {
-		return ""
-	}
-	return string(j)
 }
 
 func PrettifyJson(jsonString string, intent int, char string) string {
@@ -136,14 +133,19 @@ var (
 	LowercaseLetterNumberRunes = append(LowercaseLetterRunes, NumberRunes...)
 )
 
-// Capital + Lowercase
+// Capital + Lower: ABCDEFGHIJKLMNOPQRSTUVWXYZ + abcdefghijklmnopqrstuvwxyz
 func RandLetterString(count int) string {
 	return RandString(count, LetterRunes)
 }
 
-// Only number
+// Only number: 0123456789
 func RandNumberString(count int) string {
 	return RandString(count, NumberRunes)
+}
+
+// Letter + Number: abcdefghijklmnopqrstuvwxyz + 0123456789
+func RandLetterNumberString(count int) string {
+	return RandString(count, LowercaseLetterNumberRunes)
 }
 
 func MaskToken(token string) string {

@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"log"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -15,6 +16,34 @@ func TestSti(t *testing.T) {
 	assert.Equal(t, Sti([]string{}), []interface{}{})
 	// assert.Equal(t, Sti("") == nil, true)
 	assert.Equal(t, Sti(nil) == nil, true)
+
+	num := 2000000
+
+	start := time.Now()
+	arr := make([]int, 0)
+	for i := 0; i < num; i++ {
+		arr = append(arr, i)
+	}
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	itf := make([]interface{}, num)
+	for i := 0; i < num; i++ {
+		itf[i] = arr[i]
+	}
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	_ = Sti(arr)
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	v := reflect.ValueOf(arr)
+	itf = make([]interface{}, num)
+	for i := 0; i < num; i++ {
+		itf[i] = v.Index(i).Interface()
+	}
+	log.Println(time.Now().Sub(start).String())
 }
 
 func TestIts(t *testing.T) {
@@ -22,6 +51,7 @@ func TestIts(t *testing.T) {
 	assert.Equal(t, Its(nil, 0), nil)
 	// assert.Equal(t, Its(nil, nil), nil)
 
+	log.Println(ItsToString([]interface{}{1, 2, 3}))
 	log.Println(ItsOfInt([]interface{}{}))
 	log.Println(ItsOfInt([]interface{}{1, 2}))
 	log.Println(ItsOfInt8([]interface{}{int8(1), int8(2)}))
@@ -36,7 +66,29 @@ func TestIts(t *testing.T) {
 	log.Println(ItsOfFloat32([]interface{}{float32(0.1), float32(2.0)}))
 	log.Println(ItsOfFloat64([]interface{}{0.1, 2.0}))
 	log.Println(ItsOfString([]interface{}{"1", "2"}))
-	log.Println(ItsToString([]interface{}{1, 2, 3}))
+	log.Println(ItsOfByte([]interface{}{byte('1'), byte('2')}))
+	log.Println(ItsOfRune([]interface{}{'1', '2'}))
+
+	num := 2000000
+	arr := make([]interface{}, num)
+	for i := 0; i < num; i++ {
+		arr[i] = i
+	}
+
+	start := time.Now()
+	arr2 := make([]int, num)
+	for i := 0; i < num; i++ {
+		arr2[i] = arr[i].(int)
+	}
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	_ = Its(arr, 0)
+	log.Println(time.Now().Sub(start).String())
+
+	start = time.Now()
+	_ = ItsOfInt(arr)
+	log.Println(time.Now().Sub(start).String())
 }
 
 func TestShuffle(t *testing.T) {
