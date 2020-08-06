@@ -21,6 +21,7 @@
 + **xlogger**
 + xterminal
 + xsystem
++ xzone
 
 ### Dependency
 
