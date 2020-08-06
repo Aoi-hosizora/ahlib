@@ -9,8 +9,6 @@ import (
 
 // Parse Timezone string to time.Location. Format: `^[+-][0-9]{1,2}([0-9]{1,2})?$`
 func ParseTimeZone(zone string) (*time.Location, error) {
-	// reference: https://jp.cybozu.help/general/ja/admin/list_systemadmin/list_system_time/timezone.html
-
 	regex, err := regexp.Compile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
 	if err != nil {
 		return nil, err
