@@ -52,3 +52,13 @@ func ParseTimeZone(zone string) (*time.Location, error) {
 	offset := sign * (hour*3600 + minute*60)
 	return time.FixedZone(name, offset), nil
 }
+
+// Parse timezone string and move time to specific timezone.
+func MoveToZone(t time.Time, zone string) (time.Time, error) {
+	loc, err := ParseTimeZone(zone)
+	if err != nil {
+		return t, err
+	}
+
+	return t.In(loc), nil
+}

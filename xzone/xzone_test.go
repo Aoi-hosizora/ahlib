@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"testing"
+	"time"
 )
 
 func TestTimeZone(t *testing.T) {
@@ -60,4 +61,20 @@ func TestParseTimeZone(t *testing.T) {
 	loc, err = ParseTimeZone("+09:30")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, loc.String(), "UTC+09:30")
+}
+
+func TestMoveToZone(t *testing.T) {
+	tt, _ := time.Parse(time.RFC3339, "2020-08-06T12:46:43+08:00")
+
+	tt2, _ := MoveToZone(tt, "+8")
+	assert.Equal(t, tt2.Hour(), 12)
+	assert.Equal(t, tt2.Minute(), 46)
+
+	tt2, _ = MoveToZone(tt, "+09:00")
+	assert.Equal(t, tt2.Hour(), 13)
+	assert.Equal(t, tt2.Minute(), 46)
+
+	tt2, _ = MoveToZone(tt, "-00:30")
+	assert.Equal(t, tt2.Hour(), 4)
+	assert.Equal(t, tt2.Minute(), 16)
 }
