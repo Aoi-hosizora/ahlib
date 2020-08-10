@@ -2,7 +2,6 @@ package xnumber
 
 import (
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xsystem"
 	"math"
 	"strconv"
 )
@@ -83,7 +82,7 @@ func RenderByte(b float64) string {
 // parse
 
 func ParseInt(s string, base int) (int, error) {
-	i, e := strconv.ParseInt(s, base, xsystem.BitNumber())
+	i, e := strconv.ParseInt(s, base, 0)
 	return int(i), e
 }
 
@@ -108,7 +107,7 @@ func ParseInt64(s string, base int) (int64, error) {
 }
 
 func ParseUint(s string, base int) (uint, error) {
-	i, e := strconv.ParseUint(s, base, xsystem.BitNumber())
+	i, e := strconv.ParseUint(s, base, 0)
 	return uint(i), e
 }
 
@@ -140,6 +139,56 @@ func ParseFloat32(s string) (float32, error) {
 func ParseFloat64(s string) (float64, error) {
 	f, e := strconv.ParseFloat(s, 64)
 	return f, e
+}
+
+// atoX
+
+func Atoi(s string) (int, error) {
+	return ParseInt(s, 10)
+}
+
+func Atoi8(s string) (int8, error) {
+	return ParseInt8(s, 10)
+}
+
+func Atoi16(s string) (int16, error) {
+	return ParseInt16(s, 10)
+}
+
+func Atoi32(s string) (int32, error) {
+	return ParseInt32(s, 10)
+}
+
+func Atoi64(s string) (int64, error) {
+	return ParseInt64(s, 10)
+}
+
+func Atou(s string) (uint, error) {
+	return ParseUint(s, 10)
+}
+
+func Atou8(s string) (uint8, error) {
+	return ParseUint8(s, 10)
+}
+
+func Atou16(s string) (uint16, error) {
+	return ParseUint16(s, 10)
+}
+
+func Atou32(s string) (uint32, error) {
+	return ParseUint32(s, 10)
+}
+
+func Atou64(s string) (uint64, error) {
+	return ParseUint64(s, 10)
+}
+
+func Atof32(s string) (float32, error) {
+	return ParseFloat32(s)
+}
+
+func Atof64(s string) (float64, error) {
+	return ParseFloat64(s)
 }
 
 // format
@@ -182,4 +231,62 @@ func FormatUint32(i uint32, base int) string {
 
 func FormatUint64(i uint64, base int) string {
 	return strconv.FormatUint(i, base)
+}
+
+func FormatFloat32(f float32, fmt byte, prec int) string {
+	return strconv.FormatFloat(float64(f), fmt, prec, 32)
+}
+
+func FormatFloat64(f float64, fmt byte, prec int) string {
+	return strconv.FormatFloat(f, fmt, prec, 64)
+}
+
+// Xtoa
+
+func Itoa(i int) string {
+	return FormatInt(i, 10)
+}
+
+func I8toa(i int8) string {
+	return FormatInt8(i, 10)
+}
+
+func I16toa(i int16) string {
+	return FormatInt16(i, 10)
+}
+
+func I32toa(i int32) string {
+	return FormatInt32(i, 10)
+}
+
+func I64toa(i int64) string {
+	return FormatInt64(i, 10)
+}
+
+func Utoa(i uint) string {
+	return FormatUint(i, 10)
+}
+
+func U8toa(i uint8) string {
+	return FormatUint8(i, 10)
+}
+
+func U16toa(i uint16) string {
+	return FormatUint16(i, 10)
+}
+
+func U32toa(i uint32) string {
+	return FormatUint32(i, 10)
+}
+
+func U64toa(i uint64) string {
+	return FormatUint64(i, 10)
+}
+
+func F32toa(f float32) string {
+	return FormatFloat32(f, 'f', -1)
+}
+
+func F64toa(f float64) string {
+	return FormatFloat64(f, 'f', -1)
 }

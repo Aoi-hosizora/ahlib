@@ -54,4 +54,36 @@ func TestFormat(t *testing.T) {
 	log.Println("\"" + FormatUint32(4294967295, 10) + "\"")
 	log.Println("\"" + FormatInt64(9223372036854775807, 10) + "\"")
 	log.Println("\"" + FormatUint64(18446744073709551615, 10) + "\"")
+	log.Println("\"" + FormatFloat32(0.7, 'f', -1) + "\"")
+	log.Println("\"" + FormatFloat32(0.7, 'f', -1) + "\"")
+}
+
+func TestAtoi(t *testing.T) {
+	log.Println(Atoi("9223372036854775807"))
+	log.Println(Atou("18446744073709551615"))
+	log.Println(Atoi8("127"))
+	log.Println(Atou8("255"))
+	log.Println(Atoi16("32767"))
+	log.Println(Atou16("65535"))
+	log.Println(Atoi32("2147483647"))
+	log.Println(Atou32("4294967295"))
+	log.Println(Atoi64("9223372036854775807"))
+	log.Println(Atou64("18446744073709551615"))
+	log.Println(Atof32("0.7"))
+	log.Println(Atof64("0.7"))
+}
+
+func TestItoa(t *testing.T) {
+	log.Println("\"" + Itoa(9223372036854775807) + "\"")
+	log.Println("\"" + Utoa(18446744073709551615) + "\"")
+	log.Println("\"" + I8toa(127) + "\"")
+	log.Println("\"" + U8toa(255) + "\"")
+	log.Println("\"" + I16toa(32767) + "\"")
+	log.Println("\"" + U16toa(65535) + "\"")
+	log.Println("\"" + I32toa(2147483647) + "\"")
+	log.Println("\"" + U32toa(4294967295) + "\"")
+	log.Println("\"" + I64toa(9223372036854775807) + "\"")
+	log.Println("\"" + U64toa(18446744073709551615) + "\"")
+	log.Println("\"" + F32toa(0.7) + "\"")
+	log.Println("\"" + F64toa(0.7) + "\"")
 }
