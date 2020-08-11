@@ -3,7 +3,11 @@
 ### Common Functions
 
 + `Shuffle(slice []interface{}, source rand.Source)`
++ `ShuffleNew(slice []interface{}, source rand.Source) []interface{}`
 + `Reverse(slice []interface{}) []interface{}`
++ `ReverseNew(slice []interface{}) []interface{}`
++ `ForEach(slice []interface{}, each func(interface{}))`
++ `GoForEach(slice []interface{}, each func(interface{}))`
 + `Map(slice []interface{}, mapFunc func(interface{}) interface{}) []interface{}`
 + `IndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int`
 + `IndexOf(slice []interface{}, value interface{}) int`

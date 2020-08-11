@@ -98,6 +98,17 @@ func TestShuffle(t *testing.T) {
 	log.Println(a)
 	Shuffle(a, source)
 	log.Println(a)
+
+	Shuffle([]interface{}{}, source)
+}
+
+func TestShuffleNew(t *testing.T) {
+	source := rand.NewSource(time.Now().UnixNano())
+	a := []interface{}{1, 2, 3, 4}
+	log.Println(ShuffleNew(a, source))
+	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+
+	ShuffleNew([]interface{}{}, source)
 }
 
 func TestReverse(t *testing.T) {
@@ -106,6 +117,40 @@ func TestReverse(t *testing.T) {
 	assert.Equal(t, a, []interface{}{4, 3, 2, 1})
 	Reverse(a)
 	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+
+	Reverse([]interface{}{})
+}
+
+func TestReverseNew(t *testing.T) {
+	a := []interface{}{1, 2, 3, 4}
+	assert.Equal(t, ReverseNew(a), []interface{}{4, 3, 2, 1})
+	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+	assert.Equal(t, ReverseNew(ReverseNew(a)), []interface{}{1, 2, 3, 4})
+	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+
+	ReverseNew([]interface{}{})
+}
+
+func TestForEach(t *testing.T) {
+	s1 := []int{1, 2, 3, 4, 5}
+	s2 := []string{"1", "2", "3", "4", "5"}
+	ForEach(Sti(s1), func(i interface{}) {
+		log.Println(i)
+	})
+	ForEach(Sti(s2), func(i interface{}) {
+		log.Println(i)
+	})
+}
+
+func TestGoForEach(t *testing.T) {
+	s1 := []int{1, 2, 3, 4, 5}
+	s2 := []string{"1", "2", "3", "4", "5"}
+	GoForEach(Sti(s1), func(i interface{}) {
+		log.Println(i)
+	})
+	GoForEach(Sti(s2), func(i interface{}) {
+		log.Println(i)
+	})
 }
 
 func TestMap(t *testing.T) {

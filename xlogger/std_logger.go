@@ -22,7 +22,7 @@ func (l *StdLogger) Writer() io.Writer {
 	return l.out
 }
 
-func (l *StdLogger) Output(s string) {
+func (l *StdLogger) output(s string) {
 	now := time.Now()
 	t := fmt.Sprintf("[%s] ", now.Format(time.RFC3339))
 	l.mu.Lock()
@@ -37,14 +37,19 @@ func (l *StdLogger) Output(s string) {
 	_, _ = l.out.Write(l.buf)
 }
 
-func (l *StdLogger) Outputf(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
-	l.Output(s)
+func (l *StdLogger) Output(a ...interface{}) {
+	s := fmt.Sprintln(a...)
+	l.output(s)
 }
 
-func (l *StdLogger) Outputln(format string) {
-	s := fmt.Sprintln(format)
-	l.Output(s)
+func (l *StdLogger) Outputf(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+	l.output(s)
+}
+
+func (l *StdLogger) Outputln(a ...interface{}) {
+	s := fmt.Sprintln(a...)
+	l.output(s)
 }
 
 var _stdLogger = NewStdLogger(os.Stderr)
@@ -53,14 +58,14 @@ func Writer() io.Writer {
 	return _stdLogger.Writer()
 }
 
-func Output(s string) {
-	_stdLogger.Output(s)
+func Output(a ...interface{}) {
+	_stdLogger.Output(a...)
 }
 
 func Outputf(format string, v ...interface{}) {
 	_stdLogger.Outputf(format, v...)
 }
 
-func Outputln(format string) {
-	_stdLogger.Outputln(format)
+func Outputln(a ...interface{}) {
+	_stdLogger.Outputln(a...)
 }

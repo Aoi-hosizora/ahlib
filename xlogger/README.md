@@ -21,10 +21,10 @@
 + `type StdLogger struct {}`
 + `NewStdLogger(out io.Writer) *StdLogger`
 + `(l *StdLogger) Writer() io.Writer`
-+ `(l *StdLogger) Output(s string)`
++ `(l *StdLogger) Output(a ...interface{})`
 + `(l *StdLogger) Outputf(format string, v ...interface{})`
-+ `(l *StdLogger) Outputln(format string)`
++ `(l *StdLogger) Outputln(a ...interface{})`
 + `Writer() io.Writer`
-+ `Output(s string)`
++ `Output(a ...interface{})`
 + `Outputf(format string, v ...interface{})`
-+ `Outputln(format string)`
++ `Outputln(a ...interface{})`

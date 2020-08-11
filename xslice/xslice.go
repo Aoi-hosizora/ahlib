@@ -2,10 +2,13 @@ package xslice
 
 import (
 	"math/rand"
+	"sync"
 )
 
+// An Equaller represents how two data equal, used in `XXXWith` methods.
 type Equaller func(i, j interface{}) bool
 
+// Shuffle the slice directly.
 func Shuffle(slice []interface{}, source rand.Source) {
 	random := rand.New(source)
 	for i := len(slice) - 1; i > 0; i-- {
@@ -14,15 +17,57 @@ func Shuffle(slice []interface{}, source rand.Source) {
 	}
 }
 
-func Reverse(slice []interface{}) {
-	if len(slice) == 0 {
-		return
+// Shuffle the old slice and return a new one.
+func ShuffleNew(slice []interface{}, source rand.Source) []interface{} {
+	newSlice := make([]interface{}, len(slice))
+	for idx, s := range slice {
+		newSlice[idx] = s
 	}
+	Shuffle(newSlice, source)
+	return newSlice
+}
+
+// Reverse the slice directly.
+func Reverse(slice []interface{}) {
 	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 }
 
+// Reverse the old slice and return a new one.
+func ReverseNew(slice []interface{}) []interface{} {
+	newSlice := make([]interface{}, len(slice))
+	for idx, s := range slice {
+		newSlice[idx] = s
+	}
+	Reverse(newSlice)
+	return newSlice
+}
+
+// ForEach each item in slice.
+func ForEach(slice []interface{}, each func(interface{})) {
+	for idx := range slice {
+		each(slice[idx])
+	}
+}
+
+// Use `go` and `WaitGroup` to ForEach the slice concurrently.
+func GoForEach(slice []interface{}, each func(interface{})) {
+	if len(slice) == 0 {
+		return
+	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(slice))
+	for idx := range slice {
+		go func(i interface{}) {
+			each(i)
+			wg.Done()
+		}(slice[idx])
+	}
+	wg.Wait()
+}
+
+// `Map` a slice and return a new slice.
 func Map(slice []interface{}, mapper func(interface{}) interface{}) []interface{} {
 	out := make([]interface{}, len(slice))
 	for idx := range slice {

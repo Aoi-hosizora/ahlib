@@ -2,6 +2,8 @@ package xlogger
 
 import (
 	"github.com/sirupsen/logrus"
+	"log"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -9,9 +11,16 @@ import (
 func TestStdLogger(t *testing.T) {
 	Output("test")
 	Outputf("a%sc", "b")
-	Outputln("test\n")
+	// Outputln("test\n") // Println arg list ends with redundant newline
+	Outputln("test")
+	// log.Println("test\n")// Println arg list ends with redundant newline
 	Output("test\n")
 	Output("test")
+	Output("test", "test")
+	Output("test\n", "test")
+	Outputln("test", "test")
+	Outputln("test\n", "test")
+	log.Println(reflect.TypeOf(Writer()))
 }
 
 func TestLogrus(t *testing.T) {
