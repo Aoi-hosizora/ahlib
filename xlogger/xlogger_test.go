@@ -9,6 +9,7 @@ import (
 )
 
 func TestStdLogger(t *testing.T) {
+	GoLogger.Printf("test1 %d", 2)
 	Output("test")
 	Outputf("a%sc", "b")
 	// Outputln("test\n") // Println arg list ends with redundant newline

@@ -18,6 +18,7 @@
 
 ### StdLogger
 
++ `var GoLogger *logger.Logger`
 + `type StdLogger struct {}`
 + `NewStdLogger(out io.Writer) *StdLogger`
 + `(l *StdLogger) Writer() io.Writer`

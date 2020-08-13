@@ -3,10 +3,13 @@ package xlogger
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
 	"time"
 )
+
+var GoLogger = log.New(os.Stderr, "", log.LstdFlags)
 
 type StdLogger struct {
 	mu  sync.Mutex
