@@ -3,8 +3,7 @@ package xruntime
 import (
 	"bytes"
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xterminal"
-	"github.com/gookit/color"
+	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
@@ -74,11 +73,11 @@ func PrintStacks(stacks []*Stack) {
 }
 
 func PrintStacksRed(stacks []*Stack) {
-	xterminal.ForceColor()
+	xcolor.ForceColor()
 	for _, s := range stacks {
 		l := s.String()
 		for _, s := range strings.Split(l, "\n") {
-			fmt.Println(color.Red.Render(s))
+			fmt.Println(xcolor.Red.Sprint(s))
 		}
 	}
 }

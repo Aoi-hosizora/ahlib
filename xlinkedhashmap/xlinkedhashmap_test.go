@@ -1,7 +1,7 @@
 package xlinkedhashmap
 
 import (
-	"github.com/stretchr/testify/assert"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"testing"
 )
 
@@ -23,12 +23,12 @@ func TestLinkedHashMap(t *testing.T) {
 	m.Remove("d")
 	m.Set("a", 123)
 	m.Set("o", cmx)
-	assert.Equal(t, m.String(), "{\"b\":\"bb\",\"a\":123,\"c\":\"cc\",\"o\":{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}}")
-	assert.Equal(t, NewLinkedHashMap().String(), "{}")
+	xtesting.Equal(t, m.String(), "{\"b\":\"bb\",\"a\":123,\"c\":\"cc\",\"o\":{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}}")
+	xtesting.Equal(t, NewLinkedHashMap().String(), "{}")
 }
 
 func TestObjectToLinkedHashMap(t *testing.T) {
-	assert.Equal(t, ObjectToLinkedHashMap(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
-	assert.Equal(t, ObjectToLinkedHashMap(nil) == nil, true)
-	assert.Equal(t, FromInterface(nil) == nil, true)
+	xtesting.Equal(t, ObjectToLinkedHashMap(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
+	xtesting.Equal(t, ObjectToLinkedHashMap(nil) == nil, true)
+	xtesting.Equal(t, FromInterface(nil) == nil, true)
 }

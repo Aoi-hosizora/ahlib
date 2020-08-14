@@ -3,7 +3,7 @@ package xdi
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcondition"
-	"github.com/stretchr/testify/assert"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"testing"
 )
 
@@ -81,24 +81,24 @@ func Test_DiContainer_Inject(t *testing.T) {
 	ctrl := &Controller{}
 	ok := dic.Inject(ctrl)
 
-	assert.Equal(t, ctrl.SA.A(), 2)
-	assert.Equal(t, ctrl.SB.B("a"), "a123")
-	assert.Equal(t, ctrl.SB.C(2), 4)
-	assert.Equal(t, ctrl.SSB.B("a"), "a123")
-	assert.Equal(t, ctrl.SSB.C(2), 4)
-	assert.Equal(t, ctrl.SC == nil, true)
-	assert.Equal(t, ctrl.PD, 123)
+	xtesting.Equal(t, ctrl.SA.A(), 2)
+	xtesting.Equal(t, ctrl.SB.B("a"), "a123")
+	xtesting.Equal(t, ctrl.SB.C(2), 4)
+	xtesting.Equal(t, ctrl.SSB.B("a"), "a123")
+	xtesting.Equal(t, ctrl.SSB.C(2), 4)
+	xtesting.Equal(t, ctrl.SC == nil, true)
+	xtesting.Equal(t, ctrl.PD, 123)
 
 	ctrl2 := &Controller{}
 	ctrl3 := &struct {
 		Other int `di:"o"`
 	}{}
 
-	assert.Equal(t, ok, true)
-	assert.Equal(t, dic.Inject(ctrl2), true)
-	assert.Equal(t, dic.Inject(ctrl3), false)
+	xtesting.Equal(t, ok, true)
+	xtesting.Equal(t, dic.Inject(ctrl2), true)
+	xtesting.Equal(t, dic.Inject(ctrl3), false)
 	// dic.MustInject(ctrl3) -> panic
-	// assert.Equal(t, dic.Inject(nil), true) -> panic
+	// xtesting.Equal(t, dic.Inject(nil), true) -> panic
 
 	SetLogMode(true, true)
 	SetLogFunc(_di.logFunc)
@@ -109,7 +109,7 @@ func Test_DiContainer_Inject(t *testing.T) {
 	ctrl4 := &struct {
 		S string `di:"~"`
 	}{}
-	assert.Equal(t, Inject(ctrl4), false)
+	xtesting.Equal(t, Inject(ctrl4), false)
 
 	ctrl5 := &struct {
 		T int     `di:"t"`
@@ -121,9 +121,9 @@ func Test_DiContainer_Inject(t *testing.T) {
 	ProvideType(0.1)
 	ProvideImpl((*Itf)(nil), fmt.Errorf("err"))
 	MustInject(ctrl5)
-	assert.Equal(t, ctrl5.E.Error(), "err")
-	assert.Equal(t, xcondition.First(GetByType(0.)), 0.1)
-	assert.Equal(t, xcondition.First(GetByName("t")), 1)
-	assert.Equal(t, GetByTypeForce(0.), 0.1)
-	assert.Equal(t, GetByNameForce("t"), 1)
+	xtesting.Equal(t, ctrl5.E.Error(), "err")
+	xtesting.Equal(t, xcondition.First(GetByType(0.)), 0.1)
+	xtesting.Equal(t, xcondition.First(GetByName("t")), 1)
+	xtesting.Equal(t, GetByTypeForce(0.), 0.1)
+	xtesting.Equal(t, GetByNameForce("t"), 1)
 }

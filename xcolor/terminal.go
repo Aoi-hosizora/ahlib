@@ -1,14 +1,13 @@
-package xterminal
+package xcolor
 
 import (
-	"github.com/gookit/color"
 	"io"
 	"os"
 	"sync"
 )
 
-func InitTerminal(out io.Writer) bool {
-	return checkIfTerminal(out)
+func InitTerminal(out io.Writer) {
+	checkIfTerminal(out)
 }
 
 func InitOsStd() {
@@ -20,7 +19,6 @@ var _initColor sync.Once
 
 func ForceColor() {
 	_initColor.Do(func() {
-		color.ForceOpenColor()
 		InitOsStd()
 	})
 }

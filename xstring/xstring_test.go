@@ -1,22 +1,41 @@
 package xstring
 
 import (
-	"github.com/stretchr/testify/assert"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"testing"
 	"time"
 )
 
 func TestCapitalize(t *testing.T) {
-	assert.Equal(t, Capitalize("abc"), "Abc")
-	assert.Equal(t, Capitalize("Abc"), "Abc")
-	assert.Equal(t, Capitalize(""), "")
+	xtesting.Equal(t, Capitalize("abc"), "Abc")
+	xtesting.Equal(t, Capitalize("Abc"), "Abc")
+	xtesting.Equal(t, Capitalize(""), "")
 }
 
 func TestUncapitalize(t *testing.T) {
-	assert.Equal(t, Uncapitalize("Abc"), "abc")
-	assert.Equal(t, Uncapitalize("abc"), "abc")
-	assert.Equal(t, Uncapitalize(""), "")
+	xtesting.Equal(t, Uncapitalize("Abc"), "abc")
+	xtesting.Equal(t, Uncapitalize("abc"), "abc")
+	xtesting.Equal(t, Uncapitalize(""), "")
+}
+
+func TestChatAt(t *testing.T) {
+	str := "テスト测试測試test"
+	xtesting.Equal(t, str, str)
+	xtesting.Equal(t, ChatAt(str, 0), "テ")
+	xtesting.Equal(t, ChatAt(str, 3), "测")
+	xtesting.Equal(t, ChatAt(str, 4), "试")
+	xtesting.Equal(t, ChatAt(str, 5), "測")
+	xtesting.Equal(t, ChatAt(str, 7), "t")
+}
+
+func TestSubString(t *testing.T) {
+	str := "テスト测试測試test"
+	xtesting.Equal(t, str, str)
+	xtesting.Equal(t, SubStringTo(str, 3), "テスト")
+	xtesting.Equal(t, SubString(str, 3, 5), "测试")
+	xtesting.Equal(t, SubString(str, 5, 7), "測試")
+	xtesting.Equal(t, SubStringFrom(str, 7), "test")
 }
 
 func TestToRuneToByte(t *testing.T) {
@@ -25,13 +44,13 @@ func TestToRuneToByte(t *testing.T) {
 	log.Printf("%T", ToByte("a")) // uint8
 	log.Printf("%T", "a"[0])      // uint8
 
-	assert.Equal(t, ToRune("a"), 'a')
-	assert.Equal(t, ToRune("bcd"), 'b')
-	assert.Equal(t, ToRune(""), rune(0))
+	xtesting.Equal(t, ToRune("a"), 'a')
+	xtesting.Equal(t, ToRune("bcd"), 'b')
+	xtesting.Equal(t, ToRune(""), rune(0))
 
-	assert.Equal(t, ToByte("a"), byte('a'))
-	assert.Equal(t, ToByte("bcd"), byte('b'))
-	assert.Equal(t, ToByte(""), byte(0))
+	xtesting.Equal(t, ToByte("a"), byte('a'))
+	xtesting.Equal(t, ToByte("bcd"), byte('b'))
+	xtesting.Equal(t, ToByte(""), byte(0))
 }
 
 func TestCurrentTimeUuid(t *testing.T) {
@@ -75,62 +94,68 @@ func TestPrettifyJson(t *testing.T) {
 		"        }\n" +
 		"    ]\n" +
 		"}"
-	assert.Equal(t, PrettifyJson(from, 4, " "), to)
+	xtesting.Equal(t, PrettifyJson(from, 4, " "), to)
 }
 
 func TestToSnakeCase(t *testing.T) {
-	assert.Equal(t, ToSnakeCase(""), "")
-	assert.Equal(t, ToSnakeCase("AoiHosizora"), "aoi_hosizora")
-	assert.Equal(t, ToSnakeCase("abc0d1EdF"), "abc0d1_ed_f")
-	assert.Equal(t, ToSnakeCase("私達isわたしたち"), "私達isわたしたち")
-	assert.Equal(t, ToSnakeCase("a bC"), "a_b_c")
+	xtesting.Equal(t, ToSnakeCase(""), "")
+	xtesting.Equal(t, ToSnakeCase("AoiHosizora"), "aoi_hosizora")
+	xtesting.Equal(t, ToSnakeCase("abc0d1EdF"), "abc0d1_ed_f")
+	xtesting.Equal(t, ToSnakeCase("私達isわたしたち"), "私達isわたしたち")
+	xtesting.Equal(t, ToSnakeCase("a bC"), "a_b_c")
 }
 
 func TestIsLowercase(t *testing.T) {
-	assert.Equal(t, IsLowercase(ToRune("A")), false)
-	assert.Equal(t, IsLowercase(ToRune("Z")), false)
-	assert.Equal(t, IsLowercase(ToRune("a")), true)
-	assert.Equal(t, IsLowercase(ToRune("z")), true)
-	assert.Equal(t, IsLowercase(ToRune("0")), false)
-	assert.Equal(t, IsLowercase(ToRune("")), false)
-	assert.Equal(t, IsLowercase(ToRune("我")), false)
+	xtesting.Equal(t, IsLowercase(ToRune("A")), false)
+	xtesting.Equal(t, IsLowercase(ToRune("Z")), false)
+	xtesting.Equal(t, IsLowercase(ToRune("a")), true)
+	xtesting.Equal(t, IsLowercase(ToRune("z")), true)
+	xtesting.Equal(t, IsLowercase(ToRune("0")), false)
+	xtesting.Equal(t, IsLowercase(ToRune("")), false)
+	xtesting.Equal(t, IsLowercase(ToRune("我")), false)
 }
 
 func TestIsUppercase(t *testing.T) {
-	assert.Equal(t, IsUppercase(ToRune("A")), true)
-	assert.Equal(t, IsUppercase(ToRune("Z")), true)
-	assert.Equal(t, IsUppercase(ToRune("a")), false)
-	assert.Equal(t, IsUppercase(ToRune("z")), false)
-	assert.Equal(t, IsUppercase(ToRune("0")), false)
-	assert.Equal(t, IsUppercase(ToRune("")), false)
-	assert.Equal(t, IsUppercase(ToRune("我")), false)
+	xtesting.Equal(t, IsUppercase(ToRune("A")), true)
+	xtesting.Equal(t, IsUppercase(ToRune("Z")), true)
+	xtesting.Equal(t, IsUppercase(ToRune("a")), false)
+	xtesting.Equal(t, IsUppercase(ToRune("z")), false)
+	xtesting.Equal(t, IsUppercase(ToRune("0")), false)
+	xtesting.Equal(t, IsUppercase(ToRune("")), false)
+	xtesting.Equal(t, IsUppercase(ToRune("我")), false)
 }
 
 func TestRemoveSpaces(t *testing.T) {
-	assert.Equal(t, RemoveSpaces(""), "")
-	assert.Equal(t, RemoveSpaces("a b  c 　d   e f"), "a b c d e f")
-	assert.Equal(t, RemoveSpaces("a b 	 c d   e f"), "a b c d e f")
-	assert.Equal(t, RemoveSpaces("a b \n	 c d   e f"), "a b c d e f")
-	assert.Equal(t, RemoveSpaces("\n　"), "")
-	assert.Equal(t, RemoveSpaces("　\n	"), "")
+	xtesting.Equal(t, RemoveSpaces(""), "")
+	xtesting.Equal(t, RemoveSpaces("a b  c 　d   e f"), "a b c d e f")
+	xtesting.Equal(t, RemoveSpaces("a b 	 c d   e f"), "a b c d e f")
+	xtesting.Equal(t, RemoveSpaces("a b \n	 c d   e f"), "a b c d e f")
+	xtesting.Equal(t, RemoveSpaces("\n　"), "")
+	xtesting.Equal(t, RemoveSpaces("　\n	"), "")
 }
 
 func TestMaskToken(t *testing.T) {
-	assert.Equal(t, MaskToken(""), "")
-	assert.Equal(t, MaskToken(" "), "*")
-	assert.Equal(t, MaskToken("a"), "*")
-	assert.Equal(t, MaskToken("aa"), "*a")
-	assert.Equal(t, MaskToken("aaa"), "**a")
-	assert.Equal(t, MaskToken("aaaa"), "a**a")
-	assert.Equal(t, MaskToken("aaaaa"), "a***a")
-	assert.Equal(t, MaskToken("aaaaaa"), "aa**aa")
+	xtesting.Equal(t, MaskToken(""), "")
+	xtesting.Equal(t, MaskToken(" "), "*")
+	xtesting.Equal(t, MaskToken("a"), "*")
+	xtesting.Equal(t, MaskToken("aa"), "*a")
+	xtesting.Equal(t, MaskToken("aaa"), "**a")
+	xtesting.Equal(t, MaskToken("aaaa"), "a**a")
+	xtesting.Equal(t, MaskToken("aaaaa"), "a***a")
+	xtesting.Equal(t, MaskToken("aaaaaa"), "aa**aa")
+	xtesting.Equal(t, MaskToken("あ"), "*")
+	xtesting.Equal(t, MaskToken("あa"), "*a")
+	xtesting.Equal(t, MaskToken("あaa"), "**a")
+	xtesting.Equal(t, MaskToken("あaaa"), "あ**a")
+	xtesting.Equal(t, MaskToken("あaaaa"), "あ***a")
+	xtesting.Equal(t, MaskToken("あaaaaa"), "あa**aa")
 }
 
 func TestStringToBytes(t *testing.T) {
-	assert.Equal(t, StringToBytes(""), []byte{})
-	assert.Equal(t, StringToBytes("abcdefg"), []byte("abcdefg"))
+	xtesting.Equal(t, StringToBytes(""), []byte{})
+	xtesting.Equal(t, StringToBytes("abcdefg"), []byte("abcdefg"))
 
-	cnt := 200000000
+	cnt := 20000000
 
 	bs1 := make([]byte, cnt, cnt)
 	bs2 := make([]byte, cnt, cnt)
@@ -151,16 +176,16 @@ func TestStringToBytes(t *testing.T) {
 	bs02 := StringToBytes(str2)
 	log.Println(time.Now().Sub(start).String())
 
-	assert.Equal(t, bs01, bs1)
-	assert.Equal(t, bs02, bs2)
+	xtesting.Equal(t, bs01, bs1)
+	xtesting.Equal(t, bs02, bs2)
 }
 
 func TestBytesToString(t *testing.T) {
-	assert.Equal(t, BytesToString(nil), "")
-	assert.Equal(t, BytesToString([]byte{}), "")
-	assert.Equal(t, BytesToString([]byte("abcdefg")), "abcdefg")
+	xtesting.Equal(t, BytesToString(nil), "")
+	xtesting.Equal(t, BytesToString([]byte{}), "")
+	xtesting.Equal(t, BytesToString([]byte("abcdefg")), "abcdefg")
 
-	cnt := 200000000
+	cnt := 20000000
 
 	bs1 := make([]byte, cnt, cnt)
 	bs2 := make([]byte, cnt, cnt)
@@ -181,6 +206,6 @@ func TestBytesToString(t *testing.T) {
 	str02 := BytesToString(bs2)
 	log.Println(time.Now().Sub(start).String())
 
-	assert.Equal(t, str01, str1)
-	assert.Equal(t, str02, str2)
+	xtesting.Equal(t, str01, str1)
+	xtesting.Equal(t, str02, str2)
 }

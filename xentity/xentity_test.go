@@ -3,7 +3,7 @@ package xentity
 import (
 	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/Aoi-hosizora/ahlib/xslice"
-	"github.com/stretchr/testify/assert"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"testing"
 	"time"
@@ -101,7 +101,7 @@ func TestEntityMapper(t *testing.T) {
 
 	err := entityMapper.MapProp(param, po)
 	log.Println(po, err)
-	assert.Equal(t, po, po1)
+	xtesting.Equal(t, po, po1)
 
 	dtoOut, err := entityMapper.Map(po1, &Dto{}, func(from interface{}, to interface{}) error {
 		po := from.(*Po)
@@ -111,7 +111,7 @@ func TestEntityMapper(t *testing.T) {
 		return nil
 	})
 	log.Println(dtoOut, err)
-	assert.Equal(t, dtoOut.(*Dto), dto11)
+	xtesting.Equal(t, dtoOut.(*Dto), dto11)
 
 	dtoArrOut, err := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{}, func(from interface{}, to interface{}) error {
 		dto := to.(*Dto)
@@ -119,5 +119,5 @@ func TestEntityMapper(t *testing.T) {
 		return nil
 	})
 	log.Println(dtoArrOut, err)
-	assert.Equal(t, dtoArrOut.([]*Dto), dtoArr)
+	xtesting.Equal(t, dtoArrOut.([]*Dto), dtoArr)
 }
