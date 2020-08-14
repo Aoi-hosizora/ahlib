@@ -3,7 +3,7 @@ package xentity
 import (
 	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/Aoi-hosizora/ahlib/xslice"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-playground/assert/v2"
 	"log"
 	"testing"
 	"time"

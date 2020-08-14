@@ -3,7 +3,7 @@ package xdi
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcondition"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-playground/assert/v2"
 	"testing"
 )
 

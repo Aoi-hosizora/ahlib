@@ -1,7 +1,7 @@
 package xstring
 
 import (
-	"github.com/stretchr/testify/assert"
+	"github.com/go-playground/assert/v2"
 	"log"
 	"testing"
 	"time"
