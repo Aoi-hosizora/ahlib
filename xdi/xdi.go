@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"github.com/Aoi-hosizora/ahlib/xreflect"
-	"github.com/gookit/color"
 	"reflect"
 	"sync"
 )
@@ -50,10 +49,10 @@ func NewDiContainer() *DiContainer {
 			xcolor.ForceColor()
 			kind += ":"
 			if parentType != "" {
-				parentType = fmt.Sprintf("(%s).", color.Yellow.Sprint(parentType))
+				parentType = fmt.Sprintf("(%s).", xcolor.Yellow.Sprint(parentType))
 			}
-			fieldName = color.Red.Sprint(fieldName)
-			fieldType = color.Yellow.Sprint(fieldType)
+			fieldName = xcolor.Red.Sprint(fieldName)
+			fieldType = xcolor.Yellow.Sprint(fieldType)
 			fmt.Printf("[XDI] %-8s %s%s (%s)\n", kind, parentType, fieldName, fieldType)
 		},
 	}

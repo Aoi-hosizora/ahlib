@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcolor"
-	"github.com/gookit/color"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
@@ -78,7 +77,7 @@ func PrintStacksRed(stacks []*Stack) {
 	for _, s := range stacks {
 		l := s.String()
 		for _, s := range strings.Split(l, "\n") {
-			fmt.Println(color.Red.Render(s))
+			fmt.Println(xcolor.Red.Sprint(s))
 		}
 	}
 }
