@@ -1,7 +1,7 @@
 package xslice
 
 import (
-	"github.com/go-playground/assert/v2"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"math/rand"
 	"reflect"
@@ -11,11 +11,11 @@ import (
 )
 
 func TestSti(t *testing.T) {
-	assert.Equal(t, Sti([]string{"123", "456"}), []interface{}{"123", "456"})
-	// assert.Equal(t, Sti(""), []interface{}(nil))
-	assert.Equal(t, Sti([]string{}), []interface{}{})
-	// assert.Equal(t, Sti("") == nil, true)
-	assert.Equal(t, Sti(nil) == nil, true)
+	xtesting.Equal(t, Sti([]string{"123", "456"}), []interface{}{"123", "456"})
+	// xtesting.Equal(t, Sti(""), []interface{}(nil))
+	xtesting.Equal(t, Sti([]string{}), []interface{}{})
+	// xtesting.Equal(t, Sti("") == nil, true)
+	xtesting.Equal(t, Sti(nil) == nil, true)
 
 	num := 2000000
 
@@ -47,9 +47,9 @@ func TestSti(t *testing.T) {
 }
 
 func TestIts(t *testing.T) {
-	assert.Equal(t, Its([]interface{}{"123", "456"}, ""), []string{"123", "456"})
-	assert.Equal(t, Its(nil, 0), nil)
-	// assert.Equal(t, Its(nil, nil), nil)
+	xtesting.Equal(t, Its([]interface{}{"123", "456"}, ""), []string{"123", "456"})
+	xtesting.Equal(t, Its(nil, 0), nil)
+	// xtesting.Equal(t, Its(nil, nil), nil)
 
 	log.Println(ItsToString([]interface{}{1, 2, 3}))
 	log.Println(ItsOfInt([]interface{}{}))
@@ -106,7 +106,7 @@ func TestShuffleNew(t *testing.T) {
 	source := rand.NewSource(time.Now().UnixNano())
 	a := []interface{}{1, 2, 3, 4}
 	log.Println(ShuffleNew(a, source))
-	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.Equal(t, a, []interface{}{1, 2, 3, 4})
 
 	ShuffleNew([]interface{}{}, source)
 }
@@ -114,19 +114,19 @@ func TestShuffleNew(t *testing.T) {
 func TestReverse(t *testing.T) {
 	a := []interface{}{1, 2, 3, 4}
 	Reverse(a)
-	assert.Equal(t, a, []interface{}{4, 3, 2, 1})
+	xtesting.Equal(t, a, []interface{}{4, 3, 2, 1})
 	Reverse(a)
-	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.Equal(t, a, []interface{}{1, 2, 3, 4})
 
 	Reverse([]interface{}{})
 }
 
 func TestReverseNew(t *testing.T) {
 	a := []interface{}{1, 2, 3, 4}
-	assert.Equal(t, ReverseNew(a), []interface{}{4, 3, 2, 1})
-	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
-	assert.Equal(t, ReverseNew(ReverseNew(a)), []interface{}{1, 2, 3, 4})
-	assert.Equal(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.Equal(t, ReverseNew(a), []interface{}{4, 3, 2, 1})
+	xtesting.Equal(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.Equal(t, ReverseNew(ReverseNew(a)), []interface{}{1, 2, 3, 4})
+	xtesting.Equal(t, a, []interface{}{1, 2, 3, 4})
 
 	ReverseNew([]interface{}{})
 }
@@ -158,80 +158,80 @@ func TestMap(t *testing.T) {
 	s2 := []string{"1", "2", "3", "4", "5"}
 	s3 := []int{2, 3, 4, 5, 6}
 	s4 := []float32{1.0, 2.0, 3.0, 4.0, 5.0}
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return strconv.Itoa(i.(int)) }), Sti(s2))
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return i.(int) + 1 }), Sti(s3))
-	assert.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return float32(i.(int)) }), Sti(s4))
+	xtesting.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return strconv.Itoa(i.(int)) }), Sti(s2))
+	xtesting.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return i.(int) + 1 }), Sti(s3))
+	xtesting.Equal(t, Map(Sti(s1), func(i interface{}) interface{} { return float32(i.(int)) }), Sti(s4))
 }
 
 func TestIndexOf(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3}
-	assert.Equal(t, IndexOf(Sti(s), 1), 0)
-	assert.Equal(t, IndexOf(Sti(s), 6), -1)
-	assert.Equal(t, IndexOf(Sti(s), nil), -1)
-	assert.Equal(t, IndexOfWith([]interface{}{1, 2, 3, 4, 5}, 3, func(i, j interface{}) bool {
+	xtesting.Equal(t, IndexOf(Sti(s), 1), 0)
+	xtesting.Equal(t, IndexOf(Sti(s), 6), -1)
+	xtesting.Equal(t, IndexOf(Sti(s), nil), -1)
+	xtesting.Equal(t, IndexOfWith([]interface{}{1, 2, 3, 4, 5}, 3, func(i, j interface{}) bool {
 		return i.(int) == j.(int)-1
 	}), 1)
 }
 
 func TestContains(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3}
-	assert.Equal(t, Contains(Sti(s), 1), true)
-	assert.Equal(t, Contains(Sti(s), 6), false)
-	assert.Equal(t, Contains(Sti(s), nil), false)
-	assert.Equal(t, ContainsWith(Sti(s), 4, func(i, j interface{}) bool {
+	xtesting.Equal(t, Contains(Sti(s), 1), true)
+	xtesting.Equal(t, Contains(Sti(s), 6), false)
+	xtesting.Equal(t, Contains(Sti(s), nil), false)
+	xtesting.Equal(t, ContainsWith(Sti(s), 4, func(i, j interface{}) bool {
 		return i.(int) == j.(int)-1
 	}), true)
 }
 
 func TestCount(t *testing.T) {
 	s := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	assert.Equal(t, Count(s, 1), 2)
-	assert.Equal(t, Count(s, 2), 3)
-	assert.Equal(t, Count(s, 3), 1)
-	assert.Equal(t, Count(s, 4), 0)
-	assert.Equal(t, Count(s, 5), 2)
-	assert.Equal(t, Count(s, 6), 1)
-	assert.Equal(t, Count(s, ""), 0)
+	xtesting.Equal(t, Count(s, 1), 2)
+	xtesting.Equal(t, Count(s, 2), 3)
+	xtesting.Equal(t, Count(s, 3), 1)
+	xtesting.Equal(t, Count(s, 4), 0)
+	xtesting.Equal(t, Count(s, 5), 2)
+	xtesting.Equal(t, Count(s, 6), 1)
+	xtesting.Equal(t, Count(s, ""), 0)
 }
 
 func TestDelete(t *testing.T) {
 	s := []int{1, 5, 2, 1, 2, 3, 1}
 
 	s = ItsOfInt(Delete(Sti(s), 1, 1))
-	assert.Equal(t, s, []int{5, 2, 1, 2, 3, 1})
+	xtesting.Equal(t, s, []int{5, 2, 1, 2, 3, 1})
 	s = ItsOfInt(Delete(Sti(s), 1, 2))
-	assert.Equal(t, s, []int{5, 2, 2, 3})
+	xtesting.Equal(t, s, []int{5, 2, 2, 3})
 	s = ItsOfInt(Delete(Sti(s), 6, 1))
-	assert.Equal(t, s, []int{5, 2, 2, 3})
+	xtesting.Equal(t, s, []int{5, 2, 2, 3})
 	s = ItsOfInt(Delete(Sti(s), 2, -1))
-	assert.Equal(t, s, []int{5, 3})
+	xtesting.Equal(t, s, []int{5, 3})
 	s = ItsOfInt(Delete(Sti(s), nil, -1))
-	assert.Equal(t, s, []int{5, 3})
+	xtesting.Equal(t, s, []int{5, 3})
 
 	ss := ItsOfInt(Delete(nil, 2, -1))
-	assert.Equal(t, ss == nil, true)
+	xtesting.Equal(t, ss == nil, false)
 }
 
 func TestDeleteAll(t *testing.T) {
-	assert.Equal(t, DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), Sti([]int{5, 2, 2, 3}))
+	xtesting.Equal(t, DeleteAll(Sti([]int{1, 5, 2, 1, 2, 3, 1}), 1), Sti([]int{5, 2, 2, 3}))
 }
 
 func TestDiff(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
-	assert.Equal(t, Diff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
+	xtesting.Equal(t, Diff(Sti(slice1), Sti(slice2)), Sti([]int{2, 3, 3}))
 }
 
 func TestUnion(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
-	assert.Equal(t, Union(Sti(slice1), Sti(slice2)), Sti([]int{1, 2, 1, 3, 4, 3, 5, 6}))
+	xtesting.Equal(t, Union(Sti(slice1), Sti(slice2)), Sti([]int{1, 2, 1, 3, 4, 3, 5, 6}))
 }
 
 func TestIntersection(t *testing.T) {
 	slice1 := []int{1, 2, 1, 3, 4, 3}
 	slice2 := []int{1, 5, 6, 4}
-	assert.Equal(t, Intersection(Sti(slice1), Sti(slice2)), Sti([]int{1, 1, 4}))
+	xtesting.Equal(t, Intersection(Sti(slice1), Sti(slice2)), Sti([]int{1, 1, 4}))
 }
 
 func TestEqual(t *testing.T) {
@@ -240,11 +240,11 @@ func TestEqual(t *testing.T) {
 	s3 := []int{1, 5, 6, 7}
 	s4 := []int{1, 7, 6, 5}
 	s5 := []int{1, 2, 2, 5, 6, 7}
-	assert.Equal(t, Equal(Sti(s1), Sti(s2)), true)
-	assert.Equal(t, Equal(Sti(s1), Sti(s3)), false)
-	assert.Equal(t, Equal(Sti(s1), Sti(s4)), false)
-	assert.Equal(t, Equal(Sti(s1), Sti(s5)), false)
-	assert.Equal(t, Equal(Sti(s3), Sti(s4)), true)
+	xtesting.Equal(t, Equal(Sti(s1), Sti(s2)), true)
+	xtesting.Equal(t, Equal(Sti(s1), Sti(s3)), false)
+	xtesting.Equal(t, Equal(Sti(s1), Sti(s4)), false)
+	xtesting.Equal(t, Equal(Sti(s1), Sti(s5)), false)
+	xtesting.Equal(t, Equal(Sti(s3), Sti(s4)), true)
 }
 
 func TestToSet(t *testing.T) {
@@ -253,8 +253,8 @@ func TestToSet(t *testing.T) {
 	s3 := []interface{}{1}
 	s4 := []interface{}{1, 1, 1, 1, 1}
 
-	assert.Equal(t, ToSet(s1), []interface{}{1, 2, 3, 4, 5, 6})
-	assert.Equal(t, ToSet(s2), []interface{}{})
-	assert.Equal(t, ToSet(s3), []interface{}{1})
-	assert.Equal(t, ToSet(s4), []interface{}{1})
+	xtesting.Equal(t, ToSet(s1), []interface{}{1, 2, 3, 4, 5, 6})
+	xtesting.Equal(t, ToSet(s2), []interface{}{})
+	xtesting.Equal(t, ToSet(s3), []interface{}{1})
+	xtesting.Equal(t, ToSet(s4), []interface{}{1})
 }

@@ -12,20 +12,36 @@ func Capitalize(str string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	return strings.ToUpper(string(str[0])) + str[1:]
+	return strings.ToUpper(ChatAt(str, 0)) + SubStringFrom(str, 1)
 }
 
 func Uncapitalize(str string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	return strings.ToLower(string(str[0])) + str[1:]
+	return strings.ToLower(ChatAt(str, 0)) + SubStringFrom(str, 1)
 }
 
 func RemoveSpaces(str string) string {
 	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
 	str = r.ReplaceAllString(str, " ")
 	return strings.TrimSpace(str)
+}
+
+func ChatAt(str string, idx int) string {
+	return string([]rune(str)[idx])
+}
+
+func SubString(str string, f int, t int) string {
+	return string([]rune(str)[f:t])
+}
+
+func SubStringFrom(str string, f int) string {
+	return string([]rune(str)[f:])
+}
+
+func SubStringTo(str string, t int) string {
+	return string([]rune(str)[:t])
 }
 
 func ToRune(char string) rune {
@@ -149,21 +165,22 @@ func RandLetterNumberString(count int) string {
 }
 
 func MaskToken(token string) string {
-	switch len(token) {
+	r := []rune(token)
+	switch l := len(r); l {
 	case 0:
 		return ""
 	case 1:
 		return "*"
 	case 2:
-		return "*" + token[1:]
+		return "*" + string(r[1:])
 	case 3:
-		return "**" + token[2:3]
+		return "**" + string(r[2:3])
 	case 4:
-		return token[0:1] + "**" + token[3:4]
+		return string(r[0:1]) + "**" + string(r[3:4])
 	case 5:
-		return token[0:1] + "***" + token[4:5]
+		return string(r[0:1]) + "***" + string(r[4:5])
 	default:
-		return token[0:2] + strings.Repeat("*", len(token)-4) + token[len(token)-2:] // <<< Default
+		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:]) // <<< Default
 	}
 }
 

@@ -5,6 +5,10 @@
 + `Capitalize(str string) string`
 + `Uncapitalize(str string) string`
 + `RemoveSpaces(str string) string`
++ `ChatAt(str string, idx int) string`
++ `SubString(str string, f int, t int) string`
++ `SubStringFrom(str string, f int) string`
++ `SubStringTo(str string, t int) string`
 + `ToRune(char string) rune`
 + `ToByte(char string) byte`
 + `IsUppercase(char rune) bool`
