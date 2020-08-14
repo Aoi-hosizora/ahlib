@@ -17,6 +17,18 @@ func TestNotEqual(t *testing.T) {
 	NotEqual(t, nil, 0)
 }
 
+func TestEqualSlice(t *testing.T) {
+	a := make([]interface{}, 0)
+	b := make([]interface{}, 0)
+	EqualSlice(t, a, b)
+
+	c := []interface{}{1, 2, 3, 3}
+	_ = []interface{}{1, 2, 3}
+	e := []interface{}{3, 2, 3, 1}
+	// EqualSlice(t, c, d)
+	EqualSlice(t, c, e)
+}
+
 func TestMatchRegex(t *testing.T) {
 	re := regexp.MustCompile(`^[abc]*[0-9A-Z]$`)
 	MatchRegex(t, "aA", re)

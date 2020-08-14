@@ -27,6 +27,33 @@ func NotEqual(t *testing.T, val1, val2 interface{}) {
 	}
 }
 
+func contains(slice []interface{}, value interface{}) bool {
+	for _, val := range slice {
+		if val == value {
+			return true
+		}
+	}
+	return false
+}
+
+func EqualSlice(t *testing.T, val1, val2 []interface{}) {
+	skip := 1
+	_, file, line, _ := runtime.Caller(skip)
+	if len(val1) != len(val2) {
+		fmt.Printf("%s:%d %v equals %v\n", path.Base(file), line, val1, val2)
+		t.Fail()
+		return
+	}
+	for _, v := range val2 {
+		if !xreflect.IsEqual(contains(val2, v), true) {
+			_, file, line, _ := runtime.Caller(skip)
+			fmt.Printf("%s:%d %v equals %v\n", path.Base(file), line, val1, val2)
+			t.Fail()
+			return
+		}
+	}
+}
+
 func MatchRegex(t *testing.T, value string, regex *regexp.Regexp) {
 	skip := 1
 	if !regex.MatchString(value) {
