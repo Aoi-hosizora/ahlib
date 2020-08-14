@@ -19,7 +19,8 @@ func ToDate(t time.Time) time.Time {
 }
 
 func NewJsonDate(t time.Time) JsonDate {
-	return JsonDate(ToDate(t))
+	t = ToDate(t)
+	return JsonDate(t)
 }
 
 func (d JsonDate) Time() time.Time {
