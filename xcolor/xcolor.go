@@ -1,4 +1,4 @@
-package xterminal
+package xcolor
 
 import (
 	"github.com/gookit/color"
@@ -7,8 +7,8 @@ import (
 	"sync"
 )
 
-func InitTerminal(out io.Writer) bool {
-	return checkIfTerminal(out)
+func InitTerminal(out io.Writer) {
+	checkIfTerminal(out)
 }
 
 func InitOsStd() {

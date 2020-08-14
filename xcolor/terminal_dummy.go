@@ -1,6 +1,6 @@
-// +build js nacl plan9
+// +build linux darwin aix
 
-package xterminal
+package xcolor
 
 import (
 	"io"

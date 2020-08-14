@@ -1,7 +1,7 @@
-# xterminal
+# xcolor
 
 ### Functions
 
-+ `InitTerminal(out io.Writer) bool`
++ `InitTerminal(out io.Writer)`
 + `InitOsStd()`
 + `ForceColor()`

@@ -2,8 +2,8 @@ package xdi
 
 import (
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"github.com/Aoi-hosizora/ahlib/xreflect"
-	"github.com/Aoi-hosizora/ahlib/xterminal"
 	"github.com/gookit/color"
 	"reflect"
 	"sync"
@@ -31,7 +31,13 @@ type DiContainer struct {
 
 	provideLog bool
 	injectLog  bool
-	logFunc    LogFunc
+
+	// Log function, just like:
+	//	[XDI] Name:    a (*xdi.ServiceA)                  -> RED{a} YELLOW{*xdi.ServiceA}
+	//	[XDI] Impl:    _ (xdi.IServiceA)                  -> RED{_} YELLOW{xdi.IServiceA}
+	//	[XDI] Type:    _ (*xdi.ServiceB)                  -> RED{_} YELLOW{*xdi.ServiceB}
+	//	[XDI] Inject:  (*xdi.ServiceB).SA (xdi.IServiceA) -> YELLOW{*xdi.ServiceB} RED{SA} YELLOW{xdi.IServiceA}
+	logFunc LogFunc
 }
 
 func NewDiContainer() *DiContainer {
@@ -41,15 +47,7 @@ func NewDiContainer() *DiContainer {
 		provideLog: true,
 		injectLog:  true,
 		logFunc: func(kind string, parentType string, fieldName string, fieldType string) {
-			xterminal.ForceColor()
-
-			/*
-				[XDI] Name:    a (*xdi.ServiceA)                  -> RED{a} YELLOW{*xdi.ServiceA}
-				[XDI] Impl:    _ (xdi.IServiceA)                  -> RED{_} YELLOW{xdi.IServiceA}
-				[XDI] Type:    _ (*xdi.ServiceB)                  -> RED{_} YELLOW{*xdi.ServiceB}
-				[XDI] Inject:  (*xdi.ServiceB).SA (xdi.IServiceA) -> YELLOW{*xdi.ServiceB} RED{SA} YELLOW{xdi.IServiceA}
-			*/
-
+			xcolor.ForceColor()
 			kind += ":"
 			if parentType != "" {
 				parentType = fmt.Sprintf("(%s).", color.Yellow.Sprint(parentType))
