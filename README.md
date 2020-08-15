@@ -19,6 +19,7 @@
 + **xdi**
 + xreflect
 + **xnumber**
++ xpointer
 + xcolor
 + xruntime
 + xsystem
