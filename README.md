@@ -26,6 +26,7 @@
 + **xtime**
 + xzone
 + xtesting
++ xregexp
 
 ### Dependency
 

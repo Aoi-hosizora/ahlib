@@ -27,6 +27,24 @@ func NotEqual(t *testing.T, val1, val2 interface{}) {
 	}
 }
 
+func Nil(t *testing.T, val interface{}) {
+	skip := 1
+	if val != nil {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v is not nil\n", path.Base(file), line, val)
+		t.Fail()
+	}
+}
+
+func NotNil(t *testing.T, val interface{}) {
+	skip := 1
+	if val == nil {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v is nil\n", path.Base(file), line, val)
+		t.Fail()
+	}
+}
+
 func contains(slice []interface{}, value interface{}) bool {
 	for _, val := range slice {
 		if val == value {
