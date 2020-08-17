@@ -1,6 +1,7 @@
 package xreflect
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -63,4 +64,98 @@ func IsEqual(val1, val2 interface{}) bool {
 			return reflect.DeepEqual(v1.Interface(), v2.Interface())
 		}
 	}
+}
+
+func GetInt(i interface{}) (int64, bool) {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int(), true
+	}
+	return 0, false
+}
+
+func GetUint(i interface{}) (uint64, bool) {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint(), true
+	}
+	return 0, false
+}
+
+func GetFloat(i interface{}) (float64, bool) {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Float32, reflect.Float64:
+		return v.Float(), true
+	}
+	return 0, false
+}
+
+func GetString(i interface{}) (string, bool) {
+	s, ok := i.(string)
+	if ok {
+		return s, true
+	}
+	return "", false
+}
+
+// ValueSize represents some different types of value size.
+type ValueSize struct {
+	fi int64
+	fu uint64
+	ff float64
+}
+
+func (v *ValueSize) Int() int64 {
+	if v.fi != 0 {
+		return v.fi
+	}
+	if v.fu != 0 {
+		return int64(v.fu)
+	}
+	return int64(v.ff)
+}
+
+func (v *ValueSize) Uint() uint64 {
+	if v.fu != 0 {
+		return v.fu
+	}
+	if v.fi != 0 {
+		return uint64(v.fi)
+	}
+	return uint64(v.ff)
+}
+
+func (v *ValueSize) Float() float64 {
+	if v.ff != 0 {
+		return v.ff
+	}
+	if v.fi != 0 {
+		return float64(v.fi)
+	}
+	return float64(v.fu)
+}
+
+// Get value's size and return ValueSize.
+//
+// For numbers, it is the value.
+// For strings, it is the number of characters.
+// For slices, arrays, maps, it is the number of items.
+func GetValueSize(i interface{}) (*ValueSize, error) {
+	val := reflect.ValueOf(i)
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return &ValueSize{fi: val.Int()}, nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return &ValueSize{fu: val.Uint()}, nil
+	case reflect.Float32, reflect.Float64:
+		return &ValueSize{ff: val.Float()}, nil
+	case reflect.String:
+		return &ValueSize{fi: int64(len([]rune(val.String())))}, nil
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return &ValueSize{fi: int64(val.Len())}, nil
+	}
+	return nil, fmt.Errorf("bad field type %T", val.Interface())
 }

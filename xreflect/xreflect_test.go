@@ -1,6 +1,8 @@
 package xreflect
 
 import (
+	"github.com/Aoi-hosizora/ahlib/xcondition"
+	"github.com/Aoi-hosizora/ahlib/xnumber"
 	"log"
 	"testing"
 )
@@ -135,4 +137,94 @@ func TestIsEqual(t *testing.T) {
 	if IsEqual(f1, f2) {
 		t.Fatal("f1 and f2 is not equal, but got equal")
 	}
+}
+
+func TestGet(t *testing.T) {
+	i := 9223372036854775807
+	i8 := int8(127)
+	i16 := int16(32767)
+	i32 := int32(2147483647)
+	i64 := int64(9223372036854775807)
+	u := uint(18446744073709551615)
+	u8 := uint8(255)
+	u16 := uint16(65535)
+	u32 := uint32(4294967295)
+	u64 := uint64(18446744073709551615)
+	f32 := float32(0.1)
+	f64 := 0.1
+	str1 := "test"
+	str2 := "测试テスト"
+	str3 := ""
+
+	if xcondition.First(GetInt(i)) != int64(i) { t.Fail() }
+	if xcondition.First(GetInt(i8)) != int64(i8) { t.Fatal() }
+	if xcondition.First(GetInt(i16)) != int64(i16) { t.Fatal() }
+	if xcondition.First(GetInt(i32)) != int64(i32) { t.Fatal() }
+	if xcondition.First(GetInt(i64)) != i64 { t.Fatal() }
+	if xcondition.First(GetUint(u)) != uint64(u) { t.Fatal() }
+	if xcondition.First(GetUint(u8)) != uint64(u8) { t.Fatal() }
+	if xcondition.First(GetUint(u16)) != uint64(u16) { t.Fatal() }
+	if xcondition.First(GetUint(u32)) != uint64(u32) { t.Fatal() }
+	if xcondition.First(GetUint(u64)) != u64 { t.Fatal() }
+	if !xnumber.NewAccuracy(1e-3).Equal(xcondition.First(GetFloat(f32)).(float64), 0.1) { t.Fatal() }
+	if !xnumber.NewAccuracy(1e-3).Equal(xcondition.First(GetFloat(f64)).(float64), 0.1) { t.Fatal() }
+	if xcondition.First(GetString(str1)) != str1 { t.Fatal() }
+	if xcondition.First(GetString(str2)) != str2 { t.Fatal() }
+	if xcondition.First(GetString(str3)) != str3 { t.Fatal() }
+}
+
+func TestGetValueSize(t *testing.T) {
+	i := 9223372036854775807
+	i8 := int8(127)
+	i16 := int16(32767)
+	i32 := int32(2147483647)
+	i64 := int64(9223372036854775807)
+	u := uint(18446744073709551615)
+	u8 := uint8(255)
+	u16 := uint16(65535)
+	u32 := uint32(4294967295)
+	u64 := uint64(18446744073709551615)
+	f32 := float32(0.1)
+	f64 := 0.1
+	str1 := "test"
+	str2 := "测试テスト"
+	str3 := ""
+	s := &struct{}{}
+
+	sze, _ := GetValueSize(i)
+	if sze.Int() != int64(i) { t.Fatal() }
+	sze, _ = GetValueSize(i8)
+	if sze.Int() != int64(i8) { t.Fatal() }
+	sze, _ = GetValueSize(i16)
+	if sze.Int() != int64(i16) { t.Fatal() }
+	sze, _ = GetValueSize(i32)
+	if sze.Int() != int64(i32) { t.Fatal() }
+	sze, _ = GetValueSize(i64)
+	if sze.Int() != i64 { t.Fatal() }
+
+	sze, _ = GetValueSize(u)
+	if sze.Uint() != uint64(u) { t.Fatal() }
+	sze, _ = GetValueSize(u8)
+	if sze.Uint() != uint64(u8) { t.Fatal() }
+	sze, _ = GetValueSize(u16)
+	if sze.Uint() != uint64(u16) { t.Fatal() }
+	sze, _ = GetValueSize(u32)
+	if sze.Uint() != uint64(u32) { t.Fatal() }
+	sze, _ = GetValueSize(u64)
+	if sze.Uint() != u64 { t.Fatal() }
+
+	sze, _ = GetValueSize(f32)
+	if !xnumber.NewAccuracy(1e-3).Equal(sze.Float(), float64(f32)) { t.Fatal() }
+	sze, _ = GetValueSize(f32)
+	if !xnumber.NewAccuracy(1e-3).Equal(sze.Float(), f64) { t.Fatal() }
+
+	sze, _ = GetValueSize(str1)
+	if sze.Int() != 4 { t.Fatal() }
+	sze, _ = GetValueSize(str2)
+	if sze.Int() != 5 { t.Fatal() }
+	sze, _ = GetValueSize(str3)
+	if sze.Int() != 0 { t.Fatal() }
+
+	_, err := GetValueSize(s)
+	if err == nil { t.Fatal() }
 }
