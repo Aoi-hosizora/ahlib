@@ -20,7 +20,5 @@
 + `AddMappers(mappers ...*PropertyMapper)`
 + `GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
 + `GetMapperDefault(from interface{}, to interface{}) *PropertyMapper`
-
-### Extension Functions
-
 + `(p *PropertyMapper) ApplyOrderBy(source string) string`
++ `(p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string`

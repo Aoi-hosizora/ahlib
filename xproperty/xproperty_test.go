@@ -26,6 +26,9 @@ func TestNewPropertyMappers(t *testing.T) {
 	query := pm.ApplyOrderBy("uid desc,age,username")
 	log.Println(query)
 	xtesting.Equal(t, query, "uid DESC, birthday DESC, lastName ASC, firstName ASC")
+	query = pm.ApplyCypherOrderBy("m", "uid desc,age,username")
+	log.Println(query)
+	xtesting.Equal(t, query, "m.uid DESC, m.birthday DESC, m.lastName ASC, m.firstName ASC")
 
 	AddMapper(NewMapper(&testDto1{}, &testPo1{}, map[string]*PropertyMapperValue{
 		"uid": NewValue(false, "uid"),
