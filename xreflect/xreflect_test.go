@@ -150,11 +150,14 @@ func TestGet(t *testing.T) {
 	u16 := uint16(65535)
 	u32 := uint32(4294967295)
 	u64 := uint64(18446744073709551615)
+	up := uintptr(18446744073709551615)
 	f32 := float32(0.1)
 	f64 := 0.1
 	str1 := "test"
 	str2 := "测试テスト"
 	str3 := ""
+	b1 := true
+	b2 := false
 
 	if xcondition.First(GetInt(i)) != int64(i) { t.Fail() }
 	if xcondition.First(GetInt(i8)) != int64(i8) { t.Fatal() }
@@ -166,11 +169,16 @@ func TestGet(t *testing.T) {
 	if xcondition.First(GetUint(u16)) != uint64(u16) { t.Fatal() }
 	if xcondition.First(GetUint(u32)) != uint64(u32) { t.Fatal() }
 	if xcondition.First(GetUint(u64)) != u64 { t.Fatal() }
+	if xcondition.First(GetUint(up)) != uint64(up) { t.Fatal() }
 	if !xnumber.NewAccuracy(1e-3).Equal(xcondition.First(GetFloat(f32)).(float64), 0.1) { t.Fatal() }
 	if !xnumber.NewAccuracy(1e-3).Equal(xcondition.First(GetFloat(f64)).(float64), 0.1) { t.Fatal() }
 	if xcondition.First(GetString(str1)) != str1 { t.Fatal() }
 	if xcondition.First(GetString(str2)) != str2 { t.Fatal() }
 	if xcondition.First(GetString(str3)) != str3 { t.Fatal() }
+	// noinspection GoBoolExpressions
+	if xcondition.First(GetBool(b1)) != b1 { t.Fatal() }
+	// noinspection GoBoolExpressions
+	if xcondition.First(GetBool(b2)) != b2 { t.Fatal() }
 }
 
 func TestGetValueSize(t *testing.T) {
@@ -184,11 +192,14 @@ func TestGetValueSize(t *testing.T) {
 	u16 := uint16(65535)
 	u32 := uint32(4294967295)
 	u64 := uint64(18446744073709551615)
+	up := uintptr(18446744073709551615)
 	f32 := float32(0.1)
 	f64 := 0.1
 	str1 := "test"
 	str2 := "测试テスト"
 	str3 := ""
+	b1 := true
+	b2 := false
 	s := &struct{}{}
 
 	sze, _ := GetValueSize(i)
@@ -212,6 +223,8 @@ func TestGetValueSize(t *testing.T) {
 	if sze.Uint() != uint64(u32) { t.Fatal() }
 	sze, _ = GetValueSize(u64)
 	if sze.Uint() != u64 { t.Fatal() }
+	sze, _ = GetValueSize(up)
+	if sze.Uint() != uint64(up) { t.Fatal() }
 
 	sze, _ = GetValueSize(f32)
 	if !xnumber.NewAccuracy(1e-3).Equal(sze.Float(), float64(f32)) { t.Fatal() }
@@ -223,6 +236,13 @@ func TestGetValueSize(t *testing.T) {
 	sze, _ = GetValueSize(str2)
 	if sze.Int() != 5 { t.Fatal() }
 	sze, _ = GetValueSize(str3)
+	if sze.Int() != 0 { t.Fatal() }
+
+	// noinspection GoBoolExpressions
+	sze, _ = GetValueSize(b1)
+	if sze.Int() == 0 { t.Fatal() }
+	// noinspection GoBoolExpressions
+	sze, _ = GetValueSize(b2)
 	if sze.Int() != 0 { t.Fatal() }
 
 	_, err := GetValueSize(s)

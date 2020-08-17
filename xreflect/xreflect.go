@@ -78,7 +78,7 @@ func GetInt(i interface{}) (int64, bool) {
 func GetUint(i interface{}) (uint64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return v.Uint(), true
 	}
 	return 0, false
@@ -99,6 +99,14 @@ func GetString(i interface{}) (string, bool) {
 		return s, true
 	}
 	return "", false
+}
+
+func GetBool(i interface{}) (bool, bool) {
+	s, ok := i.(bool)
+	if ok {
+		return s, true
+	}
+	return false, false
 }
 
 // ValueSize represents some different types of value size.
@@ -148,7 +156,7 @@ func GetValueSize(i interface{}) (*ValueSize, error) {
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return &ValueSize{fi: val.Int()}, nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return &ValueSize{fu: val.Uint()}, nil
 	case reflect.Float32, reflect.Float64:
 		return &ValueSize{ff: val.Float()}, nil
@@ -156,6 +164,12 @@ func GetValueSize(i interface{}) (*ValueSize, error) {
 		return &ValueSize{fi: int64(len([]rune(val.String())))}, nil
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return &ValueSize{fi: int64(val.Len())}, nil
+	case reflect.Bool:
+		v := 0
+		if val.Bool() {
+			v = 1
+		}
+		return &ValueSize{fi: int64(v)}, nil
 	}
 	return nil, fmt.Errorf("bad field type %T", val.Interface())
 }

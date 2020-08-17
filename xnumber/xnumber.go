@@ -79,6 +79,13 @@ func RenderByte(b float64) string {
 	return fmt.Sprintf("%.2fMB", mb)
 }
 
+func Bool(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 // parse
 
 func ParseInt(s string, base int) (int, error) {

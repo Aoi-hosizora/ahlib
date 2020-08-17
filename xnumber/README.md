@@ -11,6 +11,7 @@
 + `(eps Accuracy) SmallerOrEqual(a, b float64) bool`
 + `RenderLatency(ns float64) string`
 + `RenderByte(b float64) string`
++ `Bool(b bool) int`
 + `ParseInt(s string, base int) (int, error)`
 + `ParseInt8(s string, base int) (int8, error)`
 + `ParseInt16(s string, base int) (int16, error)`

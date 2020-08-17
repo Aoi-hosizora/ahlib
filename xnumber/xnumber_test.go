@@ -28,6 +28,13 @@ func TestRenderByte(t *testing.T) {
 	xtesting.Equal(t, RenderByte(2.51*1024*1024), "2.51MB")
 }
 
+func TestBool(t *testing.T) {
+	xtesting.Equal(t, Bool(true), 1)
+	xtesting.Equal(t, Bool(true), 1)
+	xtesting.Equal(t, Bool(false), 0)
+	xtesting.Equal(t, Bool(false), 0)
+}
+
 func TestParse(t *testing.T) {
 	log.Println(ParseInt("9223372036854775807", 10))
 	log.Println(ParseUint("18446744073709551615", 10))

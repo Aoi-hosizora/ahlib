@@ -9,5 +9,6 @@
 + `GetUint(i interface{}) (uint64, bool)`
 + `GetFloat(i interface{}) (float64, bool)`
 + `GetString(i interface{}) (string, bool)`
++ `GetBool(i interface{}) (bool, bool)`
 + `type ValueSize struct {}`
 + `GetValueSize(i interface{}) (*ValueSize, error)`
