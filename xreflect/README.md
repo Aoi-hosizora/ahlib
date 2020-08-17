@@ -1,5 +1,9 @@
 # xreflect
 
+### References
+
++ None
+
 ### Functions
 
 + `ElemType(i interface{}) reflect.Type`
@@ -10,5 +14,8 @@
 + `GetFloat(i interface{}) (float64, bool)`
 + `GetString(i interface{}) (string, bool)`
 + `GetBool(i interface{}) (bool, bool)`
-+ `type ValueSize struct {}`
-+ `GetValueSize(i interface{}) (*ValueSize, error)`
++ `type IufsFlag uint8`
++ `type Iufs struct {}`
++ `type IufSize struct {}`
++ `IufsOf(i interface{}) (*Iufs, error)`
++ `IufSizeOf(i interface{}) (*IufSize, error)`

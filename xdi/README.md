@@ -1,8 +1,13 @@
 # xdi
 
-## Functions
+### References
 
-### For DiContainer
++ xcolor
++ xreflect
+
+### Functions
+
+#### For DiContainer
 
 + `(d *DiContainer) SetLogMode(provideLog bool, injectLog bool)`
 + `(d *DiContainer) SetLogFunc(logFunc LogFunc)`
@@ -16,7 +21,7 @@
 + `(d *DiContainer) Inject(ctrl interface{}) (allInjected bool)`
 + `(d *DiContainer) MustInject(ctrl interface{})`
 
-### For Global
+#### For Global
 
 + `type LogFunc func(kind string, parentType string, fieldName string, fieldType string)`
 + `type ServiceName string`

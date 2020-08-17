@@ -1,5 +1,10 @@
 # xlinkedhashmap
 
+### References
+
++ xslice
++ xreflect
+
 ### Functions
 
 + `type LinkedHashMap struct {}`

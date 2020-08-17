@@ -1,5 +1,9 @@
 # xstring
 
+### References
+
++ None
+
 ### Functions
 
 + `Capitalize(str string) string`

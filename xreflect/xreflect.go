@@ -1,7 +1,6 @@
 package xreflect
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -107,75 +106,4 @@ func GetBool(i interface{}) (bool, bool) {
 		return s, true
 	}
 	return false, false
-}
-
-type ValueSizeFlag uint8
-
-const (
-	SInt ValueSizeFlag = iota
-	SUint
-	SFloat
-)
-
-// ValueSize represents some different types of value size.
-type ValueSize struct {
-	fi   int64
-	fu   uint64
-	ff   float64
-	flag ValueSizeFlag
-}
-
-func NewIntValueSize(i int64) *ValueSize {
-	return &ValueSize{fi: i, flag: SInt}
-}
-
-func NewUintValueSize(u uint64) *ValueSize {
-	return &ValueSize{fu: u, flag: SUint}
-}
-
-func NewFloatValueSize(f float64) *ValueSize {
-	return &ValueSize{ff: f, flag: SFloat}
-}
-
-func (v *ValueSize) Int() int64 {
-	return v.fi
-}
-
-func (v *ValueSize) Uint() uint64 {
-	return v.fu
-}
-
-func (v *ValueSize) Float() float64 {
-	return v.ff
-}
-
-func (v *ValueSize) Flag() ValueSizeFlag {
-	return v.flag
-}
-
-// Get value's size and return ValueSize.
-//
-// For numbers (int, uint, float, bool), it is the value.
-// For strings, it is the number of characters.
-// For slices, arrays, maps, it is the number of items.
-func GetValueSize(i interface{}) (*ValueSize, error) {
-	val := reflect.ValueOf(i)
-	switch val.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return NewIntValueSize(val.Int()), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return NewUintValueSize(val.Uint()), nil
-	case reflect.Float32, reflect.Float64:
-		return NewFloatValueSize(val.Float()), nil
-	case reflect.String:
-		return NewIntValueSize(int64(len([]rune(val.String())))), nil
-	case reflect.Slice, reflect.Map, reflect.Array:
-		return NewIntValueSize(int64(val.Len())), nil
-	case reflect.Bool:
-		if val.Bool() {
-			return NewIntValueSize(1), nil
-		}
-		return NewIntValueSize(0), nil
-	}
-	return nil, fmt.Errorf("bad field type %T", val.Interface())
 }

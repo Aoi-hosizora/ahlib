@@ -1,5 +1,9 @@
 # xentity
 
+### References
+
++ xslice
+
 ### Functions
 
 + `type EntityMappers struct {}`

@@ -181,18 +181,24 @@ func TestGet(t *testing.T) {
 	if xcondition.First(GetBool(b2)) != b2 { t.Fatal() }
 }
 
-func TestGetValueSize(t *testing.T) {
-	sze := NewIntValueSize(3)
-	if sze.Flag() != SInt { t.Fatal() }
-	if sze.Int() != 3 { t.Fatal() }
-	if sze.Uint() != 0 { t.Fatal() }
-	if sze.Float() != 0 { t.Fatal() }
-	sze = NewFloatValueSize(0.1)
-	if sze.Flag() != SFloat { t.Fatal() }
-	if sze.Int() != 0 { t.Fatal() }
-	if sze.Uint() != 0 { t.Fatal() }
-	if xnumber.DefaultAccuracy.NotEqual(sze.Float(), 0.1) { t.Fatal() }
+func TestFlag(t *testing.T) {
+	i := 0
+	u := uint(0)
+	s := ""
+	b := false
 
+	v, _ := IufsOf(i)
+	if v.Flag() != Int { t.Fatal() }
+	v, _ = IufsOf(u)
+	if v.Flag() != Uint { t.Fatal() }
+	v, _ = IufsOf(s)
+	if v.Flag() != String { t.Fatal() }
+	// noinspection GoBoolExpressions
+	v, _ = IufsOf(b)
+	if v.Flag() != Int { t.Fatal() }
+}
+
+func TestIufs(t *testing.T) {
 	i := 9223372036854775807
 	i8 := int8(127)
 	i16 := int16(32767)
@@ -211,51 +217,144 @@ func TestGetValueSize(t *testing.T) {
 	str3 := ""
 	b1 := true
 	b2 := false
-	s := &struct{}{}
+	m1 := []int{0, 1, 2}
+	m2 := [...]int{0, 1, 2}
+	m3 := map[int]int{0: 0, 1: 1, 2: 2}
+	s := struct{}{}
+	p := &struct{}{}
 
-	sze, _ = GetValueSize(i)
+	v, _ := IufsOf(i)
+	if v.Int() != int64(i) { t.Fatal() }
+	v, _ = IufsOf(i8)
+	if v.Int() != int64(i8) { t.Fatal() }
+	v, _ = IufsOf(i16)
+	if v.Int() != int64(i16) { t.Fatal() }
+	v, _ = IufsOf(i32)
+	if v.Int() != int64(i32) { t.Fatal() }
+	v, _ = IufsOf(i64)
+	if v.Int() != i64 { t.Fatal() }
+
+	v, _ = IufsOf(u)
+	if v.Uint() != uint64(u) { t.Fatal() }
+	v, _ = IufsOf(u8)
+	if v.Uint() != uint64(u8) { t.Fatal() }
+	v, _ = IufsOf(u16)
+	if v.Uint() != uint64(u16) { t.Fatal() }
+	v, _ = IufsOf(u32)
+	if v.Uint() != uint64(u32) { t.Fatal() }
+	v, _ = IufsOf(u64)
+	if v.Uint() != u64 { t.Fatal() }
+	v, _ = IufsOf(up)
+	if v.Uint() != uint64(up) { t.Fatal() }
+
+	v, _ = IufsOf(f32)
+	if xnumber.DefaultAccuracy.NotEqual(v.Float(), float64(f32)) { t.Fatal() }
+	v, _ = IufsOf(f64)
+	if xnumber.DefaultAccuracy.NotEqual(v.Float(), f64) { t.Fatal() }
+
+	v , _ = IufsOf(str1)
+	if v.String() != str1 { t.Fatal() }
+	v , _ = IufsOf(str2)
+	if v.String() != str2 { t.Fatal() }
+	v , _ = IufsOf(str3)
+	if v.String() != str3 { t.Fatal() }
+
+	// noinspection GoBoolExpressions
+	v, _ = IufsOf(b1)
+	if v.Int() != 1 { t.Fatal() }
+	// noinspection GoBoolExpressions
+	v, _ = IufsOf(b2)
+	if v.Int() != 0 { t.Fatal() }
+
+	_, err := IufsOf(m1)
+	if err == nil { t.Fatal() }
+	_, err = IufsOf(m2)
+	if err == nil { t.Fatal() }
+	_, err = IufsOf(m3)
+	if err == nil { t.Fatal() }
+	_, err = IufsOf(s)
+	if err == nil { t.Fatal() }
+	_, err = IufsOf(p)
+	if err == nil { t.Fatal() }
+}
+
+func TestIufSize(t *testing.T) {
+	i := 9223372036854775807
+	i8 := int8(127)
+	i16 := int16(32767)
+	i32 := int32(2147483647)
+	i64 := int64(9223372036854775807)
+	u := uint(18446744073709551615)
+	u8 := uint8(255)
+	u16 := uint16(65535)
+	u32 := uint32(4294967295)
+	u64 := uint64(18446744073709551615)
+	up := uintptr(18446744073709551615)
+	f32 := float32(0.1)
+	f64 := 0.1
+	str1 := "test"
+	str2 := "测试テスト"
+	str3 := ""
+	b1 := true
+	b2 := false
+	m1 := []int{0, 1, 2}
+	m2 := [...]int{0, 1, 2}
+	m3 := map[int]int{0: 0, 1: 1, 2: 2}
+	s := struct{}{}
+	p := &struct{}{}
+
+	sze, _ := IufSizeOf(i)
 	if sze.Int() != int64(i) { t.Fatal() }
-	sze, _ = GetValueSize(i8)
+	sze, _ = IufSizeOf(i8)
 	if sze.Int() != int64(i8) { t.Fatal() }
-	sze, _ = GetValueSize(i16)
+	sze, _ = IufSizeOf(i16)
 	if sze.Int() != int64(i16) { t.Fatal() }
-	sze, _ = GetValueSize(i32)
+	sze, _ = IufSizeOf(i32)
 	if sze.Int() != int64(i32) { t.Fatal() }
-	sze, _ = GetValueSize(i64)
+	sze, _ = IufSizeOf(i64)
 	if sze.Int() != i64 { t.Fatal() }
 
-	sze, _ = GetValueSize(u)
+	sze, _ = IufSizeOf(u)
 	if sze.Uint() != uint64(u) { t.Fatal() }
-	sze, _ = GetValueSize(u8)
+	sze, _ = IufSizeOf(u8)
 	if sze.Uint() != uint64(u8) { t.Fatal() }
-	sze, _ = GetValueSize(u16)
+	sze, _ = IufSizeOf(u16)
 	if sze.Uint() != uint64(u16) { t.Fatal() }
-	sze, _ = GetValueSize(u32)
+	sze, _ = IufSizeOf(u32)
 	if sze.Uint() != uint64(u32) { t.Fatal() }
-	sze, _ = GetValueSize(u64)
+	sze, _ = IufSizeOf(u64)
 	if sze.Uint() != u64 { t.Fatal() }
-	sze, _ = GetValueSize(up)
+	sze, _ = IufSizeOf(up)
 	if sze.Uint() != uint64(up) { t.Fatal() }
 
-	sze, _ = GetValueSize(f32)
-	if !xnumber.NewAccuracy(1e-3).Equal(sze.Float(), float64(f32)) { t.Fatal() }
-	sze, _ = GetValueSize(f32)
-	if !xnumber.NewAccuracy(1e-3).Equal(sze.Float(), f64) { t.Fatal() }
+	sze, _ = IufSizeOf(f32)
+	if xnumber.DefaultAccuracy.NotEqual(sze.Float(), float64(f32)) { t.Fatal() }
+	sze, _ = IufSizeOf(f32)
+	if xnumber.DefaultAccuracy.NotEqual(sze.Float(), f64) { t.Fatal() }
 
-	sze, _ = GetValueSize(str1)
+	sze, _ = IufSizeOf(str1)
 	if sze.Int() != 4 { t.Fatal() }
-	sze, _ = GetValueSize(str2)
+	sze, _ = IufSizeOf(str2)
 	if sze.Int() != 5 { t.Fatal() }
-	sze, _ = GetValueSize(str3)
+	sze, _ = IufSizeOf(str3)
 	if sze.Int() != 0 { t.Fatal() }
 
 	// noinspection GoBoolExpressions
-	sze, _ = GetValueSize(b1)
+	sze, _ = IufSizeOf(b1)
 	if sze.Int() == 0 { t.Fatal() }
 	// noinspection GoBoolExpressions
-	sze, _ = GetValueSize(b2)
+	sze, _ = IufSizeOf(b2)
 	if sze.Int() != 0 { t.Fatal() }
 
-	_, err := GetValueSize(s)
+	sze, _ = IufSizeOf(m1)
+	if sze.Int() != 3 { t.Fatal() }
+	sze, _ = IufSizeOf(m2)
+	if sze.Int() != 3 { t.Fatal() }
+	sze, _ = IufSizeOf(m3)
+	if sze.Int() != 3 { t.Fatal() }
+
+	_, err := IufSizeOf(s)
+	if err == nil { t.Fatal() }
+	_, err = IufSizeOf(p)
 	if err == nil { t.Fatal() }
 }

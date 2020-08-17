@@ -1,5 +1,9 @@
 # xcolor
 
+### References
+
++ None
+
 ### Functions
 
 + `InitTerminal(out io.Writer)`

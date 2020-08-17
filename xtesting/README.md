@@ -1,5 +1,9 @@
 # xtesting
 
+### References
+
++ xreflect
+
 ### Functions
 
 + `Equal(t *testing.T, val1, val2 interface{})`

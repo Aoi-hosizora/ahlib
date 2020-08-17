@@ -1,6 +1,12 @@
 # xslice
 
-### Common Functions
+### References
+
++ None
+
+### Functions
+
+#### Common
 
 + `Shuffle(slice []interface{}, source rand.Source)`
 + `ShuffleNew(slice []interface{}, source rand.Source) []interface{}`
@@ -30,7 +36,7 @@
 + `ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
 + `ToSet(s []interface{}) []interface{}`
 
-### Helper Functions
+#### Helper
 
 + `Sti(slice interface{}) []interface{}`
 + `Its(slice []interface{}, model interface{}) interface{}`
