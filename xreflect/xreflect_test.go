@@ -182,6 +182,17 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetValueSize(t *testing.T) {
+	sze := NewIntValueSize(3)
+	if sze.Flag() != SInt { t.Fatal() }
+	if sze.Int() != 3 { t.Fatal() }
+	if sze.Uint() != 0 { t.Fatal() }
+	if sze.Float() != 0 { t.Fatal() }
+	sze = NewFloatValueSize(0.1)
+	if sze.Flag() != SFloat { t.Fatal() }
+	if sze.Int() != 0 { t.Fatal() }
+	if sze.Uint() != 0 { t.Fatal() }
+	if xnumber.DefaultAccuracy.NotEqual(sze.Float(), 0.1) { t.Fatal() }
+
 	i := 9223372036854775807
 	i8 := int8(127)
 	i16 := int16(32767)
@@ -202,7 +213,7 @@ func TestGetValueSize(t *testing.T) {
 	b2 := false
 	s := &struct{}{}
 
-	sze, _ := GetValueSize(i)
+	sze, _ = GetValueSize(i)
 	if sze.Int() != int64(i) { t.Fatal() }
 	sze, _ = GetValueSize(i8)
 	if sze.Int() != int64(i8) { t.Fatal() }

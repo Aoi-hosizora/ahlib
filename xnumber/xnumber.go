@@ -10,6 +10,9 @@ import (
 
 type Accuracy func() float64
 
+// Default accuracy, use 1e-3.
+var DefaultAccuracy = NewAccuracy(1e-3)
+
 func NewAccuracy(eps float64) Accuracy {
 	return func() float64 {
 		return eps
@@ -18,6 +21,10 @@ func NewAccuracy(eps float64) Accuracy {
 
 func (eps Accuracy) Equal(a, b float64) bool {
 	return math.Abs(a-b) < eps()
+}
+
+func (eps Accuracy) NotEqual(a, b float64) bool {
+	return !eps.Equal(a, b)
 }
 
 func (eps Accuracy) Greater(a, b float64) bool {

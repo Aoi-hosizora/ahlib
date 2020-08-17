@@ -4,7 +4,9 @@
 
 + `type Accuracy func() float64`
 + `NewAccuracy(eps float64) Accuracy`
++ `var DefaultAccuracy Accuracy`
 + `(eps Accuracy) Equal(a, b float64) bool`
++ `(eps Accuracy) NotEqual(a, b float64) bool`
 + `(eps Accuracy) Greater(a, b float64) bool`
 + `(eps Accuracy) Smaller(a, b float64) bool`
 + `(eps Accuracy) GreaterOrEqual(a, b float64) bool`

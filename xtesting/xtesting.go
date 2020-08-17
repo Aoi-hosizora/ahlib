@@ -45,6 +45,24 @@ func NotNil(t *testing.T, val interface{}) {
 	}
 }
 
+func True(t *testing.T, val bool) {
+	skip := 1
+	if val == false {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v is not true\n", path.Base(file), line, val)
+		t.Fail()
+	}
+}
+
+func False(t *testing.T, val bool) {
+	skip := 1
+	if val == true {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v is not false\n", path.Base(file), line, val)
+		t.Fail()
+	}
+}
+
 func contains(slice []interface{}, value interface{}) bool {
 	for _, val := range slice {
 		if val == value {

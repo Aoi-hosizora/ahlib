@@ -109,67 +109,73 @@ func GetBool(i interface{}) (bool, bool) {
 	return false, false
 }
 
+type ValueSizeFlag uint8
+
+const (
+	SInt ValueSizeFlag = iota
+	SUint
+	SFloat
+)
+
 // ValueSize represents some different types of value size.
 type ValueSize struct {
-	fi int64
-	fu uint64
-	ff float64
+	fi   int64
+	fu   uint64
+	ff   float64
+	flag ValueSizeFlag
+}
+
+func NewIntValueSize(i int64) *ValueSize {
+	return &ValueSize{fi: i, flag: SInt}
+}
+
+func NewUintValueSize(u uint64) *ValueSize {
+	return &ValueSize{fu: u, flag: SUint}
+}
+
+func NewFloatValueSize(f float64) *ValueSize {
+	return &ValueSize{ff: f, flag: SFloat}
 }
 
 func (v *ValueSize) Int() int64 {
-	if v.fi != 0 {
-		return v.fi
-	}
-	if v.fu != 0 {
-		return int64(v.fu)
-	}
-	return int64(v.ff)
+	return v.fi
 }
 
 func (v *ValueSize) Uint() uint64 {
-	if v.fu != 0 {
-		return v.fu
-	}
-	if v.fi != 0 {
-		return uint64(v.fi)
-	}
-	return uint64(v.ff)
+	return v.fu
 }
 
 func (v *ValueSize) Float() float64 {
-	if v.ff != 0 {
-		return v.ff
-	}
-	if v.fi != 0 {
-		return float64(v.fi)
-	}
-	return float64(v.fu)
+	return v.ff
+}
+
+func (v *ValueSize) Flag() ValueSizeFlag {
+	return v.flag
 }
 
 // Get value's size and return ValueSize.
 //
-// For numbers, it is the value.
+// For numbers (int, uint, float, bool), it is the value.
 // For strings, it is the number of characters.
 // For slices, arrays, maps, it is the number of items.
 func GetValueSize(i interface{}) (*ValueSize, error) {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return &ValueSize{fi: val.Int()}, nil
+		return NewIntValueSize(val.Int()), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return &ValueSize{fu: val.Uint()}, nil
+		return NewUintValueSize(val.Uint()), nil
 	case reflect.Float32, reflect.Float64:
-		return &ValueSize{ff: val.Float()}, nil
+		return NewFloatValueSize(val.Float()), nil
 	case reflect.String:
-		return &ValueSize{fi: int64(len([]rune(val.String())))}, nil
+		return NewIntValueSize(int64(len([]rune(val.String())))), nil
 	case reflect.Slice, reflect.Map, reflect.Array:
-		return &ValueSize{fi: int64(val.Len())}, nil
+		return NewIntValueSize(int64(val.Len())), nil
 	case reflect.Bool:
-		v := 0
 		if val.Bool() {
-			v = 1
+			return NewIntValueSize(1), nil
 		}
-		return &ValueSize{fi: int64(v)}, nil
+		return NewIntValueSize(0), nil
 	}
 	return nil, fmt.Errorf("bad field type %T", val.Interface())
 }

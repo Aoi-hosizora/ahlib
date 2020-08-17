@@ -27,6 +27,14 @@ func TestNotNil(t *testing.T) {
 	NotNil(t, false)
 }
 
+func TestTrue(t *testing.T) {
+	True(t, true)
+}
+
+func TestFalse(t *testing.T) {
+	False(t, false)
+}
+
 func TestEqualSlice(t *testing.T) {
 	a := make([]interface{}, 0)
 	b := make([]interface{}, 0)

@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+func TestAccuracy(t *testing.T) {
+	xtesting.True(t, NewAccuracy(1e-3).Equal(0.33333, 0.333333))
+	xtesting.True(t, DefaultAccuracy.Equal(0.1, 0.1))
+}
+
 func TestRenderLatency(t *testing.T) {
 	xtesting.Equal(t, RenderLatency(-0.1), "0.0000ns")
 	xtesting.Equal(t, RenderLatency(0), "0.0000ns")
