@@ -5,7 +5,8 @@ import (
 	"strings"
 )
 
-func (p *PropertyMapper) ApplyOrderBy(source string) string {
+// Apply orderBy string through PropertyDict.
+func (p *PropertyDict) ApplyOrderBy(source string) string {
 	result := make([]string, 0)
 	if source == "" {
 		return ""
@@ -17,7 +18,7 @@ func (p *PropertyMapper) ApplyOrderBy(source string) string {
 		reverse := strings.HasSuffix(src, " desc")
 		src = strings.Split(src, " ")[0]
 
-		dest, ok := p.dict[src]
+		dest, ok := (*p)[src]
 		if !ok || dest == nil || len(dest.destProps) == 0 {
 			continue
 		}
@@ -34,7 +35,13 @@ func (p *PropertyMapper) ApplyOrderBy(source string) string {
 	return strings.Join(result, ", ")
 }
 
-func (p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string {
+// Apply orderBy string through PropertyMapper.
+func (p *PropertyMapper) ApplyOrderBy(source string) string {
+	return p.dict.ApplyOrderBy(source)
+}
+
+// Apply orderBy (cypher version) string through PropertyDict.
+func (p *PropertyDict) ApplyCypherOrderBy(parent, source string) string {
 	result := make([]string, 0)
 	if source == "" {
 		return ""
@@ -46,7 +53,7 @@ func (p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string {
 		reverse := strings.HasSuffix(src, " desc")
 		src = strings.Split(src, " ")[0]
 
-		dest, ok := p.dict[src]
+		dest, ok := (*p)[src]
 		if !ok || dest == nil || len(dest.destProps) == 0 {
 			continue
 		}
@@ -61,4 +68,9 @@ func (p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string {
 	}
 
 	return strings.Join(result, ", ")
+}
+
+// Apply orderBy (cypher version) string through PropertyMapper.
+func (p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string {
+	return p.dict.ApplyCypherOrderBy(parent, source)
 }

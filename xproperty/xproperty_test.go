@@ -22,7 +22,7 @@ func TestNewPropertyMappers(t *testing.T) {
 		"age":      NewValue(true, "birthday"),
 	}))
 
-	pm := mapper.GetMapperDefault(&testDto1{}, &testPo1{})
+	pm := mapper.GetDefaultMapper(&testDto1{}, &testPo1{})
 	query := pm.ApplyOrderBy("uid desc,age,username")
 	log.Println(query)
 	xtesting.Equal(t, query, "uid DESC, birthday DESC, lastName ASC, firstName ASC")
@@ -40,12 +40,12 @@ func TestNewPropertyMappers(t *testing.T) {
 	log.Println(query)
 	xtesting.Equal(t, query, "")
 
-	pm = GetMapperDefault(&testDto2{}, &testPo2{})
+	pm = GetDefaultMapper(&testDto2{}, &testPo2{})
 	query = pm.ApplyOrderBy("uid desc,age,username")
 	log.Println(query)
 	xtesting.Equal(t, query, "")
 
-	pm = GetMapperDefault(1, "wrong type")
+	pm = GetDefaultMapper(1, "wrong type")
 	query = pm.ApplyOrderBy("uid desc,age,username")
 	log.Println(query)
 	xtesting.Equal(t, query, "")
