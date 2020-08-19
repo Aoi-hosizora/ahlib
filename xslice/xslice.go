@@ -3,27 +3,28 @@ package xslice
 import (
 	"math/rand"
 	"sync"
+	"time"
 )
 
 // An Equaller represents how two data equal, used in `XXXWith` methods.
 type Equaller func(i, j interface{}) bool
 
 // Shuffle the slice directly.
-func Shuffle(slice []interface{}, source rand.Source) {
-	random := rand.New(source)
+func Shuffle(slice []interface{}) {
+	rand.Seed(time.Now().UnixNano())
 	for i := len(slice) - 1; i > 0; i-- {
-		j := random.Intn(i + 1)
+		j := rand.Intn(i + 1)
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 }
 
 // Shuffle the old slice and return a new one.
-func ShuffleNew(slice []interface{}, source rand.Source) []interface{} {
+func ShuffleNew(slice []interface{}) []interface{} {
 	newSlice := make([]interface{}, len(slice))
 	for idx, s := range slice {
 		newSlice[idx] = s
 	}
-	Shuffle(newSlice, source)
+	Shuffle(newSlice)
 	return newSlice
 }
 

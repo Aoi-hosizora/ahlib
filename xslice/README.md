@@ -8,8 +8,8 @@
 
 #### Common
 
-+ `Shuffle(slice []interface{}, source rand.Source)`
-+ `ShuffleNew(slice []interface{}, source rand.Source) []interface{}`
++ `Shuffle(slice []interface{})`
++ `ShuffleNew(slice []interface{}) []interface{}`
 + `Reverse(slice []interface{}) []interface{}`
 + `ReverseNew(slice []interface{}) []interface{}`
 + `ForEach(slice []interface{}, each func(interface{}))`

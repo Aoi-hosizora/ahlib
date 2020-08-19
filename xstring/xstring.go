@@ -131,6 +131,7 @@ func TimeUuid(t time.Time, count int) string {
 }
 
 func RandString(count int, runes []rune) string {
+	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, count)
 	for i := range b {
 		b[i] = runes[rand.Intn(len(runes))]

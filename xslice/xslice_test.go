@@ -3,7 +3,6 @@ package xslice
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
-	"math/rand"
 	"reflect"
 	"strconv"
 	"testing"
@@ -92,23 +91,21 @@ func TestIts(t *testing.T) {
 }
 
 func TestShuffle(t *testing.T) {
-	source := rand.NewSource(time.Now().UnixNano())
 	a := []interface{}{1, 2, 3, 4}
-	Shuffle(a, source)
+	Shuffle(a)
 	log.Println(a)
-	Shuffle(a, source)
+	Shuffle(a)
 	log.Println(a)
 
-	Shuffle([]interface{}{}, source)
+	Shuffle([]interface{}{})
 }
 
 func TestShuffleNew(t *testing.T) {
-	source := rand.NewSource(time.Now().UnixNano())
 	a := []interface{}{1, 2, 3, 4}
-	log.Println(ShuffleNew(a, source))
+	log.Println(ShuffleNew(a))
 	xtesting.Equal(t, a, []interface{}{1, 2, 3, 4})
 
-	ShuffleNew([]interface{}{}, source)
+	ShuffleNew([]interface{}{})
 }
 
 func TestReverse(t *testing.T) {
