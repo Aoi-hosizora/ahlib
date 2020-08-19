@@ -65,6 +65,16 @@ func IsEqual(val1, val2 interface{}) bool {
 	}
 }
 
+func GetStructFields(i interface{}) []reflect.StructField {
+	typ := reflect.TypeOf(i)
+	fnum := typ.NumField()
+	fields := make([]reflect.StructField, fnum)
+	for idx := 0; idx < fnum; idx++ {
+		fields[idx] = typ.Field(idx)
+	}
+	return fields
+}
+
 func GetInt(i interface{}) (int64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {

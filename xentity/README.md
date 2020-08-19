@@ -6,11 +6,13 @@
 
 ### Functions
 
-+ `type EntityMappers struct {}`
 + `type MapFunc func(from interface{}, to interface{}) error`
++ `type Mappable interface {}`
++ `type EntityMappers struct {}`
 + `type EntityMapper struct {}`
 + `New() *EntityMappers`
 + `NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper`
++ `NewMapperByMappable(mappable Mappable) *EntityMapper`
 + `(e *EntityMappers) AddMapper(mapper *EntityMapper)`
 + `(e *EntityMappers) AddMappers(mappers ...*EntityMapper)`
 + `(e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error)`

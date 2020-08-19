@@ -121,3 +121,80 @@ func TestEntityMapper(t *testing.T) {
 	log.Println(dtoArrOut, err)
 	xtesting.Equal(t, dtoArrOut.([]*Dto), dtoArr)
 }
+
+type po struct {
+	Int    int64
+	String string
+	Float  float64
+	Array  []int
+}
+
+type dto struct {
+	Int    int32
+	String []byte
+	Float  float32
+	Array  []int
+}
+
+func (d *dto) Source() interface{} {
+	return &po{}
+}
+
+func (d *dto) Ctor() interface{} {
+	return &dto{}
+}
+
+func (d *dto) MapFrom(source interface{}) error {
+	p := source.(*po)
+	d.Int = int32(p.Int)
+	d.String = []byte(p.String)
+	d.Float = float32(p.Float)
+	d.Array = p.Array
+	return nil
+}
+
+func TestMappable(t *testing.T) {
+	AddMapper(NewMapperByMappable(&dto{})) // X
+	AddMappers(NewMapperByMappable(&dto{}))
+
+	p := &po{
+		Int:    5,
+		String: "テスト",
+		Float:  5.,
+		Array:  []int{1, 2, 3},
+	}
+	d, err := Map(p, &dto{})
+	log.Println(d, err)
+
+	d = &dto{}
+	err = MapProp(p, d)
+	log.Println(d, err)
+
+	ds, err := MapSlice([]*po{p, p}, &dto{})
+	log.Println(ds, err)
+
+	log.Println(GetMapper(&po{}, &dto{}))
+
+	d1 := MustMap(p, &dto{}).(*dto)
+	xtesting.Equal(t, d1.Int, int32(5))
+	xtesting.Equal(t, d1.String, []byte("テスト"))
+	xtesting.Equal(t, d1.Float, float32(5.))
+	xtesting.Equal(t, d1.Array, []int{1, 2, 3})
+
+	d1 = &dto{}
+	MustMapProp(p, d1, func(from interface{}, to interface{}) error {
+		to.(*dto).Int++
+		return nil
+	})
+	xtesting.Equal(t, d1.Int, int32(6))
+	xtesting.Equal(t, d1.String, []byte("テスト"))
+	xtesting.Equal(t, d1.Float, float32(5.))
+	xtesting.Equal(t, d1.Array, []int{1, 2, 3})
+
+	dd := MustMapSlice([]*po{p, p}, &dto{}).([]*dto)
+	xtesting.Equal(t, len(dd), 2)
+	xtesting.Equal(t, dd[0].Int, int32(5))
+	xtesting.Equal(t, dd[0].String, []byte("テスト"))
+	xtesting.Equal(t, dd[0].Float, float32(5.))
+	xtesting.Equal(t, dd[0].Array, []int{1, 2, 3})
+}

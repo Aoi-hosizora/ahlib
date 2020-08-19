@@ -9,6 +9,7 @@
 + `ElemType(i interface{}) reflect.Type`
 + `ElemValue(i interface{}) reflect.Value`
 + `IsEqual(val1, val2 interface{}) bool`
++ `GetStructFields(i interface{}) []reflect.StructField`
 + `GetInt(i interface{}) (int64, bool)`
 + `GetUint(i interface{}) (uint64, bool)`
 + `GetFloat(i interface{}) (float64, bool)`
