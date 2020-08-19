@@ -21,7 +21,7 @@
 + `AddMappers(mappers ...*PropertyMapper)`
 + `GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
 + `GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`
-+ `(p *PropertyDict) ApplyOrderBy(source string) string`
-+ `(p *PropertyDict) ApplyCypherOrderBy(parent, source string) string`
++ `(p PropertyDict) ApplyOrderBy(source string) string`
 + `(p *PropertyMapper) ApplyOrderBy(source string) string`
++ `(p PropertyDict) ApplyCypherOrderBy(parent, source string) string`
 + `(p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string`
