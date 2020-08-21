@@ -34,10 +34,10 @@ type PropertyDict map[string]*PropertyMapperValue
 // A property mapper.
 type PropertyMapperValue struct {
 	// Is need to revert sort.
-	revert bool
+	Revert bool
 
 	// `from` -> `to` properties mapping.
-	destProps []string
+	Destinations []string
 }
 
 // Create a PropertyMappers.
@@ -64,10 +64,10 @@ func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMap
 }
 
 // Create a PropertyMapperValue.
-func NewValue(revert bool, destProps ...string) *PropertyMapperValue {
+func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 	return &PropertyMapperValue{
-		revert:    revert,
-		destProps: destProps,
+		Revert:       revert,
+		Destinations: destinations,
 	}
 }
 

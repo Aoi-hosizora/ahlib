@@ -19,14 +19,14 @@ func (p PropertyDict) ApplyOrderBy(source string) string {
 		src = strings.Split(src, " ")[0]
 
 		dest, ok := p[src]
-		if !ok || dest == nil || len(dest.destProps) == 0 {
+		if !ok || dest == nil || len(dest.Destinations) == 0 {
 			continue
 		}
 
-		if dest.revert {
+		if dest.Revert {
 			reverse = !reverse
 		}
-		for _, prop := range dest.destProps {
+		for _, prop := range dest.Destinations {
 			prop += xcondition.IfThenElse(reverse, " DESC", " ASC").(string) // XXX ASC
 			result = append(result, prop)
 		}
@@ -41,7 +41,7 @@ func (p *PropertyMapper) ApplyOrderBy(source string) string {
 }
 
 // Apply orderBy (cypher version) string through PropertyDict.
-func (p PropertyDict) ApplyCypherOrderBy(parent, source string) string {
+func (p PropertyDict) ApplyCypherOrderBy(source, parent string) string {
 	result := make([]string, 0)
 	if source == "" {
 		return ""
@@ -54,14 +54,14 @@ func (p PropertyDict) ApplyCypherOrderBy(parent, source string) string {
 		src = strings.Split(src, " ")[0]
 
 		dest, ok := p[src]
-		if !ok || dest == nil || len(dest.destProps) == 0 {
+		if !ok || dest == nil || len(dest.Destinations) == 0 {
 			continue
 		}
 
-		if dest.revert {
+		if dest.Revert {
 			reverse = !reverse
 		}
-		for _, prop := range dest.destProps {
+		for _, prop := range dest.Destinations {
 			prop = parent + "." + prop + xcondition.IfThenElse(reverse, " DESC", " ASC").(string) // P.XXX ASC
 			result = append(result, prop)
 		}
@@ -71,6 +71,6 @@ func (p PropertyDict) ApplyCypherOrderBy(parent, source string) string {
 }
 
 // Apply orderBy (cypher version) string through PropertyMapper.
-func (p *PropertyMapper) ApplyCypherOrderBy(parent, source string) string {
-	return p.dict.ApplyCypherOrderBy(parent, source)
+func (p *PropertyMapper) ApplyCypherOrderBy(source, parent string) string {
+	return p.dict.ApplyCypherOrderBy(source, parent)
 }
