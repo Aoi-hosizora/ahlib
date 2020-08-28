@@ -20,6 +20,14 @@ func ElemValue(i interface{}) reflect.Value {
 	return v
 }
 
+// Save as xnumber.Bool
+func BoolVal(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 func IsEqual(val1, val2 interface{}) bool {
 	v1 := reflect.ValueOf(val1)
 	v2 := reflect.ValueOf(val2)

@@ -47,6 +47,15 @@ func TestElemValue(t *testing.T) {
 	}
 }
 
+func TestBoolVal(t *testing.T) {
+	if BoolVal(true) != 1 {
+		t.Fatal("true should be 1")
+	}
+	if BoolVal(false) != 0 {
+		t.Fatal("false should be 0")
+	}
+}
+
 func TestIsEqual(t *testing.T) {
 	a := interface{}(1)
 	b := 1

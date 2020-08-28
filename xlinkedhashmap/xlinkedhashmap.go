@@ -5,23 +5,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xreflect"
-	"github.com/Aoi-hosizora/ahlib/xslice"
 	"strings"
+	"sync"
 )
 
 type LinkedHashMap struct {
-	m map[string]interface{}
-	i []string
+	m  map[string]interface{}
+	i  []string
+	mu sync.Mutex
 }
 
-func NewLinkedHashMap() *LinkedHashMap {
+func New() *LinkedHashMap {
 	return &LinkedHashMap{
 		m: make(map[string]interface{}),
 		i: make([]string, 0),
 	}
 }
 
+func (l *LinkedHashMap) Keys() []string {
+	return l.i
+}
+
+func (l *LinkedHashMap) Values() []interface{} {
+	val := make([]interface{}, len(l.i))
+	for idx, key := range l.i {
+		val[idx] = l.m[key]
+	}
+	return val
+}
+
+func (l *LinkedHashMap) Len() int {
+	return len(l.i)
+}
+
 func (l *LinkedHashMap) Set(key string, value interface{}) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	_, exist := l.m[key]
 	l.m[key] = value
 	if !exist {
@@ -29,12 +49,17 @@ func (l *LinkedHashMap) Set(key string, value interface{}) {
 	}
 }
 
-func (l *LinkedHashMap) Get(key string) (value interface{}, exist bool) {
-	value, exist = l.m[key]
-	return
+func (l *LinkedHashMap) Has(key string) bool {
+	_, exist := l.m[key]
+	return exist
 }
 
-func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value interface{}) {
+func (l *LinkedHashMap) Get(key string) (interface{}, bool) {
+	value, exist := l.m[key]
+	return value, exist
+}
+
+func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) interface{} {
 	value, exist := l.m[key]
 	if !exist {
 		return defaultValue
@@ -42,15 +67,47 @@ func (l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value 
 	return value
 }
 
-func (l *LinkedHashMap) Remove(key string) (value interface{}, exist bool) {
-	value, exist = l.m[key]
+func (l *LinkedHashMap) GetForce(key string) interface{} {
+	value, exist := l.m[key]
+	if !exist {
+		panic("key `" + key + "` not found")
+	}
+	return value
+}
+
+func (l *LinkedHashMap) Remove(key string) (interface{}, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	value, exist := l.m[key]
+	if !exist {
+		return value, false
+	}
+
 	delete(l.m, key)
 
-	l.i = xslice.ItsOfString(xslice.DeleteAll(xslice.Sti(l.i), key))
-	return
+	currIdx := -1
+	for idx, val := range l.i {
+		if val == key {
+			currIdx = idx
+			break
+		}
+	}
+	if currIdx != -1 {
+		if len(l.i) == currIdx+1 {
+			l.i = l.i[:currIdx]
+		} else {
+			l.i = append(l.i[:currIdx], l.i[currIdx+1:]...)
+		}
+	}
+
+	return value, exist
 }
 
 func (l *LinkedHashMap) Clear() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	l.m = nil
 	l.i = nil
 }
@@ -77,6 +134,10 @@ func (l *LinkedHashMap) MarshalJSON() ([]byte, error) {
 	return []byte(buf.String()), nil
 }
 
+func (l *LinkedHashMap) MarshalYAML() (interface{}, error) {
+	return l.m, nil
+}
+
 func (l *LinkedHashMap) String() string {
 	buf, err := l.MarshalJSON()
 	if err != nil {
@@ -85,8 +146,8 @@ func (l *LinkedHashMap) String() string {
 	return string(buf)
 }
 
-func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
-	lhm := NewLinkedHashMap()
+func FromInterface(object interface{}) *LinkedHashMap {
+	lhm := New()
 	if object == nil {
 		return nil
 	}
@@ -114,9 +175,4 @@ func ObjectToLinkedHashMap(object interface{}) *LinkedHashMap {
 		}
 	}
 	return lhm
-}
-
-// A copy function for ObjectToLinkedHashMap
-func FromInterface(object interface{}) *LinkedHashMap {
-	return ObjectToLinkedHashMap(object)
 }

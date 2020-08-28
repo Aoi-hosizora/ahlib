@@ -13,7 +13,7 @@ var (
 	setConsoleMode = kernel32Dll.NewProc("SetConsoleMode")
 )
 
-func checkIfTerminal(w io.Writer) bool {
+func checkTerminal(w io.Writer) bool {
 	var ret bool
 	switch v := w.(type) {
 	case *os.File:

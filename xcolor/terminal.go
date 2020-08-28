@@ -7,7 +7,7 @@ import (
 )
 
 func InitTerminal(out io.Writer) {
-	checkIfTerminal(out)
+	checkTerminal(out)
 }
 
 func InitOsStd() {

@@ -8,14 +8,14 @@ import (
 	"sync"
 )
 
-// DiContainer log function
+// DiContainer log function.
 // Yellow color used for type (field and parent), red color used for name (field)
 //
 // kind: Name | Impl | Type | Inject
 // parentName: _ if not Inject else parentType
-type LogFunc func(kind string, parentType string, fieldName string, fieldType string)
+type LogFunc func(kind, parentType, fieldName, fieldType string)
 
-// Global service name type (prevent package import cycle)
+// Global service name type (prevent package import cycle).
 type ServiceName string
 
 func (s *ServiceName) String() string {
@@ -45,16 +45,7 @@ func NewDiContainer() *DiContainer {
 		provByName: make(map[ServiceName]interface{}),
 		provideLog: true,
 		injectLog:  true,
-		logFunc: func(kind string, parentType string, fieldName string, fieldType string) {
-			xcolor.ForceColor()
-			kind += ":"
-			if parentType != "" {
-				parentType = fmt.Sprintf("(%s).", xcolor.Yellow.Sprint(parentType))
-			}
-			fieldName = xcolor.Red.Sprint(fieldName)
-			fieldType = xcolor.Yellow.Sprint(fieldType)
-			fmt.Printf("[XDI] %-8s %s%s (%s)\n", kind, parentType, fieldName, fieldType)
-		},
+		logFunc:    DefaultLogFunc(),
 	}
 }
 
@@ -65,6 +56,19 @@ func (d *DiContainer) SetLogMode(provideLog bool, injectLog bool) {
 
 func (d *DiContainer) SetLogFunc(logFunc LogFunc) {
 	_di.logFunc = logFunc
+}
+
+func DefaultLogFunc() LogFunc {
+	return func(kind, parentType, fieldName, fieldType string) {
+		xcolor.ForceColor()
+		kind += ":"
+		if parentType != "" {
+			parentType = fmt.Sprintf("(%s).", xcolor.Yellow.Sprint(parentType))
+		}
+		fieldName = xcolor.Red.Sprint(fieldName)
+		fieldType = xcolor.Yellow.Sprint(fieldType)
+		fmt.Printf("[XDI] %-8s %s%s (%s)\n", kind, parentType, fieldName, fieldType)
+	}
 }
 
 func (d *DiContainer) ProvideType(service interface{}) {
@@ -81,8 +85,8 @@ func (d *DiContainer) ProvideType(service interface{}) {
 	}
 }
 
-func (d *DiContainer) ProvideImpl(itfNilPtr interface{}, impl interface{}) {
-	it := reflect.TypeOf(itfNilPtr)
+func (d *DiContainer) ProvideImpl(itfPtr interface{}, impl interface{}) {
+	it := reflect.TypeOf(itfPtr)
 	if reflect.TypeOf(it).Kind() != reflect.Ptr {
 		panic("first parameter of ProvideImpl must be pointer of interface")
 	}
@@ -143,11 +147,20 @@ func (d *DiContainer) GetByNameForce(name ServiceName) interface{} {
 	return service
 }
 
+func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
+	return d.inject(ctrl, false)
+}
+
+func (d *DiContainer) MustInject(ctrl interface{}) {
+	d.inject(ctrl, true)
+}
+
 // Using tips:
 //
-// diTag: "" || - -> ignore
-// diTag: ~       -> auto inject
-// diTag: name    -> inject by name
+//	`di:""`       // -> ignore
+//	`di:"-"`      // -> ignore
+//	`di:"~"`      // -> auto inject
+//	`di:"name"`   // -> inject by name
 func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 	ctrlType := xreflect.ElemType(ctrl)
 	ctrlValue := xreflect.ElemValue(ctrl)
@@ -192,15 +205,8 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 			}
 		}
 	}
+
 	return allInjected
-}
-
-func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
-	return d.inject(ctrl, false)
-}
-
-func (d *DiContainer) MustInject(ctrl interface{}) {
-	d.inject(ctrl, true)
 }
 
 // A DiContainer that used for global

@@ -8,6 +8,7 @@
 
 + `ElemType(i interface{}) reflect.Type`
 + `ElemValue(i interface{}) reflect.Value`
++ `BoolVal(b bool) int`
 + `IsEqual(val1, val2 interface{}) bool`
 + `GetStructFields(i interface{}) []reflect.StructField`
 + `GetInt(i interface{}) (int64, bool)`

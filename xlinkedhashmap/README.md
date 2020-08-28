@@ -2,19 +2,23 @@
 
 ### References
 
-+ xslice
 + xreflect
 
 ### Functions
 
 + `type LinkedHashMap struct {}`
-+ `NewLinkedHashMap() *LinkedHashMap`
++ `New() *LinkedHashMap`
++ `(l *LinkedHashMap) Keys() []string`
++ `(l *LinkedHashMap) Values() []interface{}`
++ `(l *LinkedHashMap) Len() int`
 + `(l *LinkedHashMap) Set(key string, value interface{})`
-+ `(l *LinkedHashMap) Get(key string) (value interface{}, exist bool)`
-+ `(l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) (value interface{})`
-+ `(l *LinkedHashMap) Remove(key string) (value interface{}, exist bool)`
++ `(l *LinkedHashMap) Has(key string) bool`
++ `(l *LinkedHashMap) Get(key string) (interface{}, bool)`
++ `(l *LinkedHashMap) GetDefault(key string, defaultValue interface{}) interface{}`
++ `(l *LinkedHashMap) GetForce(key string) interface{}`
++ `(l *LinkedHashMap) Remove(key string) (interface{}, bool)`
 + `(l *LinkedHashMap) Clear()`
 + `(l *LinkedHashMap) MarshalJSON() ([]byte, error)`
++ `(l *LinkedHashMap) MarshalYAML() (interface{}, error)`
 + `(l *LinkedHashMap) String() string`
-+ `ObjectToLinkedHashMap(object interface{}) *LinkedHashMap`
 + `FromInterface(object interface{}) *LinkedHashMap`

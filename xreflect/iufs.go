@@ -9,7 +9,7 @@ type IufsFlag uint8
 
 const (
 	Int    IufsFlag = iota // Represent int, int8, int16, int32, int64, bool
-	Uint                   // Represent uint, uint8, uint16, uint32, uint64, uintptFr
+	Uint                   // Represent uint, uint8, uint16, uint32, uint64, uintptr
 	Float                  // Represent float32, float64
 	String                 // Represent string
 )
@@ -106,13 +106,10 @@ func IufsOf(i interface{}) (*Iufs, error) {
 		return uintIufs(val.Uint()), nil
 	case reflect.Float32, reflect.Float64:
 		return floatIufs(val.Float()), nil
+	case reflect.Bool:
+		return intIufs(int64(BoolVal(val.Bool()))), nil
 	case reflect.String:
 		return stringIufs(val.String()), nil
-	case reflect.Bool:
-		if val.Bool() {
-			return intIufs(1), nil
-		}
-		return intIufs(0), nil
 	}
 	return nil, fmt.Errorf("bad type %T", val.Interface())
 }
@@ -130,15 +127,12 @@ func IufSizeOf(i interface{}) (*IufSize, error) {
 		return uintIufSize(val.Uint()), nil
 	case reflect.Float32, reflect.Float64:
 		return floatIufSize(val.Float()), nil
+	case reflect.Bool:
+		return intIufSize(int64(BoolVal(val.Bool()))), nil
 	case reflect.String:
 		return intIufSize(int64(len([]rune(val.String())))), nil
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return intIufSize(int64(val.Len())), nil
-	case reflect.Bool:
-		if val.Bool() {
-			return intIufSize(1), nil
-		}
-		return intIufSize(0), nil
 	}
 	return nil, fmt.Errorf("bad type %T", val.Interface())
 }

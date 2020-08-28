@@ -23,7 +23,8 @@
 
 #### For Global
 
-+ `type LogFunc func(kind string, parentType string, fieldName string, fieldType string)`
++ `type LogFunc func(kind, parentType, fieldName, fieldType string)`
++ `DefaultLogFunc() LogFunc`
 + `type ServiceName string`
 + `(s *ServiceName) String() string`
 + `NewDiContainer() *DiContainer`
