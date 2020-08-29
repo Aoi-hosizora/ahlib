@@ -31,6 +31,9 @@ type PropertyMapper struct {
 // PropertyDict represents a dictionary of property mapping.
 type PropertyDict map[string]*PropertyMapperValue
 
+// VariableDict represents a dictionary of property id pair. (Almost used in cypher)
+type VariableDict map[string]int
+
 // A property mapper.
 type PropertyMapperValue struct {
 	// Is need to revert sort.
@@ -69,6 +72,10 @@ func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 		Revert:       revert,
 		Destinations: destinations,
 	}
+}
+
+func (p *PropertyMapper) GetDict() PropertyDict {
+	return p.dict
 }
 
 // Add a PropertyMapper to PropertyMappers.

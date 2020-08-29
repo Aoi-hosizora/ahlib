@@ -45,45 +45,27 @@ func (eps Accuracy) SmallerOrEqual(a, b float64) bool {
 
 // render
 
-// Deprecated: Use `time.Duration.String()` is better
-func RenderLatency(ns float64) string {
-	acc := NewAccuracy(1e-3)
-	if acc.SmallerOrEqual(ns, 0) {
-		return "0.0000ns"
-	}
-	if acc.Smaller(ns, 1e3) {
-		return fmt.Sprintf("%.4fns", ns)
-	}
-	us := ns / 1e3
-	if acc.Smaller(us, 1e3) {
-		return fmt.Sprintf("%.4fµs", us)
-	}
-	ms := us / 1e3
-	if acc.Smaller(ms, 1e3) {
-		return fmt.Sprintf("%.4fms", ms)
-	}
-	s := ms / 1e3
-	if acc.Smaller(s, 60) {
-		return fmt.Sprintf("%.4fs", s)
-	}
-	m := s / 60
-	return fmt.Sprintf("%.4fmin", m)
-}
-
 func RenderByte(b float64) string {
-	acc := NewAccuracy(1e-3)
-	if acc.SmallerOrEqual(b, 0) {
+	if DefaultAccuracy.SmallerOrEqual(b, 0) {
 		return "0B"
 	}
-	if acc.Smaller(b, 1024) {
+	if DefaultAccuracy.Smaller(b, 1024) {
 		return fmt.Sprintf("%dB", int(b))
 	}
 	kb := b / 1024.0
-	if acc.Smaller(kb, 1024) {
+	if DefaultAccuracy.Smaller(kb, 1024) {
 		return fmt.Sprintf("%.2fKB", kb)
 	}
 	mb := kb / 1024.0
-	return fmt.Sprintf("%.2fMB", mb)
+	if DefaultAccuracy.Smaller(mb, 1024) {
+		return fmt.Sprintf("%.2fMB", mb)
+	}
+	gb := mb / 1024.0
+	if DefaultAccuracy.Smaller(gb, 1024) {
+		return fmt.Sprintf("%.2fGB", gb)
+	}
+	tb := gb / 1024.0
+	return fmt.Sprintf("%.2fTB", tb)
 }
 
 func Bool(b bool) int {

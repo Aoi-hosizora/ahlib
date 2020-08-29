@@ -27,6 +27,7 @@
 + xzone
 + xtesting
 + xregexp
++ xstatus
 
 ### Dependency
 
