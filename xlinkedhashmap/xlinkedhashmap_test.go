@@ -42,14 +42,14 @@ func TestFromInterface(t *testing.T) {
 
 func TestMu(t *testing.T) {
 	wg := sync.WaitGroup{}
-	wg.Add(20000)
+	wg.Add(20001)
 	m := New()
 	for i := 0; i <= 20000; i++ {
 		go func(i int) {
-			m.Set("a", i)
+			m.Set("a", "2000")
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-	xtesting.Equal(t, m.GetForce("a"), 20000)
+	xtesting.Equal(t, m.GetForce("a"), "2000")
 }
