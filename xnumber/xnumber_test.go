@@ -11,17 +11,6 @@ func TestAccuracy(t *testing.T) {
 	xtesting.True(t, DefaultAccuracy.Equal(0.1, 0.1))
 }
 
-func TestRenderLatency(t *testing.T) {
-	xtesting.Equal(t, RenderLatency(-0.1), "0.0000ns")
-	xtesting.Equal(t, RenderLatency(0), "0.0000ns")
-	xtesting.Equal(t, RenderLatency(999), "999.0000ns")
-	xtesting.Equal(t, RenderLatency(10000), "10.0000µs")
-	xtesting.Equal(t, RenderLatency(1000000), "1.0000ms")
-	xtesting.Equal(t, RenderLatency(10000000000), "10.0000s")
-	xtesting.Equal(t, RenderLatency(59000000000), "59.0000s")
-	xtesting.Equal(t, RenderLatency(60000000000), "1.0000min")
-}
-
 func TestRenderByte(t *testing.T) {
 	xtesting.Equal(t, RenderByte(-5), "0B")
 	xtesting.Equal(t, RenderByte(0), "0B")
@@ -31,6 +20,10 @@ func TestRenderByte(t *testing.T) {
 	xtesting.Equal(t, RenderByte(2048), "2.00KB")
 	xtesting.Equal(t, RenderByte(1024*1024), "1.00MB")
 	xtesting.Equal(t, RenderByte(2.51*1024*1024), "2.51MB")
+	xtesting.Equal(t, RenderByte(1024*1024*1024), "1.00GB")
+	xtesting.Equal(t, RenderByte(2.51*1024*1024*1024), "2.51GB")
+	xtesting.Equal(t, RenderByte(1024*1024*1024*1024), "1.00TB")
+	xtesting.Equal(t, RenderByte(1.1*1024*1024*1024*1024), "1.10TB")
 }
 
 func TestBool(t *testing.T) {
