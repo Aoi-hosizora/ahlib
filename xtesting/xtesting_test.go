@@ -19,6 +19,10 @@ func TestNotEqual(t *testing.T) {
 
 func TestNil(t *testing.T) {
 	Nil(t, nil)
+	a := (*int)(nil)
+	Nil(t, a)
+	b := (map[string]string)(nil)
+	Nil(t, b)
 }
 
 func TestNotNil(t *testing.T) {
