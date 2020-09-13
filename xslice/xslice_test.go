@@ -4,6 +4,7 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"reflect"
+	"sort"
 	"strconv"
 	"testing"
 	"time"
@@ -254,4 +255,68 @@ func TestToSet(t *testing.T) {
 	xtesting.Equal(t, ToSet(s2), []interface{}{})
 	xtesting.Equal(t, ToSet(s3), []interface{}{1})
 	xtesting.Equal(t, ToSet(s4), []interface{}{1})
+}
+
+func TestRange(t *testing.T) {
+	xtesting.Equal(t, Range(0, 10, 1), []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+	xtesting.Equal(t, Range(1, 10, 2), []int{1, 3, 5, 7, 9})
+	xtesting.Equal(t, Range(0, 10, 2), []int{0, 2, 4, 6, 8, 10})
+	xtesting.Equal(t, Range(0, 1, 2), []int{0})
+}
+
+func TestReverseRange(t *testing.T) {
+	xtesting.Equal(t, ReverseRange(0, 10, 1), []int{10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0})
+	xtesting.Equal(t, ReverseRange(1, 10, 2), []int{10, 8, 6, 4, 2})
+	xtesting.Equal(t, ReverseRange(1, 9, 2), []int{9, 7, 5, 3, 1})
+	xtesting.Equal(t, ReverseRange(0, 1, 2), []int{1})
+}
+
+func TestGenerate(t *testing.T) {
+	xtesting.Equal(t, GenerateByIndex([]int{}, func(i int) interface{} { return strconv.Itoa(i) }), []interface{}{})
+	xtesting.Equal(t, GenerateByIndex([]int{1, 5, 9}, func(i int) interface{} { return strconv.Itoa(i) }), []interface{}{"1", "5", "9"})
+	xtesting.Equal(t, GenerateByIndex(Range(0, 5, 1), func(i int) interface{} { return strconv.Itoa(i) }), []interface{}{"0", "1", "2", "3", "4", "5"})
+	xtesting.Equal(t, GenerateByIndex(Range(0, 5, 2), func(i int) interface{} { return i + 1 }), []interface{}{1, 3, 5})
+	xtesting.Equal(t, GenerateByIndex(Range(0, 1, 2), func(i int) interface{} { return i - 1 }), []interface{}{-1})
+}
+
+func TestSort(t *testing.T) {
+	a := Range(1, 50, 1)
+	r1 := Sti(a)
+	r2 := Sti(ReverseRange(1, 50, 1))
+
+	for range Range(0, 4, 1) {
+		aa := ShuffleNew(Sti(a))
+
+		Sort(aa, func(i, j int) bool {
+			return aa[i].(int) < aa[j].(int)
+		})
+		xtesting.Equal(t, aa, r1)
+	}
+
+	for range Range(0, 4, 1) {
+		aa := ShuffleNew(Sti(a))
+
+		sortInterface := ReverseSortSlice(NewSortSlice(aa, func(i, j int) bool {
+			return aa[i].(int) < aa[j].(int)
+		}))
+		sort.Sort(sortInterface)
+		xtesting.Equal(t, aa, r2)
+	}
+}
+
+func TestStable(t *testing.T) {
+	type typ struct {
+		a int
+		b string
+	}
+	a := []*typ{{2, "c"}, {1, "b"}, {2, "d"}, {1, "c"}, {2, "a"}, {1, "a"}, {2, "b"}}
+	r := Sti([]*typ{{1, "b"}, {1, "c"}, {1, "a"}, {2, "c"}, {2, "d"}, {2, "a"}, {2, "b"}})
+
+	for range Range(0, 4, 1) {
+		aa := Sti(a)
+		StableSort(aa, func(i, j int) bool {
+			return aa[i].(*typ).a < aa[j].(*typ).a
+		})
+		xtesting.Equal(t, aa, r)
+	}
 }

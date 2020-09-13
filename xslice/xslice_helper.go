@@ -6,7 +6,7 @@ import (
 )
 
 // Example:
-// 		Sti([]int{0, 1}) -> []interface{}{0, 1}
+// 	Sti([]int{0, 1}) -> []interface{}{0, 1}
 func Sti(slice interface{}) []interface{} {
 	if slice == nil {
 		return nil
@@ -23,7 +23,7 @@ func Sti(slice interface{}) []interface{} {
 }
 
 // Example:
-// 		Its([]interface{}{0, 1}, 0).([]int) -> []int{0, 1}
+// 	Its([]interface{}{0, 1}, 0).([]int) -> []int{0, 1}
 func Its(slice []interface{}, model interface{}) interface{} {
 	if model == nil {
 		panic("model could not be nil")

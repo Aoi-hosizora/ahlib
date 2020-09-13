@@ -35,6 +35,14 @@
 + `Equal(s1 []interface{}, s2 []interface{}) bool`
 + `ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
 + `ToSet(s []interface{}) []interface{}`
++ `Range(min, max, step int) []int`
++ `ReverseRange(min, max, step int) []int`
++ `GenerateByIndex(index []int, f func(i int) interface{}) []interface{}`
++ `type SortSlice struct {}`
++ `NewSortSlice(s []interface{}, less func(i, j int) bool) SortSlice`
++ `ReverseSortSlice(s SortSlice) SortSlice`
++ `Sort(s []interface{}, less func(i, j int) bool)`
++ `StableSort(s []interface{}, less func(i, j int) bool)`
 
 #### Helper
 
