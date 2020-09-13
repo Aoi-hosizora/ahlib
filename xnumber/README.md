@@ -65,3 +65,23 @@
 + `U64toa(i uint64) string`
 + `F32toa(f float32) string`
 + `F64toa(f float64) string`
++ `MinInt8`
++ `MinInt16`
++ `MinInt32`
++ `MinInt64`
++ `MinUint8`
++ `MinUint16`
++ `MinUint32`
++ `MinUint64`
++ `MaxInt8`
++ `MaxInt16`
++ `MaxInt32`
++ `MaxInt64`
++ `MaxUint8`
++ `MaxUint16`
++ `MaxUint32`
++ `MaxUint64`
++ `MaxFloat32`
++ `SmallestNonzeroFloat32`
++ `MaxFloat64`
++ `SmallestNonzeroFloat64`

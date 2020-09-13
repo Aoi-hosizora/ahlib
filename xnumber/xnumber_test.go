@@ -92,3 +92,28 @@ func TestItoa(t *testing.T) {
 	log.Println("\"" + F32toa(0.7) + "\"")
 	log.Println("\"" + F64toa(0.7) + "\"")
 }
+
+func TestMinMax(t *testing.T) {
+	_ = MinInt8
+	_ = MinInt16
+	_ = MinInt32
+	_ = MinInt64
+	_ = MinUint8
+	_ = MinUint16
+	_ = MinUint32
+	_ = MinUint64
+
+	_ = MaxInt8
+	_ = MaxInt16
+	_ = MaxInt32
+	_ = MaxInt64
+	_ = MaxUint8
+	_ = MaxUint16
+	_ = MaxUint32
+	_ = MaxUint64
+
+	_ = MaxFloat32
+	_ = SmallestNonzeroFloat32
+	_ = MaxFloat64
+	_ = SmallestNonzeroFloat64
+}

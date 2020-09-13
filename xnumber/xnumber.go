@@ -286,3 +286,30 @@ func F32toa(f float32) string {
 func F64toa(f float64) string {
 	return FormatFloat64(f, 'f', -1)
 }
+
+// min max
+
+const (
+	MinInt8   = int8(-128)                  // -1 << 7
+	MinInt16  = int16(-32768)               // -1 << 15
+	MinInt32  = int32(-2147483648)          // -1 << 31
+	MinInt64  = int64(-9223372036854775808) // -1 << 63
+	MinUint8  = uint8(0)                    // 0
+	MinUint16 = uint16(0)                   // 0
+	MinUint32 = uint32(0)                   // 0
+	MinUint64 = uint64(0)                   // 0
+
+	MaxInt8   = int8(127)                    // 1<<7 - 1
+	MaxInt16  = int16(32767)                 //  1<<15 - 1
+	MaxInt32  = int32(2147483647)            //  1<<31 - 1
+	MaxInt64  = int64(9223372036854775807)   // 1<<63 - 1
+	MaxUint8  = uint8(255)                   //  1<<8 - 1
+	MaxUint16 = uint16(65535)                // 1<<16 - 1
+	MaxUint32 = uint32(4294967295)           // 1<<32 - 1
+	MaxUint64 = uint64(18446744073709551615) // 1<<64 - 1
+
+	MaxFloat32             = float32(math.MaxFloat32)             // 2**127 * (2**24 - 1) / 2**23
+	SmallestNonzeroFloat32 = float32(math.SmallestNonzeroFloat32) // 1 / 2**(127 - 1 + 23)
+	MaxFloat64             = float64(math.MaxFloat64)             // 2**1023 * (2**53 - 1) / 2**52
+	SmallestNonzeroFloat64 = float64(math.SmallestNonzeroFloat64) // 1 / 2**(1023 - 1 + 52)
+)
