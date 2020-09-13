@@ -2,6 +2,7 @@ package xreflect
 
 import (
 	"reflect"
+	"unsafe"
 )
 
 func ElemType(i interface{}) reflect.Type {
@@ -18,6 +19,20 @@ func ElemValue(i interface{}) reflect.Value {
 		v = v.Elem()
 	}
 	return v
+}
+
+// Get the unexported field value
+// Example:
+// 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).(gin.HandlersChain)
+func GetUnexportedField(field reflect.Value) interface{} {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
+}
+
+// Set the unexported field to value
+// Example:
+// 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
+func SetUnexportedField(field reflect.Value, value interface{}) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
 }
 
 // Save as xnumber.Bool

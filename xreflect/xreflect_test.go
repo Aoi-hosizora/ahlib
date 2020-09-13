@@ -47,6 +47,48 @@ func TestElemValue(t *testing.T) {
 	}
 }
 
+func TestUnexportedField(t *testing.T) {
+	type s struct {
+		a string
+		b int64
+		c uint64
+		d float64
+	}
+	ss := &s{}
+	el := reflect.ValueOf(ss).Elem()
+
+	if GetUnexportedField(el.FieldByName("a")) != "" {
+		t.Fatal("s.a is not equal to ''")
+	}
+	if GetUnexportedField(el.FieldByName("b")) != int64(0) {
+		t.Fatal("s.b is not equal to 0")
+	}
+	if GetUnexportedField(el.FieldByName("c")) != uint64(0) {
+		t.Fatal("s.c is not equal to 0")
+	}
+	if GetUnexportedField(el.FieldByName("d")) != 0.0 {
+		t.Fatal("s.d is not equal to 0.0")
+	}
+
+	SetUnexportedField(el.FieldByName("a"), "string")
+	SetUnexportedField(el.FieldByName("b"), int64(9223372036854775807))
+	SetUnexportedField(el.FieldByName("c"), uint64(18446744073709551615))
+	SetUnexportedField(el.FieldByName("d"), 0.333)
+
+	if GetUnexportedField(el.FieldByName("a")) != "string" {
+		t.Fatal("s.a is not equal to 'string'")
+	}
+	if GetUnexportedField(el.FieldByName("b")) != int64(9223372036854775807) {
+		t.Fatal("s.b is not equal to 9223372036854775807")
+	}
+	if GetUnexportedField(el.FieldByName("c")) != uint64(18446744073709551615) {
+		t.Fatal("s.c is not equal to 18446744073709551615")
+	}
+	if GetUnexportedField(el.FieldByName("d")) != 0.333 {
+		t.Fatal("s.d is not equal to 0.333")
+	}
+}
+
 func TestBoolVal(t *testing.T) {
 	if BoolVal(true) != 1 {
 		t.Fatal("true should be 1")

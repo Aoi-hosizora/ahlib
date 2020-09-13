@@ -8,6 +8,8 @@
 
 + `ElemType(i interface{}) reflect.Type`
 + `ElemValue(i interface{}) reflect.Value`
++ `GetUnexportedField(field reflect.Value) interface{}`
++ `SetUnexportedField(field reflect.Value, value interface{})`
 + `BoolVal(b bool) int`
 + `IsEqual(val1, val2 interface{}) bool`
 + `GetStructFields(i interface{}) []reflect.StructField`

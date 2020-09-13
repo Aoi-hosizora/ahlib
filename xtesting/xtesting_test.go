@@ -5,6 +5,30 @@ import (
 	"testing"
 )
 
+func TestAssert(t *testing.T) {
+	Assert(true, "test %s", "test")
+	defer func() {
+		if err := recover(); err != nil {
+			if err != "test test" {
+				t.Fatal("recover() is not `test test`")
+			}
+		}
+	}()
+	Assert(false, "test %s", "test")
+}
+
+func TestNotAssert(t *testing.T) {
+	NotAssert(false, "test %s", "test")
+	defer func() {
+		if err := recover(); err != nil {
+			if err != "test test" {
+				t.Fatal("recover() is not `test test`")
+			}
+		}
+	}()
+	NotAssert(true, "test %s", "test")
+}
+
 func TestEqual(t *testing.T) {
 	Equal(t, 0, 0)
 	Equal(t, interface{}(0), 0)

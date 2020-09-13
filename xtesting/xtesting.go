@@ -9,6 +9,18 @@ import (
 	"testing"
 )
 
+func Assert(condition bool, format string, v ...interface{}) {
+	if !condition {
+		panic(fmt.Sprintf(format, v...))
+	}
+}
+
+func NotAssert(condition bool, format string, v ...interface{}) {
+	if condition {
+		panic(fmt.Sprintf(format, v...))
+	}
+}
+
 func Equal(t *testing.T, val1, val2 interface{}) {
 	skip := 1
 	if !xreflect.IsEqual(val1, val2) {
