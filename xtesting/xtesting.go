@@ -2,8 +2,8 @@ package xtesting
 
 import (
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"path"
+	"reflect"
 	"regexp"
 	"runtime"
 	"testing"
@@ -21,9 +21,55 @@ func NotAssert(condition bool, format string, v ...interface{}) {
 	}
 }
 
+// IsEqual is also used by xreflect.IsEqual.
+func IsEqual(val1, val2 interface{}) bool {
+	v1 := reflect.ValueOf(val1)
+	v2 := reflect.ValueOf(val2)
+
+	if v1.Kind() == reflect.Ptr {
+		v1 = v1.Elem()
+	}
+	if v2.Kind() == reflect.Ptr {
+		v2 = v2.Elem()
+	}
+	if !v1.IsValid() && !v2.IsValid() {
+		return true
+	}
+
+	switch v1.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v1.IsNil() {
+			v1 = reflect.ValueOf(nil)
+		}
+	}
+	switch v2.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v2.IsNil() {
+			v2 = reflect.ValueOf(nil)
+		}
+	}
+
+	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
+	v2Underlying := reflect.Zero(reflect.TypeOf(v2)).Interface()
+
+	if v1 == v1Underlying {
+		if v2 == v2Underlying {
+			return reflect.DeepEqual(v1, v2)
+		} else {
+			return reflect.DeepEqual(v1, v2.Interface())
+		}
+	} else {
+		if v2 == v2Underlying {
+			return reflect.DeepEqual(v1.Interface(), v2)
+		} else {
+			return reflect.DeepEqual(v1.Interface(), v2.Interface())
+		}
+	}
+}
+
 func Equal(t *testing.T, val1, val2 interface{}) {
 	skip := 1
-	if !xreflect.IsEqual(val1, val2) {
+	if !IsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
 		t.Fail()
@@ -32,7 +78,7 @@ func Equal(t *testing.T, val1, val2 interface{}) {
 
 func NotEqual(t *testing.T, val1, val2 interface{}) {
 	skip := 1
-	if xreflect.IsEqual(val1, val2) {
+	if IsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v equals %v\n", path.Base(file), line, val1, val2)
 		t.Fail()
@@ -41,7 +87,7 @@ func NotEqual(t *testing.T, val1, val2 interface{}) {
 
 func Nil(t *testing.T, val interface{}) {
 	skip := 1
-	if !xreflect.IsEqual(val, nil) {
+	if !IsEqual(val, nil) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v is not nil\n", path.Base(file), line, val)
 		t.Fail()
@@ -50,7 +96,7 @@ func Nil(t *testing.T, val interface{}) {
 
 func NotNil(t *testing.T, val interface{}) {
 	skip := 1
-	if xreflect.IsEqual(val, nil) {
+	if IsEqual(val, nil) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v is nil\n", path.Base(file), line, val)
 		t.Fail()
@@ -93,7 +139,7 @@ func EqualSlice(t *testing.T, val1, val2 []interface{}) {
 		return
 	}
 	for _, v := range val2 {
-		if !xreflect.IsEqual(contains(val2, v), true) {
+		if !IsEqual(contains(val2, v), true) {
 			_, file, line, _ := runtime.Caller(skip)
 			fmt.Printf("%s:%d %v equals %v\n", path.Base(file), line, val1, val2)
 			t.Fail()

@@ -40,8 +40,8 @@ func ParseTimeZone(zone string) (*time.Location, error) {
 	if signStr == "-" {
 		sign = -1
 	}
-	hour, err1 := xnumber.ParseInt(hourStr, 10)
-	minute, err2 := xnumber.ParseInt(minuteStr, 10)
+	hour, err1 := xnumber.Atoi(hourStr)
+	minute, err2 := xnumber.Atoi(minuteStr)
 	if err1 != nil || err2 != nil {
 		return nil, wrongFmtErr
 	}
