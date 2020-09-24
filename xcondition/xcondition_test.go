@@ -3,7 +3,6 @@ package xcondition
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"log"
 	"testing"
 )
 
@@ -32,14 +31,14 @@ func TestFirstNotNil(t *testing.T) {
 }
 
 func TestPanicIfErr(t *testing.T) {
-	a := func(err bool) (int, error) {
-		if err {
-			return 0, fmt.Errorf("test error")
+	defer func() {
+		if err := recover(); err != nil {
+			xtesting.Equal(t, err, fmt.Errorf(""))
 		}
-		return 1, nil
-	}
-	log.Println(PanicIfErr(a(false)))
-	// log.Println(PanicIfErr(a(true)))
+	}()
+	xtesting.Equal(t, PanicIfErr(0, nil), 0)
+	xtesting.Equal(t, PanicIfErr("0", nil), "0")
+	xtesting.Equal(t, PanicIfErr(nil, fmt.Errorf("")), nil)
 }
 
 var (
