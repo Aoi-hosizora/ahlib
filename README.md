@@ -14,8 +14,8 @@
 + xlinkedhashmap
 + **xslice**
 + **xstring**
-+ **xentity**
-+ **xproperty**
++ xentity
++ xproperty
 + **xdi**
 + xreflect
 + **xnumber**
