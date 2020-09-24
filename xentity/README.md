@@ -3,6 +3,8 @@
 ### References
 
 + xslice
++ xcondition*
++ xtesting*
 
 ### Functions
 

@@ -1,9 +1,8 @@
 package xreflect
 
 import (
-	"github.com/Aoi-hosizora/ahlib/xcondition"
-	"github.com/Aoi-hosizora/ahlib/xnumber"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -190,26 +189,50 @@ func TestGet(t *testing.T) {
 	b1 := true
 	b2 := false
 
-	xtesting.Equal(t, xcondition.First(GetInt(i)), int64(i))
-	xtesting.Equal(t, xcondition.First(GetInt(i8)), int64(i8))
-	xtesting.Equal(t, xcondition.First(GetInt(i16)), int64(i16))
-	xtesting.Equal(t, xcondition.First(GetInt(i32)), int64(i32))
-	xtesting.Equal(t, xcondition.First(GetInt(i64)), i64)
-	xtesting.Equal(t, xcondition.First(GetUint(u)), uint64(u))
-	xtesting.Equal(t, xcondition.First(GetUint(u8)), uint64(u8))
-	xtesting.Equal(t, xcondition.First(GetUint(u16)), uint64(u16))
-	xtesting.Equal(t, xcondition.First(GetUint(u32)), uint64(u32))
-	xtesting.Equal(t, xcondition.First(GetUint(u64)), u64)
-	xtesting.Equal(t, xcondition.First(GetUint(up)), uint64(up))
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(xcondition.First(GetFloat(f32)).(float64), 0.1))
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(xcondition.First(GetFloat(f64)).(float64), 0.1))
-	xtesting.Equal(t, xcondition.First(GetString(str1)), str1)
-	xtesting.Equal(t, xcondition.First(GetString(str2)), str2)
-	xtesting.Equal(t, xcondition.First(GetString(str3)), str3)
+	ii, _ := GetInt(i)
+	xtesting.Equal(t, ii, int64(i))
+	ii, _ = GetInt(i8)
+	xtesting.Equal(t, ii, int64(i8))
+	ii, _ = GetInt(i16)
+	xtesting.Equal(t, ii, int64(i16))
+	ii, _ = GetInt(i32)
+	xtesting.Equal(t, ii, int64(i32))
+	ii, _ = GetInt(i64)
+	xtesting.Equal(t, ii, i64)
+
+	uu, _ := GetUint(u)
+	xtesting.Equal(t, uu, uint64(u))
+	uu, _ = GetUint(u8)
+	xtesting.Equal(t, uu, uint64(u8))
+	uu, _ = GetUint(u16)
+	xtesting.Equal(t, uu, uint64(u16))
+	uu, _ = GetUint(u32)
+	xtesting.Equal(t, uu, uint64(u32))
+	uu, _ = GetUint(u64)
+	xtesting.Equal(t, uu, u64)
+	uu, _ = GetUint(up)
+	xtesting.Equal(t, uu, uint64(up))
+
+	ff, _ := GetFloat(f32)
+	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
+	ff, _ = GetFloat(f64)
+	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
+
+	ss, _ := GetString(str1)
+	xtesting.Equal(t, ss, str1)
+	ss, _ = GetString(str2)
+	xtesting.Equal(t, ss, str2)
+	ss, _ = GetString(str3)
+	xtesting.Equal(t, ss, str3)
+
 	// noinspection GoBoolExpressions
-	xtesting.Equal(t, xcondition.First(GetBool(b1)), b1)
+	bb, _ := GetBool(b1)
 	// noinspection GoBoolExpressions
-	xtesting.Equal(t, xcondition.First(GetBool(b2)), b2)
+	xtesting.Equal(t, bb, b1)
+	// noinspection GoBoolExpressions
+	bb, _ = GetBool(b2)
+	// noinspection GoBoolExpressions
+	xtesting.Equal(t, bb, b2)
 }
 
 func TestFlag(t *testing.T) {
@@ -279,9 +302,9 @@ func TestIufs(t *testing.T) {
 	xtesting.Equal(t, v.Uint(), uint64(up))
 
 	v, _ = IufsOf(f32)
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(v.Float(), float64(f32)))
+	xtesting.True(t, math.Abs(v.Float()-float64(f32)) < 1e-3)
 	v, _ = IufsOf(f64)
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(v.Float(), f64))
+	xtesting.True(t, math.Abs(v.Float()-f64) < 1e-3)
 
 	v, _ = IufsOf(str1)
 	xtesting.Equal(t, v.String(), str1)
@@ -359,9 +382,9 @@ func TestIufSize(t *testing.T) {
 	xtesting.Equal(t, sze.Uint(), uint64(up))
 
 	sze, _ = IufSizeOf(f32)
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(sze.Float(), float64(f32)))
+	xtesting.True(t, math.Abs(sze.Float()-float64(f32)) < 1e-3)
 	sze, _ = IufSizeOf(f32)
-	xtesting.True(t, xnumber.DefaultAccuracy.Equal(sze.Float(), f64))
+	xtesting.True(t, math.Abs(sze.Float()-f64) < 1e-3)
 
 	sze, _ = IufSizeOf(str1)
 	xtesting.Equal(t, sze.Int(), int64(4))

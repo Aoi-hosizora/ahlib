@@ -2,8 +2,8 @@ package xzone
 
 import (
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xnumber"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -40,8 +40,8 @@ func ParseTimeZone(zone string) (*time.Location, error) {
 	if signStr == "-" {
 		sign = -1
 	}
-	hour, err1 := xnumber.Atoi(hourStr)
-	minute, err2 := xnumber.Atoi(minuteStr)
+	hour, err1 := strconv.Atoi(hourStr)
+	minute, err2 := strconv.Atoi(minuteStr)
 	if err1 != nil || err2 != nil {
 		return nil, wrongFmtErr
 	}

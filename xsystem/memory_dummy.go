@@ -1,4 +1,4 @@
-// +build !linux,!darwin,!windows,!freebsd,!dragonfly,!netbsd,!openbsd
+// +build !linux,!darwin,!windows
 
 // Copyright (c) 2017, Jeremy Jay
 // All rights reserved.

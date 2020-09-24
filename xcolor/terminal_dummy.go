@@ -1,4 +1,4 @@
-// +build linux darwin aix
+// +build !windows
 
 package xcolor
 

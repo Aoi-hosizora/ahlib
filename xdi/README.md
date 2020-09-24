@@ -4,6 +4,7 @@
 
 + xcolor
 + xreflect
++ xtesting*
 
 ### Functions
 
