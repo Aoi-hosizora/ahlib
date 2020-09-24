@@ -1,6 +1,7 @@
 package xreflect
 
 import (
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"reflect"
 	"unsafe"
 )
@@ -35,57 +36,17 @@ func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
 }
 
-// Save as xnumber.Bool
+// IsEqual is the copy of xtesting.IsEqual.
+func IsEqual(val1, val2 interface{}) bool {
+	return xtesting.IsEqual(val1, val2)
+}
+
+// BoolVal is the same with xnumber.Bool.
 func BoolVal(b bool) int {
 	if b {
 		return 1
 	}
 	return 0
-}
-
-func IsEqual(val1, val2 interface{}) bool {
-	v1 := reflect.ValueOf(val1)
-	v2 := reflect.ValueOf(val2)
-
-	if v1.Kind() == reflect.Ptr {
-		v1 = v1.Elem()
-	}
-	if v2.Kind() == reflect.Ptr {
-		v2 = v2.Elem()
-	}
-	if !v1.IsValid() && !v2.IsValid() {
-		return true
-	}
-
-	switch v1.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v1.IsNil() {
-			v1 = reflect.ValueOf(nil)
-		}
-	}
-	switch v2.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v2.IsNil() {
-			v2 = reflect.ValueOf(nil)
-		}
-	}
-
-	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
-	v2Underlying := reflect.Zero(reflect.TypeOf(v2)).Interface()
-
-	if v1 == v1Underlying {
-		if v2 == v2Underlying {
-			return reflect.DeepEqual(v1, v2)
-		} else {
-			return reflect.DeepEqual(v1, v2.Interface())
-		}
-	} else {
-		if v2 == v2Underlying {
-			return reflect.DeepEqual(v1.Interface(), v2)
-		} else {
-			return reflect.DeepEqual(v1.Interface(), v2.Interface())
-		}
-	}
 }
 
 func GetStructFields(i interface{}) []reflect.StructField {

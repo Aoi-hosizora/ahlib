@@ -1,0 +1,22 @@
+$0 -- the most basic library
+{xtesting < xreflect}
+xcolor
+
+$1 -- the common library, base on {xtesting, xreflect, xcolor}
+xcondition      (xtesting)
+xdi             (xtesting, xreflect, xcolor)
+xlinkedhashmap  (xtesting, xreflect)
+xnumber         (xtesting)
+xpointer        (xtesting)
+xregexp         (xtesting)
+xruntime        (xcolor)
+xslice          (xtesting)
+xstatus         (xtesting)
+xstring         (xtesting)
+xsystem         (xtesting)
+xtime           (xtesting)
+xzone           (xtesting)
+
+$2 -- the advanced library, base on $0 and $1, maybe removed in the future
+xentity         (xslice, xcondition, xtesting)
+xproperty       (xtesting)
