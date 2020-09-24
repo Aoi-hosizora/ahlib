@@ -6,3 +6,12 @@ go:
   - 1.13
   - 1.14
   - 1.15
+
+before_install:
+  - go get -t -v ./...
+
+script:
+  - sh ./go.test.sh
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

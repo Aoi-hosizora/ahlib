@@ -155,7 +155,7 @@ func TestStringToBytes(t *testing.T) {
 	xtesting.Equal(t, StringToBytes(""), []byte{})
 	xtesting.Equal(t, StringToBytes("abcdefg"), []byte("abcdefg"))
 
-	cnt := 20000000
+	cnt := 2000000
 
 	bs1 := make([]byte, cnt, cnt)
 	bs2 := make([]byte, cnt, cnt)
@@ -185,7 +185,7 @@ func TestBytesToString(t *testing.T) {
 	xtesting.Equal(t, BytesToString([]byte{}), "")
 	xtesting.Equal(t, BytesToString([]byte("abcdefg")), "abcdefg")
 
-	cnt := 20000000
+	cnt := 2000000
 
 	bs1 := make([]byte, cnt, cnt)
 	bs2 := make([]byte, cnt, cnt)
