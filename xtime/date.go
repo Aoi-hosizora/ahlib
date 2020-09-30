@@ -46,7 +46,7 @@ func (d *JsonDate) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return fmt.Errorf("wrong format value")
+		return fmt.Errorf("value is not a time.Time")
 	}
 	*d = JsonDate(val)
 	return nil
@@ -60,13 +60,16 @@ func (d JsonDate) Value() (driver.Value, error) {
 
 func ParseRFC3339Date(s string) (JsonDate, error) {
 	n, err := time.Parse(RFC3339Date, s)
+	if err == nil {
+		n.In(time.UTC)
+	}
 	return JsonDate(n), err
 }
 
 func ParseRFC3339DateDefault(s string, d JsonDate) JsonDate {
 	n, err := ParseRFC3339Date(s)
 	if err != nil {
-		return n
+		return d
 	}
-	return d
+	return n
 }

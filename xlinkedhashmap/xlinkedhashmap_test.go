@@ -17,20 +17,67 @@ var cmx = struct {
 
 func TestLinkedHashMap(t *testing.T) {
 	m := New()
-	xtesting.False(t, m.Has("b"))
+
+	// Has Set Get
+	ok := m.Has("b") // Has
+	xtesting.False(t, ok)
+	_, ok = m.Get("b") // Get
+	xtesting.False(t, ok)
+	v := m.GetDefault("b", "bbb") // GetDefault
+	xtesting.Equal(t, v, "bbb")
+	xtesting.InPanic(func() { m.GetForce("b") }, nil) // GetForce
 	m.Set("b", "bb")
-	xtesting.True(t, m.Has("b"))
+	ok = m.Has("b") // Has
+	xtesting.True(t, ok)
+	v, _ = m.Get("b") // Get
+	xtesting.Equal(t, v, "bb")
+	v = m.GetDefault("b", "bbb") // GetDefault
+	xtesting.Equal(t, v, "bb")
+	xtesting.Equal(t, m.GetForce("b"), "bb") // GetForce
+
+	// Keys Values Len
 	m.Set("d", "dd")
+	m.Set("a", "aa2")
 	m.Set("a", "aa")
 	m.Set("c", "cc")
-	_, ok := m.Remove("d")
+	xtesting.Equal(t, m.Keys(), []string{"b", "d", "a", "c"})
+	xtesting.Equal(t, m.Values(), []interface{}{"bb", "dd", "aa", "cc"})
+	xtesting.Equal(t, m.Len(), 4)
+
+	// Remove
+	_, ok = m.Remove("d")
 	xtesting.True(t, ok)
 	_, ok = m.Remove("d")
 	xtesting.False(t, ok)
+	xtesting.Equal(t, m.Keys(), []string{"b", "a", "c"})
+	xtesting.Equal(t, m.Values(), []interface{}{"bb", "aa", "cc"})
+	xtesting.Equal(t, m.Len(), 3)
+	_, ok = m.Remove("c")
+	xtesting.True(t, ok)
+	xtesting.Equal(t, m.Keys(), []string{"b", "a"})
+	xtesting.Equal(t, m.Values(), []interface{}{"bb", "aa"})
+	xtesting.Equal(t, m.Len(), 2)
+
+	// Marshal
+	m.Set("a", func() {})
+	_, err := m.MarshalJSON()
+	xtesting.NotNil(t, err)
+	xtesting.Equal(t, m.String(), ``)
 	m.Set("a", 123)
+	m.Set("c", "cc")
+	bs, err := m.MarshalJSON()
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, string(bs), `{"b":"bb","a":123,"c":"cc"}`)
+	obj, err := m.MarshalYAML()
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, obj, m.m)
+
+	// String
 	m.Set("o", cmx)
 	xtesting.Equal(t, m.Len(), 4)
-	xtesting.Equal(t, m.String(), "{\"b\":\"bb\",\"a\":123,\"c\":\"cc\",\"o\":{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}}")
+	xtesting.Equal(t, m.String(), `{"b":"bb","a":123,"c":"cc","o":{"F1":"3","ff3":[6,7,8],"F5":null}}`)
+	m.Clear()
+	xtesting.Equal(t, m.String(), "{}")
 	xtesting.Equal(t, New().String(), "{}")
 }
 

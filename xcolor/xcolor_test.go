@@ -2,57 +2,63 @@ package xcolor
 
 import (
 	"fmt"
-	"log"
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"testing"
 )
 
 func TestForceColor(t *testing.T) {
 	ForceColor()
 	fmt.Println("test")
-	fmt.Printf(FullColorTpl, 32, "test")
-	fmt.Println()
-	fmt.Printf(FullColorTpl, 33, "test")
-	fmt.Println()
-}
-
-func TestColor(t *testing.T) {
-	Black.Println("test")
-	Red.Println("test")
-	Green.Println("test")
-	Yellow.Println("test")
-	Blue.Println("test")
-	Magenta.Println("test")
-	Cyan.Println("test")
-	White.Println("test")
-	Default.Println("test")
-
-	log.Println(Black.Sprintf("test"))
-	log.Println(Red.Sprintf("test"))
-	log.Println(Green.Sprintf("test"))
-	log.Println(Yellow.Sprintf("test"))
-	log.Println(Blue.Sprintf("test"))
-	log.Println(Magenta.Sprintf("test"))
-	log.Println(Cyan.Sprintf("test"))
-	log.Println(White.Sprintf("test"))
-	log.Println(Default.Sprintf("test"))
-
-	fmt.Println(Black.Sprintf("test"))
-	fmt.Println(Red.Sprintf("test"))
-	fmt.Println(Green.Sprintf("test"))
-	fmt.Println(Yellow.Sprintf("test"))
-	fmt.Println(Blue.Sprintf("test"))
-	fmt.Println(Magenta.Sprintf("test"))
-	fmt.Println(Cyan.Sprintf("test"))
-	fmt.Println(White.Sprintf("test"))
-	fmt.Println(Default.Sprintf("test"))
+	fmt.Printf(FullColorTpl+"\n", 32, "test")
+	fmt.Printf(FullColorTpl+"\n", 33, "test")
 }
 
 func TestDisableColor(t *testing.T) {
-	DisableColor()
-	Red.Println("test")
-	Yellow.Println("test")
-
 	EnableColor()
-	Red.Println("test")
-	Yellow.Println("test")
+	Red.Println("test red")
+	fmt.Println(Red.Sprint("test red"))
+	Yellow.Println("test yellow")
+	fmt.Println(Yellow.Sprint("test yellow"))
+
+	DisableColor()
+	Red.Println("test red (disable)")
+	fmt.Println(Red.Sprint("test red (disable)"))
+	Yellow.Println("test yellow (disable)")
+	fmt.Println(Yellow.Sprint("test yellow (disable)"))
+}
+
+func TestColor(t *testing.T) {
+	xtesting.Equal(t, Black.String(), "30")
+	xtesting.Equal(t, Red.String(), "31")
+	xtesting.Equal(t, Green.String(), "32")
+	xtesting.Equal(t, Yellow.String(), "33")
+	xtesting.Equal(t, Blue.String(), "34")
+	xtesting.Equal(t, Magenta.String(), "35")
+	xtesting.Equal(t, Cyan.String(), "36")
+	xtesting.Equal(t, White.String(), "37")
+	xtesting.Equal(t, Default.String(), "39")
+
+	xtesting.Equal(t, Black.Code(), "30")
+	xtesting.Equal(t, Red.Code(), "31")
+	xtesting.Equal(t, Green.Code(), "32")
+	xtesting.Equal(t, Yellow.Code(), "33")
+	xtesting.Equal(t, Blue.Code(), "34")
+	xtesting.Equal(t, Magenta.Code(), "35")
+	xtesting.Equal(t, Cyan.Code(), "36")
+	xtesting.Equal(t, White.Code(), "37")
+	xtesting.Equal(t, Default.Code(), "39")
+}
+
+func TestPrint(t *testing.T) {
+	for _, color := range []Color{
+		Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default,
+	} {
+		color.Print("test\n")
+		color.Println("test")
+		color.Printf("%s\n", "test")
+
+		fmt.Print(color.Sprint("test\n"))
+		fmt.Print(color.Sprintln("test"))
+		fmt.Print(color.Sprintf("%s\n", "test"))
+	}
 }

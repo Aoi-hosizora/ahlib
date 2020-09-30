@@ -46,7 +46,7 @@ func (dt *JsonDateTime) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return fmt.Errorf("wrong format value")
+		return fmt.Errorf("value is not a time.Time")
 	}
 	*dt = JsonDateTime(val)
 	return nil
@@ -66,7 +66,7 @@ func ParseRFC3339DateTime(s string) (JsonDateTime, error) {
 func ParseRFC3339DateTimeDefault(s string, d JsonDateTime) JsonDateTime {
 	n, err := ParseRFC3339DateTime(s)
 	if err != nil {
-		return n
+		return d
 	}
-	return d
+	return n
 }

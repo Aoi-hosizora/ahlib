@@ -44,20 +44,32 @@ func PanicIfErr(i interface{}, err error) interface{} {
 
 // First returns the first element from args, panic if out of range.
 func First(args ...interface{}) interface{} {
+	if len(args) <= 0 {
+		panic("First: index out of range")
+	}
 	return args[0]
 }
 
 // Second returns the second element from args, panic if out of range.
 func Second(args ...interface{}) interface{} {
+	if len(args) <= 1 {
+		panic("Second: index out of range")
+	}
 	return args[1]
 }
 
 // Third returns the third element from args, panic if out of range.
 func Third(args ...interface{}) interface{} {
+	if len(args) <= 2 {
+		panic("Third: index out of range")
+	}
 	return args[2]
 }
 
 // Last returns the last element from args, panic if out of range.
 func Last(args ...interface{}) interface{} {
+	if len(args) <= 0 {
+		panic("Last: empty slice")
+	}
 	return args[len(args)-1]
 }
