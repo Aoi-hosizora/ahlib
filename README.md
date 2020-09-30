@@ -6,7 +6,7 @@
 [![License](http://img.shields.io/badge/license-mit-blue.svg)](./LICENSE)
 [![Release](https://img.shields.io/github/v/release/Aoi-hosizora/ahlib)](https://github.com/Aoi-hosizora/ahlib/releases)
 
-+ Some useful golang functions library for personal use without any three-part library, inspired by [shomali11/util](https://github.com/shomali11/util).
++ A personal golang library without any third-party library, inspired by [shomali11/util](https://github.com/shomali11/util).
 
 ### Example
 
@@ -36,3 +36,4 @@
 ### Dependency
 
 + Nothing
+
