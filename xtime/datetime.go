@@ -13,11 +13,6 @@ const (
 
 type JsonDateTime time.Time
 
-// ToDateTime will remove time's nanosecond and location
-func ToDateTime(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, t.Location())
-}
-
 func NewJsonDateTime(t time.Time) JsonDateTime {
 	t = ToDateTime(t)
 	return JsonDateTime(t)
@@ -60,6 +55,9 @@ func (dt JsonDateTime) Value() (driver.Value, error) {
 
 func ParseRFC3339DateTime(s string) (JsonDateTime, error) {
 	n, err := time.Parse(RFC3339DateTime, s)
+	if err == nil {
+		n = ToDateTime(n)
+	}
 	return JsonDateTime(n), err
 }
 

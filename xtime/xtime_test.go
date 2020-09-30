@@ -7,6 +7,31 @@ import (
 	"time"
 )
 
+func TestSet(t *testing.T) {
+	now := time.Date(2020, time.Month(9), 30, 23, 39, 18, 5, time.FixedZone("", 8*60*60))
+	zero := time.Time{}
+	xtesting.Equal(t, zero.Format(time.RFC3339), "0001-01-01T00:00:00Z")
+
+	zero = SetYear(zero, now.Year())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-01-01T00:00:00Z")
+	zero = SetMonth(zero, int(now.Month()))
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-01T00:00:00Z")
+	zero = SetDay(zero, now.Day())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T00:00:00Z")
+	zero = SetHour(zero, now.Hour())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:00:00Z")
+	zero = SetMinute(zero, now.Minute())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:00Z")
+	zero = SetSecond(zero, now.Second())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:18Z")
+	zero = SetNanosecond(zero, now.Nanosecond())
+	xtesting.Equal(t, zero.Format(time.RFC3339Nano), "2020-09-30T23:39:18.000000005Z")
+	zero = SetLocation(zero, now.Location())
+	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:18+08:00")
+
+	xtesting.Equal(t, zero, now)
+}
+
 func TestTo(t *testing.T) {
 	now := time.Now()
 
@@ -28,7 +53,7 @@ func TestTo(t *testing.T) {
 	xtesting.Equal(t, datetime.Minute(), now.Minute())
 	xtesting.Equal(t, datetime.Second(), now.Second())
 	xtesting.Equal(t, datetime.Nanosecond(), 0)
-	xtesting.Equal(t, datetime.Location().String(), now.Location().String())
+	xtesting.Equal(t, datetime.Location().String(), "")
 }
 
 func TestNew(t *testing.T) {
