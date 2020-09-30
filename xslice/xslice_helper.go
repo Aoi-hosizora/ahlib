@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// Sti means slice to interface slice.
 // Example:
 // 	Sti([]int{0, 1}) -> []interface{}{0, 1}
 func Sti(slice interface{}) []interface{} {
@@ -13,8 +14,11 @@ func Sti(slice interface{}) []interface{} {
 	}
 
 	v := reflect.ValueOf(slice)
-	l := v.Len()
+	if v.Type().Kind() != reflect.Slice {
+		panic("Sti: parameter must be a slice")
+	}
 
+	l := v.Len()
 	arr := make([]interface{}, l)
 	for idx := 0; idx < l; idx++ {
 		arr[idx] = v.Index(idx).Interface()
@@ -22,11 +26,12 @@ func Sti(slice interface{}) []interface{} {
 	return arr
 }
 
+// Its means interface slice to slice.
 // Example:
 // 	Its([]interface{}{0, 1}, 0).([]int) -> []int{0, 1}
 func Its(slice []interface{}, model interface{}) interface{} {
 	if model == nil {
-		panic("model could not be nil")
+		panic("Its: model must be non-nil")
 	}
 	if slice == nil {
 		return nil

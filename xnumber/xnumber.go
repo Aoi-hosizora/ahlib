@@ -6,45 +6,50 @@ import (
 	"strconv"
 )
 
-// accuracy
-
+// Accuracy includes some accuracy functions using the given accuracy.
 type Accuracy func() float64
 
-// Default accuracy, use 1e-3.
+// DefaultAccuracy means default accuracy, use 1e-3.
 var DefaultAccuracy = NewAccuracy(1e-3)
 
+// NewAccuracy creates an Accuracy, using eps as accuracy.
 func NewAccuracy(eps float64) Accuracy {
 	return func() float64 {
 		return eps
 	}
 }
 
+// Equal checks eq between two float64.
 func (eps Accuracy) Equal(a, b float64) bool {
 	return math.Abs(a-b) < eps()
 }
 
+// NotEqual checks neq between two float64.
 func (eps Accuracy) NotEqual(a, b float64) bool {
 	return !eps.Equal(a, b)
 }
 
+// Greater checks gt between two float64.
 func (eps Accuracy) Greater(a, b float64) bool {
 	return math.Max(a, b) == a && math.Abs(a-b) > eps()
 }
 
+// Smaller checks lt between two float64.
 func (eps Accuracy) Smaller(a, b float64) bool {
 	return math.Max(a, b) == b && math.Abs(a-b) > eps()
 }
 
+// GreaterOrEqual checks gte between two float64.
 func (eps Accuracy) GreaterOrEqual(a, b float64) bool {
 	return math.Max(a, b) == a || math.Abs(a-b) < eps()
 }
 
+// SmallerOrEqual checks lte between two float64.
 func (eps Accuracy) SmallerOrEqual(a, b float64) bool {
 	return math.Max(a, b) == b || math.Abs(a-b) < eps()
 }
 
-// render
-
+// RenderByte renders a byte size to string (using %.2f), support `B` `KB` `MB` `GB` `TB`.
 func RenderByte(b float64) string {
 	if DefaultAccuracy.SmallerOrEqual(b, 0) {
 		return "0B"
@@ -68,6 +73,7 @@ func RenderByte(b float64) string {
 	return fmt.Sprintf("%.2fTB", tb)
 }
 
+// Bool returns 1 if value is true, otherwise returns 0.
 func Bool(b bool) int {
 	if b {
 		return 1
@@ -75,6 +81,7 @@ func Bool(b bool) int {
 	return 0
 }
 
+// *********************************************
 // parse
 
 func ParseInt(s string, base int) (int, error) {
@@ -137,6 +144,7 @@ func ParseFloat64(s string) (float64, error) {
 	return f, e
 }
 
+// *********************************************
 // atoX
 
 func Atoi(s string) (int, error) {
@@ -187,6 +195,7 @@ func Atof64(s string) (float64, error) {
 	return ParseFloat64(s)
 }
 
+// *********************************************
 // format
 
 func FormatInt(i int, base int) string {
@@ -237,6 +246,7 @@ func FormatFloat64(f float64, fmt byte, prec int) string {
 	return strconv.FormatFloat(f, fmt, prec, 64)
 }
 
+// *********************************************
 // Xtoa
 
 func Itoa(i int) string {
@@ -287,6 +297,7 @@ func F64toa(f float64) string {
 	return FormatFloat64(f, 'f', -1)
 }
 
+// *********************************************
 // min max
 
 const (

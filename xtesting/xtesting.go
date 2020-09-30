@@ -67,6 +67,17 @@ func IsEqual(val1, val2 interface{}) bool {
 	}
 }
 
+func InPanic(fn func(), after func(err interface{})) {
+	defer func() {
+		if err := recover(); err != nil {
+			if after != nil {
+				after(err)
+			}
+		}
+	}()
+	fn()
+}
+
 func Equal(t *testing.T, val1, val2 interface{}) {
 	skip := 1
 	if !IsEqual(val1, val2) {

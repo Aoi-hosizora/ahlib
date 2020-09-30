@@ -183,11 +183,11 @@ func TestGet(t *testing.T) {
 	up := uintptr(18446744073709551615)
 	f32 := float32(0.1)
 	f64 := 0.1
+	c64 := complex64(0.1 + 0.1i)
+	c128 := 0.1 + 0.1i
 	str1 := "test"
 	str2 := "测试テスト"
 	str3 := ""
-	b1 := true
-	b2 := false
 
 	ii, _ := GetInt(i)
 	xtesting.Equal(t, ii, int64(i))
@@ -199,6 +199,8 @@ func TestGet(t *testing.T) {
 	xtesting.Equal(t, ii, int64(i32))
 	ii, _ = GetInt(i64)
 	xtesting.Equal(t, ii, i64)
+	_, err := GetInt("")
+	xtesting.NotNil(t, err)
 
 	uu, _ := GetUint(u)
 	xtesting.Equal(t, uu, uint64(u))
@@ -212,11 +214,24 @@ func TestGet(t *testing.T) {
 	xtesting.Equal(t, uu, u64)
 	uu, _ = GetUint(up)
 	xtesting.Equal(t, uu, uint64(up))
+	_, err = GetUint("")
+	xtesting.NotNil(t, err)
 
 	ff, _ := GetFloat(f32)
 	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
 	ff, _ = GetFloat(f64)
 	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
+	_, err = GetFloat("")
+	xtesting.NotNil(t, err)
+
+	cc, _ := GetComplex(c64)
+	xtesting.True(t, math.Abs(real(cc)-0.1) < 1e-3)
+	xtesting.True(t, math.Abs(imag(cc)-0.1) < 1e-3)
+	cc, _ = GetComplex(c128)
+	xtesting.True(t, math.Abs(real(cc)-0.1) < 1e-3)
+	xtesting.True(t, math.Abs(imag(cc)-0.1) < 1e-3)
+	_, err = GetComplex("")
+	xtesting.NotNil(t, err)
 
 	ss, _ := GetString(str1)
 	xtesting.Equal(t, ss, str1)
@@ -224,32 +239,37 @@ func TestGet(t *testing.T) {
 	xtesting.Equal(t, ss, str2)
 	ss, _ = GetString(str3)
 	xtesting.Equal(t, ss, str3)
+	_, err = GetString(0)
+	xtesting.NotNil(t, err)
 
-	// noinspection GoBoolExpressions
-	bb, _ := GetBool(b1)
-	// noinspection GoBoolExpressions
-	xtesting.Equal(t, bb, b1)
-	// noinspection GoBoolExpressions
-	bb, _ = GetBool(b2)
-	// noinspection GoBoolExpressions
-	xtesting.Equal(t, bb, b2)
+	bb, _ := GetBool(true)
+	xtesting.Equal(t, bb, true)
+	_, err = GetBool(0)
+	xtesting.NotNil(t, err)
+	bb, _ = GetBool(false)
+	xtesting.Equal(t, bb, false)
 }
 
 func TestFlag(t *testing.T) {
-	i := 0
-	u := uint(0)
-	s := ""
-	b := false
-
-	v, _ := IufsOf(i)
+	v, _ := IufsOf(0)
 	xtesting.Equal(t, v.Flag(), Int)
-	v, _ = IufsOf(u)
+	v, _ = IufsOf(uint(0))
 	xtesting.Equal(t, v.Flag(), Uint)
-	v, _ = IufsOf(s)
+	v, _ = IufsOf(0.)
+	xtesting.Equal(t, v.Flag(), Float)
+	v, _ = IufsOf(0 + 0i)
+	xtesting.Equal(t, v.Flag(), Complex)
+	v, _ = IufsOf("")
 	xtesting.Equal(t, v.Flag(), String)
-	// noinspection GoBoolExpressions
-	v, _ = IufsOf(b)
-	xtesting.Equal(t, v.Flag(), Int)
+
+	s, _ := IufSizeOf(0)
+	xtesting.Equal(t, s.Flag(), Int)
+	s, _ = IufSizeOf(uint(0))
+	xtesting.Equal(t, s.Flag(), Uint)
+	s, _ = IufSizeOf(0.)
+	xtesting.Equal(t, s.Flag(), Float)
+	s, _ = IufSizeOf(0 + 0i)
+	xtesting.Equal(t, s.Flag(), Complex)
 }
 
 func TestIufs(t *testing.T) {
@@ -266,6 +286,8 @@ func TestIufs(t *testing.T) {
 	up := uintptr(18446744073709551615)
 	f32 := float32(0.1)
 	f64 := 0.1
+	c64 := complex64(0.1 + 0.1i)
+	c128 := 0.1 + 0.1i
 	str1 := "test"
 	str2 := "测试テスト"
 	str3 := ""
@@ -305,6 +327,13 @@ func TestIufs(t *testing.T) {
 	xtesting.True(t, math.Abs(v.Float()-float64(f32)) < 1e-3)
 	v, _ = IufsOf(f64)
 	xtesting.True(t, math.Abs(v.Float()-f64) < 1e-3)
+
+	c, _ := IufsOf(c64)
+	xtesting.True(t, math.Abs(real(c.Complex())-float64(real(c64))) < 1e-3)
+	xtesting.True(t, math.Abs(imag(c.Complex())-float64(imag(c64))) < 1e-3)
+	c, _ = IufsOf(c128)
+	xtesting.True(t, math.Abs(real(c.Complex())-real(c128)) < 1e-3)
+	xtesting.True(t, math.Abs(imag(c.Complex())-imag(c128)) < 1e-3)
 
 	v, _ = IufsOf(str1)
 	xtesting.Equal(t, v.String(), str1)
@@ -346,6 +375,8 @@ func TestIufSize(t *testing.T) {
 	up := uintptr(18446744073709551615)
 	f32 := float32(0.1)
 	f64 := 0.1
+	c64 := complex64(0.1 + 0.1i)
+	c128 := 0.1 + 0.1i
 	str1 := "test"
 	str2 := "测试テスト"
 	str3 := ""
@@ -385,6 +416,13 @@ func TestIufSize(t *testing.T) {
 	xtesting.True(t, math.Abs(sze.Float()-float64(f32)) < 1e-3)
 	sze, _ = IufSizeOf(f32)
 	xtesting.True(t, math.Abs(sze.Float()-f64) < 1e-3)
+
+	c, _ := IufSizeOf(c64)
+	xtesting.True(t, math.Abs(real(c.Complex())-float64(real(c64))) < 1e-3)
+	xtesting.True(t, math.Abs(imag(c.Complex())-float64(imag(c64))) < 1e-3)
+	c, _ = IufSizeOf(c128)
+	xtesting.True(t, math.Abs(real(c.Complex())-real(c128)) < 1e-3)
+	xtesting.True(t, math.Abs(imag(c.Complex())-imag(c128)) < 1e-3)
 
 	sze, _ = IufSizeOf(str1)
 	xtesting.Equal(t, sze.Int(), int64(4))

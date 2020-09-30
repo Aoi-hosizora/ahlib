@@ -3,16 +3,12 @@ package xzone
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
-	"regexp"
 	"testing"
 	"time"
 )
 
 func TestTimeZone(t *testing.T) {
-	re, err := regexp.Compile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	re := timeZoneRegexp
 
 	xtesting.Equal(t, re.Match([]byte("+")), false)
 	xtesting.Equal(t, re.Match([]byte("+0")), true)
@@ -33,37 +29,40 @@ func TestTimeZone(t *testing.T) {
 
 func TestParseTimeZone(t *testing.T) {
 	_, err := ParseTimeZone("+")
-	xtesting.NotEqual(t, err, nil)
+	xtesting.NotNil(t, err)
 
 	loc, err := ParseTimeZone("+0")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC+00:00")
 
 	loc, err = ParseTimeZone("+09")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC+09:00")
 
 	loc, err = ParseTimeZone("+09:")
-	xtesting.NotEqual(t, err, nil)
+	xtesting.NotNil(t, err)
 
 	loc, err = ParseTimeZone("-9:0")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC-09:00")
 
 	loc, err = ParseTimeZone("+9:00")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC+09:00")
 
 	loc, err = ParseTimeZone("-09:0")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC-09:00")
 
 	loc, err = ParseTimeZone("+09:30")
-	xtesting.Equal(t, err, nil)
+	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC+09:30")
 }
 
 func TestMoveToZone(t *testing.T) {
+	_, err := MoveToZone(time.Now(), "")
+	xtesting.NotNil(t, err)
+
 	tt, _ := time.Parse(time.RFC3339, "2020-08-06T12:46:43+08:00")
 
 	tt2, _ := MoveToZone(tt, "+8")

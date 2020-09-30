@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// An Equaller represents how two data equal, used in XXXWith methods.
+// Equaller represents how two data equal, used in XXXWith methods.
 type Equaller func(i, j interface{}) bool
 
-// Shuffle the slice directly.
+// Shuffle shuffles the slice directly.
 func Shuffle(slice []interface{}) {
 	rand.Seed(time.Now().UnixNano())
 	for i := len(slice) - 1; i > 0; i-- {
@@ -18,7 +18,7 @@ func Shuffle(slice []interface{}) {
 	}
 }
 
-// Shuffle the old slice and return a new one.
+// ShuffleNew shuffles the old slice and return a new one.
 func ShuffleNew(slice []interface{}) []interface{} {
 	newSlice := make([]interface{}, len(slice))
 	for idx, s := range slice {
@@ -28,14 +28,14 @@ func ShuffleNew(slice []interface{}) []interface{} {
 	return newSlice
 }
 
-// Reverse the slice directly.
+// Reverse reverses the slice directly.
 func Reverse(slice []interface{}) {
 	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 }
 
-// Reverse the old slice and return a new one.
+// ReverseNew reverse the old slice and return a new one.
 func ReverseNew(slice []interface{}) []interface{} {
 	newSlice := make([]interface{}, len(slice))
 	for idx, s := range slice {
@@ -45,14 +45,14 @@ func ReverseNew(slice []interface{}) []interface{} {
 	return newSlice
 }
 
-// ForEach each item in slice.
-func ForEach(slice []interface{}, each func(interface{})) {
+// ForEach invokes function for each item in slice.
+func ForEach(slice []interface{}, fn func(interface{})) {
 	for idx := range slice {
-		each(slice[idx])
+		fn(slice[idx])
 	}
 }
 
-// Use go and WaitGroup to ForEach the slice concurrently.
+// GoForEach invokes a goroutine with a sync.WaitGroup, which invokes function for each item in slice.
 func GoForEach(slice []interface{}, each func(interface{})) {
 	if len(slice) == 0 {
 		return
@@ -68,7 +68,7 @@ func GoForEach(slice []interface{}, each func(interface{})) {
 	wg.Wait()
 }
 
-// Map a slice and return a new slice.
+// Map maps a slice and return a new slice.
 func Map(slice []interface{}, mapper func(interface{}) interface{}) []interface{} {
 	out := make([]interface{}, len(slice))
 	for idx := range slice {
@@ -77,54 +77,54 @@ func Map(slice []interface{}, mapper func(interface{}) interface{}) []interface{
 	return out
 }
 
-// IndexOf with equaller.
+// IndexOfWith returns the first index of value in the slice with Equaller.
 func IndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int {
 	for idx, val := range slice {
-		if equaller(val, value) {
+		if equaller(value, val) {
 			return idx
 		}
 	}
 	return -1
 }
 
-// IndexOf with normal equal.
+// IndexOf returns the first index of value in the slice without Equaller.
 func IndexOf(slice []interface{}, value interface{}) int {
 	return IndexOfWith(slice, value, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Contains with equaller.
+// ContainsWith checks whether the value is in the slice with Equaller.
 func ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool {
 	return IndexOfWith(slice, value, equaller) != -1
 }
 
-// Contains with normal equal.
+// Contains checks whether the value is in the slice without Equaller.
 func Contains(slice []interface{}, value interface{}) bool {
 	return ContainsWith(slice, value, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Count with equaller.
+// CountWith returns the count of value in the slice with Equaller.
 func CountWith(slice []interface{}, value interface{}, equaller Equaller) int {
 	cnt := 0
-	for _, item := range slice {
-		if equaller(item, value) {
+	for _, val := range slice {
+		if equaller(value, val) {
 			cnt++
 		}
 	}
 	return cnt
 }
 
-// Count with equaller.
+// Count returns the count of value in the slice without Equaller.
 func Count(slice []interface{}, value interface{}) int {
 	return CountWith(slice, value, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Delete with equaller.
+// DeleteWith deletes a value from slice for n times with Equaller.
 func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{} {
 	if slice == nil {
 		return nil
@@ -146,26 +146,26 @@ func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller
 	return slice
 }
 
-// Delete with normal equal.
+// Delete deletes a value from slice for n times without Equaller.
 func Delete(slice []interface{}, value interface{}, n int) []interface{} {
 	return DeleteWith(slice, value, n, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// DeleteAll with equaller.
+// DeleteAllWith deletes a value from slice for all with Equaller.
 func DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{} {
 	return DeleteWith(slice, value, -1, equaller)
 }
 
-// DeleteAll with normal equal.
+// DeleteAll deletes a value from slice for all without Equaller.
 func DeleteAll(slice []interface{}, value interface{}) []interface{} {
 	return DeleteAllWith(slice, value, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Diff with equaller.
+// DiffWith returns the difference of two slices with Equaller.
 func DiffWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{} {
 	result := make([]interface{}, 0)
 	for _, item1 := range s1 {
@@ -183,14 +183,14 @@ func DiffWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface
 	return result
 }
 
-// Diff with normal equal.
+// Diff returns the difference of two slices without Equaller.
 func Diff(s1 []interface{}, s2 []interface{}) []interface{} {
 	return DiffWith(s1, s2, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Union with equaller.
+// UnionWith returns the union of two slices with Equaller.
 func UnionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{} {
 	result := make([]interface{}, 0)
 	for _, item1 := range s1 {
@@ -211,59 +211,35 @@ func UnionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interfac
 	return result
 }
 
-// Union with normal equal.
+// Union returns the union of two slices without Equaller.
 func Union(s1 []interface{}, s2 []interface{}) []interface{} {
 	return UnionWith(s1, s2, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Intersection with equaller.
+// IntersectionWith returns the intersection of two slices with Equaller.
 func IntersectionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{} {
 	result := make([]interface{}, 0)
 	for _, item1 := range s1 {
 		for _, item2 := range s2 {
 			if equaller(item1, item2) {
 				result = append(result, item1)
+				break
 			}
 		}
 	}
 	return result
 }
 
-// Intersection with normal equal.
+// Intersection returns the intersection of two slices without Equaller.
 func Intersection(s1 []interface{}, s2 []interface{}) []interface{} {
 	return IntersectionWith(s1, s2, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Equal with equaller.
-func EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool {
-	if len(s1) != len(s2) {
-		return false
-	}
-	for _, item := range s1 {
-		if !ContainsWith(s2, item, equaller) {
-			return false
-		}
-	}
-	for _, item := range s2 {
-		if !ContainsWith(s2, item, equaller) {
-			return false
-		}
-	}
-	return true
-}
-
-// Equal with normal equal.
-func Equal(s1 []interface{}, s2 []interface{}) bool {
-	return EqualWith(s1, s2, func(i, j interface{}) bool {
-		return i == j
-	})
-}
-
-// ToSet with equaller.
+// ToSetWith removes the duplicate items in a slice as a set with Equaller.
 func ToSetWith(slice []interface{}, equaller Equaller) []interface{} {
 	result := make([]interface{}, 0)
 	for _, item := range slice {
@@ -274,14 +250,39 @@ func ToSetWith(slice []interface{}, equaller Equaller) []interface{} {
 	return result
 }
 
-// ToSet with normal equal.
+// ToSet removes the duplicate items in a slice as a set with Equaller.
 func ToSet(s []interface{}) []interface{} {
 	return ToSetWith(s, func(i, j interface{}) bool {
 		return i == j
 	})
 }
 
-// Range generate an integer slice (small to large).
+// EqualWith checks two slice is equal in elements with Equaller.
+func EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for _, item := range s1 {
+		if !ContainsWith(s2, item, equaller) {
+			return false
+		}
+	}
+	for _, item := range s2 {
+		if !ContainsWith(s1, item, equaller) {
+			return false
+		}
+	}
+	return true
+}
+
+// Equal checks two slice is equal in elements without Equaller.
+func Equal(s1 []interface{}, s2 []interface{}) bool {
+	return EqualWith(s1, s2, func(i, j interface{}) bool {
+		return i == j
+	})
+}
+
+// Range generates an integer slice from small to large with step.
 func Range(min, max, step int) []int {
 	if min >= max {
 		panic("min should less then max")
@@ -296,7 +297,7 @@ func Range(min, max, step int) []int {
 	return out
 }
 
-// ReverseRange generate an integer slice (large to small).
+// ReverseRange generates an reverse integer slice from small to large with step.
 func ReverseRange(min, max, step int) []int {
 	if min >= max {
 		panic("min should less then max")
@@ -311,11 +312,11 @@ func ReverseRange(min, max, step int) []int {
 	return out
 }
 
-// GenerateByIndex generate a slice by f and index.
-func GenerateByIndex(index []int, f func(i int) interface{}) []interface{} {
-	out := make([]interface{}, len(index))
-	for idx, num := range index {
-		out[idx] = f(num)
+// GenerateByIndex generates a slice by indies and a generate function.
+func GenerateByIndex(indies []int, fn func(i int) interface{}) []interface{} {
+	out := make([]interface{}, len(indies))
+	for idx, num := range indies {
+		out[idx] = fn(num)
 	}
 	return out
 }

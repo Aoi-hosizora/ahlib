@@ -8,7 +8,16 @@ import (
 
 func TestAccuracy(t *testing.T) {
 	xtesting.True(t, NewAccuracy(1e-3).Equal(0.33333, 0.333333))
+	xtesting.True(t, NewAccuracy(1e-3).NotEqual(0.333, 0.334))
+
 	xtesting.True(t, DefaultAccuracy.Equal(0.1, 0.1))
+	xtesting.True(t, DefaultAccuracy.NotEqual(0.1, 0.11))
+	xtesting.True(t, DefaultAccuracy.Greater(0.2, 0.1))
+	xtesting.True(t, DefaultAccuracy.Smaller(0.1, 0.2))
+	xtesting.True(t, DefaultAccuracy.GreaterOrEqual(0.2, 0.1))
+	xtesting.True(t, DefaultAccuracy.SmallerOrEqual(0.1, 0.1))
+	xtesting.True(t, DefaultAccuracy.GreaterOrEqual(0.1, 0.1))
+	xtesting.True(t, DefaultAccuracy.SmallerOrEqual(0.1, 0.2))
 }
 
 func TestRenderByte(t *testing.T) {

@@ -1,5 +1,6 @@
 package xcondition
 
+// IfThen returns a if condition is true, otherwise returns nil.
 func IfThen(condition bool, a interface{}) interface{} {
 	if condition {
 		return a
@@ -7,6 +8,7 @@ func IfThen(condition bool, a interface{}) interface{} {
 	return nil
 }
 
+// IfThenElse returns a if condition is true, otherwise returns b.
 func IfThenElse(condition bool, a interface{}, b interface{}) interface{} {
 	if condition {
 		return a
@@ -14,6 +16,7 @@ func IfThenElse(condition bool, a interface{}, b interface{}) interface{} {
 	return b
 }
 
+// DefaultIfNil returns value if value is not nil, otherwise returns defaultValue.
 func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
 	if value != nil {
 		return value
@@ -21,6 +24,7 @@ func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
 	return defaultValue
 }
 
+// FirstNotNil returns the first value which is not nil.
 func FirstNotNil(values ...interface{}) interface{} {
 	for _, val := range values {
 		if val != nil {
@@ -30,6 +34,7 @@ func FirstNotNil(values ...interface{}) interface{} {
 	return nil
 }
 
+// PanicIfErr returns an interface if err is nil, otherwise invokes panic.
 func PanicIfErr(i interface{}, err error) interface{} {
 	if err != nil {
 		panic(err)
@@ -37,26 +42,22 @@ func PanicIfErr(i interface{}, err error) interface{} {
 	return i
 }
 
-// choose slice, check len of args and choose the num one (from zero)
-func _choose(num int, args []interface{}) interface{} {
-	if len(args) >= num+1 {
-		return args[num]
-	}
-	return nil
-}
-
+// First returns the first element from args, panic if out of range.
 func First(args ...interface{}) interface{} {
-	return _choose(0, args)
+	return args[0]
 }
 
+// Second returns the second element from args, panic if out of range.
 func Second(args ...interface{}) interface{} {
-	return _choose(1, args)
+	return args[1]
 }
 
+// Third returns the third element from args, panic if out of range.
 func Third(args ...interface{}) interface{} {
-	return _choose(2, args)
+	return args[2]
 }
 
+// Last returns the last element from args, panic if out of range.
 func Last(args ...interface{}) interface{} {
-	return _choose(len(args)-1, args)
+	return args[len(args)-1]
 }

@@ -7,47 +7,38 @@ import (
 	"time"
 )
 
-// Parse Timezone string to time.Location. Format: `^[+-][0-9]{1,2}([0-9]{1,2})?$`
+// timeZoneRegexp represents RFC3339 timezone part's format,
+// such as `+0:0`, `-01`, `+08:00`, `-12:30`...
+var timeZoneRegexp = regexp.MustCompile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
+
+// WrongFormatError represents time timezone string has a wrong format.
+var WrongFormatError = fmt.Errorf("timezone string has a wrong format")
+
+// ParseTimeZone parses timezone string to time.Location. Format: `^[+-][0-9]{1,2}([0-9]{1,2})?$`
 func ParseTimeZone(zone string) (*time.Location, error) {
-	regex, err := regexp.Compile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
-	if err != nil {
-		return nil, err
-	}
-
-	wrongFmtErr := fmt.Errorf("timezone string has a wrong format")
-	ok := regex.Match([]byte(zone))
-	if !ok {
-		return nil, wrongFmtErr
-	}
-
-	matches := regex.FindAllStringSubmatch(zone, 1)
+	matches := timeZoneRegexp.FindAllStringSubmatch(zone, 1)
 	if len(matches) == 0 || len(matches[0][1:]) < 3 {
-		return nil, wrongFmtErr
+		return nil, WrongFormatError
 	}
 	group := matches[0][1:]
 
 	signStr := group[0]
 	hourStr := group[1]
 	minuteStr := group[2]
-	if signStr != "+" && signStr != "-" {
-		return nil, wrongFmtErr
+	sign := +1 // only +-
+	if signStr == "-" {
+		sign = -1
 	}
 	if minuteStr == "" {
 		minuteStr = "0"
 	}
 
-	sign := +1
-	if signStr == "-" {
-		sign = -1
-	}
-	hour, err1 := strconv.Atoi(hourStr)
-	minute, err2 := strconv.Atoi(minuteStr)
-	if err1 != nil || err2 != nil {
-		return nil, wrongFmtErr
-	}
+	hour, _ := strconv.Atoi(hourStr)     // no error
+	minute, _ := strconv.Atoi(minuteStr) // no error
 
 	name := fmt.Sprintf("UTC%s%02d:%02d", signStr, hour, minute)
 	offset := sign * (hour*3600 + minute*60)
+
 	return time.FixedZone(name, offset), nil
 }
 

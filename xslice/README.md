@@ -31,10 +31,10 @@
 + `Union(s1 []interface{}, s2 []interface{}) []interface{}`
 + `IntersectionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
 + `Intersection(s1 []interface{}, s2 []interface{}) []interface{}`
-+ `EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool`
-+ `Equal(s1 []interface{}, s2 []interface{}) bool`
 + `ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
 + `ToSet(s []interface{}) []interface{}`
++ `EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool`
++ `Equal(s1 []interface{}, s2 []interface{}) bool`
 + `Range(min, max, step int) []int`
 + `ReverseRange(min, max, step int) []int`
 + `GenerateByIndex(index []int, f func(i int) interface{}) []interface{}`

@@ -2,7 +2,7 @@ package xzone
 
 // reference: https://jp.cybozu.help/general/ja/admin/list_systemadmin/list_system_time/timezone.html
 
-// noinspection GoUnusedConst,GoSnakeCaseUsage
+// noinspection GoUnusedConst
 const (
 	Etc_GMT_P12                    = "Etc/GMT+12"                     // (UTC-12:00) 国際日付変更線 西側
 	Etc_GMT_P11                    = "Etc/GMT+11"                     // (UTC-11:00) 協定世界時-11
