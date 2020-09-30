@@ -2,7 +2,6 @@ package xreflect
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"math"
 	"reflect"
 	"testing"
 )
@@ -218,18 +217,18 @@ func TestGet(t *testing.T) {
 	xtesting.NotNil(t, err)
 
 	ff, _ := GetFloat(f32)
-	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
+	xtesting.EqualFloat(t, ff, 0.1, 1e-3)
 	ff, _ = GetFloat(f64)
-	xtesting.True(t, math.Abs(ff-0.1) < 1e-3)
+	xtesting.EqualFloat(t, ff, 0.1, 1e-3)
 	_, err = GetFloat("")
 	xtesting.NotNil(t, err)
 
 	cc, _ := GetComplex(c64)
-	xtesting.True(t, math.Abs(real(cc)-0.1) < 1e-3)
-	xtesting.True(t, math.Abs(imag(cc)-0.1) < 1e-3)
+	xtesting.EqualFloat(t, real(cc), 0.1, 1e-3)
+	xtesting.EqualFloat(t, imag(cc), 0.1, 1e-3)
 	cc, _ = GetComplex(c128)
-	xtesting.True(t, math.Abs(real(cc)-0.1) < 1e-3)
-	xtesting.True(t, math.Abs(imag(cc)-0.1) < 1e-3)
+	xtesting.EqualFloat(t, real(cc), 0.1, 1e-3)
+	xtesting.EqualFloat(t, imag(cc), 0.1, 1e-3)
 	_, err = GetComplex("")
 	xtesting.NotNil(t, err)
 
@@ -324,16 +323,16 @@ func TestIufs(t *testing.T) {
 	xtesting.Equal(t, v.Uint(), uint64(up))
 
 	v, _ = IufsOf(f32)
-	xtesting.True(t, math.Abs(v.Float()-float64(f32)) < 1e-3)
+	xtesting.EqualFloat(t, v.Float(), float64(f32), 1e-3)
 	v, _ = IufsOf(f64)
-	xtesting.True(t, math.Abs(v.Float()-f64) < 1e-3)
+	xtesting.EqualFloat(t, v.Float(), f64, 1e-3)
 
 	c, _ := IufsOf(c64)
-	xtesting.True(t, math.Abs(real(c.Complex())-float64(real(c64))) < 1e-3)
-	xtesting.True(t, math.Abs(imag(c.Complex())-float64(imag(c64))) < 1e-3)
+	xtesting.EqualFloat(t, real(c.Complex()), float64(real(c64)), 1e-3)
+	xtesting.EqualFloat(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
 	c, _ = IufsOf(c128)
-	xtesting.True(t, math.Abs(real(c.Complex())-real(c128)) < 1e-3)
-	xtesting.True(t, math.Abs(imag(c.Complex())-imag(c128)) < 1e-3)
+	xtesting.EqualFloat(t, real(c.Complex()), real(c128), 1e-3)
+	xtesting.EqualFloat(t, imag(c.Complex()), imag(c128), 1e-3)
 
 	v, _ = IufsOf(str1)
 	xtesting.Equal(t, v.String(), str1)
@@ -413,16 +412,16 @@ func TestIufSize(t *testing.T) {
 	xtesting.Equal(t, sze.Uint(), uint64(up))
 
 	sze, _ = IufSizeOf(f32)
-	xtesting.True(t, math.Abs(sze.Float()-float64(f32)) < 1e-3)
+	xtesting.EqualFloat(t, sze.Float(), float64(f32), 1e-3)
 	sze, _ = IufSizeOf(f32)
-	xtesting.True(t, math.Abs(sze.Float()-f64) < 1e-3)
+	xtesting.EqualFloat(t, sze.Float(), f64, 1e-3)
 
 	c, _ := IufSizeOf(c64)
-	xtesting.True(t, math.Abs(real(c.Complex())-float64(real(c64))) < 1e-3)
-	xtesting.True(t, math.Abs(imag(c.Complex())-float64(imag(c64))) < 1e-3)
+	xtesting.EqualFloat(t, real(c.Complex()), float64(real(c64)), 1e-3)
+	xtesting.EqualFloat(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
 	c, _ = IufSizeOf(c128)
-	xtesting.True(t, math.Abs(real(c.Complex())-real(c128)) < 1e-3)
-	xtesting.True(t, math.Abs(imag(c.Complex())-imag(c128)) < 1e-3)
+	xtesting.EqualFloat(t, real(c.Complex()), real(c128), 1e-3)
+	xtesting.EqualFloat(t, imag(c.Complex()), imag(c128), 1e-3)
 
 	sze, _ = IufSizeOf(str1)
 	xtesting.Equal(t, sze.Int(), int64(4))

@@ -56,7 +56,7 @@ func (d JsonDate) Value() (driver.Value, error) {
 func ParseRFC3339Date(s string) (JsonDate, error) {
 	n, err := time.Parse(RFC3339Date, s)
 	if err == nil {
-		n = ToDate(n)
+		n = ToDate(SetLocation(n, time.Now().Location())) // <<<
 	}
 	return JsonDate(n), err
 }

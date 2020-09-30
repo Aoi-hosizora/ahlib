@@ -36,19 +36,25 @@ func SetLocation(t time.Time, loc *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
 }
 
+// GetLocation returns a time.Location for given time. time.Time.Location() will returns a fake location.
 func GetLocation(t time.Time) *time.Location {
-	newT := SetNanosecond(t, 0)
-	newT2 := SetLocation(newT.In(time.UTC), t.Location())
-	du := newT.Sub(newT2)
-	return time.FixedZone("", int(du.Seconds())) // newT - newT2 (XXX - UTC)
+	du := GetLocationDuration(t.Location())
+	return time.FixedZone("", int(du.Seconds()))
 }
 
-// ToDate will remove time's hour, minute, second, nanosecond and location
+// GetLocationDuration returns a time.Location that used for the given time.Location.
+func GetLocationDuration(loc *time.Location) time.Duration {
+	t := time.Date(2020, time.Month(10), 1, 0, 0, 0, 0, loc)
+	t2 := SetLocation(t.In(time.UTC), loc)
+	return t.Sub(t2)
+}
+
+// ToDate preserves year, month, day and using given time location.
 func ToDate(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetLocation(t))
 }
 
-// ToDateTime will remove time's nanosecond and location
+// ToDateTime preserves year, month, day, hour, minute, second and using given time location.
 func ToDateTime(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, GetLocation(t))
 }

@@ -2,6 +2,7 @@ package xtesting
 
 import (
 	"fmt"
+	"math"
 	"path"
 	"reflect"
 	"regexp"
@@ -92,6 +93,24 @@ func NotEqual(t *testing.T, val1, val2 interface{}) {
 	if IsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v equals %v\n", path.Base(file), line, val1, val2)
+		t.Fail()
+	}
+}
+
+func EqualFloat(t *testing.T, val1, val2, eps float64) {
+	skip := 1
+	if math.Abs(val1-val2) > eps {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
+		t.Fail()
+	}
+}
+
+func NotEqualFloat(t *testing.T, val1, val2, eps float64) {
+	skip := 1
+	if math.Abs(val1-val2) <= eps {
+		_, file, line, _ := runtime.Caller(skip)
+		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
 		t.Fail()
 	}
 }
