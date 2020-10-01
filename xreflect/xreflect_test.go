@@ -61,99 +61,6 @@ func TestBoolVal(t *testing.T) {
 	xtesting.Equal(t, BoolVal(false), 0)
 }
 
-func TestIsEqual(t *testing.T) {
-	a := interface{}(1)
-	b := 1
-	c := int32(1)
-	d := &b
-
-	if !IsEqual(a, b) {
-		t.Fatal("a and b is equal, but got not equal")
-	}
-	if IsEqual(a, c) {
-		t.Fatal("a and c is not equal, but got equal")
-	}
-	if IsEqual(b, c) {
-		t.Fatal("b and c is not equal, but got equal")
-	}
-	if !IsEqual(d, b) {
-		t.Fatal("d and b is equal, but got not equal")
-	}
-
-	p1 := interface{}(nil)
-	p2 := interface{}(nil)
-	var p3 *int = nil
-	p4 := &b
-	var p5 interface{} = &b
-	if !IsEqual(p1, p2) {
-		t.Fatal("p1 and p2 is equal, but got not equal")
-	}
-	if !IsEqual(p2, p3) {
-		t.Fatal("p2 and p3 is equal, nut got not equal")
-	}
-	if !IsEqual(p4, p5) {
-		t.Fatal("p4 and p5 is equal, nut got not equal")
-	}
-
-	var s0 []string
-	var s00 []string
-	if !IsEqual(s0, s00) {
-		t.Fatal("s0 and s00 is equal, but got not equal")
-	}
-
-	s1 := []int{1, 2, 3}
-	s2 := []int{3, 2, 1}
-	s3 := []interface{}{1, 2, 3}
-	if IsEqual(s1, s2) {
-		t.Fatal("s1 and s2 is not equal, but got equal")
-	}
-	if IsEqual(s1, s3) {
-		t.Fatal("s1 and s3 is not equal, but got equal")
-	}
-
-	a1 := [3]int{1, 2, 3}
-	a2 := [3]int{3, 2, 1}
-	a3 := [4]int{3, 2, 1}
-	if IsEqual(a1, a2) {
-		t.Fatal("a1 and a2 is not equal, but got equal")
-	}
-	if IsEqual(a2, a3) {
-		t.Fatal("a2 and a3 is not equal, but got equal")
-	}
-
-	m0 := map[int]int{}
-	m00 := map[int]int{}
-	if !IsEqual(m0, m00) {
-		t.Fatal("m0 and m00 is equal, but got not equal")
-	}
-
-	m1 := map[int]int{1: 1, 2: 2}
-	m2 := map[int]int{2: 2, 1: 1}
-	m3 := map[int]interface{}{2: 2, 1: 1}
-	if !IsEqual(m1, m2) {
-		t.Fatal("m1 and m2 is equal, but got equal")
-	}
-	if IsEqual(m1, m3) {
-		t.Fatal("m1 and m3 is not equal, but got equal")
-	}
-
-	f0 := func() {}
-	f00 := func() {}
-	if IsEqual(f0, f00) {
-		t.Fatal("f0 and f00 is not equal, but got not equal")
-	}
-
-	f1 := func() {}
-	f2 := func(int) {}
-	if IsEqual(f1, f1) {
-		// Func values are deeply equal if both are nil; otherwise they are not deeply equal.
-		t.Fatal("f1 and f1 is not equal, but got equal")
-	}
-	if IsEqual(f1, f2) {
-		t.Fatal("f1 and f2 is not equal, but got equal")
-	}
-}
-
 func TestGetStructFields(t *testing.T) {
 	a := struct {
 		A int
@@ -217,18 +124,18 @@ func TestGet(t *testing.T) {
 	xtesting.NotNil(t, err)
 
 	ff, _ := GetFloat(f32)
-	xtesting.EqualFloat(t, ff, 0.1, 1e-3)
+	xtesting.InDelta(t, ff, 0.1, 1e-3)
 	ff, _ = GetFloat(f64)
-	xtesting.EqualFloat(t, ff, 0.1, 1e-3)
+	xtesting.InDelta(t, ff, 0.1, 1e-3)
 	_, err = GetFloat("")
 	xtesting.NotNil(t, err)
 
 	cc, _ := GetComplex(c64)
-	xtesting.EqualFloat(t, real(cc), 0.1, 1e-3)
-	xtesting.EqualFloat(t, imag(cc), 0.1, 1e-3)
+	xtesting.InDelta(t, real(cc), 0.1, 1e-3)
+	xtesting.InDelta(t, imag(cc), 0.1, 1e-3)
 	cc, _ = GetComplex(c128)
-	xtesting.EqualFloat(t, real(cc), 0.1, 1e-3)
-	xtesting.EqualFloat(t, imag(cc), 0.1, 1e-3)
+	xtesting.InDelta(t, real(cc), 0.1, 1e-3)
+	xtesting.InDelta(t, imag(cc), 0.1, 1e-3)
 	_, err = GetComplex("")
 	xtesting.NotNil(t, err)
 
@@ -323,16 +230,16 @@ func TestIufs(t *testing.T) {
 	xtesting.Equal(t, v.Uint(), uint64(up))
 
 	v, _ = IufsOf(f32)
-	xtesting.EqualFloat(t, v.Float(), float64(f32), 1e-3)
+	xtesting.InDelta(t, v.Float(), float64(f32), 1e-3)
 	v, _ = IufsOf(f64)
-	xtesting.EqualFloat(t, v.Float(), f64, 1e-3)
+	xtesting.InDelta(t, v.Float(), f64, 1e-3)
 
 	c, _ := IufsOf(c64)
-	xtesting.EqualFloat(t, real(c.Complex()), float64(real(c64)), 1e-3)
-	xtesting.EqualFloat(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
+	xtesting.InDelta(t, real(c.Complex()), float64(real(c64)), 1e-3)
+	xtesting.InDelta(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
 	c, _ = IufsOf(c128)
-	xtesting.EqualFloat(t, real(c.Complex()), real(c128), 1e-3)
-	xtesting.EqualFloat(t, imag(c.Complex()), imag(c128), 1e-3)
+	xtesting.InDelta(t, real(c.Complex()), real(c128), 1e-3)
+	xtesting.InDelta(t, imag(c.Complex()), imag(c128), 1e-3)
 
 	v, _ = IufsOf(str1)
 	xtesting.Equal(t, v.String(), str1)
@@ -412,16 +319,16 @@ func TestIufSize(t *testing.T) {
 	xtesting.Equal(t, sze.Uint(), uint64(up))
 
 	sze, _ = IufSizeOf(f32)
-	xtesting.EqualFloat(t, sze.Float(), float64(f32), 1e-3)
+	xtesting.InDelta(t, sze.Float(), float64(f32), 1e-3)
 	sze, _ = IufSizeOf(f32)
-	xtesting.EqualFloat(t, sze.Float(), f64, 1e-3)
+	xtesting.InDelta(t, sze.Float(), f64, 1e-3)
 
 	c, _ := IufSizeOf(c64)
-	xtesting.EqualFloat(t, real(c.Complex()), float64(real(c64)), 1e-3)
-	xtesting.EqualFloat(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
+	xtesting.InDelta(t, real(c.Complex()), float64(real(c64)), 1e-3)
+	xtesting.InDelta(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
 	c, _ = IufSizeOf(c128)
-	xtesting.EqualFloat(t, real(c.Complex()), real(c128), 1e-3)
-	xtesting.EqualFloat(t, imag(c.Complex()), imag(c128), 1e-3)
+	xtesting.InDelta(t, real(c.Complex()), real(c128), 1e-3)
+	xtesting.InDelta(t, imag(c.Complex()), imag(c128), 1e-3)
 
 	sze, _ = IufSizeOf(str1)
 	xtesting.Equal(t, sze.Int(), int64(4))

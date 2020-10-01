@@ -17,7 +17,7 @@ func TestSti(t *testing.T) {
 	xtesting.Equal(t, Sti([]string{}), []interface{}{})
 	xtesting.Equal(t, Sti([]int{0, 0., 0.0}), []interface{}{0, 0, 0})
 	xtesting.Equal(t, Sti(nil) == nil, true)
-	xtesting.InPanic(func() { Sti(0) }, func(err interface{}) { xtesting.Equal(t, err, "Sti: parameter must be a slice") })
+	xtesting.PanicWithValue(t, "Sti: parameter must be a slice", func() { Sti(0) })
 
 	num := 2000000
 
@@ -43,10 +43,7 @@ func TestSti(t *testing.T) {
 func TestIts(t *testing.T) {
 	xtesting.Equal(t, Its([]interface{}{"123", "456"}, ""), []string{"123", "456"})
 	xtesting.Equal(t, Its(nil, 0), nil)
-	xtesting.InPanic(
-		func() { xtesting.Equal(t, Its([]interface{}{}, nil), nil) },
-		func(err interface{}) { xtesting.Equal(t, err, "Its: model must be non-nil") },
-	)
+	xtesting.PanicWithValue(t, "Its: model must be non-nil", func() { xtesting.Equal(t, Its([]interface{}{}, nil), nil) })
 
 	num := 2000000
 	arr := make([]interface{}, num)
@@ -94,11 +91,11 @@ func TestShuffle(t *testing.T) {
 	a := []interface{}{1, 2, 3, 4}
 
 	Shuffle(a)
-	xtesting.EqualSlice(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.ElementMatch(t, a, []interface{}{1, 2, 3, 4})
 	log.Println("Shuffle:", a)
 
 	Shuffle(a)
-	xtesting.EqualSlice(t, a, []interface{}{1, 2, 3, 4})
+	xtesting.ElementMatch(t, a, []interface{}{1, 2, 3, 4})
 	log.Println("Shuffle:", a)
 
 	b := make([]interface{}, 0)
@@ -111,12 +108,12 @@ func TestShuffleNew(t *testing.T) {
 
 	a := ShuffleNew(aa)
 	xtesting.Equal(t, aa, []interface{}{1, 2, 3, 4})
-	xtesting.EqualSlice(t, aa, a)
+	xtesting.ElementMatch(t, aa, a)
 	log.Println("ShuffleNew:", a)
 
 	a = ShuffleNew(aa)
 	xtesting.Equal(t, aa, []interface{}{1, 2, 3, 4})
-	xtesting.EqualSlice(t, aa, a)
+	xtesting.ElementMatch(t, aa, a)
 	log.Println("ShuffleNew:", a)
 
 	b := make([]interface{}, 0)
@@ -182,7 +179,7 @@ func TestGoForEach(t *testing.T) {
 		is = append(is, i.(int))
 		mu.Unlock()
 	})
-	xtesting.EqualSlice(t, Sti(is), []interface{}{1, 2, 3, 4, 5})
+	xtesting.ElementMatch(t, Sti(is), []interface{}{1, 2, 3, 4, 5})
 
 	ss := make([]string, 0)
 	GoForEach([]interface{}{"1", "2", "3", "4", "5"}, func(i interface{}) {
@@ -190,7 +187,7 @@ func TestGoForEach(t *testing.T) {
 		ss = append(ss, i.(string))
 		mu.Unlock()
 	})
-	xtesting.EqualSlice(t, Sti(ss), []interface{}{"1", "2", "3", "4", "5"})
+	xtesting.ElementMatch(t, Sti(ss), []interface{}{"1", "2", "3", "4", "5"})
 
 	cnt := 0
 	GoForEach([]interface{}{}, func(interface{}) {
@@ -316,7 +313,7 @@ func TestDelete(t *testing.T) {
 	s = DeleteWith(s, "4", -1, eq)
 	xtesting.Equal(t, s, []interface{}{})
 
-	xtesting.Equal(t, Delete(nil, 2, -1), nil)
+	xtesting.Equal(t, Delete(nil, 2, -1), []interface{}(nil))
 }
 
 func TestDeleteAll(t *testing.T) {
@@ -351,7 +348,7 @@ func TestDeleteAll(t *testing.T) {
 	s = DeleteAllWith(s, "4", eq)
 	xtesting.Equal(t, s, []interface{}{})
 
-	xtesting.Equal(t, DeleteAll(nil, 2), nil)
+	xtesting.Equal(t, DeleteAll(nil, 2), []interface{}(nil))
 }
 
 func TestDiff(t *testing.T) {
@@ -446,8 +443,8 @@ func TestEqual(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	xtesting.InPanic(func() { Range(3, 1, 1) }, nil)
-	xtesting.InPanic(func() { Range(1, 3, 0) }, nil)
+	xtesting.Panic(t, func() { Range(3, 1, 1) })
+	xtesting.Panic(t, func() { Range(1, 3, 0) })
 	xtesting.Equal(t, Range(0, 10, 1), []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	xtesting.Equal(t, Range(1, 10, 2), []int{1, 3, 5, 7, 9})
 	xtesting.Equal(t, Range(0, 10, 2), []int{0, 2, 4, 6, 8, 10})
@@ -455,8 +452,8 @@ func TestRange(t *testing.T) {
 }
 
 func TestReverseRange(t *testing.T) {
-	xtesting.InPanic(func() { ReverseRange(3, 1, 1) }, nil)
-	xtesting.InPanic(func() { ReverseRange(1, 3, 0) }, nil)
+	xtesting.Panic(t, func() { ReverseRange(3, 1, 1) })
+	xtesting.Panic(t, func() { ReverseRange(1, 3, 0) })
 	xtesting.Equal(t, ReverseRange(0, 10, 1), []int{10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0})
 	xtesting.Equal(t, ReverseRange(1, 10, 2), []int{10, 8, 6, 4, 2})
 	xtesting.Equal(t, ReverseRange(1, 9, 2), []int{9, 7, 5, 3, 1})

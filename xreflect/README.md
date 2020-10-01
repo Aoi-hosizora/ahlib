@@ -10,7 +10,6 @@
 + `ElemValue(i interface{}) reflect.Value`
 + `GetUnexportedField(field reflect.Value) interface{}`
 + `SetUnexportedField(field reflect.Value, value interface{})`
-+ `IsEqual(val1, val2 interface{}) bool`
 + `BoolVal(b bool) int`
 + `GetStructFields(i interface{}) []reflect.StructField`
 + `GetInt(i interface{}) (int64, bool)`

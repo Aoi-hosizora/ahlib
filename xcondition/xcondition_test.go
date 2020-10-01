@@ -32,10 +32,8 @@ func TestFirstNotNil(t *testing.T) {
 func TestPanicIfErr(t *testing.T) {
 	xtesting.Equal(t, PanicIfErr(0, nil), 0)
 	xtesting.Equal(t, PanicIfErr("0", nil), "0")
-	xtesting.InPanic(func() {
-		xtesting.Equal(t, PanicIfErr(nil, fmt.Errorf("test")), nil)
-	}, func(err interface{}) {
-		xtesting.Equal(t, err, fmt.Errorf("test"))
+	xtesting.PanicWithValue(t, fmt.Errorf("test"), func() {
+		PanicIfErr(nil, fmt.Errorf("test"))
 	})
 }
 
@@ -55,7 +53,7 @@ var (
 )
 
 func TestFirst(t *testing.T) {
-	xtesting.InPanic(func() { xtesting.Equal(t, First(), nil) }, nil)
+	xtesting.Panic(t, func() { First() })
 	xtesting.Equal(t, First(f1()), 1)
 	xtesting.Equal(t, First(f2()), 1)
 	xtesting.Equal(t, First(f3()), 1)
@@ -63,23 +61,23 @@ func TestFirst(t *testing.T) {
 }
 
 func TestSecond(t *testing.T) {
-	xtesting.InPanic(func() { xtesting.Equal(t, Second(), nil) }, nil)
-	xtesting.InPanic(func() { xtesting.Equal(t, Second(f1()), nil) }, nil)
+	xtesting.Panic(t, func() { Second() })
+	xtesting.Panic(t, func() { Second(f1()) })
 	xtesting.Equal(t, Second(f2()), 2)
 	xtesting.Equal(t, Second(f3()), 2)
 	xtesting.Equal(t, Second(f4()), 2)
 }
 
 func TestThird(t *testing.T) {
-	xtesting.InPanic(func() { xtesting.Equal(t, Third(), nil) }, nil)
-	xtesting.InPanic(func() { xtesting.Equal(t, Third(f1()), nil) }, nil)
-	xtesting.InPanic(func() { xtesting.Equal(t, Third(f2()), nil) }, nil)
+	xtesting.Panic(t, func() { Third() })
+	xtesting.Panic(t, func() { Third(f1()) })
+	xtesting.Panic(t, func() { Third(f2()) })
 	xtesting.Equal(t, Third(f3()), 3)
 	xtesting.Equal(t, Third(f4()), 3)
 }
 
 func TestLast(t *testing.T) {
-	xtesting.InPanic(func() { xtesting.Equal(t, Last(), nil) }, nil)
+	xtesting.Panic(t, func() { Last() })
 	xtesting.Equal(t, Last(f1()), 1)
 	xtesting.Equal(t, Last(f2()), 2)
 	xtesting.Equal(t, Last(f3()), 3)

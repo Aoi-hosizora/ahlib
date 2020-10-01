@@ -25,7 +25,7 @@ func TestLinkedHashMap(t *testing.T) {
 	xtesting.False(t, ok)
 	v := m.GetDefault("b", "bbb") // GetDefault
 	xtesting.Equal(t, v, "bbb")
-	xtesting.InPanic(func() { m.GetForce("b") }, nil) // GetForce
+	xtesting.Panic(t, func() { m.GetForce("b") }) // GetForce
 	m.Set("b", "bb")
 	ok = m.Has("b") // Has
 	xtesting.True(t, ok)

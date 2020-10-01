@@ -1,7 +1,6 @@
 package xreflect
 
 import (
-	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"reflect"
 	"unsafe"
 )
@@ -36,11 +35,6 @@ func GetUnexportedField(field reflect.Value) interface{} {
 // 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
 func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
-}
-
-// IsEqual is the copy of xtesting.IsEqual.
-func IsEqual(val1, val2 interface{}) bool {
-	return xtesting.IsEqual(val1, val2)
 }
 
 // BoolVal is the same with xnumber.Bool.
