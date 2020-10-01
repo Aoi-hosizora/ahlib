@@ -6,7 +6,6 @@ import (
 	"math"
 	"reflect"
 	"strings"
-	"time"
 )
 
 // Assert panics when condition is false.
@@ -276,8 +275,6 @@ func toFloat(x interface{}) (float64, bool) {
 		xf = float64(xn)
 	case float64:
 		xf = xn
-	case time.Duration:
-		xf = float64(xn)
 	default:
 		xok = false
 	}

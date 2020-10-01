@@ -127,6 +127,9 @@ func TestEqual(t *testing.T) {
 	if Equal(mockT, 10, uint(10)) {
 		fail(t)
 	}
+	if Equal(mockT, func() {}, func() {}) {
+		fail(t)
+	}
 
 	// NotEqual
 	if !NotEqual(mockT, "Hello World", "Hello World!") {
@@ -256,7 +259,11 @@ func TestSamePointer(t *testing.T) {
 	ptr := func(i int) *int {
 		return &i
 	}
+	ptr2 := func(i int32) *int32 {
+		return &i
+	}
 	p := ptr(2)
+	p2 := ptr2(2)
 
 	// SamePointer
 	if SamePointer(mockT, ptr(1), ptr(1)) {
@@ -271,6 +278,9 @@ func TestSamePointer(t *testing.T) {
 	if !SamePointer(mockT, p, p) {
 		fail(t)
 	}
+	if SamePointer(mockT, p, p2) {
+		fail(t)
+	}
 
 	// NotSamePointer
 	if !NotSamePointer(mockT, ptr(1), ptr(1)) {
@@ -283,6 +293,9 @@ func TestSamePointer(t *testing.T) {
 		fail(t)
 	}
 	if NotSamePointer(mockT, p, p) {
+		fail(t)
+	}
+	if !NotSamePointer(mockT, p, p2) {
 		fail(t)
 	}
 }
@@ -300,6 +313,18 @@ func TestNil(t *testing.T) {
 	if !Nil(mockT, (*struct{})(nil)) {
 		fail(t)
 	}
+	if Nil(mockT, "") {
+		fail(t)
+	}
+	if Nil(mockT, 12) {
+		fail(t)
+	}
+	if Nil(mockT, &struct{}{}) {
+		fail(t)
+	}
+	if Nil(mockT, func() {}) {
+		fail(t)
+	}
 
 	// NotNil
 	if !NotNil(mockT, new(interface{})) {
@@ -309,6 +334,18 @@ func TestNil(t *testing.T) {
 		fail(t)
 	}
 	if NotNil(mockT, (*struct{})(nil)) {
+		fail(t)
+	}
+	if !NotNil(mockT, "") {
+		fail(t)
+	}
+	if !NotNil(mockT, 12) {
+		fail(t)
+	}
+	if !NotNil(mockT, &struct{}{}) {
+		fail(t)
+	}
+	if !NotNil(mockT, func() {}) {
 		fail(t)
 	}
 }
@@ -468,6 +505,9 @@ func TestContain(t *testing.T) {
 	if Contain(mockT, simpleMap, "Bar") {
 		fail(t)
 	}
+	if Contain(mockT, func() {}, "Hello") {
+		fail(t)
+	}
 
 	// NotContain
 	if !NotContain(mockT, "Hello World", "Hello!") {
@@ -486,6 +526,9 @@ func TestContain(t *testing.T) {
 		fail(t)
 	}
 	if !NotContain(mockT, simpleMap, "Bar") {
+		fail(t)
+	}
+	if NotContain(mockT, func() {}, "Hello") {
 		fail(t)
 	}
 }
@@ -537,6 +580,50 @@ func TestElementMatch(t *testing.T) {
 		fail(t)
 	}
 	if ElementMatch(mockT, []string{"hello", "hello"}, []string{"hello"}) {
+		fail(t)
+	}
+	if ElementMatch(mockT, []string{}, func() {}) {
+		fail(t)
+	}
+	if ElementMatch(mockT, func() {}, []string{}) {
+		fail(t)
+	}
+	if ElementMatch(mockT, func() {}, func() {}) {
+		fail(t)
+	}
+}
+
+type TypeInterface interface {
+	TestMethod()
+}
+
+type TypeStruct struct{}
+
+func (a *TypeStruct) TestMethod() {}
+
+type TypeStruct2 struct{}
+
+func TestImplements(t *testing.T) {
+	mockT := &testing.T{}
+
+	if !Implements(mockT, (*TypeInterface)(nil), &TypeStruct{}) {
+		fail(t)
+	}
+	if Implements(mockT, (*TypeInterface)(nil), &TypeStruct2{}) {
+		fail(t)
+	}
+	if Implements(mockT, (*TypeInterface)(nil), nil) {
+		fail(t)
+	}
+}
+
+func TestIsType(t *testing.T) {
+	mockT := &testing.T{}
+
+	if !IsType(mockT, &TypeStruct{}, &TypeStruct{}) {
+		fail(t)
+	}
+	if IsType(mockT, &TypeStruct{}, &TypeStruct2{}) {
 		fail(t)
 	}
 }

@@ -1,129 +1,220 @@
 package xdi
 
 import (
-	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcondition"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"log"
 	"testing"
 )
 
-type IServiceA interface {
-	A() int
+func TestByName(t *testing.T) {
+	sn := ServiceName("")
+	xtesting.Equal(t, sn.String(), "")
+	sn = "test"
+	xtesting.Equal(t, sn.String(), "test")
+
+	_, ok := GetByName("a")
+	xtesting.False(t, ok)
+	xtesting.Panic(t, func() { GetByNameForce("a") })
+
+	ProvideName("a", "a")
+	a, ok := GetByName("a")
+	xtesting.Equal(t, a, "a")
+	xtesting.True(t, ok)
+	a = GetByNameForce("a")
+	xtesting.Equal(t, a, "a")
+
+	ProvideName("a", 5)
+	a, ok = GetByName("a")
+	xtesting.Equal(t, a, 5)
+	xtesting.True(t, ok)
+	a = GetByNameForce("a")
+	xtesting.Equal(t, a, 5)
+
+	xtesting.Panic(t, func() { ProvideName("a", nil) })
+	xtesting.Panic(t, func() { ProvideName("~", 0) })
 }
 
-type IServiceB interface {
-	B(param string) string
-	C(param int) int
+func TestByType(t *testing.T) {
+	_, ok := GetByType("")
+	xtesting.False(t, ok)
+	xtesting.Panic(t, func() { GetByTypeForce("") })
+
+	ProvideType("a")
+	a, ok := GetByType("")
+	xtesting.Equal(t, a, "a")
+	xtesting.True(t, ok)
+	a = GetByTypeForce("")
+	xtesting.Equal(t, a, "a")
+
+	ProvideType("aa")
+	a, ok = GetByType("")
+	xtesting.Equal(t, a, "aa")
+	xtesting.True(t, ok)
+	a = GetByTypeForce("")
+	xtesting.Equal(t, a, "aa")
+
+	xtesting.Panic(t, func() { ProvideType(nil) })
+	xtesting.Panic(t, func() { GetByType(nil) })
 }
 
-type IServiceC interface{}
+type testByImplInterface1 interface{ A() }
 
-type ServiceA struct{}
+type testByImplStruct1 struct{ I int }
 
-type ServiceB struct {
-	SA IServiceA `di:"~"` // auto inject service by type of interface
+func (t *testByImplStruct1) A() {}
+
+type testByImplStruct2 struct{}
+
+func TestByImpl(t *testing.T) {
+	i := (*testByImplInterface1)(nil)
+	s := &testByImplStruct1{I: 0}
+
+	_, ok := GetByImpl(i)
+	xtesting.False(t, ok)
+	xtesting.Panic(t, func() { GetByImplForce(i) })
+
+	ProvideImpl(i, s)
+	a, ok := GetByImpl(i)
+	xtesting.Equal(t, a, testByImplInterface1(s))
+	xtesting.True(t, ok)
+	aa, ok := a.(*testByImplStruct1)
+	xtesting.Equal(t, aa, s)
+	xtesting.True(t, ok)
+	a = GetByImplForce(i)
+	xtesting.Equal(t, a, s)
+
+	s = &testByImplStruct1{I: 5}
+
+	ProvideImpl(i, s)
+	a, ok = GetByImpl(i)
+	xtesting.Equal(t, a, testByImplInterface1(s))
+	xtesting.True(t, ok)
+	aa, ok = a.(*testByImplStruct1)
+	xtesting.Equal(t, aa, s)
+	xtesting.True(t, ok)
+	a = GetByImplForce(i)
+	xtesting.Equal(t, a, s)
+
+	n := 0
+	ptr := &n
+	xtesting.Panic(t, func() { ProvideImpl("0", 0) })
+	xtesting.Panic(t, func() { ProvideImpl(ptr, 0) })
+	xtesting.Panic(t, func() { ProvideImpl(i, nil) })
+	xtesting.Panic(t, func() { ProvideImpl(i, &testByImplStruct2{}) })
+	xtesting.Panic(t, func() { GetByImpl(nil) })
+	xtesting.Panic(t, func() { GetByImpl("") })
+	xtesting.Panic(t, func() { GetByImpl(ptr) })
 }
 
-type ServiceC struct{}
+func TestInject(t *testing.T) {
+	xtesting.Panic(t, func() { Inject(nil) })
+	xtesting.Panic(t, func() { Inject("") })
 
-func (ServiceA) A() int {
-	return 2
-}
+	type A struct {
+		// type
+		I   int     `di:"~"`
+		I8  int8    `di:"~"`
+		I16 int16   `di:"~"`
+		I32 int32   `di:"~"`
+		I64 int64   `di:"~"`
+		U   uint    `di:"~"`
+		U8  uint8   `di:"~"`
+		U16 uint16  `di:"~"`
+		U32 uint32  `di:"~"`
+		U64 uint64  `di:"~"`
+		F32 float32 `di:"~"`
+		F64 float64 `di:"~"`
 
-func (ServiceB) B(param string) string {
-	return param + "123"
-}
+		// name
+		B  bool              `di:"b"`
+		S  string            `di:"s"`
+		BS []byte            `di:"bs"`
+		IS []int             `di:"is"`
+		SS []string          `di:"ss"`
+		FA [3]float64        `di:"fa"`
+		BA [2]bool           `di:"ba"`
+		M  map[string]string `di:"m"`
 
-func (b ServiceB) C(param int) int {
-	return param * b.SA.A()
-}
-
-type Controller struct {
-	SA  *ServiceA `di:"a"` // inject service by name
-	SB  IServiceB `di:"~"` // auto inject service by type of interface
-	SSB *ServiceB `di:"~"` // auto inject service by type of struct
-	SC  IServiceC `di:"-"` // not inject
-	PD  int       `di:"d"` // inject data by name
-}
-
-func NewServiceA(dic *DiContainer) *ServiceA {
-	a := &ServiceA{}
-	dic.Inject(a)
-	return &ServiceA{}
-}
-
-func NewServiceB(dic *DiContainer) *ServiceB {
-	b := &ServiceB{}
-	dic.Inject(b)
-	return b
-}
-
-func NewServiceC(dic *DiContainer) *ServiceC {
-	c := &ServiceC{}
-	dic.Inject(c)
-	return c
-}
-
-const (
-	a ServiceName = "a"
-)
-
-func Test_DiContainer_Inject(t *testing.T) {
-	dic := NewDiContainer()
-
-	dic.ProvideName(a, NewServiceA(dic))
-	dic.ProvideImpl((*IServiceA)(nil), *NewServiceA(dic))
-	dic.ProvideType(NewServiceB(dic))
-	dic.ProvideImpl((*IServiceB)(nil), NewServiceB(dic))
-	dic.ProvideImpl((*IServiceC)(nil), NewServiceC(dic))
-	dic.ProvideName("d", 123)
-
-	ctrl := &Controller{}
-	ok := dic.Inject(ctrl)
-
-	xtesting.Equal(t, ctrl.SA.A(), 2)
-	xtesting.Equal(t, ctrl.SB.B("a"), "a123")
-	xtesting.Equal(t, ctrl.SB.C(2), 4)
-	xtesting.Equal(t, ctrl.SSB.B("a"), "a123")
-	xtesting.Equal(t, ctrl.SSB.C(2), 4)
-	xtesting.Equal(t, ctrl.SC == nil, true)
-	xtesting.Equal(t, ctrl.PD, 123)
-
-	ctrl2 := &Controller{}
-	ctrl3 := &struct {
-		Other int `di:"o"`
-	}{}
-
-	xtesting.Equal(t, ok, true)
-	xtesting.Equal(t, dic.Inject(ctrl2), true)
-	xtesting.Equal(t, dic.Inject(ctrl3), false)
-	// dic.MustInject(ctrl3) -> panic
-	// xtesting.Equal(t, dic.Inject(nil), true) -> panic
-
-	SetLogMode(true, true)
-	SetLogFunc(_di.logFunc)
-
-	type Itf interface {
-		Error() string
+		Useless1 int         `di:""`
+		Useless2 chan func() `di:"-"`
 	}
-	ctrl4 := &struct {
-		S string `di:"~"`
-	}{}
-	xtesting.Equal(t, Inject(ctrl4), false)
+	a := &A{}
 
-	ctrl5 := &struct {
-		T int     `di:"t"`
-		I int     `di:"-"`
-		D float64 `di:"~"`
-		E Itf     `di:"~"`
-	}{}
-	ProvideName("t", 1)
-	ProvideType(0.1)
-	ProvideImpl((*Itf)(nil), fmt.Errorf("err"))
-	MustInject(ctrl5)
-	xtesting.Equal(t, ctrl5.E.Error(), "err")
-	xtesting.Equal(t, xcondition.First(GetByType(0.)), 0.1)
-	xtesting.Equal(t, xcondition.First(GetByName("t")), 1)
-	xtesting.Equal(t, GetByTypeForce(0.), 0.1)
-	xtesting.Equal(t, GetByNameForce("t"), 1)
+	ProvideType(1)
+	ProvideType(int8(1))
+	ProvideType(int16(1))
+	ProvideType(int32(1))
+	ProvideType(int64(1))
+	ProvideType(uint(1))
+	ProvideType(uint8(1))
+	ProvideType(uint16(1))
+	ProvideType(uint32(1))
+	ProvideType(uint64(1))
+	ProvideType(float32(0.5))
+	ProvideType(0.5)
+
+	all := Inject(a)
+	xtesting.False(t, all)
+	xtesting.Panic(t, func() { MustInject(a) })
+
+	ProvideName("b", true)
+	ProvideName("s", "sss")
+	ProvideName("bs", []byte("sss"))
+	ProvideName("is", []int{1, 2, 3})
+	ProvideName("ss", []string{"1", "2", "3"})
+	ProvideName("fa", [3]float64{0, 1.5, 0.5})
+	ProvideName("ba", [2]bool{true, false})
+	ProvideName("m", map[string]string{"a": "aa", "b": "bb"})
+
+	xtesting.True(t, Inject(a))
+	xtesting.NotPanic(t, func() { MustInject(a) })
+
+	xtesting.Equal(t, a.I, 1)
+	xtesting.Equal(t, a.I8, int8(1))
+	xtesting.Equal(t, a.I16, int16(1))
+	xtesting.Equal(t, a.I32, int32(1))
+	xtesting.Equal(t, a.I64, int64(1))
+	xtesting.Equal(t, a.U, uint(1))
+	xtesting.Equal(t, a.U8, uint8(1))
+	xtesting.Equal(t, a.U16, uint16(1))
+	xtesting.Equal(t, a.U32, uint32(1))
+	xtesting.Equal(t, a.U64, uint64(1))
+	xtesting.Equal(t, a.F32, float32(0.5))
+	xtesting.Equal(t, a.F64, 0.5)
+	xtesting.Equal(t, a.B, true)
+	xtesting.Equal(t, a.S, "sss")
+	xtesting.Equal(t, a.BS, []byte("sss"))
+	xtesting.Equal(t, a.IS, []int{1, 2, 3})
+	xtesting.Equal(t, a.SS, []string{"1", "2", "3"})
+	xtesting.Equal(t, a.FA, [...]float64{0, 1.5, 0.5})
+	xtesting.Equal(t, a.BA, [2]bool{true, false})
+	xtesting.Equal(t, a.M, map[string]string{"a": "aa", "b": "bb"})
+}
+
+func TestLogger(t *testing.T) {
+	type a struct {
+		A string `di:"a"`
+	}
+
+	log.Println("DefaultLogger")
+	SetLogger(DefaultLogger())
+	ProvideName("a", "a")
+	ProvideType("a")
+	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	Inject(&a{})
+
+	log.Println("SilentLogger")
+	SetLogger(SilentLogger())
+	ProvideName("a", "a")
+	ProvideType("a")
+	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	log.Println(1)
+	Inject(&a{})
+
+	log.Println("DefaultLogger")
+	SetLogger(DefaultLogger())
+	ProvideName("a", "a")
+	ProvideType("a")
+	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	Inject(&a{})
 }

@@ -3,6 +3,7 @@ package xtesting
 import (
 	"fmt"
 	"path"
+	"reflect"
 	"runtime"
 	"testing"
 )
@@ -198,6 +199,32 @@ func ElementMatch(t *testing.T, listA, listB interface{}) bool {
 	extraA, extraB := diffLists(listA, listB)
 	if len(extraA) != 0 || len(extraB) != 0 {
 		return failTest(t, 1, fmt.Sprintf("ElementMatch: `%#v` and `%#v` are expected to match each other", listA, listB))
+	}
+
+	return true
+}
+
+// Implements asserts that an object is implemented by the specified interface.
+func Implements(t *testing.T, interfaceObject interface{}, object interface{}) bool {
+	interfaceType := reflect.TypeOf(interfaceObject).Elem()
+
+	if object == nil {
+		return failTest(t, 1, fmt.Sprintf("Implements: invalid operation for `nil`"))
+	}
+	if !reflect.TypeOf(object).Implements(interfaceType) {
+		return failTest(t, 1, fmt.Sprintf("Implements: %T expected to implement `%v`, actual not implment.", object, interfaceObject))
+	}
+
+	return true
+}
+
+// IsType asserts that the specified objects are of the same type.
+func IsType(t *testing.T, expected interface{}, object interface{}) bool {
+	objectType := reflect.TypeOf(object)
+	expectedType := reflect.TypeOf(expected)
+
+	if objectType != expectedType {
+		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", expectedType.String(), objectType.String()))
 	}
 
 	return true
