@@ -26,6 +26,10 @@ func (c Color) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
+func (c Color) Len() int {
+	return len(fmt.Sprintf(FullColorTpl, c, "")) // "\x1b [ %d m \x1b [ 0 m"
+}
+
 const (
 	FullColorTpl = "\x1b[%dm%s\x1b[0m"
 )

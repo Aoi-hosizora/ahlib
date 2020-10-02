@@ -47,6 +47,16 @@ func TestColor(t *testing.T) {
 	xtesting.Equal(t, Cyan.Code(), "36")
 	xtesting.Equal(t, White.Code(), "37")
 	xtesting.Equal(t, Default.Code(), "39")
+
+	xtesting.Equal(t, Black.Len(), 9)
+	xtesting.Equal(t, Red.Len(), 9)
+	xtesting.Equal(t, Green.Len(), 9)
+	xtesting.Equal(t, Yellow.Len(), 9)
+	xtesting.Equal(t, Blue.Len(), 9)
+	xtesting.Equal(t, Magenta.Len(), 9)
+	xtesting.Equal(t, Cyan.Len(), 9)
+	xtesting.Equal(t, White.Len(), 9)
+	xtesting.Equal(t, Default.Len(), 9)
 }
 
 func TestPrint(t *testing.T) {

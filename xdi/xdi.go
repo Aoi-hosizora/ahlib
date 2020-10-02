@@ -38,7 +38,7 @@ func NewDiContainer() *DiContainer {
 	return &DiContainer{
 		provByType: make(map[reflect.Type]interface{}),
 		provByName: make(map[ServiceName]interface{}),
-		logger:     DefaultLogger(),
+		logger:     DefaultLogger(LogAll),
 	}
 }
 
@@ -49,7 +49,7 @@ func (d *DiContainer) SetLogger(logger Logger) {
 	_di.logger = logger
 }
 
-// ProvideName provides a service using a ServiceName, panic when using `~` or nil service..
+// ProvideName provides a service using a ServiceName, panic when using `~` or nil service.
 func (d *DiContainer) ProvideName(name ServiceName, service interface{}) {
 	if name == "~" {
 		panic("could not provide service using '~' name")
@@ -57,13 +57,13 @@ func (d *DiContainer) ProvideName(name ServiceName, service interface{}) {
 	if service == nil {
 		panic("could not provide nil service")
 	}
-	t := reflect.TypeOf(service)
+	typ := reflect.TypeOf(service)
 
 	d.muByName.Lock()
 	d.provByName[name] = service
 	d.muByName.Unlock()
 
-	d.logger.ProvideName(t.String(), string(name))
+	d.logger.LogName(string(name), typ.String())
 }
 
 // ProvideType provides a service using its type, panic when service is nil.
@@ -71,13 +71,13 @@ func (d *DiContainer) ProvideType(service interface{}) {
 	if service == nil {
 		panic("could not provide nil service")
 	}
-	t := reflect.TypeOf(service)
+	typ := reflect.TypeOf(service)
 
 	d.muByType.Lock()
-	d.provByType[t] = service
+	d.provByType[typ] = service
 	d.muByType.Unlock()
 
-	d.logger.ProvideType(t.String())
+	d.logger.LogType(typ.String())
 }
 
 // ProvideImpl provides a service using the interface type, panic when wrong interfacePtr or nil serviceImpl.
@@ -85,8 +85,11 @@ func (d *DiContainer) ProvideType(service interface{}) {
 // 	ProvideImpl((*Interface)(nil), &Struct{})
 // 	GetByType(Interface(nil))
 func (d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interface{}) {
+	if interfacePtr == nil {
+		panic("interfacePtr could not be nil")
+	}
 	it := reflect.TypeOf(interfacePtr)
-	if reflect.TypeOf(it).Kind() != reflect.Ptr {
+	if it.Kind() != reflect.Ptr {
 		panic("interfacePtr must be an pointer of interface")
 	}
 	it = it.Elem()
@@ -106,11 +109,15 @@ func (d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interfac
 	d.provByType[it] = serviceImpl
 	d.muByType.Unlock()
 
-	d.logger.ProvideImpl(it.String(), st.String())
+	d.logger.LogImpl(it.String(), st.String())
 }
 
 // GetByName returns a service by ServiceName.
 func (d *DiContainer) GetByName(name ServiceName) (service interface{}, exist bool) {
+	if name == "~" {
+		panic("could not get the service of ~")
+	}
+
 	service, exist = d.provByName[name]
 	return
 }
@@ -129,7 +136,9 @@ func (d *DiContainer) GetByType(serviceType interface{}) (service interface{}, e
 	if serviceType == nil {
 		panic("could not get nil type service")
 	}
-	service, exist = d.provByType[reflect.TypeOf(serviceType)]
+
+	typ := reflect.TypeOf(serviceType)
+	service, exist = d.provByType[typ]
 	return
 }
 
@@ -144,8 +153,11 @@ func (d *DiContainer) GetByTypeForce(serviceType interface{}) interface{} {
 
 // GetByImpl returns a service by interface pointer, panic when wrong interfacePtr.
 func (d *DiContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool) {
+	if interfacePtr == nil {
+		panic("interfacePtr could not be nil")
+	}
 	it := reflect.TypeOf(interfacePtr)
-	if reflect.TypeOf(it).Kind() != reflect.Ptr {
+	if it.Kind() != reflect.Ptr {
 		panic("interfacePtr must be an pointer of interface")
 	}
 	it = it.Elem()
@@ -231,7 +243,7 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		if fieldValue.IsValid() && fieldValue.CanSet() {
 			// set value
 			fieldValue.Set(reflect.ValueOf(service))
-			d.logger.Inject(reflect.TypeOf(ctrl).String(), fieldType.Type.String(), fieldType.Name)
+			d.logger.LogInject(reflect.TypeOf(ctrl).String(), fieldType.Type.String(), fieldType.Name)
 		}
 	}
 

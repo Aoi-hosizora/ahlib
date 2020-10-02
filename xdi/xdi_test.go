@@ -32,6 +32,7 @@ func TestByName(t *testing.T) {
 
 	xtesting.Panic(t, func() { ProvideName("a", nil) })
 	xtesting.Panic(t, func() { ProvideName("~", 0) })
+	xtesting.Panic(t, func() { GetByName("~") })
 }
 
 func TestByType(t *testing.T) {
@@ -97,12 +98,15 @@ func TestByImpl(t *testing.T) {
 
 	n := 0
 	ptr := &n
+	xtesting.Panic(t, func() { ProvideImpl(nil, 0) })
 	xtesting.Panic(t, func() { ProvideImpl("0", 0) })
+	xtesting.Panic(t, func() { ProvideImpl(0, 0) })
 	xtesting.Panic(t, func() { ProvideImpl(ptr, 0) })
 	xtesting.Panic(t, func() { ProvideImpl(i, nil) })
 	xtesting.Panic(t, func() { ProvideImpl(i, &testByImplStruct2{}) })
 	xtesting.Panic(t, func() { GetByImpl(nil) })
-	xtesting.Panic(t, func() { GetByImpl("") })
+	xtesting.Panic(t, func() { GetByImpl("0") })
+	xtesting.Panic(t, func() { GetByImpl(0) })
 	xtesting.Panic(t, func() { GetByImpl(ptr) })
 }
 
@@ -196,25 +200,33 @@ func TestLogger(t *testing.T) {
 		A string `di:"a"`
 	}
 
-	log.Println("DefaultLogger")
-	SetLogger(DefaultLogger())
+	log.Println("LogAll")
+	SetLogger(DefaultLogger(LogAll))
 	ProvideName("a", "a")
 	ProvideType("a")
 	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	GetByName("a")
+	GetByType("")
+	GetByImpl((*testByImplInterface1)(nil))
 	Inject(&a{})
 
-	log.Println("SilentLogger")
-	SetLogger(SilentLogger())
+	log.Println("LogSilent")
+	SetLogger(DefaultLogger(LogSilent))
 	ProvideName("a", "a")
 	ProvideType("a")
 	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
-	log.Println(1)
+	GetByName("a")
+	GetByType("")
+	GetByImpl((*testByImplInterface1)(nil))
 	Inject(&a{})
 
-	log.Println("DefaultLogger")
-	SetLogger(DefaultLogger())
+	log.Println("LogName | LogImpl")
+	SetLogger(DefaultLogger(LogName | LogImpl))
 	ProvideName("a", "a")
 	ProvideType("a")
 	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	GetByName("a")
+	GetByType("")
+	GetByImpl((*testByImplInterface1)(nil))
 	Inject(&a{})
 }
