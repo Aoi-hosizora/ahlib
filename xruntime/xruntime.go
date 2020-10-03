@@ -6,6 +6,7 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -31,7 +32,6 @@ func GetStack(skip int) []*Stack {
 	for i := skip; ; i++ {
 		pc, filename, lineNumber, ok := runtime.Caller(i)
 		if !ok {
-			log.Println(ok)
 			break
 		}
 		function := runtime.FuncForPC(pc).Name()
@@ -79,11 +79,12 @@ func PrintStacks(stacks []*Stack) {
 
 // PrintStacksRed prints a slice of stacks using xcolor.Red.
 func PrintStacksRed(stacks []*Stack) {
+	l := log.New(os.Stderr, "", 0)
 	xcolor.ForceColor()
 	for _, s := range stacks {
-		l := s.String()
-		for _, s := range strings.Split(l, "\n") {
-			fmt.Println(xcolor.Red.Sprint(s))
+		line := s.String()
+		for _, s := range strings.Split(line, "\n") {
+			l.Println(xcolor.Red.Sprint(s))
 		}
 	}
 }
