@@ -14,9 +14,9 @@
 + `New() *PropertyMappers`
 + `NewMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper`
 + `NewValue(revert bool, destProps ...string) *PropertyMapperValue`
-+ `(p *PropertyMapper) GetDict() PropertyDict`
 + `(p *PropertyMappers) AddMapper(mapper *PropertyMapper)`
 + `(p *PropertyMappers) AddMappers(mappers ...*PropertyMapper)`
++ `(p *PropertyMapper) GetDict() PropertyDict`
 + `(p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
 + `(p *PropertyMappers) GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`
 + `AddMapper(mapper *PropertyMapper)`

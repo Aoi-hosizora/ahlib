@@ -6,7 +6,33 @@ import (
 	"reflect"
 )
 
-// MapFunc represents a model mapper's method, describe how to map model from `from` to `to`.
+// EntityMappers represents an entity mappers container.
+type EntityMappers struct {
+	mappers []*EntityMapper
+}
+
+// EntityMapper represents an entity mapper.
+type EntityMapper struct {
+	// from represents mapping `from`.
+	from interface{}
+
+	// to represents mapping `to`.
+	to interface{}
+
+	// fromType represents from type.
+	fromType reflect.Type
+
+	// toType represents to type.
+	toType reflect.Type
+
+	// ctor represents to constructor.
+	ctor func() interface{}
+
+	// mapFunc represents the mapping function.
+	mapFunc MapFunc
+}
+
+// MapFunc represents a model mapping method, describe how to map model from `from` to `to`.
 type MapFunc func(from interface{}, to interface{}) error
 
 // Mappable represents a model that can be mapped (can be used if has only one source).
@@ -14,32 +40,6 @@ type Mappable interface {
 	Source() interface{}
 	Ctor() interface{}
 	MapFrom(source interface{}) error
-}
-
-// A mappers container.
-type EntityMappers struct {
-	mappers []*EntityMapper
-}
-
-// An entity mapper.
-type EntityMapper struct {
-	// `from` instance.
-	from interface{}
-
-	// `to` instance.
-	to interface{}
-
-	// `from` type (struct's pointer).
-	fromType reflect.Type
-
-	// `to` type (struct's pointer).
-	toType reflect.Type
-
-	// `to` constructor.
-	ctor func() interface{}
-
-	// `from` -> `to` map function.
-	mapFunc MapFunc
 }
 
 // Create a EntityMappers.

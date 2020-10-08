@@ -5,26 +5,26 @@ import (
 	"reflect"
 )
 
-// A mappers container.
+// PropertyMappers represents a property mappers container.
 type PropertyMappers struct {
 	mappers []*PropertyMapper
 }
 
-// A set of properties mapper.
+// PropertyMapper represents a property mapper.
 type PropertyMapper struct {
-	// `from` instance.
+	// from represents mapping `from`.
 	from interface{}
 
-	// `to` instance.
+	// to represents mapping `to`.
 	to interface{}
 
-	// `from` type (struct's pointer).
+	// fromType represents from type.
 	fromType reflect.Type
 
-	// `to` type (struct's pointer).
+	// toType represents to type.
 	toType reflect.Type
 
-	// `from` -> `to` properties mapping.
+	// dict represents the mapping properties.
 	dict PropertyDict
 }
 
@@ -43,18 +43,18 @@ type PropertyMapperValue struct {
 	Destinations []string
 }
 
-// Create a PropertyMappers.
+// New creates a PropertyMappers.
 func New() *PropertyMappers {
 	return &PropertyMappers{mappers: make([]*PropertyMapper, 0)}
 }
 
-// Create a PropertyMapper.
+// NewMapper creates a PropertyMapper.
 func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMapper {
 	if from == nil || to == nil {
-		panic("Mapper's model type should not be nil")
+		panic("model type should not be nil")
 	}
 	if dict == nil {
-		dict = make(map[string]*PropertyMapperValue)
+		dict = make(PropertyDict)
 	}
 
 	return &PropertyMapper{
@@ -66,7 +66,7 @@ func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMap
 	}
 }
 
-// Create a PropertyMapperValue.
+// NewValue creates a PropertyMapperValue.
 func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 	return &PropertyMapperValue{
 		Revert:       revert,
@@ -74,16 +74,10 @@ func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 	}
 }
 
-func (p *PropertyMapper) GetDict() PropertyDict {
-	return p.dict
-}
-
-// Add a PropertyMapper to PropertyMappers.
+// AddMapper adds a PropertyMapper to PropertyMappers.
 func (p *PropertyMappers) AddMapper(m *PropertyMapper) {
-	fromType := reflect.TypeOf(m.from)
-	toType := reflect.TypeOf(m.to)
 	for _, mapper := range p.mappers {
-		if mapper.fromType == fromType || mapper.toType == toType {
+		if mapper.fromType == m.fromType || mapper.toType == m.toType {
 			mapper.dict = m.dict
 			return
 		}
@@ -91,14 +85,19 @@ func (p *PropertyMappers) AddMapper(m *PropertyMapper) {
 	p.mappers = append(p.mappers, m)
 }
 
-// Add some PropertyMapper to PropertyMappers.
+// AddMappers adds some PropertyMapper to PropertyMappers.
 func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
 	for _, m := range mappers {
 		p.AddMapper(m)
 	}
 }
 
-// Get a PropertyMapper from PropertyMappers.
+// GetDict returns the PropertyDict in PropertyMapper.
+func (p *PropertyMapper) GetDict() PropertyDict {
+	return p.dict
+}
+
+// GetMapper returns the PropertyMapper from PropertyMappers.
 func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
@@ -110,34 +109,34 @@ func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*Property
 	return nil, fmt.Errorf("mapper type not found")
 }
 
-// Get a default PropertyMapper from PropertyMappers.
+// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns a empty PropertyMapper if not found.
 func (p *PropertyMappers) GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper {
 	mapper, err := p.GetMapper(from, to)
 	if err != nil {
-		return NewMapper(from, to, map[string]*PropertyMapperValue{})
+		return NewMapper(from, to, nil)
 	}
 	return mapper
 }
 
-// Global PropertyMappers.
+// _mappers represents a global PropertyMappers.
 var _mappers = New()
 
-// Add a PropertyMapper to global PropertyMappers.
+// AddMapper adds a PropertyMapper to PropertyMappers.
 func AddMapper(mapper *PropertyMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// Add some PropertyMapper to global PropertyMappers.
+// AddMappers adds some PropertyMapper to PropertyMappers.
 func AddMappers(mappers ...*PropertyMapper) {
 	_mappers.AddMappers(mappers...)
 }
 
-// Get a PropertyMapper from global PropertyMappers.
+// GetMapper returns the PropertyMapper from PropertyMappers.
 func GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
 	return _mappers.GetMapper(from, to)
 }
 
-// Get a default PropertyMapper from global PropertyMappers.
+// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns a empty PropertyMapper if not found.
 func GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper {
 	return _mappers.GetDefaultMapper(from, to)
 }
