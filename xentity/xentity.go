@@ -35,41 +35,33 @@ type EntityMapper struct {
 // MapFunc represents a model mapping method, describe how to map model from `from` to `to`.
 type MapFunc func(from interface{}, to interface{}) error
 
-// Mappable represents a model that can be mapped (can be used if has only one source).
-type Mappable interface {
-	Source() interface{}
-	Ctor() interface{}
-	MapFrom(source interface{}) error
-}
-
-// Create a EntityMappers.
+// New creates a EntityMappers.
 func New() *EntityMappers {
-	return &EntityMappers{mappers: []*EntityMapper{}}
+	return &EntityMappers{mappers: make([]*EntityMapper, 0)}
 }
 
-// Create a EntityMapper for EntityMappers.
+// NewMapper creates a EntityMapper.
 func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
 	// check nil
 	if from == nil || ctor == nil {
-		panic("mapper's model could not be nil")
+		panic("model must not be nil")
 	}
 	to := ctor()
 	if to == nil {
-		panic("mapper's model could not be nil")
+		panic("model must not be nil")
+	}
+	if mapFunc == nil {
+		panic("mapFunc must not be nil")
 	}
 
 	// check pointer
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	if fromType.Kind() != reflect.Ptr || toType.Kind() != reflect.Ptr {
-		panic("mapper's model could only be pointer")
+		panic("model must only be pointer")
 	}
-
-	// check struct
-	fromElType := fromType.Elem()
-	toElType := toType.Elem()
-	if fromElType.Kind() != reflect.Struct || toElType.Kind() != reflect.Struct {
-		panic("mapper's model could only be a pointer pointed to a struct")
+	if fromType.Elem().Kind() != reflect.Struct || toType.Elem().Kind() != reflect.Struct {
+		panic("model must only be a pointer pointed to a struct")
 	}
 
 	// return
@@ -83,50 +75,10 @@ func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *Enti
 	}
 }
 
-// Create a EntityMapper by Mappable for EntityMappers.
-func NewMapperByMappable(mappable Mappable) *EntityMapper {
-	// check nil
-	if mappable == nil {
-		panic("mapper's model could not be nil")
-	}
-	from := mappable.Source()
-	to := mappable.Ctor()
-	if from == nil || to == nil {
-		panic("mapper's model could not be nil")
-	}
-
-	// check pointer
-	fromType := reflect.TypeOf(from)
-	toType := reflect.TypeOf(to)
-	if fromType.Kind() != reflect.Ptr || toType.Kind() != reflect.Ptr {
-		panic("mapper's model could only be pointer")
-	}
-
-	// check struct
-	fromElType := fromType.Elem()
-	toElType := toType.Elem()
-	if fromElType.Kind() != reflect.Struct || toElType.Kind() != reflect.Struct {
-		panic("mapper's model could only be a pointer pointed to a struct")
-	}
-
-	// return
-	return &EntityMapper{
-		from:     from,
-		to:       to,
-		fromType: fromType,
-		toType:   toType,
-		ctor:     mappable.Ctor,
-		mapFunc: func(from interface{}, to interface{}) error {
-			t := to.(Mappable)
-			return t.MapFrom(from)
-		},
-	}
-}
-
-// Add a EntityMapper to EntityMappers.
+// AddMapper adds an EntityMapper to EntityMappers.
 func (e *EntityMappers) AddMapper(m *EntityMapper) {
 	for _, mapper := range e.mappers {
-		if mapper.from == m.from && mapper.to == m.to {
+		if mapper.fromType == m.fromType && mapper.toType == m.toType {
 			mapper.ctor = m.ctor
 			mapper.mapFunc = m.mapFunc
 			return
@@ -135,27 +87,31 @@ func (e *EntityMappers) AddMapper(m *EntityMapper) {
 	e.mappers = append(e.mappers, m)
 }
 
-// Add some EntityMapper to EntityMappers.
+// AddMappers adds some EntityMapper to EntityMappers.
 func (e *EntityMappers) AddMappers(ms ...*EntityMapper) {
 	for _, m := range ms {
 		e.AddMapper(m)
 	}
 }
 
-// Get a EntityMapper from EntityMappers.
+// GetMapFunc returns the MapFunc from EntityMapper.
+func (e *EntityMapper) GetMapFunc() MapFunc {
+	return e.mapFunc
+}
+
+// GetMapper returns the EntityMapper from EntityMappers.
 func (e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
-
-	for _, m := range e.mappers {
-		if m.fromType == fromType && m.toType == toType {
-			return m, nil
+	for _, mapper := range e.mappers {
+		if mapper.fromType == fromType && mapper.toType == toType {
+			return mapper, nil
 		}
 	}
 	return nil, fmt.Errorf("mapper is not found")
 }
 
-// Core implementation of EntityMappers.
+// _map is the core implementation of EntityMappers.
 func _map(mapper *EntityMapper, from interface{}, to interface{}, options ...MapFunc) error {
 	err := mapper.mapFunc(from, to)
 	if err != nil {
@@ -172,7 +128,7 @@ func _map(mapper *EntityMapper, from interface{}, to interface{}, options ...Map
 	return nil
 }
 
-// Set `to` property from `from`.
+// MapProp maps properties from `from` to `to`.
 func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...MapFunc) error {
 	mapper, err := e.GetMapper(from, to)
 	if err != nil {
@@ -182,7 +138,7 @@ func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...Map
 	return _map(mapper, from, to, options...)
 }
 
-// Generate a `to` from `from`.
+// Map generates a `to` from `from`.
 func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
 	mapper, err := e.GetMapper(from, toModel)
 	if err != nil {
@@ -191,38 +147,37 @@ func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...Ma
 
 	to := mapper.ctor()
 	err = _map(mapper, from, to, options...)
-	return to, err
+	if err != nil {
+		return nil, err
+	}
+	return to, nil
 }
 
-// Generate a `to` slice from `from` slice. (No need to use xslice.Sti and xslice.Its)
-func (e *EntityMappers) MapSlice(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
-	fromSlice := xslice.Sti(from)
-	toType := reflect.SliceOf(reflect.TypeOf(toModel))
-	toSlice := reflect.MakeSlice(toType, len(fromSlice), len(fromSlice))
+// MapSlice generates a `to` slice from `from` slice.
+func (e *EntityMappers) MapSlice(fromInterface interface{}, toModel interface{}, options ...MapFunc) (interface{}, error) {
+	fromSlice := xslice.Sti(fromInterface)
+	toSlice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(toModel)), len(fromSlice), len(fromSlice))
 	if len(fromSlice) == 0 {
-		return toSlice, nil
+		return toSlice.Interface(), nil
 	}
-
 	mapper, err := e.GetMapper(fromSlice[0], toModel)
 	if err != nil {
 		return nil, err
 	}
 
-	for idx, item := range fromSlice {
+	for idx, from := range fromSlice {
 		to := mapper.ctor()
-		err = _map(mapper, item, to, options...)
+		err = _map(mapper, from, to, options...)
 		if err != nil {
 			return nil, err
 		}
-
-		val := reflect.ValueOf(to)
-		toSlice.Index(idx).Set(val)
+		toSlice.Index(idx).Set(reflect.ValueOf(to))
 	}
 
 	return toSlice.Interface(), nil
 }
 
-// Must version of EntityMappers.MapProp, panic if not found.
+// MustMapProp is the must version of MapProp, panic if error.
 func (e *EntityMappers) MustMapProp(from interface{}, to interface{}, options ...MapFunc) {
 	err := e.MapProp(from, to, options...)
 	if err != nil {
@@ -230,7 +185,7 @@ func (e *EntityMappers) MustMapProp(from interface{}, to interface{}, options ..
 	}
 }
 
-// Must version of EntityMappers.Map, panic if not found.
+// Map is the must version of MapProp, panic if error.
 func (e *EntityMappers) MustMap(from interface{}, toModel interface{}, options ...MapFunc) interface{} {
 	i, err := e.Map(from, toModel, options...)
 	if err != nil {
@@ -239,7 +194,7 @@ func (e *EntityMappers) MustMap(from interface{}, toModel interface{}, options .
 	return i
 }
 
-// Must version of EntityMappers.MapSlice, panic if not found.
+// MapSlice is the must version of MapProp, panic if error.
 func (e *EntityMappers) MustMapSlice(from interface{}, toModel interface{}, options ...MapFunc) interface{} {
 	i, err := e.MapSlice(from, toModel, options...)
 	if err != nil {
@@ -248,50 +203,50 @@ func (e *EntityMappers) MustMapSlice(from interface{}, toModel interface{}, opti
 	return i
 }
 
-// Global EntityMappers.
+// _mappers represents a global EntityMappers.
 var _mappers = New()
 
-// Add a EntityMapper to global EntityMappers.
+// AddMapper adds an EntityMapper to EntityMappers.
 func AddMapper(mapper *EntityMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// Add some EntityMapper to global EntityMappers.
+// AddMappers adds some EntityMapper to EntityMappers.
 func AddMappers(mappers ...*EntityMapper) {
 	_mappers.AddMappers(mappers...)
 }
 
-// Get a EntityMapper from global EntityMappers.
+// GetMapper returns the EntityMapper from EntityMappers.
 func GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
 	return _mappers.GetMapper(from, to)
 }
 
-// Set `to` property from `from`.
+// MapProp maps properties from `from` to `to`.
 func MapProp(from interface{}, to interface{}, options ...MapFunc) error {
 	return _mappers.MapProp(from, to, options...)
 }
 
-// Generate a `to` from `from`.
+// Map generates a `to` from `from`.
 func Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.Map(from, to, options...)
 }
 
-// Generate a `to` slice from `from` slice.
+// MapSlice generates a `to` slice from `from` slice.
 func MapSlice(from interface{}, to interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.MapSlice(from, to, options...)
 }
 
-// Must version of MapProp, panic if not found.
+// MustMapProp is the must version of MapProp, panic if error.
 func MustMapProp(from interface{}, to interface{}, options ...MapFunc) {
 	_mappers.MustMapProp(from, to, options...)
 }
 
-// Must version of Map, panic if not found.
+// Map is the must version of MapProp, panic if error.
 func MustMap(from interface{}, to interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMap(from, to, options...)
 }
 
-// Must version of MapSlice, panic if not found.
+// MapSlice is the must version of MapProp, panic if error.
 func MustMapSlice(from interface{}, to interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMapSlice(from, to, options...)
 }

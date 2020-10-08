@@ -51,7 +51,7 @@ func New() *PropertyMappers {
 // NewMapper creates a PropertyMapper.
 func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMapper {
 	if from == nil || to == nil {
-		panic("model type should not be nil")
+		panic("model must not be nil")
 	}
 	if dict == nil {
 		dict = make(PropertyDict)
@@ -92,7 +92,7 @@ func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
 	}
 }
 
-// GetDict returns the PropertyDict in PropertyMapper.
+// GetDict returns the PropertyDict from PropertyMapper.
 func (p *PropertyMapper) GetDict() PropertyDict {
 	return p.dict
 }
@@ -106,7 +106,7 @@ func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*Property
 			return mapper, nil
 		}
 	}
-	return nil, fmt.Errorf("mapper type not found")
+	return nil, fmt.Errorf("mapper is not found")
 }
 
 // GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns a empty PropertyMapper if not found.

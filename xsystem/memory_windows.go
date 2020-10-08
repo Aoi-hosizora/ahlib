@@ -25,15 +25,15 @@ func sysTotalMemory() uint64 {
 	if err != nil {
 		return 0
 	}
+
 	// GetPhysicallyInstalledSystemMemory is simpler, but broken on
 	// older versions of windows (and uses this under the hood anyway).
 	globalMemoryStatusEx, err := kernel32.FindProc("GlobalMemoryStatusEx")
 	if err != nil {
 		return 0
 	}
-	msx := &memStatusEx{
-		dwLength: 64,
-	}
+
+	msx := &memStatusEx{dwLength: 64}
 	r, _, _ := globalMemoryStatusEx.Call(uintptr(unsafe.Pointer(msx)))
 	if r == 0 {
 		return 0

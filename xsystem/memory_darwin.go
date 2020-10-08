@@ -24,6 +24,7 @@ func sysctlUint64(name string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	// hack because the string conversion above drops a \0
 	b := []byte(s)
 	if len(b) < 8 {

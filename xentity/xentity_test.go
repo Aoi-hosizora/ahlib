@@ -1,200 +1,230 @@
 package xentity
 
 import (
-	"github.com/Aoi-hosizora/ahlib/xcondition"
-	"github.com/Aoi-hosizora/ahlib/xslice"
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"log"
 	"testing"
-	"time"
 )
 
-type Param struct {
-	FirstName string
-	LastName  string
+type testPo struct {
+	I int64
+	U uint64
+	F float64
+	S string
+	B bool
+	P *int
+	A interface{}
+
+	Error     error
+	Func      func() int
+	IntSlice  []int64
+	UintArr   [3]uint64
+	StringMap map[string]bool
+
+	Useless1 int8
+	Useless2 chan int
 }
 
-type Po struct {
-	Id        int
-	FirstName string
-	LastName  string
-	Score     float32
-	Info      *InfoPo
+var (
+	ptr     = 1
+	testPo_ = &testPo{
+		I:         1,
+		U:         1,
+		F:         1,
+		S:         "1",
+		B:         true,
+		P:         &ptr,
+		A:         1,
+		Error:     fmt.Errorf("1"),
+		Func:      func() int { return 1 },
+		IntSlice:  []int64{1, 2, 3},
+		UintArr:   [3]uint64{1, 2, 3},
+		StringMap: map[string]bool{"1": true, "2": false, "3": true},
+		Useless1:  10,
+		Useless2:  make(chan int),
+	}
+)
+
+type testDto struct {
+	I int64
+	U uint64
+	F float64
+	S string
+	B bool
+	P *int
+	A interface{}
+
+	Error     error
+	Func      func() int
+	IntSlice  []int64
+	UintArr   [4]uint64
+	StringMap map[string]bool
 }
 
-type InfoPo struct {
-	Count    int
-	Birthday time.Time
+func testDtoCtor() interface{} {
+	return &testDto{}
 }
 
-type Dto struct {
-	Id    int
-	Name  string
-	Score int
-	Info  *InfoDto
-}
+func testMapFunc(from interface{}, to interface{}) error {
+	po := from.(*testPo)
+	dto := to.(*testDto)
 
-type InfoDto struct {
-	CountAddOne int
-	Age         int
-}
-
-func TestEntityMapper(t *testing.T) {
-	entityMapper := New()
-	entityMapper.AddMapper(NewMapper(&InfoPo{}, func() interface{} { return &InfoDto{} }, func(from interface{}, to interface{}) error {
-		po := from.(*InfoPo)
-		dto := to.(*InfoDto)
-		dto.CountAddOne = po.Count + 1
-		dto.Age = time.Now().Year() - po.Birthday.Year()
-		return nil
-	}))
-	entityMapper.AddMapper(NewMapper(&Po{}, func() interface{} { return &Dto{} }, func(from interface{}, to interface{}) error {
-		po := from.(*Po)
-		dto := to.(*Dto)
-		dto.Id = po.Id
-		dto.Name = po.LastName + " " + po.FirstName
-		dto.Score = int(po.Score)
-		dto.Info = xcondition.First(entityMapper.Map(po.Info, &InfoDto{})).(*InfoDto)
-		return nil
-	}))
-	entityMapper.AddMapper(NewMapper(&Param{}, func() interface{} { return &Po{} }, func(from interface{}, to interface{}) error {
-		param := from.(*Param)
-		po := to.(*Po)
-		po.FirstName = param.FirstName
-		po.LastName = param.LastName
-		return nil
-	}))
-
-	param := &Param{
-		FirstName: "First",
-		LastName:  "Last",
-	}
-	po := &Po{
-		Id: 1, Score: 9.8,
-		Info: &InfoPo{Count: 20, Birthday: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.Local)},
-	}
-
-	po1 := &Po{
-		Id: 1, FirstName: "First", LastName: "Last", Score: 9.8,
-		Info: &InfoPo{Count: 20, Birthday: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.Local)},
-	}
-	dto11 := &Dto{
-		Id: 1, Name: "Last First Last", Score: 10,
-		Info: &InfoDto{CountAddOne: 21, Age: 20},
-	}
-	dto1 := &Dto{
-		Id: 1, Name: "Last First", Score: 20,
-		Info: &InfoDto{CountAddOne: 21, Age: 20},
-	}
-
-	po2 := &Po{
-		Id: 2, FirstName: "First2", LastName: "Last2", Score: 0.1,
-		Info: &InfoPo{Count: 1, Birthday: time.Date(2019, time.January, 1, 0, 0, 0, 0, time.Local)},
-	}
-	dto2 := &Dto{
-		Id: 2, Name: "Last2 First2", Score: 20,
-		Info: &InfoDto{CountAddOne: 2, Age: 1},
+	dto.I = po.I + 1
+	dto.U = po.U + 1
+	dto.F = po.F + 1
+	dto.S = po.S + "_"
+	dto.B = !po.B
+	p := *po.P + 1
+	dto.P = &p
+	dto.A = "hhh"
+	dto.Error = fmt.Errorf("%s_", po.Error.Error())
+	dto.Func = func() int { return po.Func() + 1 }
+	dto.IntSlice = append(po.IntSlice, 1)
+	dto.UintArr = [4]uint64{po.UintArr[0], po.UintArr[1], po.UintArr[2], 1}
+	dto.StringMap = make(map[string]bool)
+	for k, v := range po.StringMap {
+		dto.StringMap[k] = !v
 	}
 
-	poArr := []*Po{po1, po2}
-	dtoArr := []*Dto{dto1, dto2}
-
-	err := entityMapper.MapProp(param, po)
-	log.Println(po, err)
-	xtesting.Equal(t, po, po1)
-
-	dtoOut, err := entityMapper.Map(po1, &Dto{}, func(from interface{}, to interface{}) error {
-		po := from.(*Po)
-		dto := to.(*Dto)
-		dto.Score = int(po.Score + 0.2)
-		dto.Name += " " + po.LastName
-		return nil
-	})
-	log.Println(dtoOut, err)
-	xtesting.Equal(t, dtoOut.(*Dto), dto11)
-
-	dtoArrOut, err := entityMapper.MapSlice(xslice.Sti(poArr), &Dto{}, func(from interface{}, to interface{}) error {
-		dto := to.(*Dto)
-		dto.Score = 20
-		return nil
-	})
-	log.Println(dtoArrOut, err)
-	xtesting.Equal(t, dtoArrOut.([]*Dto), dtoArr)
-}
-
-type po struct {
-	Int    int64
-	String string
-	Float  float64
-	Array  []int
-}
-
-type dto struct {
-	Int    int32
-	String []byte
-	Float  float32
-	Array  []int
-}
-
-func (d *dto) Source() interface{} {
-	return &po{}
-}
-
-func (d *dto) Ctor() interface{} {
-	return &dto{}
-}
-
-func (d *dto) MapFrom(source interface{}) error {
-	p := source.(*po)
-	d.Int = int32(p.Int)
-	d.String = []byte(p.String)
-	d.Float = float32(p.Float)
-	d.Array = p.Array
 	return nil
 }
 
-func TestMappable(t *testing.T) {
-	AddMapper(NewMapperByMappable(&dto{})) // X
-	AddMappers(NewMapperByMappable(&dto{}))
+func testMapOption(from interface{}, to interface{}) error {
+	po := from.(*testPo)
+	dto := to.(*testDto)
+	dto.I = po.I + 2
+	return nil
+}
 
-	p := &po{
-		Int:    5,
-		String: "テスト",
-		Float:  5.,
-		Array:  []int{1, 2, 3},
-	}
-	d, err := Map(p, &dto{})
-	log.Println(d, err)
+func testMapFuncErr(interface{}, interface{}) error {
+	return fmt.Errorf("test error")
+}
 
-	d = &dto{}
-	err = MapProp(p, d)
-	log.Println(d, err)
+func TestGetMapper(t *testing.T) {
+	p := 0
+	mapper, err := GetMapper(0, 0)
+	xtesting.Nil(t, mapper)
+	xtesting.NotNil(t, err)
 
-	ds, err := MapSlice([]*po{p, p}, &dto{})
-	log.Println(ds, err)
+	f := func(from interface{}, to interface{}) error { return nil }
+	xtesting.Panic(t, func() { NewMapper(nil, func() interface{} { return &testDto{} }, f) })
+	xtesting.Panic(t, func() { NewMapper(&testPo{}, nil, f) })
+	xtesting.Panic(t, func() { NewMapper(&testPo{}, func() interface{} { return nil }, f) })
+	xtesting.Panic(t, func() { NewMapper(&testPo{}, func() interface{} { return &testDto{} }, nil) })
+	xtesting.Panic(t, func() { NewMapper(0, func() interface{} { return &testDto{} }, f) })
+	xtesting.Panic(t, func() { NewMapper(&testPo{}, func() interface{} { return 0 }, f) })
+	xtesting.Panic(t, func() { NewMapper(&p, func() interface{} { return &testDto{} }, f) })
+	xtesting.Panic(t, func() { NewMapper(&testPo{}, func() interface{} { return &p }, f) })
 
-	log.Println(GetMapper(&po{}, &dto{}))
+	mapper = NewMapper(&testPo{}, func() interface{} { return &testDto{} }, func(from interface{}, to interface{}) error { return fmt.Errorf("a") })
+	xtesting.NotNil(t, mapper)
+	xtesting.Equal(t, mapper.GetMapFunc()(0, 0), fmt.Errorf("a"))
 
-	d1 := MustMap(p, &dto{}).(*dto)
-	xtesting.Equal(t, d1.Int, int32(5))
-	xtesting.Equal(t, d1.String, []byte("テスト"))
-	xtesting.Equal(t, d1.Float, float32(5.))
-	xtesting.Equal(t, d1.Array, []int{1, 2, 3})
+	AddMapper(mapper)
+	mapper2, err := GetMapper(&testPo{}, &testDto{})
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, mapper2, mapper)
 
-	d1 = &dto{}
-	MustMapProp(p, d1, func(from interface{}, to interface{}) error {
-		to.(*dto).Int++
-		return nil
-	})
-	xtesting.Equal(t, d1.Int, int32(6))
-	xtesting.Equal(t, d1.String, []byte("テスト"))
-	xtesting.Equal(t, d1.Float, float32(5.))
-	xtesting.Equal(t, d1.Array, []int{1, 2, 3})
+	mapper2 = NewMapper(&testPo{}, func() interface{} { return &testDto{} }, func(from interface{}, to interface{}) error { return fmt.Errorf("b") })
+	AddMappers(mapper, mapper2)
+	mapper2, _ = GetMapper(&testPo{}, &testDto{})
+	xtesting.Equal(t, mapper2.GetMapFunc()(0, 0), fmt.Errorf("b"))
+}
 
-	dd := MustMapSlice([]*po{p, p}, &dto{}).([]*dto)
-	xtesting.Equal(t, len(dd), 2)
-	xtesting.Equal(t, dd[0].Int, int32(5))
-	xtesting.Equal(t, dd[0].String, []byte("テスト"))
-	xtesting.Equal(t, dd[0].Float, float32(5.))
-	xtesting.Equal(t, dd[0].Array, []int{1, 2, 3})
+func TestMapProp(t *testing.T) {
+	err := MapProp(0, 0)
+	xtesting.NotNil(t, err)
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFunc))
+	from := testPo_
+	to := &testDto{}
+	err = MapProp(from, to, testMapOption)
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, to.I, int64(3))
+	xtesting.Equal(t, to.U, uint64(2))
+	xtesting.Equal(t, to.F, 2.0)
+	xtesting.Equal(t, to.S, "1_")
+	xtesting.Equal(t, to.B, false)
+	xtesting.Equal(t, *to.P, 2)
+	xtesting.Equal(t, to.A, "hhh")
+	xtesting.Equal(t, to.Error.Error(), "1_")
+	xtesting.Equal(t, to.Func(), 2)
+	xtesting.Equal(t, to.IntSlice, []int64{1, 2, 3, 1})
+	xtesting.Equal(t, to.UintArr, [4]uint64{1, 2, 3, 1})
+	xtesting.Equal(t, to.StringMap, map[string]bool{"1": false, "2": true, "3": false})
+
+	err = MapProp(from, to, testMapOption, testMapFuncErr)
+	xtesting.NotNil(t, err)
+	xtesting.Equal(t, err.Error(), "test error")
+	xtesting.Panic(t, func() { MustMapProp(from, to, testMapFuncErr) })
+	xtesting.NotPanic(t, func() { MustMapProp(from, to) })
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFuncErr))
+	to = &testDto{}
+	err = MapProp(from, to)
+	xtesting.NotNil(t, err)
+}
+
+func TestMap(t *testing.T) {
+	i, err := Map(0, 0)
+	xtesting.Nil(t, i)
+	xtesting.NotNil(t, err)
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFunc))
+	from := testPo_
+	to := &testDto{}
+	toi, err := Map(from, to, testMapOption)
+	to = toi.(*testDto)
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, to.I, int64(3))
+	xtesting.Equal(t, to.U, uint64(2))
+	xtesting.Equal(t, to.F, 2.0)
+	xtesting.Equal(t, to.S, "1_")
+	xtesting.Equal(t, to.B, false)
+	xtesting.Equal(t, *to.P, 2)
+	xtesting.Equal(t, to.A, "hhh")
+	xtesting.Equal(t, to.Error.Error(), "1_")
+	xtesting.Equal(t, to.Func(), 2)
+	xtesting.Equal(t, to.IntSlice, []int64{1, 2, 3, 1})
+	xtesting.Equal(t, to.UintArr, [4]uint64{1, 2, 3, 1})
+	xtesting.Equal(t, to.StringMap, map[string]bool{"1": false, "2": true, "3": false})
+
+	_, err = Map(from, to, testMapOption, testMapFuncErr)
+	xtesting.NotNil(t, err)
+	xtesting.Equal(t, err.Error(), "test error")
+	xtesting.Panic(t, func() { MustMap(from, to, testMapFuncErr) })
+	xtesting.NotPanic(t, func() { MustMap(from, to) })
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFuncErr))
+	_, err = Map(from, to)
+	xtesting.NotNil(t, err)
+}
+
+func TestMapSlice(t *testing.T) {
+	i, err := MapSlice([]int{0}, 0)
+	xtesting.Nil(t, i)
+	xtesting.NotNil(t, err)
+
+	i, err = MapSlice([]int{}, 0)
+	xtesting.Equal(t, i, []int{})
+	xtesting.Nil(t, err)
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFunc))
+	from := []*testPo{testPo_, testPo_, testPo_}
+	i, err = MapSlice(from, &testDto{})
+	to := i.([]*testDto)
+	xtesting.Equal(t, len(to), 3)
+	xtesting.Equal(t, to[0].I, int64(2))
+	xtesting.Equal(t, to[1].U, uint64(2))
+	xtesting.Equal(t, to[2].F, 2.0)
+
+	_, err = MapSlice(from, &testDto{}, testMapOption, testMapFuncErr)
+	xtesting.NotNil(t, err)
+	xtesting.Equal(t, err.Error(), "test error")
+	xtesting.Panic(t, func() { MustMapSlice(from, &testDto{}, testMapFuncErr) })
+	xtesting.NotPanic(t, func() { MustMapSlice(from, &testDto{}) })
+
+	AddMapper(NewMapper(&testPo{}, testDtoCtor, testMapFuncErr))
+	_, err = MapSlice(from, &testDto{})
+	xtesting.NotNil(t, err)
 }

@@ -5,16 +5,8 @@ import (
 	"testing"
 )
 
-type testType struct {
-	i int64
-	u uint64
-	f float64
-	s string
-	b bool
-}
-
 func TestPropertyMappers(t *testing.T) {
-	typ := &testType{}
+	typ := 0
 
 	mapper, err := GetMapper(typ, typ)
 	xtesting.Empty(t, mapper)

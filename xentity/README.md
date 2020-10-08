@@ -8,15 +8,14 @@
 
 ### Functions
 
-+ `type MapFunc func(from interface{}, to interface{}) error`
-+ `type Mappable interface {}`
 + `type EntityMappers struct {}`
 + `type EntityMapper struct {}`
++ `type MapFunc func(from interface{}, to interface{}) error`
 + `New() *EntityMappers`
 + `NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper`
-+ `NewMapperByMappable(mappable Mappable) *EntityMapper`
 + `(e *EntityMappers) AddMapper(mapper *EntityMapper)`
 + `(e *EntityMappers) AddMappers(mappers ...*EntityMapper)`
++ `(e *EntityMapper) GetMapFunc() MapFunc`
 + `(e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error)`
 + `(e *EntityMappers) MapProp(from interface{}, to interface{}, options ...MapFunc) error`
 + `(e *EntityMappers) Map(from interface{}, toModel interface{}, options ...MapFunc) (interface{}, error)`
