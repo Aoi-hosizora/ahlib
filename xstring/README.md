@@ -28,3 +28,6 @@
 + `MaskToken(token string) string`
 + `StringToBytes(str string) []byte`
 + `BytesToString(bs []byte) string`
++ `MapSliceToMap(m map[string][]string) map[string]string`
++ `MapToMapSlice(m map[string]string) map[string][]string`
++ `QueryString(values map[string][]string) string`

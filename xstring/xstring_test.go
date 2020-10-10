@@ -209,3 +209,32 @@ func TestBytesToString(t *testing.T) {
 	xtesting.Equal(t, str01, str1)
 	xtesting.Equal(t, str02, str2)
 }
+
+func TestMapToMapWithSlice(t *testing.T) {
+	xtesting.Equal(t, MapToMapSlice(map[string]string{}), map[string][]string{})
+	xtesting.Equal(t, MapToMapSlice(map[string]string{"a": "b"}), map[string][]string{"a": {"b"}})
+	xtesting.Equal(t, MapToMapSlice(map[string]string{"a": "b", "c": "d"}), map[string][]string{"a": {"b"}, "c": {"d"}})
+
+	xtesting.Equal(t, MapSliceToMap(map[string][]string{}), map[string]string{})
+	xtesting.Equal(t, MapSliceToMap(map[string][]string{"a": {}}), map[string]string{})
+	xtesting.Equal(t, MapSliceToMap(map[string][]string{"a": {"b"}}), map[string]string{"a": "b"})
+	xtesting.Equal(t, MapSliceToMap(map[string][]string{"a": {"b", "c"}}), map[string]string{"a": "c"})
+	xtesting.Equal(t, MapSliceToMap(map[string][]string{"a": {"b", "c"}, "d": {"e", "f", "g"}, "h": {}}), map[string]string{"a": "c", "d": "g"})
+}
+
+func TestQueryString(t *testing.T) {
+	m1 := map[string][]string{}
+	xtesting.Equal(t, QueryString(m1), "")
+
+	m2 := map[string][]string{"a": {}}
+	xtesting.Equal(t, QueryString(m2), "")
+
+	m3 := map[string][]string{"a": {"b"}}
+	xtesting.Equal(t, QueryString(m3), "a=b")
+
+	m4 := map[string][]string{"a": {"b"}, "b": {"c"}}
+	xtesting.Equal(t, QueryString(m4), "a=b&b=c")
+
+	m5 := map[string][]string{"a": {"a1", "a2", "a3"}, "b": {"b1", "b2", "b3"}}
+	xtesting.Equal(t, QueryString(m5), "a=a1&a=a2&a=a3&b=b1&b=b2&b=b3")
+}

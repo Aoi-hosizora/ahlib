@@ -7,6 +7,7 @@ import (
 )
 
 func TestForceColor(t *testing.T) {
+	EnableColor()
 	ForceColor()
 	fmt.Println("test")
 	fmt.Printf(FullColorTpl+"\n", 32, "test")
@@ -60,6 +61,7 @@ func TestColor(t *testing.T) {
 }
 
 func TestPrint(t *testing.T) {
+	EnableColor()
 	for _, color := range []Color{
 		Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default,
 	} {

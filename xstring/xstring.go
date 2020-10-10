@@ -3,11 +3,13 @@ package xstring
 import (
 	"math/rand"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unsafe"
 )
 
+// Capitalize capitalizes string.
 func Capitalize(str string) string {
 	if len(str) == 0 {
 		return ""
@@ -15,6 +17,7 @@ func Capitalize(str string) string {
 	return strings.ToUpper(ChatAt(str, 0)) + SubStringFrom(str, 1)
 }
 
+// Uncapitalize uncapitalizes string.
 func Uncapitalize(str string) string {
 	if len(str) == 0 {
 		return ""
@@ -22,6 +25,7 @@ func Uncapitalize(str string) string {
 	return strings.ToLower(ChatAt(str, 0)) + SubStringFrom(str, 1)
 }
 
+// RemoveSpaces removes ` ` `\n` `\t` from string.
 func RemoveSpaces(str string) string {
 	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
 	str = r.ReplaceAllString(str, " ")
@@ -199,4 +203,46 @@ func BytesToString(bs []byte) string {
 		return ""
 	}
 	return *(*string)(unsafe.Pointer(&bs))
+}
+
+// MapSliceToMap returns map[string]string to map[string][]string.
+func MapSliceToMap(m map[string][]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range m {
+		if l := len(v); l > 0 {
+			out[k] = v[l-1]
+		}
+	}
+	return out
+}
+
+// MapToMapSlice returns map[string][]string to map[string]string.
+func MapToMapSlice(m map[string]string) map[string][]string {
+	out := make(map[string][]string)
+	for k, v := range m {
+		out[k] = []string{v}
+	}
+	return out
+}
+
+func QueryString(values map[string][]string) string {
+	keys := make([]string, 0, len(values))
+	for k := range values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	sb := strings.Builder{}
+	for _, k := range keys {
+		for _, v := range values[k] {
+			if sb.Len() > 0 {
+				sb.WriteString("&")
+			}
+			sb.WriteString(k)
+			sb.WriteString("=")
+			sb.WriteString(v)
+		}
+	}
+
+	return sb.String()
 }
