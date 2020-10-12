@@ -46,7 +46,17 @@ func ParseTimeZone(zone string) (*time.Location, error) {
 func MoveToZone(t time.Time, zone string) (time.Time, error) {
 	loc, err := ParseTimeZone(zone)
 	if err != nil {
-		return t, err
+		return time.Time{}, err
+	}
+
+	return t.In(loc), nil
+}
+
+// Move time to specific timezone.
+func MoveToLocation(t time.Time, location string) (time.Time, error) {
+	loc, err := time.LoadLocation(location)
+	if err != nil {
+		return time.Time{}, err
 	}
 
 	return t.In(loc), nil

@@ -29,7 +29,7 @@
 + xsystem
 + **xtime**
 + xzone
-+ xtesting
++ **xtesting**
 + xregexp
 + xstatus
 
