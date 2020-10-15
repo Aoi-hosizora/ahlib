@@ -8,12 +8,12 @@ import (
 type LogLevel int8
 
 const (
-	LogSilent LogLevel = 1 << iota
-	LogName
+	LogName LogLevel = 1 << iota
 	LogType
 	LogImpl
 	LogInject
-	LogAll = LogName | LogType | LogImpl | LogInject
+	LogAll    = LogName | LogType | LogImpl | LogInject
+	LogSilent = LogLevel(0)
 )
 
 // Logger represents xdi.DiContainer's logger function.

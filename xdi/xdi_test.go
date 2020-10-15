@@ -196,6 +196,13 @@ func TestInject(t *testing.T) {
 }
 
 func TestLogger(t *testing.T) {
+	xtesting.EqualValue(t, LogSilent, 0) // 0000
+	xtesting.EqualValue(t, LogName, 1)   // 0001
+	xtesting.EqualValue(t, LogType, 2)   // 0010
+	xtesting.EqualValue(t, LogImpl, 4)   // 0100
+	xtesting.EqualValue(t, LogInject, 8) // 1000
+	xtesting.EqualValue(t, LogAll, 15)   // 1111
+
 	type a struct {
 		A string `di:"a"`
 	}

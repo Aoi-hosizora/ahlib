@@ -78,23 +78,30 @@ func TestRandLetterNumberString(t *testing.T) {
 }
 
 func TestPrettifyJson(t *testing.T) {
-	from := "{\"a\": \"b\", \"c\": {\"d\": \"e\", \"f\": 0}, \"g\": [{\"h\": 1}, {\"h\": 1}]}"
-	to := "{\n" +
-		"    \"a\": \"b\",\n" +
-		"    \"c\": {\n" +
-		"        \"d\": \"e\",\n" +
-		"        \"f\": 0\n" +
-		"    },\n" +
-		"    \"g\": [\n" +
-		"        {\n" +
-		"            \"h\": 1\n" +
-		"        },\n" +
-		"        {\n" +
-		"            \"h\": 1\n" +
-		"        }\n" +
-		"    ]\n" +
-		"}"
+	from := `{"a":"b","c":{"d":"e","f":0},"g":[{"h":1},{"h":2}],"i":[{}],"j":[]}`
+	to := `{
+    "a": "b",
+    "c": {
+        "d": "e",
+        "f": 0
+    },
+    "g": [
+        {
+            "h": 1
+        },
+        {
+            "h": 2
+        }
+    ],
+    "i": [
+        {}
+    ],
+    "j": []
+}`
 	xtesting.Equal(t, PrettifyJson(from, 4, " "), to)
+	xtesting.Equal(t, PrettifyJson("", 4, " "), "")
+	xtesting.Equal(t, PrettifyJson("{}", 4, " "), "{}")
+	xtesting.Equal(t, PrettifyJson("[]", 4, " "), "[]")
 }
 
 func TestToSnakeCase(t *testing.T) {

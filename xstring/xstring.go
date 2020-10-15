@@ -86,35 +86,38 @@ func ToSnakeCase(str string) string {
 }
 
 func PrettifyJson(jsonString string, intent int, char string) string {
-	repeat := func(count int, char string) string {
-		out := ""
-		for idx := 0; idx < count; idx++ {
-			out += char
-		}
-		return out
-	}
-
 	curr := 0
-	out := ""
-	for _, c := range jsonString {
+	sb := strings.Builder{}
+	jsonString = RemoveSpaces(jsonString)
+	l := len(jsonString)
+	for idx, c := range jsonString {
 		switch c {
 		case '{', '[':
 			curr++
-			out += string(c) + "\n" + repeat(curr*intent, char)
+			sb.WriteRune(c)
+			if idx+1 < l && jsonString[idx+1] != '}' && jsonString[idx+1] != ']' {
+				sb.WriteString("\n")
+				sb.WriteString(strings.Repeat(char, curr*intent))
+			}
 		case '}', ']':
 			curr--
-			out += "\n" + repeat(curr*intent, char) + string(c)
+			if idx-1 > -1 && jsonString[idx-1] != '{' && jsonString[idx-1] != '[' {
+				sb.WriteString("\n")
+				sb.WriteString(strings.Repeat(char, curr*intent))
+			}
+			sb.WriteRune(c)
 		case ',':
-			out += ",\n" + repeat(curr*intent, char)
+			sb.WriteString(",\n")
+			sb.WriteString(strings.Repeat(char, curr*intent))
 		case ':':
-			out += ": "
-		case ' ', '\n', '\t':
-			// pass
+			sb.WriteString(": ")
+		// case ' ', '\n', '\t':
+		// 	// pass
 		default:
-			out += string(c)
+			sb.WriteRune(c)
 		}
 	}
-	return out
+	return sb.String()
 }
 
 func CurrentTimeUuid(count int) string {
@@ -175,17 +178,17 @@ func MaskToken(token string) string {
 	case 0:
 		return ""
 	case 1:
-		return "*"
+		return "*" // *
 	case 2:
-		return "*" + string(r[1:])
+		return "*" + string(r[1:]) // *1
 	case 3:
-		return "**" + string(r[2:3])
+		return "**" + string(r[2:3]) // **2
 	case 4:
-		return string(r[0:1]) + "**" + string(r[3:4])
+		return string(r[0:1]) + "**" + string(r[3:4]) // 0**3
 	case 5:
-		return string(r[0:1]) + "***" + string(r[4:5])
+		return string(r[0:1]) + "***" + string(r[4:5]) // 0***4
 	default:
-		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:]) // <<< Default
+		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:]) // 01***56
 	}
 }
 
