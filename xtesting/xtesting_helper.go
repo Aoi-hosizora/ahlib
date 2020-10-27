@@ -298,3 +298,20 @@ func calcDeltaInEps(expected, actual interface{}, eps float64) (bool, float64, e
 	actualEps := math.Abs(expectedFloat - actualFloat)
 	return actualEps <= eps, actualEps, nil
 }
+
+// messageFromMsgAndArgs generates messages from args.
+func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
+	if len(msgAndArgs) == 0 {
+		return ""
+	}
+
+	if len(msgAndArgs) == 1 {
+		msg := msgAndArgs[0]
+		if msgAsStr, ok := msg.(string); ok {
+			return msgAsStr
+		}
+		return fmt.Sprintf("%+v", msg)
+	}
+
+	return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+}

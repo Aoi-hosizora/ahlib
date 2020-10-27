@@ -6,7 +6,7 @@ import (
 )
 
 // IufsFlag represents Iufs and IufSize flags.
-// Includes: Int, Uint, Float, String.
+// Includes: Int, Uint, Float, Complex, String.
 type IufsFlag int8
 
 const (
@@ -17,7 +17,7 @@ const (
 	String                  // Represent string.
 )
 
-// Iufs represents the actual value of some simple type.
+// Iufs represents the actual value of some simple types.
 // Includes:
 // 	1. Int: int, int8 (byte), int16, int32 (rune), int64, bool.
 // 	2. Uint: uint, uint8, uint16, uint32, uint64, uintptr.
@@ -88,7 +88,7 @@ func (i *Iufs) Flag() IufsFlag {
 	return i.flag
 }
 
-// IufSize represents the size of some type.
+// IufSize represents the size of some types.
 // Includes:
 // 	1. Int (value): int, int8 (byte), int16, int32 (rune), int64, bool.
 // 	2. Int (size): string, slice, map, array.
@@ -148,7 +148,7 @@ func (i *IufSize) Flag() IufsFlag {
 	return i.flag
 }
 
-// IufsOf get the Iufs of given argument.
+// IufsOf gets the Iufs of the given argument.
 // Only supports:
 // 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string
 func IufsOf(i interface{}) (*Iufs, error) {
@@ -172,7 +172,7 @@ func IufsOf(i interface{}) (*Iufs, error) {
 
 // IufSizeOf get the IufSize of given argument.
 // Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, bool, string, slice, map, array
+// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, map, array
 func IufSizeOf(i interface{}) (*IufSize, error) {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {

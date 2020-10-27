@@ -8,11 +8,14 @@
 
 + A personal golang library without any third-party library, inspired by [shomali11/util](https://github.com/shomali11/util).
 
-### Example
+### Related libraries
 
-+ See `xxx_test.go`
++ [Aoi-hosizora/ahlib](https://github.com/Aoi-hosizora/ahlib)
++ [Aoi-hosizora/ahlib-more](https://github.com/Aoi-hosizora/ahlib-more)
++ [Aoi-hosizora/ahlib-web](https://github.com/Aoi-hosizora/ahlib-web)
++ [Aoi-hosizora/ahlib-db](https://github.com/Aoi-hosizora/ahlib-db)
 
-### Functions
+### Packages
 
 + xcondition
 + xlinkedhashmap
@@ -36,4 +39,3 @@
 ### Dependency
 
 + Nothing
-

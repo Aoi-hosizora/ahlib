@@ -732,3 +732,38 @@ func TestInDelta(t *testing.T) {
 		}
 	}
 }
+
+func TestMsgAndArgs(t *testing.T) {
+	s := messageFromMsgAndArgs()
+	if s != "" {
+		fail(t)
+	}
+
+	s = messageFromMsgAndArgs("0")
+	if s != "0" {
+		fail(t)
+	}
+
+	s = messageFromMsgAndArgs([]int{1, 2})
+	if s != "[1 2]" {
+		fail(t)
+	}
+
+	s = messageFromMsgAndArgs(nil)
+	if s != "<nil>" {
+		fail(t)
+	}
+
+	s = messageFromMsgAndArgs("a%sc", "b")
+	if s != "abc" {
+		fail(t)
+	}
+
+	mockT := &testing.T{}
+	if failTest(mockT, 1, "a", "") != false {
+		fail(t)
+	}
+	if failTest(mockT, 1, "a", "%%a%s", "b") != false {
+		fail(t)
+	}
+}
