@@ -1,6 +1,7 @@
 package xstring
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"testing"
@@ -244,4 +245,16 @@ func TestQueryString(t *testing.T) {
 
 	m5 := map[string][]string{"a": {"a1", "a2", "a3"}, "b": {"b1", "b2", "b3"}}
 	xtesting.Equal(t, QueryString(m5), "a=a1&a=a2&a=a3&b=b1&b=b2&b=b3")
+}
+
+func TestXXXInterface(t *testing.T) {
+	xtesting.Equal(t, StringInterface(interface{}("a")), "a")
+	xtesting.Equal(t, StringInterface(interface{}(fmt.Errorf("a"))), "a")
+	xtesting.Equal(t, StringInterface(interface{}(0)), "0")
+	xtesting.Equal(t, StringInterface(interface{}(nil)), "<nil>")
+
+	xtesting.Equal(t, ErrorInterface(interface{}("a")).Error(), "a")
+	xtesting.Equal(t, ErrorInterface(interface{}(fmt.Errorf("a"))).Error(), "a")
+	xtesting.Equal(t, ErrorInterface(interface{}(0)).Error(), "0")
+	xtesting.Equal(t, ErrorInterface(interface{}(nil)).Error(), "<nil>")
 }

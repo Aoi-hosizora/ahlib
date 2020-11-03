@@ -1,6 +1,7 @@
 package xstring
 
 import (
+	"fmt"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -248,4 +249,22 @@ func QueryString(values map[string][]string) string {
 	}
 
 	return sb.String()
+}
+
+// StringInterface returns a string value from any interface.
+func StringInterface(i interface{}) string {
+	s, ok := i.(string)
+	if ok {
+		return s
+	}
+	return fmt.Sprintf("%v", i)
+}
+
+// ErrorInterface returns an error value from any interface.
+func ErrorInterface(i interface{}) error {
+	s, ok := i.(error)
+	if ok {
+		return s
+	}
+	return fmt.Errorf("%v", i)
 }

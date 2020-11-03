@@ -6,6 +6,9 @@ const (
 	FsmNone FsmStatus = iota
 	FsmInState
 	FsmFinal
+	FsmTagA
+	FsmTagB
+	FsmTagC
 )
 
 func (f FsmStatus) String() string {
@@ -16,6 +19,12 @@ func (f FsmStatus) String() string {
 		return "fsm-in-state"
 	case FsmFinal:
 		return "fsm-final"
+	case FsmTagA:
+		return "fsm-tag-a"
+	case FsmTagB:
+		return "fsm-tag-b"
+	case FsmTagC:
+		return "fsm-tag-c"
 	default:
 		return "fsm-?"
 	}
