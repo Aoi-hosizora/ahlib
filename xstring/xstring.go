@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 	"unsafe"
 )
 
@@ -267,4 +268,81 @@ func ErrorInterface(i interface{}) error {
 		return s
 	}
 	return fmt.Errorf("%v", i)
+}
+
+// DefaultFormatString returns the default format string of interface, equals to '%v'.
+func DefaultFormatString(i interface{}) string {
+	return fmt.Sprintf("%v", i)
+}
+
+// GoSyntaxString returns the go-syntax representation of interface, equals to '%#v'.
+func GoSyntaxString(i interface{}) string {
+	return fmt.Sprintf("%#v", i)
+}
+
+// IsMark determines whether the rune is a marker
+func IsMark(r rune) bool {
+	return unicode.Is(unicode.Mn, r) || unicode.Is(unicode.Me, r) || unicode.Is(unicode.Mc, r)
+}
+
+// IsEmpty returns true if the string is empty.
+func IsEmpty(text string) bool {
+	return len(text) == 0
+}
+
+// IsNotEmpty returns true if the string is not empty.
+func IsNotEmpty(text string) bool {
+	return !IsEmpty(text)
+}
+
+// IsBlank returns true if the string is blank (all whitespace).
+func IsBlank(text string) bool {
+	return len(strings.TrimSpace(text)) == 0
+}
+
+// IsNotBlank returns true if the string is not blank.
+func IsNotBlank(text string) bool {
+	return !IsBlank(text)
+}
+
+// PadLeft returns the string with length, which is padded by paddingChar in left.
+func PadLeft(str string, paddingChar rune, totalLength int) string {
+	l := len([]rune(str))
+	sp := strings.Builder{}
+	for i := 0; i < totalLength-l; i++ {
+		sp.WriteRune(paddingChar)
+	}
+	sp.WriteString(str)
+	return sp.String()
+}
+
+// PadRight returns the string with length, which is padded by paddingChar in right.
+func PadRight(str string, paddingChar rune, totalLength int) string {
+	l := len([]rune(str))
+	sp := strings.Builder{}
+	sp.WriteString(str)
+	for i := 0; i < totalLength-l; i++ {
+		sp.WriteRune(paddingChar)
+	}
+	return sp.String()
+}
+
+// GetLeft gets the left part of the string with length.
+func GetLeft(str string, length int) string {
+	runes := []rune(str)
+	l := len(runes)
+	if l <= length {
+		return str
+	}
+	return string(runes[:length])
+}
+
+// GetRight gets the right part of the string with length.
+func GetRight(str string, length int) string {
+	runes := []rune(str)
+	l := len(runes)
+	if l <= length {
+		return str
+	}
+	return string(runes[l-length:])
 }

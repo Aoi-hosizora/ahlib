@@ -98,6 +98,7 @@ func GetComplex(i interface{}) (complex128, bool) {
 
 // GetString returns a string value from a string interface.
 func GetString(i interface{}) (string, bool) {
+	// v := reflect.ValueOf(i)
 	s, ok := i.(string)
 	if ok {
 		return s, true
@@ -107,6 +108,7 @@ func GetString(i interface{}) (string, bool) {
 
 // GetBool returns a bool value from a bool interface.
 func GetBool(i interface{}) (bool, bool) {
+	// v := reflect.ValueOf(i)
 	s, ok := i.(bool)
 	if ok {
 		return s, true

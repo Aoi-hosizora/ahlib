@@ -258,3 +258,91 @@ func TestXXXInterface(t *testing.T) {
 	xtesting.Equal(t, ErrorInterface(interface{}(0)).Error(), "0")
 	xtesting.Equal(t, ErrorInterface(interface{}(nil)).Error(), "<nil>")
 }
+
+func TestDefaultFormatString(t *testing.T) {
+	type s struct {
+		A int
+		B string
+		C bool
+		D interface{}
+	}
+	xtesting.Equal(t, DefaultFormatString(1), "1")
+	xtesting.Equal(t, DefaultFormatString("a"), "a")
+	xtesting.Equal(t, DefaultFormatString(false), "false")
+	xtesting.Equal(t, DefaultFormatString(nil), "<nil>")
+	xtesting.Equal(t, DefaultFormatString(DefaultFormatString(&s{A: 1, B: "a", C: false, D: nil})), "&{1 a false <nil>}")
+	xtesting.Equal(t, DefaultFormatString([]interface{}{1, "a", false, nil}), "[1 a false <nil>]")
+}
+
+func TestGoSyntaxString(t *testing.T) {
+	type s struct {
+		A int
+		B string
+		C bool
+		D interface{}
+	}
+	xtesting.Equal(t, GoSyntaxString(1), "1")
+	xtesting.Equal(t, GoSyntaxString("a"), `"a"`)
+	xtesting.Equal(t, GoSyntaxString(false), "false")
+	xtesting.Equal(t, GoSyntaxString(nil), "<nil>")
+	xtesting.Equal(t, GoSyntaxString(&s{A: 1, B: "a", C: false, D: nil}), `&xstring.s{A:1, B:"a", C:false, D:interface {}(nil)}`)
+	xtesting.Equal(t, GoSyntaxString([]interface{}{1, "a", false, nil}), `[]interface {}{1, "a", false, interface {}(nil)}`)
+}
+
+func TestIsMask(t *testing.T) {
+	xtesting.False(t, IsMark([]rune(" ")[0]))
+	xtesting.False(t, IsMark([]rune("a")[0]))
+	xtesting.True(t, IsMark([]rune("\u0301")[0]))
+}
+
+func TestIsEmpty(t *testing.T) {
+	xtesting.True(t, IsEmpty(""))
+	xtesting.False(t, IsEmpty("text"))
+	xtesting.False(t, IsEmpty("	"))
+}
+
+func TestIsNotEmpty(t *testing.T) {
+	xtesting.False(t, IsNotEmpty(""))
+	xtesting.True(t, IsNotEmpty("text"))
+	xtesting.True(t, IsNotEmpty("	"))
+}
+
+func TestIsBlank(t *testing.T) {
+	xtesting.True(t, IsBlank(""))
+	xtesting.True(t, IsBlank("	"))
+	xtesting.False(t, IsBlank("text"))
+}
+
+func TestIsNotBlank(t *testing.T) {
+	xtesting.False(t, IsNotBlank(""))
+	xtesting.False(t, IsNotBlank("	"))
+	xtesting.True(t, IsNotBlank("text"))
+}
+
+func TestPadLeftRight(t *testing.T) {
+	xtesting.Equal(t, PadLeft("test", '0', 4), "test")
+	xtesting.Equal(t, PadLeft("test", '0', 5), "0test")
+	xtesting.Equal(t, PadLeft("test", '0', 6), "00test")
+	xtesting.Equal(t, PadLeft("测试テスト", '零', 6), "零测试テスト")
+
+	xtesting.Equal(t, PadRight("test", '0', 4), "test")
+	xtesting.Equal(t, PadRight("test", '0', 5), "test0")
+	xtesting.Equal(t, PadRight("test", '0', 6), "test00")
+	xtesting.Equal(t, PadRight("测试テスト", '零', 6), "测试テスト零")
+}
+
+func TestGetLeftRight(t *testing.T) {
+	xtesting.Equal(t, GetLeft("", 0), "")
+	xtesting.Equal(t, GetLeft("", 3), "")
+	xtesting.Equal(t, GetLeft("123", 0), "")
+	xtesting.Equal(t, GetLeft("123", 3), "123")
+	xtesting.Equal(t, GetLeft("1234", 3), "123")
+	xtesting.Equal(t, GetLeft("测试テスト", 3), "测试テ")
+
+	xtesting.Equal(t, GetRight("", 0), "")
+	xtesting.Equal(t, GetRight("", 3), "")
+	xtesting.Equal(t, GetRight("123", 0), "")
+	xtesting.Equal(t, GetRight("123", 3), "123")
+	xtesting.Equal(t, GetRight("1234", 3), "234")
+	xtesting.Equal(t, GetRight("测试テスト", 3), "テスト")
+}

@@ -31,3 +31,16 @@
 + `MapSliceToMap(m map[string][]string) map[string]string`
 + `MapToMapSlice(m map[string]string) map[string][]string`
 + `QueryString(values map[string][]string) string`
++ `StringInterface(i interface{}) string`
++ `ErrorInterface(i interface{}) error`
++ `DefaultFormatString(i interface{}) string`
++ `GoSyntaxString(i interface{}) string`
++ `IsMark(r rune) bool`
++ `IsEmpty(text string) bool`
++ `IsNotEmpty(text string) bool`
++ `IsBlank(text string) bool`
++ `IsNotBlank(text string) bool`
++ `PadLeft(str string, paddingChar rune, totalLength int) string`
++ `PadRight(str string, paddingChar rune, totalLength int) string`
++ `GetLeft(str string, length int) string`
++ `GetRight(str string, length int) string`
