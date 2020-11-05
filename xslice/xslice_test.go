@@ -26,18 +26,15 @@ func TestSti(t *testing.T) {
 	for i := 0; i < num; i++ {
 		arr = append(arr, i)
 	}
-	log.Println("[]int:", time.Now().Sub(start).String())
-
-	start = time.Now()
-	itf := make([]interface{}, num)
-	for i := 0; i < num; i++ {
-		itf[i] = arr[i]
-	}
-	log.Println("[]interface{}:", time.Now().Sub(start).String())
+	log.Println("[]int:", time.Now().Sub(start).String()) // 81.7816ms
 
 	start = time.Now()
 	_ = Sti(arr)
-	log.Println("Sti:", time.Now().Sub(start).String())
+	log.Println("Sti:", time.Now().Sub(start).String()) // 271.2762ms
+
+	start = time.Now()
+	_ = StiOfInt(arr)
+	log.Println("StiOfInt:", time.Now().Sub(start).String()) // 141.623ms
 }
 
 func TestIts(t *testing.T) {
@@ -56,20 +53,37 @@ func TestIts(t *testing.T) {
 	for i := 0; i < num; i++ {
 		arr2[i] = arr[i].(int)
 	}
-	log.Println("[]int:", time.Now().Sub(start).String())
+	log.Println("[]int:", time.Now().Sub(start).String()) // 23.9355ms
 
 	start = time.Now()
 	_ = Its(arr, 0)
-	log.Println("Its:", time.Now().Sub(start).String())
+	log.Println("Its:", time.Now().Sub(start).String()) // 230.385ms
 
 	start = time.Now()
 	_ = ItsOfInt(arr)
-	log.Println("ItsOfInt:", time.Now().Sub(start).String())
+	log.Println("ItsOfInt:", time.Now().Sub(start).String()) // 10.9698ms
+}
+
+func TestStiOf(t *testing.T) {
+	xtesting.Equal(t, StiOfInt([]int{1, 2}), []interface{}{1, 2})
+	xtesting.Equal(t, StiOfInt8([]int8{1, 2}), []interface{}{int8(1), int8(2)})
+	xtesting.Equal(t, StiOfInt16([]int16{1, 2}), []interface{}{int16(1), int16(2)})
+	xtesting.Equal(t, StiOfInt32([]int32{1, 2}), []interface{}{int32(1), int32(2)})
+	xtesting.Equal(t, StiOfInt64([]int64{1, 2}), []interface{}{int64(1), int64(2)})
+	xtesting.Equal(t, StiOfUint([]uint{1, 2}), []interface{}{uint(1), uint(2)})
+	xtesting.Equal(t, StiOfUint8([]uint8{1, 2}), []interface{}{uint8(1), uint8(2)})
+	xtesting.Equal(t, StiOfUint16([]uint16{1, 2}), []interface{}{uint16(1), uint16(2)})
+	xtesting.Equal(t, StiOfUint32([]uint32{1, 2}), []interface{}{uint32(1), uint32(2)})
+	xtesting.Equal(t, StiOfUint64([]uint64{1, 2}), []interface{}{uint64(1), uint64(2)})
+	xtesting.Equal(t, StiOfFloat32([]float32{0.1, 2.0}), []interface{}{float32(0.1), float32(2.0)})
+	xtesting.Equal(t, StiOfFloat64([]float64{0.1, 2.0}), []interface{}{0.1, 2.0})
+	xtesting.Equal(t, StiOfByte([]byte{'1', '2'}), []interface{}{byte('1'), byte('2')})
+	xtesting.Equal(t, StiOfRune([]rune{'1', '2'}), []interface{}{'1', '2'})
+	xtesting.Equal(t, StiOfString([]string{"1", "2"}), []interface{}{"1", "2"})
+	xtesting.Equal(t, StiOfBool([]bool{false, true}), []interface{}{false, true})
 }
 
 func TestItsOf(t *testing.T) {
-	xtesting.Equal(t, ItsToString([]interface{}{1, 2, 3}), []string{"1", "2", "3"})
-	xtesting.Equal(t, ItsOfInt([]interface{}{}), []int{})
 	xtesting.Equal(t, ItsOfInt([]interface{}{1, 2}), []int{1, 2})
 	xtesting.Equal(t, ItsOfInt8([]interface{}{int8(1), int8(2)}), []int8{1, 2})
 	xtesting.Equal(t, ItsOfInt16([]interface{}{int16(1), int16(2)}), []int16{1, 2})
@@ -82,9 +96,10 @@ func TestItsOf(t *testing.T) {
 	xtesting.Equal(t, ItsOfUint64([]interface{}{uint64(1), uint64(2)}), []uint64{1, 2})
 	xtesting.Equal(t, ItsOfFloat32([]interface{}{float32(0.1), float32(2.0)}), []float32{0.1, 2.0})
 	xtesting.Equal(t, ItsOfFloat64([]interface{}{0.1, 2.0}), []float64{0.1, 2.0})
-	xtesting.Equal(t, ItsOfString([]interface{}{"1", "2"}), []string{"1", "2"})
 	xtesting.Equal(t, ItsOfByte([]interface{}{byte('1'), byte('2')}), []byte{'1', '2'})
 	xtesting.Equal(t, ItsOfRune([]interface{}{'1', '2'}), []rune{'1', '2'})
+	xtesting.Equal(t, ItsOfString([]interface{}{"1", "2"}), []string{"1", "2"})
+	xtesting.Equal(t, ItsOfBool([]interface{}{false, true}), []bool{false, true})
 }
 
 func TestShuffle(t *testing.T) {

@@ -1,7 +1,6 @@
 package xslice
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -48,34 +47,130 @@ func Its(slice []interface{}, model interface{}) interface{} {
 	return out.Interface()
 }
 
-func ItsToString(slice []interface{}) []string {
-	out := make([]string, len(slice))
+func StiOfInt(slice []int) []interface{} {
+	out := make([]interface{}, len(slice))
 	for idx := range slice {
-		out[idx] = fmt.Sprintf("%v", slice[idx])
+		out[idx] = slice[idx]
 	}
 	return out
 }
 
-func ItsOfString(slice []interface{}) []string {
-	out := make([]string, len(slice))
+func StiOfInt8(slice []int8) []interface{} {
+	out := make([]interface{}, len(slice))
 	for idx := range slice {
-		out[idx] = slice[idx].(string)
+		out[idx] = slice[idx]
 	}
 	return out
 }
 
-func ItsOfByte(slice []interface{}) []byte {
-	out := make([]byte, len(slice))
+func StiOfInt16(slice []int16) []interface{} {
+	out := make([]interface{}, len(slice))
 	for idx := range slice {
-		out[idx] = slice[idx].(byte)
+		out[idx] = slice[idx]
 	}
 	return out
 }
 
-func ItsOfRune(slice []interface{}) []rune {
-	out := make([]rune, len(slice))
+func StiOfInt32(slice []int32) []interface{} {
+	out := make([]interface{}, len(slice))
 	for idx := range slice {
-		out[idx] = slice[idx].(rune)
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfInt64(slice []int64) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfUint(slice []uint) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfUint8(slice []uint8) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfUint16(slice []uint16) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfUint32(slice []uint32) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfUint64(slice []uint64) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfFloat32(slice []float32) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfFloat64(slice []float64) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfByte(slice []byte) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfRune(slice []rune) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfString(slice []string) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
+	}
+	return out
+}
+
+func StiOfBool(slice []bool) []interface{} {
+	out := make([]interface{}, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx]
 	}
 	return out
 }
@@ -88,26 +183,10 @@ func ItsOfInt(slice []interface{}) []int {
 	return out
 }
 
-func ItsOfUint(slice []interface{}) []uint {
-	out := make([]uint, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint)
-	}
-	return out
-}
-
 func ItsOfInt8(slice []interface{}) []int8 {
 	out := make([]int8, len(slice))
 	for idx := range slice {
 		out[idx] = slice[idx].(int8)
-	}
-	return out
-}
-
-func ItsOfUint8(slice []interface{}) []uint8 {
-	out := make([]uint8, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint8)
 	}
 	return out
 }
@@ -120,14 +199,6 @@ func ItsOfInt16(slice []interface{}) []int16 {
 	return out
 }
 
-func ItsOfUint16(slice []interface{}) []uint16 {
-	out := make([]uint16, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint16)
-	}
-	return out
-}
-
 func ItsOfInt32(slice []interface{}) []int32 {
 	out := make([]int32, len(slice))
 	for idx := range slice {
@@ -136,18 +207,42 @@ func ItsOfInt32(slice []interface{}) []int32 {
 	return out
 }
 
-func ItsOfUint32(slice []interface{}) []uint32 {
-	out := make([]uint32, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint32)
-	}
-	return out
-}
-
 func ItsOfInt64(slice []interface{}) []int64 {
 	out := make([]int64, len(slice))
 	for idx := range slice {
 		out[idx] = slice[idx].(int64)
+	}
+	return out
+}
+
+func ItsOfUint(slice []interface{}) []uint {
+	out := make([]uint, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint)
+	}
+	return out
+}
+
+func ItsOfUint8(slice []interface{}) []uint8 {
+	out := make([]uint8, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint8)
+	}
+	return out
+}
+
+func ItsOfUint16(slice []interface{}) []uint16 {
+	out := make([]uint16, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint16)
+	}
+	return out
+}
+
+func ItsOfUint32(slice []interface{}) []uint32 {
+	out := make([]uint32, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(uint32)
 	}
 	return out
 }
@@ -172,6 +267,38 @@ func ItsOfFloat64(slice []interface{}) []float64 {
 	out := make([]float64, len(slice))
 	for idx := range slice {
 		out[idx] = slice[idx].(float64)
+	}
+	return out
+}
+
+func ItsOfByte(slice []interface{}) []byte {
+	out := make([]byte, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(byte)
+	}
+	return out
+}
+
+func ItsOfRune(slice []interface{}) []rune {
+	out := make([]rune, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(rune)
+	}
+	return out
+}
+
+func ItsOfString(slice []interface{}) []string {
+	out := make([]string, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(string)
+	}
+	return out
+}
+
+func ItsOfBool(slice []interface{}) []bool {
+	out := make([]bool, len(slice))
+	for idx := range slice {
+		out[idx] = slice[idx].(bool)
 	}
 	return out
 }
