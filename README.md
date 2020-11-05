@@ -35,6 +35,7 @@
 + **xtesting**
 + xregexp
 + xstatus
++ xmap
 
 ### Dependency
 
