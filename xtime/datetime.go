@@ -8,7 +8,8 @@ import (
 
 const (
 	RFC3339DateTime = "2006-01-02T15:04:05Z07:00"
-	LocalDateTime   = "2006-01-02 15:04:05"
+	ISO8601DateTime = "2006-01-02T15:04:05-0700"
+	CJKDateTime     = "2006-01-02 15:04:05"
 )
 
 type JsonDateTime time.Time

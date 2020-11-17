@@ -39,7 +39,7 @@ func SetLocation(t time.Time, loc *time.Location) time.Time {
 // GetLocation returns a time.Location for given time. time.Time.Location() will returns a fake location.
 func GetLocation(t time.Time) *time.Location {
 	du := GetLocationDuration(t.Location())
-	return time.FixedZone("", int(du.Seconds()))
+	return time.FixedZone("", int(du.Seconds())) // need to use empty name
 }
 
 // GetLocationDuration returns a time.Location that used for the given time.Location.

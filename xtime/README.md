@@ -23,6 +23,9 @@
 
 #### DateTime
 
++ `const RFC3339DateTime string`
++ `const ISO8601DateTime string`
++ `const CJKDateTime string`
 + `type JsonDateTime time.Time`
 + `NewJsonDateTime(t time.Time) JsonDateTime`
 + `ParseRFC3339DateTime(dateTimeString string) (JsonDateTime, error)`
@@ -30,6 +33,9 @@
 
 #### Date
 
++ `const RFC3339Date string`
++ `const ISO8601Date string`
++ `const CJKDate string`
 + `type JsonDate time.Time`
 + `NewJsonDate(t time.Time) JsonDate`
 + `ParseRFC3339Date(dateString string) (JsonDate, error)`

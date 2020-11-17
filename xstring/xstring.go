@@ -72,9 +72,9 @@ func IsLowercase(char rune) bool {
 	return char >= ToRune("a") && char <= ToRune("z")
 }
 
-func ToSnakeCase(str string) string {
+func ToSnakeCase(s string) string {
 	out := ""
-	newStr := Uncapitalize(str)
+	newStr := Uncapitalize(s)
 	for _, ch := range []rune(newStr) {
 		if IsUppercase(ch) {
 			out += "_" + strings.ToLower(string(ch))
@@ -195,11 +195,11 @@ func MaskToken(token string) string {
 }
 
 // Unsafe case to []byte.
-func StringToBytes(str string) []byte {
-	if str == "" {
+func StringToBytes(s string) []byte {
+	if s == "" {
 		return []byte{}
 	}
-	return *(*[]byte)(unsafe.Pointer(&str))
+	return *(*[]byte)(unsafe.Pointer(&s))
 }
 
 // Unsafe case to string.
@@ -306,21 +306,21 @@ func IsNotBlank(text string) bool {
 }
 
 // PadLeft returns the string with length, which is padded by paddingChar in left.
-func PadLeft(str string, paddingChar rune, totalLength int) string {
-	l := len([]rune(str))
+func PadLeft(s string, paddingChar rune, totalLength int) string {
+	l := len([]rune(s))
 	sp := strings.Builder{}
 	for i := 0; i < totalLength-l; i++ {
 		sp.WriteRune(paddingChar)
 	}
-	sp.WriteString(str)
+	sp.WriteString(s)
 	return sp.String()
 }
 
 // PadRight returns the string with length, which is padded by paddingChar in right.
-func PadRight(str string, paddingChar rune, totalLength int) string {
-	l := len([]rune(str))
+func PadRight(s string, paddingChar rune, totalLength int) string {
+	l := len([]rune(s))
 	sp := strings.Builder{}
-	sp.WriteString(str)
+	sp.WriteString(s)
 	for i := 0; i < totalLength-l; i++ {
 		sp.WriteRune(paddingChar)
 	}
@@ -328,21 +328,39 @@ func PadRight(str string, paddingChar rune, totalLength int) string {
 }
 
 // GetLeft gets the left part of the string with length.
-func GetLeft(str string, length int) string {
-	runes := []rune(str)
+func GetLeft(s string, length int) string {
+	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
-		return str
+		return s
 	}
 	return string(runes[:length])
 }
 
 // GetRight gets the right part of the string with length.
-func GetRight(str string, length int) string {
-	runes := []rune(str)
+func GetRight(s string, length int) string {
+	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
-		return str
+		return s
 	}
 	return string(runes[l-length:])
+}
+
+// SliceAndGet returns both plus and minus item in slice.
+func SliceAndGet(sp []string, index int) string {
+	if len(sp) == 0 {
+		return ""
+	}
+	if index >= 0 {
+		return sp[index]
+	} else {
+		return sp[len(sp)+index]
+	}
+}
+
+// SplitAndGet returns both plus and minus item in split result.
+func SplitAndGet(s string, sep string, index int) string {
+	sp := strings.Split(s, sep)
+	return SliceAndGet(sp, index)
 }

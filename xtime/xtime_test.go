@@ -85,9 +85,11 @@ func TestTo(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	_ = RFC3339Date
-	_ = LocalDate
+	_ = ISO8601Date
+	_ = CJKDate
 	_ = RFC3339DateTime
-	_ = LocalDateTime
+	_ = ISO8601DateTime
+	_ = CJKDateTime
 
 	now := time.Now()
 

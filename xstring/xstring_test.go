@@ -346,3 +346,28 @@ func TestGetLeftRight(t *testing.T) {
 	xtesting.Equal(t, GetRight("1234", 3), "234")
 	xtesting.Equal(t, GetRight("测试テスト", 3), "テスト")
 }
+
+func TestSliceAndGet(t *testing.T) {
+	xtesting.Equal(t, SliceAndGet([]string{}, 0), "")
+	xtesting.Equal(t, SliceAndGet([]string{""}, 0), "")
+	xtesting.Equal(t, SliceAndGet([]string{""}, -1), "")
+	xtesting.Equal(t, SliceAndGet([]string{" ", ""}, 0), " ")
+	xtesting.Equal(t, SliceAndGet([]string{" ", ""}, 1), "")
+	xtesting.Equal(t, SliceAndGet([]string{"a", "b", "c"}, 0), "a")
+	xtesting.Equal(t, SliceAndGet([]string{"a", "b", "c"}, -1), "c")
+	xtesting.Equal(t, SliceAndGet([]string{"a", "b", "c"}, -2), "b")
+	xtesting.Equal(t, SliceAndGet([]string{"a", "b", "c"}, -3), "a")
+	xtesting.Panic(t, func() { SliceAndGet([]string{"a", "b", "c"}, -4) })
+}
+
+func TestSplitAndGet(t *testing.T) {
+	xtesting.Equal(t, SplitAndGet("", "", 0), "")
+	xtesting.Equal(t, SplitAndGet(" ", " ", 0), "")
+	xtesting.Equal(t, SplitAndGet("a b", "", 0), "a")
+	xtesting.Equal(t, SplitAndGet("a b", "", -1), "b")
+	xtesting.Equal(t, SplitAndGet("a b", " ", 0), "a")
+	xtesting.Equal(t, SplitAndGet("a b", " ", 1), "b")
+	xtesting.Equal(t, SplitAndGet("a b", " ", -1), "b")
+	xtesting.Equal(t, SplitAndGet("a b", " ", -2), "a")
+	xtesting.Panic(t, func() { SplitAndGet("a b", " ", 2) })
+}

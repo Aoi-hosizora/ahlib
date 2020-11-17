@@ -17,7 +17,7 @@
 + `ToByte(char string) byte`
 + `IsUppercase(char rune) bool`
 + `IsLowercase(char rune) bool`
-+ `ToSnakeCase(str string) string`
++ `ToSnakeCase(s string) string`
 + `PrettifyJson(jsonString string, intent int, char string) string`
 + `CurrentTimeUuid(count int) string`
 + `TimeUuid(t time.Time, count int) string`
@@ -26,7 +26,7 @@
 + `RandNumberString(count int) string`
 + `RandLetterNumberString(count int) string`
 + `MaskToken(token string) string`
-+ `StringToBytes(str string) []byte`
++ `StringToBytes(s string) []byte`
 + `BytesToString(bs []byte) string`
 + `MapSliceToMap(m map[string][]string) map[string]string`
 + `MapToMapSlice(m map[string]string) map[string][]string`
@@ -40,7 +40,9 @@
 + `IsNotEmpty(text string) bool`
 + `IsBlank(text string) bool`
 + `IsNotBlank(text string) bool`
-+ `PadLeft(str string, paddingChar rune, totalLength int) string`
-+ `PadRight(str string, paddingChar rune, totalLength int) string`
-+ `GetLeft(str string, length int) string`
-+ `GetRight(str string, length int) string`
++ `PadLeft(s string, paddingChar rune, totalLength int) string`
++ `PadRight(s string, paddingChar rune, totalLength int) string`
++ `GetLeft(s string, length int) string`
++ `GetRight(s string, length int) string`
++ `SliceAndGet(sp []string, index int) string`
++ `SplitAndGet(s string, sep string, index int) string`
