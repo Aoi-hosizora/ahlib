@@ -58,6 +58,12 @@ func TestFirst(t *testing.T) {
 	xtesting.Equal(t, First(f2()), 1)
 	xtesting.Equal(t, First(f3()), 1)
 	xtesting.Equal(t, First(f4()), 1)
+
+	_, ok := GetFirst()
+	xtesting.False(t, ok)
+	i, ok := GetFirst(f1())
+	xtesting.Equal(t, i, 1)
+	xtesting.True(t, ok)
 }
 
 func TestSecond(t *testing.T) {
@@ -66,6 +72,12 @@ func TestSecond(t *testing.T) {
 	xtesting.Equal(t, Second(f2()), 2)
 	xtesting.Equal(t, Second(f3()), 2)
 	xtesting.Equal(t, Second(f4()), 2)
+
+	_, ok := GetSecond()
+	xtesting.False(t, ok)
+	i, ok := GetSecond(f2())
+	xtesting.Equal(t, i, 2)
+	xtesting.True(t, ok)
 }
 
 func TestThird(t *testing.T) {
@@ -74,6 +86,12 @@ func TestThird(t *testing.T) {
 	xtesting.Panic(t, func() { Third(f2()) })
 	xtesting.Equal(t, Third(f3()), 3)
 	xtesting.Equal(t, Third(f4()), 3)
+
+	_, ok := GetThird()
+	xtesting.False(t, ok)
+	i, ok := GetThird(f3())
+	xtesting.Equal(t, i, 3)
+	xtesting.True(t, ok)
 }
 
 func TestLast(t *testing.T) {
@@ -82,4 +100,10 @@ func TestLast(t *testing.T) {
 	xtesting.Equal(t, Last(f2()), 2)
 	xtesting.Equal(t, Last(f3()), 3)
 	xtesting.Equal(t, Last(f4()), 4)
+
+	_, ok := GetLast()
+	xtesting.False(t, ok)
+	i, ok := GetLast(f4())
+	xtesting.Equal(t, i, 4)
+	xtesting.True(t, ok)
 }

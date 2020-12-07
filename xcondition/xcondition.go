@@ -42,34 +42,78 @@ func PanicIfErr(i interface{}, err error) interface{} {
 	return i
 }
 
+var (
+	// indexOutOfRangePanic represents the panic message for index out of range.
+	indexOutOfRangePanic = "xcondition: index out of range"
+
+	// emptySlicePanic represents the panic message for empty slice.
+	emptySlicePanic = "xcondition: empty slice"
+)
+
+// GetFirst returns the first element from args, and if it exists.
+func GetFirst(args ...interface{}) (interface{}, bool) {
+	if len(args) <= 0 {
+		return nil, false
+	}
+	return args[0], true
+}
+
 // First returns the first element from args, panic if out of range.
 func First(args ...interface{}) interface{} {
-	if len(args) <= 0 {
-		panic("First: index out of range")
+	i, ok := GetFirst(args...)
+	if !ok {
+		panic(indexOutOfRangePanic)
 	}
-	return args[0]
+	return i
+}
+
+// GetSecond returns the second element from args, and if it exists.
+func GetSecond(args ...interface{}) (interface{}, bool) {
+	if len(args) <= 1 {
+		return nil, false
+	}
+	return args[1], true
 }
 
 // Second returns the second element from args, panic if out of range.
 func Second(args ...interface{}) interface{} {
-	if len(args) <= 1 {
-		panic("Second: index out of range")
+	i, ok := GetSecond(args...)
+	if !ok {
+		panic(indexOutOfRangePanic)
 	}
-	return args[1]
+	return i
+}
+
+// GetThird returns the third element from args, and if it exists.
+func GetThird(args ...interface{}) (interface{}, bool) {
+	if len(args) <= 2 {
+		return nil, false
+	}
+	return args[2], true
 }
 
 // Third returns the third element from args, panic if out of range.
 func Third(args ...interface{}) interface{} {
-	if len(args) <= 2 {
-		panic("Third: index out of range")
+	i, ok := GetThird(args...)
+	if !ok {
+		panic(indexOutOfRangePanic)
 	}
-	return args[2]
+	return i
+}
+
+// GetLast returns the last element from args, and if it exists.
+func GetLast(args ...interface{}) (interface{}, bool) {
+	if len(args) <= 0 {
+		return nil, false
+	}
+	return args[len(args)-1], true
 }
 
 // Last returns the last element from args, panic if out of range.
 func Last(args ...interface{}) interface{} {
-	if len(args) <= 0 {
-		panic("Last: empty slice")
+	i, ok := GetLast(args...)
+	if !ok {
+		panic(emptySlicePanic)
 	}
-	return args[len(args)-1]
+	return i
 }
