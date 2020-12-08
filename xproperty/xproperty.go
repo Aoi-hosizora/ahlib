@@ -1,7 +1,7 @@
 package xproperty
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
 )
 
@@ -28,30 +28,37 @@ type PropertyMapper struct {
 	dict PropertyDict
 }
 
-// PropertyDict represents a dictionary of property mapping.
-type PropertyDict map[string]*PropertyMapperValue
-
-// VariableDict represents a dictionary of property id pair. (Almost used in cypher)
-type VariableDict map[string]int
-
-// A property mapper.
+// PropertyMapperValue represents a property mapper value.
 type PropertyMapperValue struct {
-	// Is need to revert sort.
+	// Revert represents need to revert sort.
 	Revert bool
 
-	// `from` -> `to` properties mapping.
+	// Destinations represents property mapping from `from` to `to`.
 	Destinations []string
 }
+
+// PropertyDict represents a dictionary of property mappings.
+type PropertyDict map[string]*PropertyMapperValue
+
+// VariableDict represents a dictionary of property id pairs (Almost used for cypher).
+type VariableDict map[string]int
 
 // New creates a PropertyMappers.
 func New() *PropertyMappers {
 	return &PropertyMappers{mappers: make([]*PropertyMapper, 0)}
 }
 
+var (
+	nilModelPanic = "xproperty: nil model"
+
+	nilModelErr       = errors.New("xproperty: nil model")
+	mapperNotFoundErr = errors.New("xproperty: mapper not found")
+)
+
 // NewMapper creates a PropertyMapper.
 func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMapper {
 	if from == nil || to == nil {
-		panic("model must not be nil")
+		panic(nilModelPanic)
 	}
 	if dict == nil {
 		dict = make(PropertyDict)
@@ -74,6 +81,11 @@ func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 	}
 }
 
+// GetDict returns the PropertyDict from PropertyMapper.
+func (p *PropertyMapper) GetDict() PropertyDict {
+	return p.dict
+}
+
 // AddMapper adds a PropertyMapper to PropertyMappers.
 func (p *PropertyMappers) AddMapper(m *PropertyMapper) {
 	for _, mapper := range p.mappers {
@@ -85,20 +97,19 @@ func (p *PropertyMappers) AddMapper(m *PropertyMapper) {
 	p.mappers = append(p.mappers, m)
 }
 
-// AddMappers adds some PropertyMapper to PropertyMappers.
+// AddMappers adds some PropertyMapper-s to PropertyMappers.
 func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
 	for _, m := range mappers {
 		p.AddMapper(m)
 	}
 }
 
-// GetDict returns the PropertyDict from PropertyMapper.
-func (p *PropertyMapper) GetDict() PropertyDict {
-	return p.dict
-}
-
 // GetMapper returns the PropertyMapper from PropertyMappers.
 func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error) {
+	if from == nil || to == nil {
+		return nil, nilModelErr
+	}
+
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	for _, mapper := range p.mappers {
@@ -106,7 +117,7 @@ func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*Property
 			return mapper, nil
 		}
 	}
-	return nil, fmt.Errorf("mapper is not found")
+	return nil, mapperNotFoundErr
 }
 
 // GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns a empty PropertyMapper if not found.
@@ -126,7 +137,7 @@ func AddMapper(mapper *PropertyMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// AddMappers adds some PropertyMapper to PropertyMappers.
+// AddMappers adds some PropertyMapper-s to PropertyMappers.
 func AddMappers(mappers ...*PropertyMapper) {
 	_mappers.AddMappers(mappers...)
 }

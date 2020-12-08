@@ -1,7 +1,7 @@
 package xentity
 
 import (
-	"fmt"
+	"errors"
 	"github.com/Aoi-hosizora/ahlib/xslice"
 	"reflect"
 )
@@ -35,33 +35,48 @@ type EntityMapper struct {
 // MapFunc represents a model mapping method, describe how to map model from `from` to `to`.
 type MapFunc func(from interface{}, to interface{}) error
 
-// New creates a EntityMappers.
+// New creates an EntityMappers.
 func New() *EntityMappers {
-	return &EntityMappers{mappers: make([]*EntityMapper, 0)}
+	return &EntityMappers{
+		mappers: make([]*EntityMapper, 0),
+	}
 }
 
-// NewMapper creates a EntityMapper.
+var (
+	nilModelPanic         = "xentity: nil model"
+	nilCtorPanic          = "xentity: nil constructor"
+	nilMapFuncPanic       = "xentity: nil mapFunc"
+	nonStructPointerModel = "xentity: non-struct-pointer model"
+
+	nilModelErr       = errors.New("xentity: nil model")
+	mapperNotFoundErr = errors.New("xentity: mapper not found")
+)
+
+// NewMapper creates an EntityMapper, panic when invalid arguments.
 func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper {
 	// check nil
-	if from == nil || ctor == nil {
-		panic("model must not be nil")
+	if from == nil {
+		panic(nilModelPanic)
+	}
+	if ctor == nil {
+		panic(nilCtorPanic)
+	}
+	if mapFunc == nil {
+		panic(nilMapFuncPanic)
 	}
 	to := ctor()
 	if to == nil {
-		panic("model must not be nil")
-	}
-	if mapFunc == nil {
-		panic("mapFunc must not be nil")
+		panic(nilModelPanic)
 	}
 
 	// check pointer
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	if fromType.Kind() != reflect.Ptr || toType.Kind() != reflect.Ptr {
-		panic("model must only be pointer")
+		panic(nonStructPointerModel)
 	}
 	if fromType.Elem().Kind() != reflect.Struct || toType.Elem().Kind() != reflect.Struct {
-		panic("model must only be a pointer pointed to a struct")
+		panic(nonStructPointerModel)
 	}
 
 	// return
@@ -73,6 +88,11 @@ func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *Enti
 		ctor:     ctor,
 		mapFunc:  mapFunc,
 	}
+}
+
+// GetMapFunc returns the mapFunc from EntityMapper.
+func (e *EntityMapper) GetMapFunc() MapFunc {
+	return e.mapFunc
 }
 
 // AddMapper adds an EntityMapper to EntityMappers.
@@ -87,20 +107,19 @@ func (e *EntityMappers) AddMapper(m *EntityMapper) {
 	e.mappers = append(e.mappers, m)
 }
 
-// AddMappers adds some EntityMapper to EntityMappers.
+// AddMappers adds some EntityMapper-s to EntityMappers.
 func (e *EntityMappers) AddMappers(ms ...*EntityMapper) {
 	for _, m := range ms {
 		e.AddMapper(m)
 	}
 }
 
-// GetMapFunc returns the MapFunc from EntityMapper.
-func (e *EntityMapper) GetMapFunc() MapFunc {
-	return e.mapFunc
-}
-
-// GetMapper returns the EntityMapper from EntityMappers.
+// GetMapper returns the EntityMapper from EntityMappers, error when nil model or mapper not found.
 func (e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
+	if from == nil || to == nil {
+		return nil, nilModelErr
+	}
+
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	for _, mapper := range e.mappers {
@@ -108,11 +127,11 @@ func (e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapp
 			return mapper, nil
 		}
 	}
-	return nil, fmt.Errorf("mapper is not found")
+	return nil, mapperNotFoundErr
 }
 
-// _map is the core implementation of EntityMappers.
-func _map(mapper *EntityMapper, from interface{}, to interface{}, options ...MapFunc) error {
+// doMap is the core implementation of EntityMapper, with EntityMapper.mapFunc and options.
+func doMap(mapper *EntityMapper, from interface{}, to interface{}, options ...MapFunc) error {
 	err := mapper.mapFunc(from, to)
 	if err != nil {
 		return err
@@ -135,7 +154,7 @@ func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...Map
 		return err
 	}
 
-	return _map(mapper, from, to, options...)
+	return doMap(mapper, from, to, options...)
 }
 
 // Map generates a `to` from `from`.
@@ -146,7 +165,7 @@ func (e *EntityMappers) Map(from interface{}, toModel interface{}, options ...Ma
 	}
 
 	to := mapper.ctor()
-	err = _map(mapper, from, to, options...)
+	err = doMap(mapper, from, to, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +179,7 @@ func (e *EntityMappers) MapSlice(fromInterface interface{}, toModel interface{},
 	if len(fromSlice) == 0 {
 		return toSlice.Interface(), nil
 	}
+
 	mapper, err := e.GetMapper(fromSlice[0], toModel)
 	if err != nil {
 		return nil, err
@@ -167,7 +187,7 @@ func (e *EntityMappers) MapSlice(fromInterface interface{}, toModel interface{},
 
 	for idx, from := range fromSlice {
 		to := mapper.ctor()
-		err = _map(mapper, from, to, options...)
+		err = doMap(mapper, from, to, options...)
 		if err != nil {
 			return nil, err
 		}
@@ -211,12 +231,12 @@ func AddMapper(mapper *EntityMapper) {
 	_mappers.AddMapper(mapper)
 }
 
-// AddMappers adds some EntityMapper to EntityMappers.
+// AddMappers adds some EntityMapper-s to EntityMappers.
 func AddMappers(mappers ...*EntityMapper) {
 	_mappers.AddMappers(mappers...)
 }
 
-// GetMapper returns the EntityMapper from EntityMappers.
+// GetMapper returns the EntityMapper from EntityMappers, error when nil model or mapper not found.
 func GetMapper(from interface{}, to interface{}) (*EntityMapper, error) {
 	return _mappers.GetMapper(from, to)
 }

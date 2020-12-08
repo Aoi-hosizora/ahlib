@@ -5,18 +5,30 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xcolor"
 )
 
+// LogLevel represents DiContainer's logger level.
 type LogLevel int8
 
 const (
+	// LogName logs only when ProvideName invoked.
 	LogName LogLevel = 1 << iota
+
+	// LogType logs only when ProvideType invoked.
 	LogType
+
+	// LogImpl logs only when ProvideImpl invoked.
 	LogImpl
+
+	// LogInject logs only when Inject invoked.
 	LogInject
+
+	// LogAll logs when ProvideName, ProvideType, ProvideImpl and Inject invoked.
 	LogAll    = LogName | LogType | LogImpl | LogInject
+
+	// LogSilent logs never.
 	LogSilent = LogLevel(0)
 )
 
-// Logger represents xdi.DiContainer's logger function.
+// Logger represents DiContainer's logger.
 type Logger interface {
 	// LogName logs when DiContainer.ProvideName invoked.
 	LogName(name, typ string)
@@ -25,7 +37,7 @@ type Logger interface {
 	LogType(typ string)
 
 	// LogImpl logs when DiContainer.ProvideImpl invoked.
-	LogImpl(interfaceTyp, implTyp string)
+	LogImpl(itfTyp, srvTyp string)
 
 	// LogInject logs when DiContainer.Inject invoked.
 	LogInject(parentTyp, fieldTyp, fieldName string)

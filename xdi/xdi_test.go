@@ -31,8 +31,9 @@ func TestByName(t *testing.T) {
 	xtesting.Equal(t, a, 5)
 
 	xtesting.Panic(t, func() { ProvideName("a", nil) })
+	xtesting.Panic(t, func() { ProvideName("", 0) })
+	xtesting.Panic(t, func() { ProvideName("-", 0) })
 	xtesting.Panic(t, func() { ProvideName("~", 0) })
-	xtesting.Panic(t, func() { GetByName("~") })
 }
 
 func TestByType(t *testing.T) {

@@ -1,19 +1,19 @@
 package xcondition
 
-// IfThen returns a if condition is true, otherwise returns nil.
-func IfThen(condition bool, a interface{}) interface{} {
+// IfThen returns valueA if condition is true, otherwise returns nil.
+func IfThen(condition bool, valueA interface{}) interface{} {
 	if condition {
-		return a
+		return valueA
 	}
 	return nil
 }
 
-// IfThenElse returns a if condition is true, otherwise returns b.
-func IfThenElse(condition bool, a interface{}, b interface{}) interface{} {
+// IfThenElse returns valueA if condition is true, otherwise returns valueB.
+func IfThenElse(condition bool, valueA interface{}, valueB interface{}) interface{} {
 	if condition {
-		return a
+		return valueA
 	}
-	return b
+	return valueB
 }
 
 // DefaultIfNil returns value if value is not nil, otherwise returns defaultValue.
@@ -34,7 +34,7 @@ func FirstNotNil(values ...interface{}) interface{} {
 	return nil
 }
 
-// PanicIfErr returns an interface if err is nil, otherwise invokes panic.
+// PanicIfErr returns an interface if err is nil, otherwise panics.
 func PanicIfErr(i interface{}, err error) interface{} {
 	if err != nil {
 		panic(err)
@@ -43,11 +43,8 @@ func PanicIfErr(i interface{}, err error) interface{} {
 }
 
 var (
-	// indexOutOfRangePanic represents the panic message for index out of range.
 	indexOutOfRangePanic = "xcondition: index out of range"
-
-	// emptySlicePanic represents the panic message for empty slice.
-	emptySlicePanic = "xcondition: empty slice"
+	emptySlicePanic      = "xcondition: empty slice"
 )
 
 // GetFirst returns the first element from args, and if it exists.

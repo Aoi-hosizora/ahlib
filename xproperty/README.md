@@ -1,25 +1,37 @@
 # xproperty
 
-### References
+## References
 
 + xtesting*
 
-### Functions
+## Documents
 
-+ `type PropertyMappers struct {}`
-+ `type PropertyMapper struct {}`
+### Types
+
++ `type PropertyMappers struct`
++ `type PropertyMapper struct`
++ `type PropertyMapperValue struct`
 + `type PropertyDict map[string]*PropertyMapperValue`
 + `type VariableDict map[string]int`
-+ `type PropertyMapperValue struct {}`
-+ `New() *PropertyMappers`
-+ `NewMapper(from interface{}, to interface{}, dict map[string]*PropertyMapperValue) *PropertyMapper`
-+ `NewValue(revert bool, destProps ...string) *PropertyMapperValue`
-+ `(p *PropertyMappers) AddMapper(mapper *PropertyMapper)`
-+ `(p *PropertyMappers) AddMappers(mappers ...*PropertyMapper)`
-+ `(p *PropertyMapper) GetDict() PropertyDict`
-+ `(p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
-+ `(p *PropertyMappers) GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`
-+ `AddMapper(mapper *PropertyMapper)`
-+ `AddMappers(mappers ...*PropertyMapper)`
-+ `GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
-+ `GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`
+
+### Constants
+
++ None
+
+### Functions
+
++ `func New() *PropertyMappers`
++ `func NewMapper(from interface{}, to interface{}, dict PropertyDict) *PropertyMapper`
++ `func NewValue(revert bool, destinations ...string) *PropertyMapperValue`
++ `func AddMapper(mapper *PropertyMapper)`
++ `func AddMappers(mappers ...*PropertyMapper)`
++ `func GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
++ `func GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`
+
+### Methods
+
++ `func (p *PropertyMapper) GetDict() PropertyDict`
++ `func (p *PropertyMappers) AddMapper(m *PropertyMapper)`
++ `func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper)`
++ `func (p *PropertyMappers) GetMapper(from interface{}, to interface{}) (*PropertyMapper, error)`
++ `func (p *PropertyMappers) GetDefaultMapper(from interface{}, to interface{}) *PropertyMapper`

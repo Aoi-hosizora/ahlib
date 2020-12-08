@@ -1,41 +1,62 @@
 # xdi
 
-### References
+## References
 
 + xcolor
 + xreflect
 + xtesting*
 
-### Functions
+## Documents
+
+### Types
 
 + `type ServiceName string`
-+ `(s *ServiceName) String()`
-+ `type DiContainer struct {}`
-+ `NewDiContainer() *DiContainer`
-+ `(d *DiContainer) SetLogger(logger Logger)`
-+ `(d *DiContainer) ProvideName(name ServiceName, service interface{})`
-+ `(d *DiContainer) ProvideType(service interface{})`
-+ `(d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
-+ `(d *DiContainer) GetByName(name ServiceName) (service interface{}, exist bool)`
-+ `(d *DiContainer) GetByNameForce(name ServiceName) interface{}`
-+ `(d *DiContainer) GetByType(serviceType interface{}) (service interface{}, exist bool)`
-+ `(d *DiContainer) GetByTypeForce(serviceType interface{}) interface{}`
-+ `(d *DiContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
-+ `(d *DiContainer) GetByImplForce(interfacePtr interface{}) interface{}`
-+ `(d *DiContainer) Inject(ctrl interface{}) (allInjected bool)`
-+ `(d *DiContainer) MustInject(ctrl interface{})`
-+ `SetLogger(logger Logger)`
-+ `ProvideName(name ServiceName, service interface{})`
-+ `ProvideType(service interface{})`
-+ `ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
-+ `GetByName(name ServiceName) (service interface{}, exist bool)`
-+ `GetByNameForce(name ServiceName) interface{}`
-+ `GetByType(serviceType interface{}) (service interface{}, exist bool)`
-+ `GetByTypeForce(serviceType interface{}) interface{}`
-+ `GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
-+ `GetByImplForce(interfacePtr interface{}) interface{}`
-+ `Inject(ctrl interface{}) (allInjected bool)`
-+ `MustInject(ctrl interface{})`
-+ `type Logger interface {}`
-+ `DefaultLogger() Logger`
-+ `SilentLogger() Logger`
++ `type DiContainer struct`
++ `type LogLevel int8`
++ `type Logger interface`
+
+### Constants
+
++ `const LogName LogLevel`
++ `const LogType LogLevel`
++ `const LogImpl LogLevel`
++ `const LogInject LogLevel`
++ `const LogAll LogLevel`
++ `const LogSilent LogLevel`
+
+### Functions
+
++ `func NewDiContainer() *DiContainer`
++ `func SetLogger(logger Logger)`
++ `func ProvideName(name ServiceName, service interface{})`
++ `func ProvideType(service interface{})`
++ `func ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
++ `func GetByName(name ServiceName) (service interface{}, exist bool)`
++ `func GetByNameForce(name ServiceName) interface{}`
++ `func GetByType(serviceType interface{}) (service interface{}, exist bool)`
++ `func GetByTypeForce(serviceType interface{}) interface{}`
++ `func GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
++ `func GetByImplForce(interfacePtr interface{}) interface{}`
++ `func Inject(ctrl interface{}) (allInjected bool)`
++ `func MustInject(ctrl interface{})`
++ `func DefaultLogger(level LogLevel) Logger`
+
+### Methods
+
++ `func (s ServiceName) String() string`
++ `func (d *DiContainer) SetLogger(logger Logger)`
++ `func (d *DiContainer) ProvideName(name ServiceName, service interface{})`
++ `func (d *DiContainer) ProvideType(service interface{})`
++ `func (d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
++ `func (d *DiContainer) GetByName(name ServiceName) (service interface{}, exist bool)`
++ `func (d *DiContainer) GetByNameForce(name ServiceName) interface{}`
++ `func (d *DiContainer) GetByType(serviceType interface{}) (service interface{}, exist bool)`
++ `func (d *DiContainer) GetByTypeForce(serviceType interface{}) interface{}`
++ `func (d *DiContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
++ `func (d *DiContainer) GetByImplForce(interfacePtr interface{}) interface{}`
++ `func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool)`
++ `func (d *DiContainer) MustInject(ctrl interface{})`
++ `func (d *defaultLogger) LogName(name, typ string)`
++ `func (d *defaultLogger) LogType(typ string)`
++ `func (d *defaultLogger) LogImpl(itfTyp, srvTyp string)`
++ `func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string)`

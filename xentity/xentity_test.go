@@ -105,6 +105,8 @@ func TestGetMapper(t *testing.T) {
 	mapper, err := GetMapper(0, 0)
 	xtesting.Nil(t, mapper)
 	xtesting.NotNil(t, err)
+	_, err = GetMapper(nil, nil)
+	xtesting.NotNil(t, err)
 
 	f := func(from interface{}, to interface{}) error { return nil }
 	xtesting.Panic(t, func() { NewMapper(nil, func() interface{} { return &testDto{} }, f) })

@@ -83,8 +83,8 @@ func TestLinkedHashMap(t *testing.T) {
 
 func TestFromInterface(t *testing.T) {
 	xtesting.Equal(t, FromInterface(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
-	xtesting.Equal(t, FromInterface(nil) == nil, true)
-	xtesting.Equal(t, FromInterface(nil) == nil, true)
+	xtesting.Panic(t, func() { FromInterface(nil) })
+	xtesting.Panic(t, func() { FromInterface(0) })
 }
 
 func TestMu(t *testing.T) {
