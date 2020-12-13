@@ -21,7 +21,6 @@
 + xcondition
 + **xdi**
 + xentity
-+ xmap
 + **xnumber**
 + xorderedmap
 + xpointer

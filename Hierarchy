@@ -6,7 +6,6 @@ $1 -- the common library, base on {xtesting, xcolor}
 xcondition      (xtesting)
 xdi             (xtesting, xcolor)
 xentity         (xtesting)
-xmap            (xtesting)
 xnumber         (xtesting)
 xorderedmap     (xtesting)
 xpointer        (xtesting)

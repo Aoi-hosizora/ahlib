@@ -6,14 +6,10 @@ import (
 )
 
 func TestPtr(t *testing.T) {
-	stringVal := "0"
-	xtesting.Equal(t, StringPtr("0"), &stringVal)
 	boolVal := true
 	xtesting.Equal(t, BoolPtr(true), &boolVal)
-	byteVal := byte(0)
-	xtesting.Equal(t, BytePtr(0), &byteVal)
-	runeVal := rune(0)
-	xtesting.Equal(t, RunePtr(0), &runeVal)
+	stringVal := "0"
+	xtesting.Equal(t, StringPtr("0"), &stringVal)
 	intVal := 0
 	xtesting.Equal(t, IntPtr(0), &intVal)
 	int8Val := int8(0)
@@ -42,15 +38,15 @@ func TestPtr(t *testing.T) {
 	xtesting.Equal(t, Complex64Ptr(0+1i), &complex64Val)
 	complex128Val := 0 + 1i
 	xtesting.Equal(t, Complex128Ptr(0+1i), &complex128Val)
-	interfaceVal := interface{}(nil)
-	xtesting.Equal(t, InterfacePtr(nil), &interfaceVal)
+	byteVal := byte(0)
+	xtesting.Equal(t, BytePtr(0), &byteVal)
+	runeVal := rune(0)
+	xtesting.Equal(t, RunePtr(0), &runeVal)
 }
 
 func TestVal(t *testing.T) {
-	xtesting.Equal(t, StringVal(nil, "0"), "0")
 	xtesting.Equal(t, BoolVal(nil, false), false)
-	xtesting.Equal(t, ByteVal(nil, 0), byte(0))
-	xtesting.Equal(t, RuneVal(nil, 0), rune(0))
+	xtesting.Equal(t, StringVal(nil, "0"), "0")
 	xtesting.Equal(t, IntVal(nil, 0), 0)
 	xtesting.Equal(t, Int8Val(nil, 0), int8(0))
 	xtesting.Equal(t, Int16Val(nil, 0), int16(0))
@@ -65,16 +61,13 @@ func TestVal(t *testing.T) {
 	xtesting.Equal(t, Float64Val(nil, 0.1), 0.1)
 	xtesting.Equal(t, Complex64Val(nil, 0+1i), complex64(0+1i))
 	xtesting.Equal(t, Complex128Val(nil, 0+1i), 0+1i)
-	xtesting.Equal(t, InterfaceVal(nil, nil), nil)
+	xtesting.Equal(t, ByteVal(nil, 0), byte(0))
+	xtesting.Equal(t, RuneVal(nil, 0), rune(0))
 
-	stringVal := "0"
-	xtesting.Equal(t, StringVal(&stringVal, ""), stringVal)
 	boolVal := true
 	xtesting.Equal(t, BoolVal(&boolVal, false), boolVal)
-	byteVal := byte(0)
-	xtesting.Equal(t, ByteVal(&byteVal, 0), byteVal)
-	runeVal := rune(0)
-	xtesting.Equal(t, RuneVal(&runeVal, 0), runeVal)
+	stringVal := "0"
+	xtesting.Equal(t, StringVal(&stringVal, ""), stringVal)
 	intVal := 0
 	xtesting.Equal(t, IntVal(&intVal, 0), intVal)
 	int8Val := int8(0)
@@ -103,6 +96,8 @@ func TestVal(t *testing.T) {
 	xtesting.Equal(t, Complex64Val(&complex64Val, 0), complex64Val)
 	complex128Val := 0 + 1i
 	xtesting.Equal(t, Complex128Val(&complex128Val, 0), complex128Val)
-	interfaceVal := interface{}(0)
-	xtesting.Equal(t, InterfaceVal(&interfaceVal, 0), interfaceVal)
+	byteVal := byte(0)
+	xtesting.Equal(t, ByteVal(&byteVal, 0), byteVal)
+	runeVal := rune(0)
+	xtesting.Equal(t, RuneVal(&runeVal, 0), runeVal)
 }

@@ -1,210 +1,239 @@
 package xpointer
 
-func StringPtr(v string) *string {
-	return &v
-}
+// ptr
 
+// BoolPtr returns a pointer pointed to the given bool value.
 func BoolPtr(v bool) *bool {
 	return &v
 }
 
-func BytePtr(v byte) *byte {
+// StringPtr returns a pointer pointed to the given string value.
+func StringPtr(v string) *string {
 	return &v
 }
 
-func RunePtr(v rune) *rune {
-	return &v
-}
-
+// IntPtr returns a pointer pointed to the given int value.
 func IntPtr(v int) *int {
 	return &v
 }
 
+// Int8Ptr returns a pointer pointed to the given int8 value.
 func Int8Ptr(v int8) *int8 {
 	return &v
 }
 
+// Int16Ptr returns a pointer pointed to the given int16 value.
 func Int16Ptr(v int16) *int16 {
 	return &v
 }
 
+// Int32Ptr returns a pointer pointed to the given int32 value.
 func Int32Ptr(v int32) *int32 {
 	return &v
 }
 
+// Int64Ptr returns a pointer pointed to the given int64 value.
 func Int64Ptr(v int64) *int64 {
 	return &v
 }
 
+// UintPtr returns a pointer pointed to the given uint value.
 func UintPtr(v uint) *uint {
 	return &v
 }
 
+// Uint8Ptr returns a pointer pointed to the given uint8 value.
 func Uint8Ptr(v uint8) *uint8 {
 	return &v
 }
 
+// Uint16Ptr returns a pointer pointed to the given uint16 value.
 func Uint16Ptr(v uint16) *uint16 {
 	return &v
 }
 
+// Uint32Ptr returns a pointer pointed to the given uint32 value.
 func Uint32Ptr(v uint32) *uint32 {
 	return &v
 }
 
+// Uint64Ptr returns a pointer pointed to the given uint64 value.
 func Uint64Ptr(v uint64) *uint64 {
 	return &v
 }
 
+// Float32Ptr returns a pointer pointed to the given float32 value.
 func Float32Ptr(v float32) *float32 {
 	return &v
 }
 
+// Float64Ptr returns a pointer pointed to the given float64 value.
 func Float64Ptr(v float64) *float64 {
 	return &v
 }
 
+// Complex64Ptr returns a pointer pointed to the given complex64 value.
 func Complex64Ptr(v complex64) *complex64 {
 	return &v
 }
 
+// Complex128Ptr returns a pointer pointed to the given complex128 value.
 func Complex128Ptr(v complex128) *complex128 {
 	return &v
 }
 
-func InterfacePtr(v interface{}) *interface{} {
+// BytePtr returns a pointer pointed to the given byte value.
+func BytePtr(v byte) *byte {
 	return &v
 }
 
-func StringVal(p *string, defaultValue string) string {
+// RunePtr returns a pointer pointed to the given rune value.
+func RunePtr(v rune) *rune {
+	return &v
+}
+
+// val
+
+// BoolVal returns a bool value from the given pointer, returns the fallback value when nil.
+func BoolVal(p *bool, o bool) bool {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func BoolVal(p *bool, defaultValue bool) bool {
+// StringVal returns a string value from the given pointer, returns the fallback value when nil.
+func StringVal(p *string, o string) string {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func ByteVal(p *byte, defaultValue byte) byte {
+// IntVal returns a int value from the given pointer, returns the fallback value when nil.
+func IntVal(p *int, o int) int {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func RuneVal(p *rune, defaultValue rune) rune {
+// Int8Val returns a int8 value from the given pointer, returns the fallback value when nil.
+func Int8Val(p *int8, o int8) int8 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func IntVal(p *int, defaultValue int) int {
+// Int16Val returns a int16 value from the given pointer, returns the fallback value when nil.
+func Int16Val(p *int16, o int16) int16 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Int8Val(p *int8, defaultValue int8) int8 {
+// Int32Val returns a int32 value from the given pointer, returns the fallback value when nil.
+func Int32Val(p *int32, o int32) int32 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Int16Val(p *int16, defaultValue int16) int16 {
+// Int64Val returns a int64 value from the given pointer, returns the fallback value when nil.
+func Int64Val(p *int64, o int64) int64 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Int32Val(p *int32, defaultValue int32) int32 {
+// UintVal returns a uint value from the given pointer, returns the fallback value when nil.
+func UintVal(p *uint, o uint) uint {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Int64Val(p *int64, defaultValue int64) int64 {
+// Uint8Val returns a uint8 value from the given pointer, returns the fallback value when nil.
+func Uint8Val(p *uint8, o uint8) uint8 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func UintVal(p *uint, defaultValue uint) uint {
+// Uint16Val returns a uint16 value from the given pointer, returns the fallback value when nil.
+func Uint16Val(p *uint16, o uint16) uint16 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Uint8Val(p *uint8, defaultValue uint8) uint8 {
+// Uint32Val returns a uint32 value from the given pointer, returns the fallback value when nil.
+func Uint32Val(p *uint32, o uint32) uint32 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Uint16Val(p *uint16, defaultValue uint16) uint16 {
+// Uint64Val returns a uint64 value from the given pointer, returns the fallback value when nil.
+func Uint64Val(p *uint64, o uint64) uint64 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Uint32Val(p *uint32, defaultValue uint32) uint32 {
+// Float32Val returns a float32 value from the given pointer, returns the fallback value when nil.
+func Float32Val(p *float32, o float32) float32 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Uint64Val(p *uint64, defaultValue uint64) uint64 {
+// Float64Val returns a float64 value from the given pointer, returns the fallback value when nil.
+func Float64Val(p *float64, o float64) float64 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Float32Val(p *float32, defaultValue float32) float32 {
+// Complex64Val returns a complex64 value from the given pointer, returns the fallback value when nil.
+func Complex64Val(p *complex64, o complex64) complex64 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Float64Val(p *float64, defaultValue float64) float64 {
+// Complex128Val returns a complex128 value from the given pointer, returns the fallback value when nil.
+func Complex128Val(p *complex128, o complex128) complex128 {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Complex64Val(p *complex64, defaultValue complex64) complex64 {
+// ByteVal returns a byte value from the given pointer, returns the fallback value when nil.
+func ByteVal(p *byte, o byte) byte {
 	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
 
-func Complex128Val(p *complex128, defaultValue complex128) complex128 {
+// RuneVal returns a rune value from the given pointer, returns the fallback value when nil.
+func RuneVal(p *rune, o rune) rune {
 	if p == nil {
-		return defaultValue
-	}
-	return *p
-}
-
-func InterfaceVal(p *interface{}, defaultValue interface{}) interface{} {
-	if p == nil {
-		return defaultValue
+		return o
 	}
 	return *p
 }
