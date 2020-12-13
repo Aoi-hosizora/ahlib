@@ -34,6 +34,9 @@ func TestByName(t *testing.T) {
 	xtesting.Panic(t, func() { ProvideName("", 0) })
 	xtesting.Panic(t, func() { ProvideName("-", 0) })
 	xtesting.Panic(t, func() { ProvideName("~", 0) })
+	xtesting.Panic(t, func() { GetByName("") })
+	xtesting.Panic(t, func() { GetByName("-") })
+	xtesting.Panic(t, func() { GetByName("~") })
 }
 
 func TestByType(t *testing.T) {
@@ -114,6 +117,8 @@ func TestByImpl(t *testing.T) {
 func TestInject(t *testing.T) {
 	xtesting.Panic(t, func() { Inject(nil) })
 	xtesting.Panic(t, func() { Inject("") })
+	xtesting.Panic(t, func() { Inject(struct{}{}) })
+	xtesting.Panic(t, func() { Inject(&[]int{}) })
 
 	type A struct {
 		// type
@@ -160,6 +165,7 @@ func TestInject(t *testing.T) {
 
 	all := Inject(a)
 	xtesting.False(t, all)
+	xtesting.Panic(t, func() { InjectForce(a) })
 	xtesting.Panic(t, func() { MustInject(a) })
 
 	ProvideName("b", true)
@@ -172,6 +178,7 @@ func TestInject(t *testing.T) {
 	ProvideName("m", map[string]string{"a": "aa", "b": "bb"})
 
 	xtesting.True(t, Inject(a))
+	xtesting.NotPanic(t, func() { InjectForce(a) })
 	xtesting.NotPanic(t, func() { MustInject(a) })
 
 	xtesting.Equal(t, a.I, 1)

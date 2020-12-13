@@ -21,26 +21,26 @@
 ### Functions
 
 + `func New() *EntityMappers`
-+ `func NewMapper(from interface{}, ctor func() interface{}, mapFunc MapFunc) *EntityMapper`
++ `NewMapper(src interface{}, destCtor func() interface{}, mapFunc MapFunc) *EntityMapper`
 + `func AddMapper(mapper *EntityMapper)`
 + `func AddMappers(mappers ...*EntityMapper)`
-+ `func GetMapper(from interface{}, to interface{}) (*EntityMapper, error)`
-+ `func MapProp(from interface{}, to interface{}, options ...MapFunc) error`
-+ `func Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, error)`
-+ `func MapSlice(from interface{}, to interface{}, options ...MapFunc) (interface{}, error)`
-+ `func MustMapProp(from interface{}, to interface{}, options ...MapFunc)`
-+ `func MustMap(from interface{}, to interface{}, options ...MapFunc) interface{}`
-+ `func MustMapSlice(from interface{}, to interface{}, options ...MapFunc) interface{}`
++ `func GetMapper(src interface{}, dest interface{}) (*EntityMapper, error)`
++ `func MapProp(src interface{}, dest interface{}, opts ...MapFunc) error`
++ `func Map(src interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error)`
++ `func MapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error)`
++ `func MustMapProp(src interface{}, dest interface{}, opts ...MapFunc)`
++ `func MustMap(src interface{}, destModel interface{}, opts ...MapFunc) interface{}`
++ `func MustMapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) interface{}`
 
 ### Methods
 
 + `func (e *EntityMapper) GetMapFunc() MapFunc`
-+ `func (e *EntityMappers) AddMapper(m *EntityMapper)`
-+ `func (e *EntityMappers) AddMappers(ms ...*EntityMapper)`
-+ `func (e *EntityMappers) GetMapper(from interface{}, to interface{}) (*EntityMapper, error)`
-+ `func (e *EntityMappers) MapProp(from interface{}, to interface{}, options ...MapFunc) error`
-+ `func (e *EntityMappers) Map(from interface{}, to interface{}, options ...MapFunc) (interface{}, error)`
-+ `func (e *EntityMappers) MapSlice(from interface{}, to interface{}, options ...MapFunc) (interface{}, error)`
-+ `func (e *EntityMappers) MustMapProp(from interface{}, to interface{}, options ...MapFunc)`
-+ `func (e *EntityMappers) MustMap(from interface{}, to interface{}, options ...MapFunc) interface{}`
-+ `func (e *EntityMappers) MustMapSlice(from interface{}, to interface{}, options ...MapFunc) interface{}`
++ `func (e *EntityMappers) AddMapper(mapper *EntityMapper)`
++ `func (e *EntityMappers) AddMappers(mappers ...*EntityMapper)`
++ `func (e *EntityMappers) GetMapper(src interface{}, dest interface{}) (*EntityMapper, error)`
++ `func (e *EntityMappers) MapProp(src interface{}, dest interface{}, opts ...MapFunc) error`
++ `func (e *EntityMappers) Map(src interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error)`
++ `func (e *EntityMappers) MapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error)`
++ `func (e *EntityMappers) MustMapProp(src interface{}, dest interface{}, opts ...MapFunc)`
++ `func (e *EntityMappers) MustMap(src interface{}, destModel interface{}, opts ...MapFunc) interface{}`
++ `func (e *EntityMappers) MustMapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) interface{}`

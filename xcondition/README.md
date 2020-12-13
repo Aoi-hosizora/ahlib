@@ -16,8 +16,8 @@
 
 ### Functions
 
-+ `func IfThen(condition bool, valueA interface{}) interface{}`
-+ `func IfThenElse(condition bool, valueA interface{}, valueB interface{}) interface{}`
++ `func IfThen(condition bool, value1 interface{}) interface{}`
++ `func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interface{}`
 + `func DefaultIfNil(value interface{}, defaultValue interface{}) interface{}`
 + `func FirstNotNil(values ...interface{}) interface{}`
 + `func PanicIfErr(i interface{}, err error) interface{}`

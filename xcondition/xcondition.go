@@ -1,22 +1,22 @@
 package xcondition
 
 // IfThen returns valueA if condition is true, otherwise returns nil.
-func IfThen(condition bool, valueA interface{}) interface{} {
+func IfThen(condition bool, value1 interface{}) interface{} {
 	if condition {
-		return valueA
+		return value1
 	}
 	return nil
 }
 
-// IfThenElse returns valueA if condition is true, otherwise returns valueB.
-func IfThenElse(condition bool, valueA interface{}, valueB interface{}) interface{} {
+// IfThenElse returns valueA if condition is true, otherwise returns value2.
+func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interface{} {
 	if condition {
-		return valueA
+		return value1
 	}
-	return valueB
+	return value2
 }
 
-// DefaultIfNil returns value if value is not nil, otherwise returns defaultValue.
+// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue.
 func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
 	if value != nil {
 		return value
@@ -44,10 +44,9 @@ func PanicIfErr(i interface{}, err error) interface{} {
 
 var (
 	indexOutOfRangePanic = "xcondition: index out of range"
-	emptySlicePanic      = "xcondition: empty slice"
 )
 
-// GetFirst returns the first element from args, and if it exists.
+// GetFirst returns the first element of args, returns false if not exists.
 func GetFirst(args ...interface{}) (interface{}, bool) {
 	if len(args) <= 0 {
 		return nil, false
@@ -55,7 +54,7 @@ func GetFirst(args ...interface{}) (interface{}, bool) {
 	return args[0], true
 }
 
-// First returns the first element from args, panic if out of range.
+// First returns the first element of args, panics if out of range.
 func First(args ...interface{}) interface{} {
 	i, ok := GetFirst(args...)
 	if !ok {
@@ -64,7 +63,7 @@ func First(args ...interface{}) interface{} {
 	return i
 }
 
-// GetSecond returns the second element from args, and if it exists.
+// GetSecond returns the second element of args, returns false if not exists.
 func GetSecond(args ...interface{}) (interface{}, bool) {
 	if len(args) <= 1 {
 		return nil, false
@@ -72,7 +71,7 @@ func GetSecond(args ...interface{}) (interface{}, bool) {
 	return args[1], true
 }
 
-// Second returns the second element from args, panic if out of range.
+// Second returns the second element of args, panics if out of range.
 func Second(args ...interface{}) interface{} {
 	i, ok := GetSecond(args...)
 	if !ok {
@@ -81,7 +80,7 @@ func Second(args ...interface{}) interface{} {
 	return i
 }
 
-// GetThird returns the third element from args, and if it exists.
+// GetThird returns the third element of args, returns false if not exists.
 func GetThird(args ...interface{}) (interface{}, bool) {
 	if len(args) <= 2 {
 		return nil, false
@@ -89,7 +88,7 @@ func GetThird(args ...interface{}) (interface{}, bool) {
 	return args[2], true
 }
 
-// Third returns the third element from args, panic if out of range.
+// Third returns the third element of args, panics if out of range.
 func Third(args ...interface{}) interface{} {
 	i, ok := GetThird(args...)
 	if !ok {
@@ -98,7 +97,7 @@ func Third(args ...interface{}) interface{} {
 	return i
 }
 
-// GetLast returns the last element from args, and if it exists.
+// GetLast returns the last element of args, returns false if empty slice.
 func GetLast(args ...interface{}) (interface{}, bool) {
 	if len(args) <= 0 {
 		return nil, false
@@ -106,11 +105,11 @@ func GetLast(args ...interface{}) (interface{}, bool) {
 	return args[len(args)-1], true
 }
 
-// Last returns the last element from args, panic if out of range.
+// Last returns the last element of args, panics if out of range.
 func Last(args ...interface{}) interface{} {
 	i, ok := GetLast(args...)
 	if !ok {
-		panic(emptySlicePanic)
+		panic(indexOutOfRangePanic)
 	}
 	return i
 }

@@ -18,7 +18,7 @@
 ### Packages
 
 + xcondition
-+ xlinkedhashmap
++ xorderedmap
 + **xslice**
 + **xstring**
 + xentity

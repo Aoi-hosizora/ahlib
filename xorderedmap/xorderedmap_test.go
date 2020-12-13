@@ -1,4 +1,4 @@
-package xlinkedhashmap
+package xorderedmap
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
@@ -15,7 +15,7 @@ var cmx = struct {
 	F6 string `json:"f6,omitempty"`
 }{"3", 4.5, []int{6, 7, 8}, nil, nil, ""}
 
-func TestLinkedHashMap(t *testing.T) {
+func TestMap(t *testing.T) {
 	m := New()
 
 	// Has Set Get
@@ -82,8 +82,11 @@ func TestLinkedHashMap(t *testing.T) {
 }
 
 func TestFromInterface(t *testing.T) {
+	xtesting.Equal(t, FromInterface(struct{}{}).String(), "{}")
+	xtesting.Equal(t, FromInterface(struct{ A int }{}).String(), "{\"A\":0}")
 	xtesting.Equal(t, FromInterface(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
 	xtesting.Panic(t, func() { FromInterface(nil) })
+	xtesting.Panic(t, func() { FromInterface(&struct{}{}) })
 	xtesting.Panic(t, func() { FromInterface(0) })
 }
 

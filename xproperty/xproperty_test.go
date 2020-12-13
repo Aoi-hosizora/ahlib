@@ -8,8 +8,7 @@ import (
 func TestPropertyMappers(t *testing.T) {
 	typ := 0
 
-	_, err := GetMapper(nil, nil)
-	xtesting.NotNil(t, err)
+	xtesting.Panic(t, func() { _, _ = GetMapper(nil, nil) })
 	mapper, err := GetMapper(typ, typ)
 	xtesting.Empty(t, mapper)
 	xtesting.NotNil(t, err)

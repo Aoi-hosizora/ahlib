@@ -5,7 +5,9 @@ xcolor
 $1 -- the common library, base on {xtesting, xreflect, xcolor}
 xcondition      (xtesting)
 xdi             (xtesting, xreflect, xcolor)
-xlinkedhashmap  (xtesting, xreflect)
+xorderedmap     (xtesting, xreflect)
+xentity         (xtesting)
+xproperty       (xtesting)
 xmap            (xtesting)
 xnumber         (xtesting)
 xpointer        (xtesting)
@@ -17,7 +19,3 @@ xstring         (xtesting)
 xsystem         (xtesting)
 xtime           (xtesting)
 xzone           (xtesting)
-
-$2 -- the advanced library, base on $0 and $1, maybe removed in the future
-xentity         (xslice, xcondition, xtesting)
-xproperty       (xtesting)

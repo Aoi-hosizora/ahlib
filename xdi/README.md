@@ -38,6 +38,7 @@
 + `func GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
 + `func GetByImplForce(interfacePtr interface{}) interface{}`
 + `func Inject(ctrl interface{}) (allInjected bool)`
++ `func InjectForce(ctrl interface{})`
 + `func MustInject(ctrl interface{})`
 + `func DefaultLogger(level LogLevel) Logger`
 
@@ -55,6 +56,7 @@
 + `func (d *DiContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
 + `func (d *DiContainer) GetByImplForce(interfacePtr interface{}) interface{}`
 + `func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool)`
++ `func (d *DiContainer) InjectForce(ctrl interface{})`
 + `func (d *DiContainer) MustInject(ctrl interface{})`
 + `func (d *defaultLogger) LogName(name, typ string)`
 + `func (d *defaultLogger) LogType(typ string)`

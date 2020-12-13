@@ -41,7 +41,7 @@ const (
 	FullColorTpl = "\x1b[%dm%s\x1b[0m"
 )
 
-// String returns the string of the color code.
+// String returns the string value of the color code.
 func (c Color) String() string {
 	return fmt.Sprintf("%d", c)
 }

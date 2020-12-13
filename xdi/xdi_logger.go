@@ -43,12 +43,12 @@ type Logger interface {
 	LogInject(parentTyp, fieldTyp, fieldName string)
 }
 
-// defaultLogger represents the default logger.
+// defaultLogger represents a default Logger.
 type defaultLogger struct {
 	level LogLevel
 }
 
-// DefaultLogger creates a defaultLogger.
+// DefaultLogger creates a default Logger instance.
 func DefaultLogger(level LogLevel) Logger {
 	xcolor.ForceColor()
 	return &defaultLogger{
