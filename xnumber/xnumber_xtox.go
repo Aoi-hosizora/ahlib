@@ -78,18 +78,6 @@ func ParseFloat64(s string) (float64, error) {
 	return f, e
 }
 
-// ParseComplex64 parses a string to complex64.
-func ParseComplex64(s string) (complex64, error) {
-	c, e := strconv.ParseComplex(s, 64)
-	return complex64(c), e
-}
-
-// ParseComplex128 parses a string to complex128.
-func ParseComplex128(s string) (complex128, error) {
-	c, e := strconv.ParseComplex(s, 128)
-	return c, e
-}
-
 // parseOr
 
 // ParseIntOr parses a string to int using given base with a fallback value.
@@ -200,24 +188,6 @@ func ParseFloat64Or(s string, o float64) float64 {
 	return f
 }
 
-// ParseComplex64 parses a string to complex64 with a fallback value.
-func ParseComplex64Or(s string, o complex64) complex64 {
-	c, e := ParseComplex64(s)
-	if e != nil {
-		return o
-	}
-	return c
-}
-
-// ParseComplex128 parses a string to complex128 with a fallback value.
-func ParseComplex128Or(s string, o complex128) complex128 {
-	c, e := ParseComplex128(s)
-	if e != nil {
-		return o
-	}
-	return c
-}
-
 // atoX
 
 // Atoi parses a string to int in base 10.
@@ -278,16 +248,6 @@ func Atof32(s string) (float32, error) {
 // Atof64 parses a string to float32, is same as ParseFloat64.
 func Atof64(s string) (float64, error) {
 	return ParseFloat64(s)
-}
-
-// Atoc64 parses a string to complex64, is same as ParseComplex64.
-func Atoc64(s string) (complex64, error) {
-	return ParseComplex64(s)
-}
-
-// Atoc128 parses a string to complex128, is same as ParseComplex128.
-func Atoc128(s string) (complex128, error) {
-	return ParseComplex128(s)
 }
 
 // atoXOr
@@ -400,24 +360,6 @@ func Atof64Or(s string, o float64) float64 {
 	return f
 }
 
-// Atoc64 parses a string to complex64 with a fallback value.
-func Atoc64Or(s string, o complex64) complex64 {
-	c, e := Atoc64(s)
-	if e != nil {
-		return o
-	}
-	return c
-}
-
-// Atoc128 parses a string to complex128 with a fallback value.
-func Atoc128Or(s string, o complex128) complex128 {
-	c, e := Atoc128(s)
-	if e != nil {
-		return o
-	}
-	return c
-}
-
 // format
 
 // FormatInt formats a int to string using given base.
@@ -478,18 +420,6 @@ func FormatFloat32(f float32, fmt byte, prec int) string {
 // FormatFloat64 formats a float64 to string using given format and precision.
 func FormatFloat64(f float64, fmt byte, prec int) string {
 	return strconv.FormatFloat(f, fmt, prec, 64)
-}
-
-// FormatComplex64 formats a complex64 to string using given format and precision.
-func FormatComplex64(c complex64, fmt byte, prec int) string {
-	s:= strconv.FormatComplex(complex128(c), fmt, prec, 64)
-	return s[1:len(s)-1]
-}
-
-// FormatComplex128 formats a complex64 to string using given format and precision.
-func FormatComplex128(c complex128, fmt byte, prec int) string {
-	s:= strconv.FormatComplex(c, fmt, prec, 128)
-	return s[1:len(s)-1]
 }
 
 // Xtoa
@@ -554,12 +484,3 @@ func F64toa(f float64) string {
 	return FormatFloat64(f, 'f', -1)
 }
 
-// C64toa formats a complex64 to string using default format.
-func C64toa(c complex64) string {
-	return FormatComplex64(c, 'f', -1)
-}
-
-// C128toa formats a complex128 to string using default format.
-func C128toa(c complex128) string {
-	return FormatComplex128(c, 'f', -1)
-}

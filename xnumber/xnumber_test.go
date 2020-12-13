@@ -96,10 +96,6 @@ func TestParse(t *testing.T) {
 	xtesting.Equal(t, f32, float32(0.5))
 	f64, _ := ParseFloat64("0.5")
 	xtesting.Equal(t, f64, 0.5)
-	c64, _ := ParseComplex64("1+2i")
-	xtesting.Equal(t, c64, complex64(1+2i))
-	c128, _ := ParseComplex128("1+2i")
-	xtesting.Equal(t, c128, 1+2i)
 
 	_, err := ParseInt8("a", 10) // no number
 	xtesting.NotNil(t, err)
@@ -124,8 +120,6 @@ func TestParseOr(t *testing.T) {
 	xtesting.Equal(t, ParseUint64Or("18446744073709551615", 10, 0), uint64(18446744073709551615))
 	xtesting.Equal(t, ParseFloat32Or("0.5", 0), float32(0.5))
 	xtesting.Equal(t, ParseFloat64Or("0.5", 0), 0.5)
-	xtesting.Equal(t, ParseComplex64Or("1+2i", 0), complex64(1+2i))
-	xtesting.Equal(t, ParseComplex128Or("1+2i", 0), 1+2i)
 
 	xtesting.Equal(t, ParseIntOr("", 10, 9223372036854775807), 9223372036854775807)
 	xtesting.Equal(t, ParseUintOr("", 10, 18446744073709551615), uint(18446744073709551615))
@@ -139,8 +133,6 @@ func TestParseOr(t *testing.T) {
 	xtesting.Equal(t, ParseUint64Or("", 10, 18446744073709551615), uint64(18446744073709551615))
 	xtesting.Equal(t, ParseFloat32Or("", 0.5), float32(0.5))
 	xtesting.Equal(t, ParseFloat64Or("", 0.5), 0.5)
-	xtesting.Equal(t, ParseComplex64Or("", 1+2i), complex64(1+2i))
-	xtesting.Equal(t, ParseComplex128Or("", 1+2i), 1+2i)
 }
 
 func TestAtoX(t *testing.T) {
@@ -168,10 +160,6 @@ func TestAtoX(t *testing.T) {
 	xtesting.Equal(t, f32, float32(0.5))
 	f64, _ := Atof64("0.5")
 	xtesting.Equal(t, f64, 0.5)
-	c64, _ := Atoc64("1+2i")
-	xtesting.Equal(t, c64, complex64(1+2i))
-	c128, _ := Atoc128("1+2i")
-	xtesting.Equal(t, c128, 1+2i)
 }
 
 func TestAtoXOr(t *testing.T) {
@@ -187,8 +175,6 @@ func TestAtoXOr(t *testing.T) {
 	xtesting.Equal(t, Atou64Or("18446744073709551615", 0), uint64(18446744073709551615))
 	xtesting.Equal(t, Atof32Or("0.5", 0), float32(0.5))
 	xtesting.Equal(t, Atof64Or("0.5", 0), 0.5)
-	xtesting.Equal(t, Atoc64Or("1+2i", 0), complex64(1+2i))
-	xtesting.Equal(t, Atoc128Or("1+2i", 0), 1+2i)
 
 	xtesting.Equal(t, AtoiOr("", 9223372036854775807), 9223372036854775807)
 	xtesting.Equal(t, AtouOr("", 18446744073709551615), uint(18446744073709551615))
@@ -202,8 +188,6 @@ func TestAtoXOr(t *testing.T) {
 	xtesting.Equal(t, Atou64Or("", 18446744073709551615), uint64(18446744073709551615))
 	xtesting.Equal(t, Atof32Or("", 0.5), float32(0.5))
 	xtesting.Equal(t, Atof64Or("", 0.5), 0.5)
-	xtesting.Equal(t, Atoc64Or("", 1+2i), complex64(1+2i))
-	xtesting.Equal(t, Atoc128Or("", 1+2i), 1+2i)
 }
 
 func TestFormat(t *testing.T) {
@@ -221,10 +205,6 @@ func TestFormat(t *testing.T) {
 	xtesting.Equal(t, FormatFloat64(0.5, 'f', -1), "0.5")
 	xtesting.Equal(t, FormatFloat32(0.5555, 'e', 2), "5.55e-01")
 	xtesting.Equal(t, FormatFloat64(0.5555, 'e', 2), "5.55e-01")
-	xtesting.Equal(t, FormatComplex64(1+2i, 'f', -1), "1+2i")
-	xtesting.Equal(t, FormatComplex128(1+2i, 'f', -1), "1+2i")
-	xtesting.Equal(t, FormatComplex64(0.5555+0.5555i, 'e', 2), "5.55e-01+5.55e-01i")
-	xtesting.Equal(t, FormatComplex128(0.5555+0.5555i, 'e', 2), "5.55e-01+5.55e-01i")
 }
 
 func TestXtoa(t *testing.T) {
@@ -240,6 +220,4 @@ func TestXtoa(t *testing.T) {
 	xtesting.Equal(t, U64toa(18446744073709551615), "18446744073709551615")
 	xtesting.Equal(t, F32toa(0.5), "0.5")
 	xtesting.Equal(t, F64toa(0.5), "0.5")
-	xtesting.Equal(t, C64toa(1+2i), "1+2i")
-	xtesting.Equal(t, C128toa(1+2i), "1+2i")
 }

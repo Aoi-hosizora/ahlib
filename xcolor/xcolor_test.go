@@ -49,6 +49,16 @@ func TestColor(t *testing.T) {
 	xtesting.Equal(t, White.Code(), "37")
 	xtesting.Equal(t, Default.Code(), "39")
 
+	xtesting.Equal(t, Black.CodeNumber(), uint8(30))
+	xtesting.Equal(t, Red.CodeNumber(), uint8(31))
+	xtesting.Equal(t, Green.CodeNumber(), uint8(32))
+	xtesting.Equal(t, Yellow.CodeNumber(), uint8(33))
+	xtesting.Equal(t, Blue.CodeNumber(), uint8(34))
+	xtesting.Equal(t, Magenta.CodeNumber(), uint8(35))
+	xtesting.Equal(t, Cyan.CodeNumber(), uint8(36))
+	xtesting.Equal(t, White.CodeNumber(), uint8(37))
+	xtesting.Equal(t, Default.CodeNumber(), uint8(39))
+
 	xtesting.Equal(t, Black.Len(), 9)
 	xtesting.Equal(t, Red.Len(), 9)
 	xtesting.Equal(t, Green.Len(), 9)

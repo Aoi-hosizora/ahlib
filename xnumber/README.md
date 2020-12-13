@@ -60,8 +60,6 @@
 + `func ParseUint64(s string, base int) (uint64, error)`
 + `func ParseFloat32(s string) (float32, error)`
 + `func ParseFloat64(s string) (float64, error)`
-+ `func ParseComplex64(s string) (complex64, error)`
-+ `func ParseComplex128(s string) (complex128, error)`
 + `func ParseIntOr(s string, base int, o int) int`
 + `func ParseInt8Or(s string, base int, o int8) int8`
 + `func ParseInt16Or(s string, base int, o int16) int16`
@@ -74,8 +72,6 @@
 + `func ParseUint64Or(s string, base int, o uint64) uint64`
 + `func ParseFloat32Or(s string, o float32) float32`
 + `func ParseFloat64Or(s string, o float64) float64`
-+ `func ParseComplex64Or(s string, o complex64) complex64`
-+ `func ParseComplex128Or(s string, o complex128) complex128`
 + `func Atoi(s string) (int, error)`
 + `func Atoi8(s string) (int8, error)`
 + `func Atoi16(s string) (int16, error)`
@@ -88,8 +84,6 @@
 + `func Atou64(s string) (uint64, error)`
 + `func Atof32(s string) (float32, error)`
 + `func Atof64(s string) (float64, error)`
-+ `func Atoc64(s string) (complex64, error)`
-+ `func Atoc128(s string) (complex128, error)`
 + `func AtoiOr(s string, o int) int`
 + `func Atoi8Or(s string, o int8) int8`
 + `func Atoi16Or(s string, o int16) int16`
@@ -102,8 +96,6 @@
 + `func Atou64Or(s string, o uint64) uint64`
 + `func Atof32Or(s string, o float32) float32`
 + `func Atof64Or(s string, o float64) float64`
-+ `func Atoc64Or(s string, o complex64) complex64`
-+ `func Atoc128Or(s string, o complex128) complex128`
 + `func FormatInt(i int, base int) string`
 + `func FormatInt8(i int8, base int) string`
 + `func FormatInt16(i int16, base int) string`
@@ -116,8 +108,6 @@
 + `func FormatUint64(u uint64, base int) string`
 + `func FormatFloat32(f float32, fmt byte, prec int) string`
 + `func FormatFloat64(f float64, fmt byte, prec int) string`
-+ `func FormatComplex64(c complex64, fmt byte, prec int) string`
-+ `func FormatComplex128(c complex128, fmt byte, prec int) string`
 + `func Itoa(i int) string`
 + `func I8toa(i int8) string`
 + `func I16toa(i int16) string`
@@ -130,8 +120,6 @@
 + `func U64toa(u uint64) string`
 + `func F32toa(f float32) string`
 + `func F64toa(f float64) string`
-+ `func C64toa(c complex64) string`
-+ `func C128toa(c complex128) string`
 
 ### Methods
 
