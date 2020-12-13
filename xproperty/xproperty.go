@@ -28,19 +28,42 @@ type PropertyMapper struct {
 	dict PropertyDict
 }
 
-// PropertyDict represents a dictionary of property mappings.
+// PropertyDict represents a dictionary of PropertyMapperValue.
 type PropertyDict map[string]*PropertyMapperValue
 
-// VariableDict represents a dictionary of property id pairs (Almost used for cypher).
-type VariableDict map[string]int
-
-// PropertyMapperValue represents a property mapper value, contains Revert and Destinations.
+// PropertyMapperValue represents a value stored in PropertyMapper, used to represents some property settings.
 type PropertyMapperValue struct {
-	// Revert represents need destination revert in sort.
-	Revert bool
+	// id represents the property order `id`.
+	id int
 
-	// Destinations represents property mapping source `source` destination `destination`.
-	Destinations []string
+	// revert represents need destination `revert` in sort.
+	revert bool
+
+	// arg represents some other arguments for property.
+	arg interface{}
+
+	// destinations represents a destination properties.
+	destinations []string
+}
+
+// GetId returns the id in PropertyMapperValue.
+func (p *PropertyMapperValue) GetId() int {
+	return p.id
+}
+
+// GetRevert returns the revert in PropertyMapperValue.
+func (p *PropertyMapperValue) GetRevert() bool {
+	return p.revert
+}
+
+// GetArg returns the arg in PropertyMapperValue.
+func (p *PropertyMapperValue) GetArg() interface{} {
+	return p.arg
+}
+
+// GetDestinations returns the destinations in PropertyMapperValue.
+func (p *PropertyMapperValue) GetDestinations() []string {
+	return p.destinations
 }
 
 // New creates an empty PropertyMappers.
@@ -70,11 +93,21 @@ func NewMapper(src interface{}, dest interface{}, dict PropertyDict) *PropertyMa
 	return &PropertyMapper{source: src, destination: dest, srcType: srcTyp, destType: destTyp, dict: dict}
 }
 
-// NewValue creates a PropertyMapperValue.
+// NewValue creates a PropertyMapperValue with revert and destinations fields.
 func NewValue(revert bool, destinations ...string) *PropertyMapperValue {
 	return &PropertyMapperValue{
-		Revert:       revert,
-		Destinations: destinations,
+		revert:       revert,
+		destinations: destinations,
+	}
+}
+
+// NewValueCompletely creates a PropertyMapperValue with all fields.
+func NewValueCompletely(id int, revert bool, arg interface{}, destinations ...string) *PropertyMapperValue {
+	return &PropertyMapperValue{
+		id:           id,
+		revert:       revert,
+		arg:          arg,
+		destinations: destinations,
 	}
 }
 
@@ -101,6 +134,10 @@ func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
 	}
 }
 
+// ====
+// core
+// ====
+
 // GetMapper returns the PropertyMapper from PropertyMappers, panics when using nil model, returns error when mapper not found.
 func (p *PropertyMappers) GetMapper(src interface{}, dest interface{}) (*PropertyMapper, error) {
 	if src == nil || dest == nil {
@@ -117,11 +154,11 @@ func (p *PropertyMappers) GetMapper(src interface{}, dest interface{}) (*Propert
 	return nil, mapperNotFoundErr
 }
 
-// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns an empty PropertyMapper if not found, panics when using nil model.
+// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns an empty PropertyDict if not found, panics when using nil model.
 func (p *PropertyMappers) GetDefaultMapper(src interface{}, dest interface{}) *PropertyMapper {
 	mapper, err := p.GetMapper(src, dest)
 	if err != nil {
-		return NewMapper(src, dest, nil)
+		return NewMapper(src, dest, nil) // dict: PropertyDict{}
 	}
 	return mapper
 }
@@ -144,7 +181,7 @@ func GetMapper(src interface{}, dest interface{}) (*PropertyMapper, error) {
 	return _mappers.GetMapper(src, dest)
 }
 
-// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns an empty PropertyMapper if not found, panics when using nil model.
+// GetDefaultMapper returns the PropertyMapper from PropertyMappers, returns an empty PropertyDict if not found, panics when using nil model.
 func GetDefaultMapper(src interface{}, dest interface{}) *PropertyMapper {
 	return _mappers.GetDefaultMapper(src, dest)
 }

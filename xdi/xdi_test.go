@@ -1,6 +1,7 @@
 package xdi
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
 	"testing"
@@ -166,7 +167,6 @@ func TestInject(t *testing.T) {
 	all := Inject(a)
 	xtesting.False(t, all)
 	xtesting.Panic(t, func() { InjectForce(a) })
-	xtesting.Panic(t, func() { MustInject(a) })
 
 	ProvideName("b", true)
 	ProvideName("s", "sss")
@@ -179,7 +179,6 @@ func TestInject(t *testing.T) {
 
 	xtesting.True(t, Inject(a))
 	xtesting.NotPanic(t, func() { InjectForce(a) })
-	xtesting.NotPanic(t, func() { MustInject(a) })
 
 	xtesting.Equal(t, a.I, 1)
 	xtesting.Equal(t, a.I8, int8(1))
@@ -237,6 +236,23 @@ func TestLogger(t *testing.T) {
 
 	log.Println("LogName | LogImpl")
 	SetLogger(DefaultLogger(LogName | LogImpl))
+	ProvideName("a", "a")
+	ProvideType("a")
+	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
+	GetByName("a")
+	GetByType("")
+	GetByImpl((*testByImplInterface1)(nil))
+	Inject(&a{})
+
+	LogLeftArrow = func(arg1, arg2, arg3 string) {
+		fmt.Printf("[XDI] %-8s %-50s <-- %s\n", arg1, arg2, arg3)
+	}
+	LogRightArrow = func(arg1, arg2, arg3 string) {
+		fmt.Printf("[XDI] %-8s %-50s --> %s\n", arg1, arg2, arg3)
+	}
+
+	log.Println("LogAll 2")
+	SetLogger(DefaultLogger(LogAll))
 	ProvideName("a", "a")
 	ProvideType("a")
 	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})

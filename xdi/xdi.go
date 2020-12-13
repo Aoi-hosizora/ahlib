@@ -42,6 +42,8 @@ func NewDiContainer() *DiContainer {
 }
 
 // SetLogger sets the Logger for DiContainer.
+//
+// Example:
 // 	SetLogger(DefaultLogger(LogAll))    // set default logger
 // 	SetLogger(DefaultLogger(LogSilent)) // disable logger
 func (d *DiContainer) SetLogger(logger Logger) {
@@ -49,30 +51,26 @@ func (d *DiContainer) SetLogger(logger Logger) {
 }
 
 var (
-	provideInvalidNamePanic    = "xdi: service name could not be empty, '-' or '~'"
-	provideNilServicePanic     = "xdi: provide nil service"
-	nilInterfacePtrPanic       = "xdi: nil interfacePtr"
-	invalidInterfacePtrPanic   = "xdi: non-interface-pointer interfacePtr"
+	invalidServiceNamePanic = "xdi: using invalid service name (empty, '-' and '~')"
+	nilServicePanic         = "xdi: using nil service"
+	nilInterfacePtrPanic    = "xdi: using nil interface pointer"
+	NonInterfacePtrPanic    = "xdi: using non-interface pointer"
+
 	notImplementInterfacePanic = "xdi: service (type of %s) do not implement the interface (type of %s)"
+	serviceNotFoundPanic       = "xdi: service not found"
 
-	serviceByNameNotFoundPanic = "xdi: service provided by name not found"
-	serviceByTypeNotFoundPanic = "xdi: service provided by type not found"
-	serviceByImplNotFoundPanic = "xdi: service provided by interface type not found"
-	serviceByInvalidNamePanic  = "xdi: get service using empty, '-' or '~' name"
-	serviceByNilPanic          = "xdi: get service using nil"
-
-	injectIntoNilPanic          = "xdi: inject into nil"
-	injectIntoNonStructPtrPanic = "xdi: inject into non-struct-pointer value"
+	injectIntoNilPanic          = "xdi: inject into nil struct"
+	injectIntoNonStructPtrPanic = "xdi: inject into non-struct pointer"
 	notAllFieldsInjectedPanic   = "xdi: not all fields with di tag are injected"
 )
 
-// ProvideName provides a service using a ServiceName, panic when using empty or `-` or `~` name or nil service.
+// ProvideName provides a service using a ServiceName, panics when using invalid service name or nil service.
 func (d *DiContainer) ProvideName(name ServiceName, service interface{}) {
 	if name == "" || name == "-" || name == "~" {
-		panic(provideInvalidNamePanic)
+		panic(invalidServiceNamePanic)
 	}
 	if service == nil {
-		panic(provideNilServicePanic)
+		panic(nilServicePanic)
 	}
 
 	d.muByName.Lock()
@@ -82,10 +80,10 @@ func (d *DiContainer) ProvideName(name ServiceName, service interface{}) {
 	d.logger.LogName(name.String(), reflect.TypeOf(service).String())
 }
 
-// ProvideType provides a service using its type, panic when using nil service.
+// ProvideType provides a service using its type, panics when using nil service.
 func (d *DiContainer) ProvideType(service interface{}) {
 	if service == nil {
-		panic(provideNilServicePanic)
+		panic(nilServicePanic)
 	}
 	typ := reflect.TypeOf(service)
 
@@ -96,26 +94,26 @@ func (d *DiContainer) ProvideType(service interface{}) {
 	d.logger.LogType(typ.String())
 }
 
-// ProvideImpl provides a service using the interface type, panic when using invalid interfacePtr or nil serviceImpl.
+// ProvideImpl provides a service using the interface type, panics when using invalid interface pointer or nil service.
 //
 // Example:
-// 	ProvideImpl((*Interface)(nil), &Struct{})
-// 	GetByType(Interface(nil))
+// 	ProvideImpl((*Interface)(nil), &Service{})
+// 	GetByImpl((*Interface)(nil))
 func (d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interface{}) {
 	if interfacePtr == nil {
 		panic(nilInterfacePtrPanic)
 	}
 	if serviceImpl == nil {
-		panic(provideNilServicePanic)
+		panic(nilServicePanic)
 	}
 
 	itfTyp := reflect.TypeOf(interfacePtr)
 	if itfTyp.Kind() != reflect.Ptr {
-		panic(invalidInterfacePtrPanic)
+		panic(NonInterfacePtrPanic)
 	}
 	itfTyp = itfTyp.Elem()
 	if itfTyp.Kind() != reflect.Interface {
-		panic(invalidInterfacePtrPanic)
+		panic(NonInterfacePtrPanic)
 	}
 	srvTyp := reflect.TypeOf(serviceImpl)
 	if !srvTyp.Implements(itfTyp) {
@@ -123,103 +121,120 @@ func (d *DiContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interfac
 	}
 
 	d.muByType.Lock()
-	d.provByType[itfTyp] = serviceImpl
+	d.provByType[itfTyp] = serviceImpl // interface type
 	d.muByType.Unlock()
 
 	d.logger.LogImpl(itfTyp.String(), srvTyp.String())
 }
 
-// GetByName returns the service provided by name, panics when using invalid service name, returns false if not exists.
+// GetByName returns the service provided by name, panics when using invalid service name.
 func (d *DiContainer) GetByName(name ServiceName) (service interface{}, exist bool) {
 	if name == "" || name == "~" || name == "-" {
-		panic(serviceByInvalidNamePanic)
+		panic(invalidServiceNamePanic)
 	}
+
+	d.muByName.Lock()
 	service, exist = d.provByName[name]
+	d.muByName.Unlock()
 	return
 }
 
-// GetByNameForce returns a service provided by name, panics when using invalid service name or the service not found.
+// GetByNameForce returns a service provided by name, panics when using invalid service name or service not found.
 func (d *DiContainer) GetByNameForce(name ServiceName) interface{} {
 	service, exist := d.GetByName(name)
 	if !exist {
-		panic(serviceByNameNotFoundPanic)
+		panic(serviceNotFoundPanic)
 	}
 	return service
 }
 
-// GetByType returns a service provided by type, panics when using nil type, returns false if not exists.
+// GetByType returns a service provided by type, panics when using nil type.
 func (d *DiContainer) GetByType(serviceType interface{}) (service interface{}, exist bool) {
 	if serviceType == nil {
-		panic(serviceByNilPanic)
+		panic(nilServicePanic)
 	}
 
 	typ := reflect.TypeOf(serviceType)
+	d.muByType.Lock()
 	service, exist = d.provByType[typ]
+	d.muByType.Unlock()
 	return
 }
 
-// GetByTypeForce returns a service provided by type, panics when using nil type or the service not found.
+// GetByTypeForce returns a service provided by type, panics when using nil type or service not found.
 func (d *DiContainer) GetByTypeForce(serviceType interface{}) interface{} {
 	service, exist := d.GetByType(serviceType)
 	if !exist {
-		panic(serviceByTypeNotFoundPanic)
+		panic(serviceNotFoundPanic)
 	}
 	return service
 }
 
-// GetByImpl returns a service by interface pointer, panics when using invalid interfacePtr, returns false if not exists.
+// GetByImpl returns a service by interface pointer, panics when using invalid interface pointer.
 func (d *DiContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool) {
 	if interfacePtr == nil {
 		panic(nilInterfacePtrPanic)
 	}
 	itfTyp := reflect.TypeOf(interfacePtr)
 	if itfTyp.Kind() != reflect.Ptr {
-		panic(invalidInterfacePtrPanic)
+		panic(NonInterfacePtrPanic)
 	}
 	itfTyp = itfTyp.Elem()
 	if itfTyp.Kind() != reflect.Interface {
-		panic(invalidInterfacePtrPanic)
+		panic(NonInterfacePtrPanic)
 	}
 
-	service, exist = d.provByType[itfTyp]
+	d.muByType.Lock()
+	service, exist = d.provByType[itfTyp] // interface type
+	d.muByType.Unlock()
 	return
 }
 
-// GetByImplForce returns a service by serviceType, panics when using invalid interfacePtr or the service not found.
+// GetByImplForce returns a service by serviceType, panics when using invalid interface pointer or service not found.
 func (d *DiContainer) GetByImplForce(interfacePtr interface{}) interface{} {
 	service, exist := d.GetByImpl(interfacePtr)
 	if !exist {
-		panic(serviceByImplNotFoundPanic)
+		panic(serviceNotFoundPanic)
 	}
 	return service
 }
 
-// Inject injects into the struct fields by di tag, and returns true if all fields with di tag are both injected.
+// ====
+// core
+// ====
+
+// Inject injects into struct fields using its di tag.
+//
 // Example:
 // 	type AStruct struct {
-// 		unexportedField1 string           // -> ignore
-// 		ExportedField1 string             // -> ignore
-// 		ExportedField2 string `di:""`     // -> ignore
-// 		ExportedField3 string `di:"-"`    // -> ignore
-// 		ExportedField4 string `di:"name"` // -> inject by name
-// 		ExportedField5 string `di:"~"`    // -> inject by type
+// 		unexportedField string             // -> ignore
+// 		ExportedField1  string             // -> ignore
+// 		ExportedField2  string `di:""`     // -> ignore
+// 		ExportedField3  string `di:"-"`    // -> ignore
+// 		ExportedField4  string `di:"name"` // -> inject by name
+// 		ExportedField5  string `di:"~"`    // -> inject by type or impl
 // 	}
 func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool) {
-	return d.inject(ctrl, false)
+	return coreInject(d, ctrl, false)
 }
 
-// InjectForce injects into the struct fields by di tag, same as Inject, but panic when not all fields with di tag are injected.
+// InjectForce injects into struct fields using its di tag, panics when not all fields are injected.
+//
+// Example:
+// 	type AStruct struct {
+// 		unexportedField string             // -> ignore
+// 		ExportedField1  string             // -> ignore
+// 		ExportedField2  string `di:""`     // -> ignore
+// 		ExportedField3  string `di:"-"`    // -> ignore
+// 		ExportedField4  string `di:"name"` // -> inject by name
+// 		ExportedField5  string `di:"~"`    // -> inject by type or impl
+// 	}
 func (d *DiContainer) InjectForce(ctrl interface{}) {
-	d.inject(ctrl, true)
+	coreInject(d, ctrl, true)
 }
 
-// MustInject injects into the struct fields by di tag, same as Inject, but panic when not all fields with di tag are injected.
-func (d *DiContainer) MustInject(ctrl interface{}) {
-	d.InjectForce(ctrl)
-}
-
-// inject is the core implementation for Inject, InjectForce and MustInject.
-func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
+// coreInject is the core implementation for Inject and InjectForce.
+func coreInject(d *DiContainer, ctrl interface{}, force bool) bool {
 	if ctrl == nil {
 		panic(injectIntoNilPanic)
 	}
@@ -238,9 +253,9 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 	allInjected := true
 
 	// for each field
-	for fieldIdx := 0; fieldIdx < ctrlTyp.NumField(); fieldIdx++ {
+	for idx := 0; idx < ctrlTyp.NumField(); idx++ {
 		// check
-		field := ctrlTyp.Field(fieldIdx)
+		field := ctrlTyp.Field(idx)
 		diTag := field.Tag.Get("di")
 		if diTag == "-" || diTag == "" {
 			continue
@@ -249,12 +264,16 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 		// find
 		var service interface{}
 		var exist bool
-		if diTag == "~" {
-			// inject by type
-			service, exist = d.provByType[field.Type]
-		} else {
+		if diTag != "~" {
 			// inject by name
+			d.muByName.Lock()
 			service, exist = d.provByName[ServiceName(diTag)]
+			d.muByName.Unlock()
+		} else {
+			// inject by type or impl
+			d.muByType.Lock()
+			service, exist = d.provByType[field.Type]
+			d.muByType.Unlock()
 		}
 
 		// exist
@@ -267,13 +286,11 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 			continue
 		}
 
-		// inject
-		fieldType := ctrlTyp.Field(fieldIdx)
-		fieldValue := ctrlVal.Field(fieldIdx)
-		if fieldValue.IsValid() && fieldValue.CanSet() {
-			// set value
-			fieldValue.Set(reflect.ValueOf(service))
-			d.logger.LogInject(reflect.TypeOf(ctrl).String(), fieldType.Type.String(), fieldType.Name)
+		// inject value
+		fieldVal := ctrlVal.Field(idx)
+		if fieldVal.IsValid() && fieldVal.CanSet() {
+			fieldVal.Set(reflect.ValueOf(service))
+			d.logger.LogInject(reflect.TypeOf(ctrl).String(), field.Type.String(), field.Name)
 		}
 	}
 
@@ -284,81 +301,89 @@ func (d *DiContainer) inject(ctrl interface{}, force bool) bool {
 var _di = NewDiContainer()
 
 // SetLogger sets the Logger for DiContainer.
+//
+// Example:
 // 	SetLogger(DefaultLogger(LogAll))    // set default logger
 // 	SetLogger(DefaultLogger(LogSilent)) // disable logger
 func SetLogger(logger Logger) {
 	_di.SetLogger(logger)
 }
 
-// ProvideName provides a service using a ServiceName, panic when using empty or `-` or `~` name or nil service.
+// ProvideName provides a service using a ServiceName, panics when using invalid service name or nil service.
 func ProvideName(name ServiceName, service interface{}) {
 	_di.ProvideName(name, service)
 }
 
-// ProvideType provides a service using its type, panic when using nil service.
+// ProvideType provides a service using its type, panics when using nil service.
 func ProvideType(service interface{}) {
 	_di.ProvideType(service)
 }
 
-// ProvideImpl provides a service using the interface type, panic when using invalid interfacePtr or nil serviceImpl.
+// ProvideImpl provides a service using the interface type, panics when using invalid interface pointer or nil service.
 //
 // Example:
-// 	ProvideImpl((*Interface)(nil), &Struct{})
-// 	GetByType(Interface(nil))
+// 	ProvideImpl((*Interface)(nil), &Service{})
+// 	GetByImpl((*Interface)(nil))
 func ProvideImpl(interfacePtr interface{}, serviceImpl interface{}) {
 	_di.ProvideImpl(interfacePtr, serviceImpl)
 }
 
-// GetByName returns the service provided by name, panics when using invalid service name, returns false if not exists.
+// GetByName returns the service provided by name, panics when using invalid service name.
 func GetByName(name ServiceName) (service interface{}, exist bool) {
 	return _di.GetByName(name)
 }
 
-// GetByNameForce returns a service provided by name, panics when using invalid service name or the service not found.
+// GetByNameForce returns a service provided by name, panics when using invalid service name or service not found.
 func GetByNameForce(name ServiceName) interface{} {
 	return _di.GetByNameForce(name)
 }
 
-// GetByType returns a service provided by type, panics when using nil type, returns false if not exists.
+// GetByType returns a service provided by type, panics when using nil type.
 func GetByType(serviceType interface{}) (service interface{}, exist bool) {
 	return _di.GetByType(serviceType)
 }
 
-// GetByTypeForce returns a service provided by type, panics when using nil type or the service not found.
+// GetByTypeForce returns a service provided by type, panics when using nil type or service not found.
 func GetByTypeForce(serviceType interface{}) interface{} {
 	return _di.GetByTypeForce(serviceType)
 }
 
-// GetByImpl returns a service by interface pointer, panics when using invalid interfacePtr, returns false if not exists.
+// GetByImpl returns a service by interface pointer, panics when using invalid interface pointer.
 func GetByImpl(interfacePtr interface{}) (service interface{}, exist bool) {
 	return _di.GetByImpl(interfacePtr)
 }
 
-// GetByImplForce returns a service by serviceType, panics when using invalid interfacePtr or the service not found.
+// GetByImplForce returns a service by serviceType, panics when using invalid interface pointer or service not found.
 func GetByImplForce(interfacePtr interface{}) interface{} {
 	return _di.GetByImplForce(interfacePtr)
 }
 
-// Inject injects into the struct fields by di tag, and returns true if all fields with di tag are both injected.
+// Inject injects into struct fields using its di tag.
+//
 // Example:
 // 	type AStruct struct {
-// 		unexportedField1 string           // -> ignore
-// 		ExportedField1 string             // -> ignore
-// 		ExportedField2 string `di:""`     // -> ignore
-// 		ExportedField3 string `di:"-"`    // -> ignore
-// 		ExportedField4 string `di:"name"` // -> inject by name
-// 		ExportedField5 string `di:"~"`    // -> inject by type
+// 		unexportedField string             // -> ignore
+// 		ExportedField1  string             // -> ignore
+// 		ExportedField2  string `di:""`     // -> ignore
+// 		ExportedField3  string `di:"-"`    // -> ignore
+// 		ExportedField4  string `di:"name"` // -> inject by name
+// 		ExportedField5  string `di:"~"`    // -> inject by type or impl
 // 	}
 func Inject(ctrl interface{}) (allInjected bool) {
 	return _di.Inject(ctrl)
 }
 
-// InjectForce injects into the struct fields by di tag, same as Inject, but panic when not all fields with di tag are injected.
+// InjectForce injects into struct fields using its di tag, panics when not all fields are injected.
+//
+// Example:
+// 	type AStruct struct {
+// 		unexportedField string             // -> ignore
+// 		ExportedField1  string             // -> ignore
+// 		ExportedField2  string `di:""`     // -> ignore
+// 		ExportedField3  string `di:"-"`    // -> ignore
+// 		ExportedField4  string `di:"name"` // -> inject by name
+// 		ExportedField5  string `di:"~"`    // -> inject by type or impl
+// 	}
 func InjectForce(ctrl interface{}) {
-	_di.MustInject(ctrl)
-}
-
-// MustInject injects into the struct fields by di tag, same as Inject, but panic when not all fields with di tag are injected.
-func MustInject(ctrl interface{}) {
-	_di.MustInject(ctrl)
+	_di.InjectForce(ctrl)
 }

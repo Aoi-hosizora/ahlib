@@ -17,25 +17,25 @@
 
 ### Packages
 
-+ xcondition
-+ xorderedmap
-+ **xslice**
-+ **xstring**
-+ xentity
-+ xproperty
-+ **xdi**
-+ xreflect
-+ **xnumber**
-+ xpointer
 + xcolor
++ xcondition
++ **xdi**
++ xentity
++ xmap
++ **xnumber**
++ xorderedmap
++ xpointer
++ xproperty
++ xreflect
++ xregexp
 + xruntime
++ **xslice**
++ **xstatus**
++ **xstring**
 + xsystem
++ **xtesting**
 + **xtime**
 + xzone
-+ **xtesting**
-+ xregexp
-+ xstatus
-+ xmap
 
 ### Dependency
 

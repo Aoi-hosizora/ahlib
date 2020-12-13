@@ -27,11 +27,11 @@ type EntityMapper struct {
 	// destCtor represents destination constructor.
 	destCtor func() interface{}
 
-	// mapFunc represents the mapping function.
+	// mapFunc represents the mapping function from source to destination.
 	mapFunc MapFunc
 }
 
-// MapFunc represents a mapping function type, describe how to map from source to destination.
+// MapFunc represents a mapping function, describe how to map from source to destination.
 type MapFunc func(source interface{}, destination interface{}) error
 
 // New creates an empty EntityMappers.
@@ -46,12 +46,12 @@ var (
 	nilCtorPanic           = "xentity: nil constructor"
 	nilMapFuncPanic        = "xentity: nil mapFunc"
 	nonStructPtrModelPanic = "xentity: non-struct-pointer model"
-	nonSlicePanic          = "xentity: non-slice"
+	nonSliceModelPanic     = "xentity: non-slice model"
 
 	mapperNotFoundErr = errors.New("xentity: mapper not found")
 )
 
-// NewMapper creates an EntityMapper, panics when using nil or invalid parameters.
+// NewMapper creates an EntityMapper, panics when using nil model or invalid parameters.
 func NewMapper(src interface{}, destCtor func() interface{}, mapFunc MapFunc) *EntityMapper {
 	// check nil
 	if src == nil {
@@ -60,12 +60,12 @@ func NewMapper(src interface{}, destCtor func() interface{}, mapFunc MapFunc) *E
 	if destCtor == nil {
 		panic(nilCtorPanic)
 	}
-	if mapFunc == nil {
-		panic(nilMapFuncPanic)
-	}
 	dest := destCtor()
 	if dest == nil {
 		panic(nilModelPanic)
+	}
+	if mapFunc == nil {
+		panic(nilMapFuncPanic)
 	}
 
 	// check pointer
@@ -122,34 +122,40 @@ func (e *EntityMappers) GetMapper(src interface{}, dest interface{}) (*EntityMap
 	return nil, mapperNotFoundErr
 }
 
-// doMap is the core implementation of EntityMapper, with EntityMapper.mapFunc and options.
-func doMap(mapper *EntityMapper, src interface{}, dest interface{}, opts ...MapFunc) error {
+// ====
+// core
+// ====
+
+// coreMap is the core implementation of EntityMapper, with EntityMapper.mapFunc and options.
+func coreMap(mapper *EntityMapper, src interface{}, dest interface{}, opts ...MapFunc) error {
 	err := mapper.mapFunc(src, dest)
 	if err != nil {
 		return err
 	}
 
-	for _, option := range opts {
-		err = option(src, dest)
-		if err != nil {
-			return err
+	for _, opt := range opts {
+		if opt != nil {
+			err = opt(src, dest)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-// MapProp maps source properties to destination, panics when using nil model, returns error when mapper not found.
+// MapProp maps source properties into destination, panics when using nil model.
 func (e *EntityMappers) MapProp(src interface{}, dest interface{}, opts ...MapFunc) error {
 	mapper, err := e.GetMapper(src, dest)
 	if err != nil {
 		return err
 	}
 
-	return doMap(mapper, src, dest, opts...)
+	return coreMap(mapper, src, dest, opts...)
 }
 
-// Map returns a destination instance mapped from source, panics when using nil model, returns error when mapper not found.
+// Map returns a destination instance mapped from source, panics when using nil model.
 func (e *EntityMappers) Map(src interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error) {
 	mapper, err := e.GetMapper(src, destModel)
 	if err != nil {
@@ -157,27 +163,27 @@ func (e *EntityMappers) Map(src interface{}, destModel interface{}, opts ...MapF
 	}
 
 	dest := mapper.destCtor()
-	err = doMap(mapper, src, dest, opts...)
+	err = coreMap(mapper, src, dest, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return dest, nil
 }
 
-// MapSlice returns a destination slice mapped from source slice, panics when using nil model, returns error when mapper not found.
+// MapSlice returns a destination slice mapped from source slice, panics when using nil model.
 func (e *EntityMappers) MapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) (interface{}, error) {
 	if srcSlice == nil || destModel == nil {
 		panic(nilModelPanic)
 	}
-	srcVal := reflect.ValueOf(srcSlice)
-	if srcVal.Type().Kind() != reflect.Slice {
-		panic(nonSlicePanic)
+	srcSliceVal := reflect.ValueOf(srcSlice)
+	if srcSliceVal.Type().Kind() != reflect.Slice {
+		panic(nonSliceModelPanic)
 	}
 
-	srcLen := srcVal.Len()
-	srcItfSlice := make([]interface{}, srcLen)
-	for idx := 0; idx < srcLen; idx++ {
-		srcItfSlice[idx] = srcVal.Index(idx).Interface()
+	srcSliceLen := srcSliceVal.Len()
+	srcItfSlice := make([]interface{}, srcSliceLen)
+	for idx := 0; idx < srcSliceLen; idx++ {
+		srcItfSlice[idx] = srcSliceVal.Index(idx).Interface()
 	}
 	destSliceTyp := reflect.SliceOf(reflect.TypeOf(destModel))
 	destSliceVal := reflect.MakeSlice(destSliceTyp, len(srcItfSlice), len(srcItfSlice))
@@ -192,7 +198,7 @@ func (e *EntityMappers) MapSlice(srcSlice interface{}, destModel interface{}, op
 
 	for idx, src := range srcItfSlice {
 		dest := mapper.destCtor()
-		err = doMap(mapper, src, dest, opts...)
+		err = coreMap(mapper, src, dest, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +208,7 @@ func (e *EntityMappers) MapSlice(srcSlice interface{}, destModel interface{}, op
 	return destSliceVal.Interface(), nil
 }
 
-// MustMapProp is the must version of MapProp, panics when using nil model or mapper not found.
+// MustMapProp is the must version of MapProp, panics when error.
 func (e *EntityMappers) MustMapProp(src interface{}, dest interface{}, opts ...MapFunc) {
 	err := e.MapProp(src, dest, opts...)
 	if err != nil {
@@ -210,7 +216,7 @@ func (e *EntityMappers) MustMapProp(src interface{}, dest interface{}, opts ...M
 	}
 }
 
-// MustMap is the must version of MustMap, panics when using nil model or mapper not found.
+// MustMap is the must version of Map, panics when error.
 func (e *EntityMappers) MustMap(src interface{}, destModel interface{}, opts ...MapFunc) interface{} {
 	dest, err := e.Map(src, destModel, opts...)
 	if err != nil {
@@ -219,7 +225,7 @@ func (e *EntityMappers) MustMap(src interface{}, destModel interface{}, opts ...
 	return dest
 }
 
-// MustMapSlice is the must version of MapSlice, panics when using nil model or mapper not found.
+// MustMapSlice is the must version of MapSlice, panics when error.
 func (e *EntityMappers) MustMapSlice(srcSlice interface{}, destModel interface{}, opts ...MapFunc) interface{} {
 	destSlice, err := e.MapSlice(srcSlice, destModel, opts...)
 	if err != nil {
@@ -246,32 +252,32 @@ func GetMapper(src interface{}, dest interface{}) (*EntityMapper, error) {
 	return _mappers.GetMapper(src, dest)
 }
 
-// MapProp maps source properties to destination, panics when using nil model, returns error when mapper not found.
+// MapProp maps source properties into destination, panics when using nil model.
 func MapProp(src interface{}, dest interface{}, options ...MapFunc) error {
 	return _mappers.MapProp(src, dest, options...)
 }
 
-// Map returns a destination instance mapped from source, panics when using nil model, returns error when mapper not found.
+// Map returns a destination instance mapped from source, panics when using nil model.
 func Map(src interface{}, destModel interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.Map(src, destModel, options...)
 }
 
-// MapSlice returns a destination slice mapped from source slice, panics when using nil model, returns error when mapper not found.
+// MapSlice returns a destination slice mapped from source slice, panics when using nil model.
 func MapSlice(srcSlice interface{}, destModel interface{}, options ...MapFunc) (interface{}, error) {
 	return _mappers.MapSlice(srcSlice, destModel, options...)
 }
 
-// MustMapProp is the must version of MapProp, panics when using nil model or mapper not found.
+// MustMapProp is the must version of MapProp, panics when error.
 func MustMapProp(src interface{}, dest interface{}, options ...MapFunc) {
 	_mappers.MustMapProp(src, dest, options...)
 }
 
-// MustMap is the must version of MustMap, panics when using nil model or mapper not found.
+// MustMap is the must version of Map, panics when error.
 func MustMap(src interface{}, destModel interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMap(src, destModel, options...)
 }
 
-// MustMapSlice is the must version of MapSlice, panics when using nil model or mapper not found.
+// MustMapSlice is the must version of MapSlice, panics when error.
 func MustMapSlice(srcSlice interface{}, destModel interface{}, options ...MapFunc) interface{} {
 	return _mappers.MustMapSlice(srcSlice, destModel, options...)
 }

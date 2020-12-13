@@ -2,7 +2,6 @@
 
 ## References
 
-+ xreflect
 + xtesting*
 
 ## Documents
@@ -10,6 +9,10 @@
 ### Types
 
 + `type OrderedMap struct`
+
+### Variables
+
++ None
 
 ### Constants
 

@@ -2,8 +2,6 @@
 
 ## References
 
-+ xslice
-+ xcondition*
 + xtesting*
 
 ## Documents
@@ -13,6 +11,10 @@
 + `type EntityMappers struct`
 + `type EntityMapper struct`
 + `type MapFunc func`
+
+### Variables
+
++ None
 
 ### Constants
 

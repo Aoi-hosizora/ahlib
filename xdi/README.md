@@ -3,7 +3,6 @@
 ## References
 
 + xcolor
-+ xreflect
 + xtesting*
 
 ## Documents
@@ -14,6 +13,11 @@
 + `type DiContainer struct`
 + `type LogLevel int8`
 + `type Logger interface`
+
+### Variables
+
++ `var LogLeftArrow func(arg1, arg2, arg3 string)`
++ `var LogRightArrow func(arg1, arg2, arg3 string)`
 
 ### Constants
 
@@ -39,7 +43,6 @@
 + `func GetByImplForce(interfacePtr interface{}) interface{}`
 + `func Inject(ctrl interface{}) (allInjected bool)`
 + `func InjectForce(ctrl interface{})`
-+ `func MustInject(ctrl interface{})`
 + `func DefaultLogger(level LogLevel) Logger`
 
 ### Methods
@@ -57,7 +60,6 @@
 + `func (d *DiContainer) GetByImplForce(interfacePtr interface{}) interface{}`
 + `func (d *DiContainer) Inject(ctrl interface{}) (allInjected bool)`
 + `func (d *DiContainer) InjectForce(ctrl interface{})`
-+ `func (d *DiContainer) MustInject(ctrl interface{})`
 + `func (d *defaultLogger) LogName(name, typ string)`
 + `func (d *defaultLogger) LogType(typ string)`
 + `func (d *defaultLogger) LogImpl(itfTyp, srvTyp string)`

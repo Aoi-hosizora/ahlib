@@ -10,18 +10,22 @@
 
 + `type Color uint8`
 
+### Variables
+
++ None
+
 ### Constants
 
-+ `conse Black Color`
-+ `conse Red Color`
-+ `conse Green Color`
-+ `conse Yellow Color`
-+ `conse Blue Color`
-+ `conse Magenta Color`
-+ `conse Cyan Color`
-+ `conse White Color`
-+ `conse Default Color`
-+ `conse FullColorTpl string`
++ `const Black Color`
++ `const Red Color`
++ `const Green Color`
++ `const Yellow Color`
++ `const Blue Color`
++ `const Magenta Color`
++ `const Cyan Color`
++ `const White Color`
++ `const Default Color`
++ `const FullColorTpl string`
 
 ### Functions
 

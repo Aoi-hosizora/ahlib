@@ -2,29 +2,33 @@ package xnumber
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"log"
+	"math"
 	"testing"
 )
 
 func TestAccuracy(t *testing.T) {
-	xtesting.True(t, NewAccuracy(1e-3).Equal(0.33333, 0.333333))
+	xtesting.True(t, NewAccuracy(1e-3).Equal(0.3333, 0.3334))
 	xtesting.True(t, NewAccuracy(1e-3).NotEqual(0.333, 0.334))
+	xtesting.True(t, NewAccuracy(1e-3).Greater(0.334, 0.333))
+	xtesting.True(t, NewAccuracy(1e-3).GreaterOrEqual(0.3334, 0.3333))
+	xtesting.True(t, NewAccuracy(1e-3).Smaller(0.333, 0.334))
+	xtesting.True(t, NewAccuracy(1e-3).SmallerOrEqual(0.3333, 0.3334))
 
-	xtesting.True(t, DefaultAccuracy.Equal(0.1, 0.1))
-	xtesting.True(t, DefaultAccuracy.NotEqual(0.1, 0.11))
-	xtesting.True(t, DefaultAccuracy.Greater(0.2, 0.1))
-	xtesting.True(t, DefaultAccuracy.Smaller(0.1, 0.2))
-	xtesting.True(t, DefaultAccuracy.GreaterOrEqual(0.2, 0.1))
-	xtesting.True(t, DefaultAccuracy.SmallerOrEqual(0.1, 0.1))
-	xtesting.True(t, DefaultAccuracy.GreaterOrEqual(0.1, 0.1))
-	xtesting.True(t, DefaultAccuracy.SmallerOrEqual(0.1, 0.2))
+	xtesting.True(t, EqualInAccuracy(0.3333, 0.3334))
+	xtesting.True(t, NotEqualInAccuracy(0.333, 0.334))
+	xtesting.True(t, GreaterInAccuracy(0.334, 0.333))
+	xtesting.True(t, GreaterOrEqualInAccuracy(0.3334, 0.3333))
+	xtesting.True(t, SmallerInAccuracy(0.333, 0.334))
+	xtesting.True(t, SmallerOrEqualInAccuracy(0.3333, 0.3334))
 }
 
 func TestRenderByte(t *testing.T) {
-	xtesting.Equal(t, RenderByte(-5), "0B")
+	xtesting.Equal(t, RenderByte(-1025), "-1.00KB")
+	xtesting.Equal(t, RenderByte(-5), "-5B")
 	xtesting.Equal(t, RenderByte(0), "0B")
 	xtesting.Equal(t, RenderByte(1023), "1023B")
 	xtesting.Equal(t, RenderByte(1024), "1.00KB")
+	xtesting.Equal(t, RenderByte(1030), "1.01KB")
 	xtesting.Equal(t, RenderByte(1536), "1.50KB")
 	xtesting.Equal(t, RenderByte(2048), "2.00KB")
 	xtesting.Equal(t, RenderByte(1024*1024), "1.00MB")
@@ -42,87 +46,130 @@ func TestBool(t *testing.T) {
 	xtesting.Equal(t, Bool(false), 0)
 }
 
-func TestParse(t *testing.T) {
-	log.Println(ParseInt("9223372036854775807", 10))
-	log.Println(ParseUint("18446744073709551615", 10))
-	log.Println(ParseInt8("127", 10))
-	log.Println(ParseUint8("255", 10))
-	log.Println(ParseInt16("32767", 10))
-	log.Println(ParseUint16("65535", 10))
-	log.Println(ParseInt32("2147483647", 10))
-	log.Println(ParseUint32("4294967295", 10))
-	log.Println(ParseInt64("9223372036854775807", 10))
-	log.Println(ParseUint64("18446744073709551615", 10))
-	log.Println(ParseFloat32("0.7"))
-	log.Println(ParseFloat64("0.7"))
+func TestMinMax(t *testing.T) {
+	xtesting.EqualValue(t, MinInt8, math.MinInt8)
+	xtesting.EqualValue(t, MinInt16, math.MinInt16)
+	xtesting.EqualValue(t, MinInt32, math.MinInt32)
+	xtesting.EqualValue(t, MinInt64, math.MinInt64)
+	xtesting.EqualValue(t, MinUint8, 0)
+	xtesting.EqualValue(t, MinUint16, 0)
+	xtesting.EqualValue(t, MinUint32, 0)
+	xtesting.EqualValue(t, MinUint64, 0)
+
+	xtesting.EqualValue(t, MaxInt8, math.MaxInt8)
+	xtesting.EqualValue(t, MaxInt16, math.MaxInt16)
+	xtesting.EqualValue(t, MaxInt32, math.MaxInt32)
+	xtesting.EqualValue(t, MaxInt64, math.MaxInt64)
+	xtesting.EqualValue(t, MaxUint8, 0xff)
+	xtesting.EqualValue(t, MaxUint16, 0xffff)
+	xtesting.EqualValue(t, MaxUint32, 0xffffffff)
+	xtesting.EqualValue(t, MaxUint64, uint64(0xffffffffffffffff))
+
+	xtesting.True(t, EqualInAccuracy(float64(MaxFloat32), math.MaxFloat32))
+	xtesting.True(t, EqualInAccuracy(float64(SmallestNonzeroFloat32), math.SmallestNonzeroFloat32))
+	xtesting.True(t, EqualInAccuracy(MaxFloat64, math.MaxFloat64))
+	xtesting.True(t, EqualInAccuracy(SmallestNonzeroFloat64, math.SmallestNonzeroFloat64))
 }
 
-func TestFormat(t *testing.T) {
-	log.Println("\"" + FormatInt(9223372036854775807, 10) + "\"")
-	log.Println("\"" + FormatUint(18446744073709551615, 10) + "\"")
-	log.Println("\"" + FormatInt8(127, 10) + "\"")
-	log.Println("\"" + FormatUint8(255, 10) + "\"")
-	log.Println("\"" + FormatInt16(32767, 10) + "\"")
-	log.Println("\"" + FormatUint16(65535, 10) + "\"")
-	log.Println("\"" + FormatInt32(2147483647, 10) + "\"")
-	log.Println("\"" + FormatUint32(4294967295, 10) + "\"")
-	log.Println("\"" + FormatInt64(9223372036854775807, 10) + "\"")
-	log.Println("\"" + FormatUint64(18446744073709551615, 10) + "\"")
-	log.Println("\"" + FormatFloat32(0.7, 'f', -1) + "\"")
-	log.Println("\"" + FormatFloat32(0.7, 'f', -1) + "\"")
+func TestParse(t *testing.T) {
+	i, _ := ParseInt("9223372036854775807", 10)
+	xtesting.Equal(t, i, 9223372036854775807)
+	u, _ := ParseUint("18446744073709551615", 10)
+	xtesting.Equal(t, u, uint(18446744073709551615))
+	i8, _ := ParseInt8("127", 10)
+	xtesting.Equal(t, i8, int8(127))
+	u8, _ := ParseUint8("255", 10)
+	xtesting.Equal(t, u8, uint8(255))
+	i16, _ := ParseInt16("32767", 10)
+	xtesting.Equal(t, i16, int16(32767))
+	u16, _ := ParseUint16("65535", 10)
+	xtesting.Equal(t, u16, uint16(65535))
+	i32, _ := ParseInt32("2147483647", 10)
+	xtesting.Equal(t, i32, int32(2147483647))
+	u32, _ := ParseUint32("4294967295", 10)
+	xtesting.Equal(t, u32, uint32(4294967295))
+	i64, _ := ParseInt64("9223372036854775807", 10)
+	xtesting.Equal(t, i64, int64(9223372036854775807))
+	u64, _ := ParseUint64("18446744073709551615", 10)
+	xtesting.Equal(t, u64, uint64(18446744073709551615))
+	f32, _ := ParseFloat32("0.5")
+	xtesting.Equal(t, f32, float32(0.5))
+	f64, _ := ParseFloat64("0.5")
+	xtesting.Equal(t, f64, 0.5)
+
+	_, err := ParseInt8("a", 10)
+	xtesting.NotNil(t, err)
+	_, err = ParseUint8("a", 10)
+	xtesting.NotNil(t, err)
+	_, err = ParseInt8("a", 11)
+	xtesting.Nil(t, err)
+	_, err = ParseUint8("a", 11)
+	xtesting.Nil(t, err)
+	_, err = ParseInt32("2147483648", 10)
+	xtesting.NotNil(t, err)
+	_, err = ParseUint32("4294967296", 10)
+	xtesting.NotNil(t, err)
+	_, err = ParseInt64("10", 37)
+	xtesting.NotNil(t, err)
+	_, err = ParseUint64("10", 37)
+	xtesting.NotNil(t, err)
 }
 
 func TestAtoi(t *testing.T) {
-	log.Println(Atoi("9223372036854775807"))
-	log.Println(Atou("18446744073709551615"))
-	log.Println(Atoi8("127"))
-	log.Println(Atou8("255"))
-	log.Println(Atoi16("32767"))
-	log.Println(Atou16("65535"))
-	log.Println(Atoi32("2147483647"))
-	log.Println(Atou32("4294967295"))
-	log.Println(Atoi64("9223372036854775807"))
-	log.Println(Atou64("18446744073709551615"))
-	log.Println(Atof32("0.7"))
-	log.Println(Atof64("0.7"))
+	i, _ := Atoi("9223372036854775807")
+	xtesting.Equal(t, i, 9223372036854775807)
+	u, _ := Atou("18446744073709551615")
+	xtesting.Equal(t, u, uint(18446744073709551615))
+	i8, _ := Atoi8("127")
+	xtesting.Equal(t, i8, int8(127))
+	u8, _ := Atou8("255")
+	xtesting.Equal(t, u8, uint8(255))
+	i16, _ := Atoi16("32767")
+	xtesting.Equal(t, i16, int16(32767))
+	u16, _ := Atou16("65535")
+	xtesting.Equal(t, u16, uint16(65535))
+	i32, _ := Atoi32("2147483647")
+	xtesting.Equal(t, i32, int32(2147483647))
+	u32, _ := Atou32("4294967295")
+	xtesting.Equal(t, u32, uint32(4294967295))
+	i64, _ := Atoi64("9223372036854775807")
+	xtesting.Equal(t, i64, int64(9223372036854775807))
+	u64, _ := Atou64("18446744073709551615")
+	xtesting.Equal(t, u64, uint64(18446744073709551615))
+	f32, _ := Atof32("0.5")
+	xtesting.Equal(t, f32, float32(0.5))
+	f64, _ := Atof64("0.5")
+	xtesting.Equal(t, f64, 0.5)
+}
+
+func TestFormat(t *testing.T) {
+	xtesting.Equal(t, FormatInt(9223372036854775807, 10), "9223372036854775807")
+	xtesting.Equal(t, FormatUint(18446744073709551615, 10), "18446744073709551615")
+	xtesting.Equal(t, FormatInt8(127, 10), "127")
+	xtesting.Equal(t, FormatUint8(255, 10), "255")
+	xtesting.Equal(t, FormatInt16(32767, 10), "32767")
+	xtesting.Equal(t, FormatUint16(65535, 10), "65535")
+	xtesting.Equal(t, FormatInt32(2147483647, 10), "2147483647")
+	xtesting.Equal(t, FormatUint32(4294967295, 10), "4294967295")
+	xtesting.Equal(t, FormatInt64(9223372036854775807, 10), "9223372036854775807")
+	xtesting.Equal(t, FormatUint64(18446744073709551615, 10), "18446744073709551615")
+	xtesting.Equal(t, FormatFloat32(0.5, 'f', -1), "0.5")
+	xtesting.Equal(t, FormatFloat64(0.5, 'f', -1), "0.5")
+	xtesting.Equal(t, FormatFloat32(0.5555, 'e', 2), "5.55e-01")
+	xtesting.Equal(t, FormatFloat64(0.5555, 'e', 2), "5.55e-01")
 }
 
 func TestItoa(t *testing.T) {
-	log.Println("\"" + Itoa(9223372036854775807) + "\"")
-	log.Println("\"" + Utoa(18446744073709551615) + "\"")
-	log.Println("\"" + I8toa(127) + "\"")
-	log.Println("\"" + U8toa(255) + "\"")
-	log.Println("\"" + I16toa(32767) + "\"")
-	log.Println("\"" + U16toa(65535) + "\"")
-	log.Println("\"" + I32toa(2147483647) + "\"")
-	log.Println("\"" + U32toa(4294967295) + "\"")
-	log.Println("\"" + I64toa(9223372036854775807) + "\"")
-	log.Println("\"" + U64toa(18446744073709551615) + "\"")
-	log.Println("\"" + F32toa(0.7) + "\"")
-	log.Println("\"" + F64toa(0.7) + "\"")
-}
-
-func TestMinMax(t *testing.T) {
-	_ = MinInt8
-	_ = MinInt16
-	_ = MinInt32
-	_ = MinInt64
-	_ = MinUint8
-	_ = MinUint16
-	_ = MinUint32
-	_ = MinUint64
-
-	_ = MaxInt8
-	_ = MaxInt16
-	_ = MaxInt32
-	_ = MaxInt64
-	_ = MaxUint8
-	_ = MaxUint16
-	_ = MaxUint32
-	_ = MaxUint64
-
-	_ = MaxFloat32
-	_ = SmallestNonzeroFloat32
-	_ = MaxFloat64
-	_ = SmallestNonzeroFloat64
+	xtesting.Equal(t, Itoa(9223372036854775807), "9223372036854775807")
+	xtesting.Equal(t, Utoa(18446744073709551615), "18446744073709551615")
+	xtesting.Equal(t, I8toa(127), "127")
+	xtesting.Equal(t, U8toa(255), "255")
+	xtesting.Equal(t, I16toa(32767), "32767")
+	xtesting.Equal(t, U16toa(65535), "65535")
+	xtesting.Equal(t, I32toa(2147483647), "2147483647")
+	xtesting.Equal(t, U32toa(4294967295), "4294967295")
+	xtesting.Equal(t, I64toa(9223372036854775807), "9223372036854775807")
+	xtesting.Equal(t, U64toa(18446744073709551615), "18446744073709551615")
+	xtesting.Equal(t, F32toa(0.5), "0.5")
+	xtesting.Equal(t, F64toa(0.5), "0.5")
 }
