@@ -8,7 +8,7 @@ package xsystem
 
 import "syscall"
 
-func sysTotalMemory() uint64 {
+func totalMemory() uint64 {
 	in := &syscall.Sysinfo_t{}
 	_ = syscall.Sysinfo(in)
 

@@ -9,13 +9,13 @@ import (
 
 func TestBitNumber(t *testing.T) {
 	log.Println(BitNumber())
-	log.Println(IsX64())
-	log.Println(IsX86())
+	log.Println(Is32Bit())
+	log.Println(Is64Bit())
 
 	bit := 32 << (^uint(0) >> 63)
 	xtesting.Equal(t, BitNumber(), bit)
-	xtesting.Equal(t, IsX64(), bit == 64)
-	xtesting.Equal(t, IsX86(), bit == 32)
+	xtesting.Equal(t, Is64Bit(), bit == 64)
+	xtesting.Equal(t, Is32Bit(), bit == 32)
 }
 
 func TestOs(t *testing.T) {
@@ -26,5 +26,5 @@ func TestOs(t *testing.T) {
 
 	xtesting.Equal(t, GetOsName(), runtime.GOOS)
 	xtesting.Equal(t, GetOsArch(), runtime.GOARCH)
-	xtesting.Equal(t, GetTotalMemory(), sysTotalMemory())
+	xtesting.Equal(t, GetTotalMemory(), totalMemory())
 }

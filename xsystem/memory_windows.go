@@ -20,7 +20,7 @@ type memStatusEx struct {
 	unused       [6]uint64
 }
 
-func sysTotalMemory() uint64 {
+func totalMemory() uint64 {
 	kernel32, err := syscall.LoadDLL("kernel32.dll")
 	if err != nil {
 		return 0

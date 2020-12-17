@@ -1,14 +1,34 @@
 # xsystem
 
-### References
+## References
 
 + xtesting*
 
+## Documents
+
++ None
+
+### Types
+
++ None
+
+### Variables
+
++ None
+
+### Constants
+
++ None
+
 ### Functions
 
-+ `BitNumber() int`
-+ `IsX86() bool`
-+ `IsX64() bool`
-+ `GetOsName() string`
-+ `GetOsArch() string`
-+ `GetTotalMemory() uint64`
++ `func BitNumber() int`
++ `func Is32Bit() bool`
++ `func Is64bit() bool`
++ `func GetOsName() string`
++ `func GetOsArch() string`
++ `func GetTotalMemory() uint64`
+
+### Methods
+
++ None

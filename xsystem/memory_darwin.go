@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-func sysTotalMemory() uint64 {
+func totalMemory() uint64 {
 	s, err := sysctlUint64("hw.memsize")
 	if err != nil {
 		return 0

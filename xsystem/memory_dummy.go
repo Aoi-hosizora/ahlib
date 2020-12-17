@@ -6,6 +6,6 @@
 
 package memory
 
-func sysTotalMemory() uint64 {
+func totalMemory() uint64 {
 	return 0
 }
