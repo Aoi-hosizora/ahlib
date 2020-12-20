@@ -39,7 +39,6 @@
 
 + `func (c Color) String() string`
 + `func (c Color) Code() string`
-+ `func (c Color) CodeNumber() uint8`
 + `func (c Color) Len() int`
 + `func (c Color) Print(a ...interface{})`
 + `func (c Color) Printf(format string, a ...interface{})`

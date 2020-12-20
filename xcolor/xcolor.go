@@ -46,13 +46,8 @@ func (c Color) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
-// Code returns the string of the color code, this function is the same as String.
-func (c Color) Code() string {
-	return c.String()
-}
-
-// CodeNumber returns the number of the color code.
-func (c Color) CodeNumber() uint8 {
+// Code returns the number of the color code, this function is the same as String.
+func (c Color) Code() uint8 {
 	return uint8(c)
 }
 

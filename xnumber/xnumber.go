@@ -133,6 +133,13 @@ func Bool(b bool) int {
 	return 0
 }
 
+const intSize = 32 << (^uint(0) >> 63)
+
+// IntSize returns the int size (32 / 64).
+func IntSize() int {
+	return intSize
+}
+
 const (
 	MinInt8   = int8(-128)                  // -1 << 7,  see math.MinInt8.
 	MinInt16  = int16(-32768)               // -1 << 15, see math.MinInt16.
