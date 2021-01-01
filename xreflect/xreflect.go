@@ -5,7 +5,7 @@ import (
 	"unsafe"
 )
 
-// ElemType returns actual type of a reflect.Ptr kind value.
+// ElemType returns the actual reflect.Type of a reflect.Ptr kind value.
 func ElemType(i interface{}) reflect.Type {
 	t := reflect.TypeOf(i)
 	for t.Kind() == reflect.Ptr {
@@ -14,7 +14,7 @@ func ElemType(i interface{}) reflect.Type {
 	return t
 }
 
-// ElemValue returns actual value of a reflect.Ptr kind value.
+// ElemValue returns the actual reflect.Value of a reflect.Ptr kind value.
 func ElemValue(i interface{}) reflect.Value {
 	v := reflect.ValueOf(i)
 	for v.Kind() == reflect.Ptr {
@@ -35,14 +35,6 @@ func GetUnexportedField(field reflect.Value) interface{} {
 // 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
 func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
-}
-
-// BoolVal is the same with xnumber.Bool.
-func BoolVal(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 // GetStructFields gets a slice of reflect.StructField from the given struct value.
@@ -96,22 +88,20 @@ func GetComplex(i interface{}) (complex128, bool) {
 	return 0, false
 }
 
-// GetString returns a string value from a string interface.
-func GetString(i interface{}) (string, bool) {
-	// v := reflect.ValueOf(i)
-	s, ok := i.(string)
-	if ok {
-		return s, true
-	}
-	return "", false
-}
-
 // GetBool returns a bool value from a bool interface.
 func GetBool(i interface{}) (bool, bool) {
-	// v := reflect.ValueOf(i)
 	s, ok := i.(bool)
 	if ok {
 		return s, true
 	}
 	return false, false
+}
+
+// GetString returns a string value from a string interface.
+func GetString(i interface{}) (string, bool) {
+	s, ok := i.(string)
+	if ok {
+		return s, true
+	}
+	return "", false
 }

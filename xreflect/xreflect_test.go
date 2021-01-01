@@ -56,11 +56,6 @@ func TestUnexportedField(t *testing.T) {
 	xtesting.Equal(t, GetUnexportedField(el.FieldByName("d")), 0.333)
 }
 
-func TestBoolVal(t *testing.T) {
-	xtesting.Equal(t, BoolVal(true), 1)
-	xtesting.Equal(t, BoolVal(false), 0)
-}
-
 func TestGetStructFields(t *testing.T) {
 	a := struct {
 		A int
@@ -157,28 +152,32 @@ func TestGet(t *testing.T) {
 }
 
 func TestFlag(t *testing.T) {
-	v, _ := IufsOf(0)
+	v, _ := SmpvalOf(0)
 	xtesting.Equal(t, v.Flag(), Int)
-	v, _ = IufsOf(uint(0))
+	v, _ = SmpvalOf(uint(0))
 	xtesting.Equal(t, v.Flag(), Uint)
-	v, _ = IufsOf(0.)
+	v, _ = SmpvalOf(0.)
 	xtesting.Equal(t, v.Flag(), Float)
-	v, _ = IufsOf(0 + 0i)
+	v, _ = SmpvalOf(0 + 0i)
 	xtesting.Equal(t, v.Flag(), Complex)
-	v, _ = IufsOf("")
+	v, _ = SmpvalOf(true)
+	xtesting.Equal(t, v.Flag(), Bool)
+	v, _ = SmpvalOf("")
 	xtesting.Equal(t, v.Flag(), String)
 
-	s, _ := IufSizeOf(0)
+	s, _ := SmplenOf(0)
 	xtesting.Equal(t, s.Flag(), Int)
-	s, _ = IufSizeOf(uint(0))
+	s, _ = SmplenOf(uint(0))
 	xtesting.Equal(t, s.Flag(), Uint)
-	s, _ = IufSizeOf(0.)
+	s, _ = SmplenOf(0.)
 	xtesting.Equal(t, s.Flag(), Float)
-	s, _ = IufSizeOf(0 + 0i)
+	s, _ = SmplenOf(0 + 0i)
 	xtesting.Equal(t, s.Flag(), Complex)
+	s, _ = SmplenOf(true)
+	xtesting.Equal(t, s.Flag(), Bool)
 }
 
-func TestIufs(t *testing.T) {
+func TestSmpval(t *testing.T) {
 	i := 9223372036854775807
 	i8 := int8(127)
 	i16 := int16(32767)
@@ -205,69 +204,69 @@ func TestIufs(t *testing.T) {
 	s := struct{}{}
 	p := &struct{}{}
 
-	v, _ := IufsOf(i)
+	v, _ := SmpvalOf(i)
 	xtesting.Equal(t, v.Int(), int64(i))
-	v, _ = IufsOf(i8)
+	v, _ = SmpvalOf(i8)
 	xtesting.Equal(t, v.Int(), int64(i8))
-	v, _ = IufsOf(i16)
+	v, _ = SmpvalOf(i16)
 	xtesting.Equal(t, v.Int(), int64(i16))
-	v, _ = IufsOf(i32)
+	v, _ = SmpvalOf(i32)
 	xtesting.Equal(t, v.Int(), int64(i32))
-	v, _ = IufsOf(i64)
+	v, _ = SmpvalOf(i64)
 	xtesting.Equal(t, v.Int(), i64)
 
-	v, _ = IufsOf(u)
+	v, _ = SmpvalOf(u)
 	xtesting.Equal(t, v.Uint(), uint64(u))
-	v, _ = IufsOf(u8)
+	v, _ = SmpvalOf(u8)
 	xtesting.Equal(t, v.Uint(), uint64(u8))
-	v, _ = IufsOf(u16)
+	v, _ = SmpvalOf(u16)
 	xtesting.Equal(t, v.Uint(), uint64(u16))
-	v, _ = IufsOf(u32)
+	v, _ = SmpvalOf(u32)
 	xtesting.Equal(t, v.Uint(), uint64(u32))
-	v, _ = IufsOf(u64)
+	v, _ = SmpvalOf(u64)
 	xtesting.Equal(t, v.Uint(), u64)
-	v, _ = IufsOf(up)
+	v, _ = SmpvalOf(up)
 	xtesting.Equal(t, v.Uint(), uint64(up))
 
-	v, _ = IufsOf(f32)
+	v, _ = SmpvalOf(f32)
 	xtesting.InDelta(t, v.Float(), float64(f32), 1e-3)
-	v, _ = IufsOf(f64)
+	v, _ = SmpvalOf(f64)
 	xtesting.InDelta(t, v.Float(), f64, 1e-3)
 
-	c, _ := IufsOf(c64)
+	c, _ := SmpvalOf(c64)
 	xtesting.InDelta(t, real(c.Complex()), float64(real(c64)), 1e-3)
 	xtesting.InDelta(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
-	c, _ = IufsOf(c128)
+	c, _ = SmpvalOf(c128)
 	xtesting.InDelta(t, real(c.Complex()), real(c128), 1e-3)
 	xtesting.InDelta(t, imag(c.Complex()), imag(c128), 1e-3)
 
-	v, _ = IufsOf(str1)
+	v, _ = SmpvalOf(str1)
 	xtesting.Equal(t, v.String(), str1)
-	v, _ = IufsOf(str2)
+	v, _ = SmpvalOf(str2)
 	xtesting.Equal(t, v.String(), str2)
-	v, _ = IufsOf(str3)
+	v, _ = SmpvalOf(str3)
 	xtesting.Equal(t, v.String(), str3)
 
 	// noinspection GoBoolExpressions
-	v, _ = IufsOf(b1)
-	xtesting.Equal(t, v.Int(), int64(1))
+	v, _ = SmpvalOf(b1)
+	xtesting.Equal(t, v.Bool(), true)
 	// noinspection GoBoolExpressions
-	v, _ = IufsOf(b2)
-	xtesting.Equal(t, v.Int(), int64(0))
+	v, _ = SmpvalOf(b2)
+	xtesting.Equal(t, v.Bool(),false)
 
-	_, err := IufsOf(m1)
+	_, err := SmpvalOf(m1)
 	xtesting.NotNil(t, err)
-	_, err = IufsOf(m2)
+	_, err = SmpvalOf(m2)
 	xtesting.NotNil(t, err)
-	_, err = IufsOf(m3)
+	_, err = SmpvalOf(m3)
 	xtesting.NotNil(t, err)
-	_, err = IufsOf(s)
+	_, err = SmpvalOf(s)
 	xtesting.NotNil(t, err)
-	_, err = IufsOf(p)
+	_, err = SmpvalOf(p)
 	xtesting.NotNil(t, err)
 }
 
-func TestIufSize(t *testing.T) {
+func TestSmplen(t *testing.T) {
 	i := 9223372036854775807
 	i8 := int8(127)
 	i16 := int16(32767)
@@ -294,65 +293,65 @@ func TestIufSize(t *testing.T) {
 	s := struct{}{}
 	p := &struct{}{}
 
-	sze, _ := IufSizeOf(i)
+	sze, _ := SmplenOf(i)
 	xtesting.Equal(t, sze.Int(), int64(i))
-	sze, _ = IufSizeOf(i8)
+	sze, _ = SmplenOf(i8)
 	xtesting.Equal(t, sze.Int(), int64(i8))
-	sze, _ = IufSizeOf(i16)
+	sze, _ = SmplenOf(i16)
 	xtesting.Equal(t, sze.Int(), int64(i16))
-	sze, _ = IufSizeOf(i32)
+	sze, _ = SmplenOf(i32)
 	xtesting.Equal(t, sze.Int(), int64(i32))
-	sze, _ = IufSizeOf(i64)
+	sze, _ = SmplenOf(i64)
 	xtesting.Equal(t, sze.Int(), i64)
 
-	sze, _ = IufSizeOf(u)
+	sze, _ = SmplenOf(u)
 	xtesting.Equal(t, sze.Uint(), uint64(u))
-	sze, _ = IufSizeOf(u8)
+	sze, _ = SmplenOf(u8)
 	xtesting.Equal(t, sze.Uint(), uint64(u8))
-	sze, _ = IufSizeOf(u16)
+	sze, _ = SmplenOf(u16)
 	xtesting.Equal(t, sze.Uint(), uint64(u16))
-	sze, _ = IufSizeOf(u32)
+	sze, _ = SmplenOf(u32)
 	xtesting.Equal(t, sze.Uint(), uint64(u32))
-	sze, _ = IufSizeOf(u64)
+	sze, _ = SmplenOf(u64)
 	xtesting.Equal(t, sze.Uint(), u64)
-	sze, _ = IufSizeOf(up)
+	sze, _ = SmplenOf(up)
 	xtesting.Equal(t, sze.Uint(), uint64(up))
 
-	sze, _ = IufSizeOf(f32)
+	sze, _ = SmplenOf(f32)
 	xtesting.InDelta(t, sze.Float(), float64(f32), 1e-3)
-	sze, _ = IufSizeOf(f32)
+	sze, _ = SmplenOf(f32)
 	xtesting.InDelta(t, sze.Float(), f64, 1e-3)
 
-	c, _ := IufSizeOf(c64)
+	c, _ := SmplenOf(c64)
 	xtesting.InDelta(t, real(c.Complex()), float64(real(c64)), 1e-3)
 	xtesting.InDelta(t, imag(c.Complex()), float64(imag(c64)), 1e-3)
-	c, _ = IufSizeOf(c128)
+	c, _ = SmplenOf(c128)
 	xtesting.InDelta(t, real(c.Complex()), real(c128), 1e-3)
 	xtesting.InDelta(t, imag(c.Complex()), imag(c128), 1e-3)
 
-	sze, _ = IufSizeOf(str1)
+	sze, _ = SmplenOf(str1)
 	xtesting.Equal(t, sze.Int(), int64(4))
-	sze, _ = IufSizeOf(str2)
+	sze, _ = SmplenOf(str2)
 	xtesting.Equal(t, sze.Int(), int64(5))
-	sze, _ = IufSizeOf(str3)
+	sze, _ = SmplenOf(str3)
 	xtesting.Equal(t, sze.Int(), int64(0))
 
 	// noinspection GoBoolExpressions
-	sze, _ = IufSizeOf(b1)
-	xtesting.Equal(t, sze.Int(), int64(1))
+	sze, _ = SmplenOf(b1)
+	xtesting.Equal(t, sze.Bool(), true)
 	// noinspection GoBoolExpressions
-	sze, _ = IufSizeOf(b2)
-	xtesting.Equal(t, sze.Int(), int64(0))
+	sze, _ = SmplenOf(b2)
+	xtesting.Equal(t, sze.Bool(), false)
 
-	sze, _ = IufSizeOf(m1)
+	sze, _ = SmplenOf(m1)
 	xtesting.Equal(t, sze.Int(), int64(3))
-	sze, _ = IufSizeOf(m2)
+	sze, _ = SmplenOf(m2)
 	xtesting.Equal(t, sze.Int(), int64(3))
-	sze, _ = IufSizeOf(m3)
+	sze, _ = SmplenOf(m3)
 	xtesting.Equal(t, sze.Int(), int64(3))
 
-	_, err := IufSizeOf(s)
+	_, err := SmplenOf(s)
 	xtesting.NotNil(t, err)
-	_, err = IufSizeOf(p)
+	_, err = SmplenOf(p)
 	xtesting.NotNil(t, err)
 }

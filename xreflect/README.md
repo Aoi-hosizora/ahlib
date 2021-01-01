@@ -1,36 +1,58 @@
 # xreflect
 
-### References
+## Dependencies
 
-+ xtesting
++ xtesting*
+
+## Documents
+
+### Types
+
++ `type Smpflag int8`
++ `type Smpval struct`
++ `type Smplen struct`
+
+### Variables
+
++ None
+
+### Constants
+
++ `const Int Smpflag`
++ `const Uint Smpflag`
++ `const Float Smpflag`
++ `const Complex Smpflag`
++ `const Bool Smpflag`
++ `const String Smpflag`
 
 ### Functions
 
-+ `ElemType(i interface{}) reflect.Type`
-+ `ElemValue(i interface{}) reflect.Value`
-+ `GetUnexportedField(field reflect.Value) interface{}`
-+ `SetUnexportedField(field reflect.Value, value interface{})`
-+ `BoolVal(b bool) int`
-+ `GetStructFields(i interface{}) []reflect.StructField`
-+ `GetInt(i interface{}) (int64, bool)`
-+ `GetUint(i interface{}) (uint64, bool)`
-+ `GetFloat(i interface{}) (float64, bool)`
-+ `GetComplex(i interface{}) (complex128, bool)`
-+ `GetString(i interface{}) (string, bool)`
-+ `GetBool(i interface{}) (bool, bool)`
-+ `type IufsFlag uint8`
-+ `type Iufs struct {}`
-+ `(i *Iufs) Int() int64`
-+ `(i *Iufs) Uint() uint64`
-+ `(i *Iufs) Float() float64`
-+ `(i *Iufs) Complex() complex128`
-+ `(i *Iufs) String() string`
-+ `(i *Iufs) Flag() IufsFlag`
-+ `type IufSize struct {}`
-+ `(i *IufSize) Int() int64`
-+ `(i *IufSize) Uint() uint64`
-+ `(i *IufSize) Float() float64`
-+ `(i *IufSize) Complex() complex128`
-+ `(i *IufSize) Flag() IufsFlag`
-+ `IufsOf(i interface{}) (*Iufs, error)`
-+ `IufSizeOf(i interface{}) (*IufSize, error)`
++ `func ElemType(i interface{}) reflect.Type`
++ `func ElemValue(i interface{}) reflect.Value`
++ `func GetUnexportedField(field reflect.Value) interface{}`
++ `func SetUnexportedField(field reflect.Value, value interface{})`
++ `func GetStructFields(i interface{}) []reflect.StructField`
++ `func GetInt(i interface{}) (int64, bool)`
++ `func GetUint(i interface{}) (uint64, bool)`
++ `func GetFloat(i interface{}) (float64, bool)`
++ `func GetComplex(i interface{}) (complex128, bool)`
++ `func GetBool(i interface{}) (bool, bool)`
++ `func GetString(i interface{}) (string, bool)`
++ `func SmpvalOf(i interface{}) (*Smpval, error)`
++ `func SmplenOf(i interface{}) (*Smplen, error)`
+
+### Methods
+
++ `func (i *Smpval) Int() int64`
++ `func (i *Smpval) Uint() uint64`
++ `func (i *Smpval) Float() float64`
++ `func (i *Smpval) Complex() complex128`
++ `func (i *Smpval) Bool() bool`
++ `func (i *Smpval) String() string`
++ `func (i *Smpval) Flag() Smpflag`
++ `func (i *Smplen) Int() int64`
++ `func (i *Smplen) Uint() uint64`
++ `func (i *Smplen) Float() float64`
++ `func (i *Smplen) Complex() complex128`
++ `func (i *Smplen) Bool() bool`
++ `func (i *Smplen) Flag() Smpflag`

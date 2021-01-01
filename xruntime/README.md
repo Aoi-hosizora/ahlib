@@ -1,13 +1,30 @@
 # xruntime
 
-### References
+## Dependencies
 
-+ xcolor
++ None
+
+## Documents
+
+### Types
+
++ `type TraceFrame struct`
++ `type TraceStack []*TraceFrame`
+
+### Variables
+
++ None
+
+### Constants
+
++ None
 
 ### Functions
 
-+ `type Stack struct {}`
-+ `(s *Stack) String() string`
-+ `GetStack(skip int) []*Stack`
-+ `GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, lineIndex int, line string)`
-+ `PrintStacks(stacks []*Stack)`
++ `func RuntimeTraceStack(skip int) TraceStack`
++ `func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string)`
+
+### Methods
+
++ `func (t *TraceFrame) String() string`
++ `func (t *TraceStack) String() string`
