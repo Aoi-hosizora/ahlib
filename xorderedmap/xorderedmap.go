@@ -95,8 +95,8 @@ func (l *OrderedMap) GetDefault(key string, defaultValue interface{}) interface{
 	return value
 }
 
-// GetForce returns the value by key from OrderedMap, panics if the key not found.
-func (l *OrderedMap) GetForce(key string) interface{} {
+// MustGet returns the value by key from OrderedMap, panics if the key not found.
+func (l *OrderedMap) MustGet(key string) interface{} {
 	l.mu.Lock()
 	value, exist := l.m[key]
 	l.mu.Unlock()

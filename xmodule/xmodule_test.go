@@ -1,4 +1,4 @@
-package xdi
+package xmodule
 
 import (
 	"fmt"
@@ -8,27 +8,27 @@ import (
 )
 
 func TestByName(t *testing.T) {
-	sn := ServiceName("")
+	sn := ModuleName("")
 	xtesting.Equal(t, sn.String(), "")
 	sn = "test"
 	xtesting.Equal(t, sn.String(), "test")
 
 	_, ok := GetByName("a")
 	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { GetByNameForce("a") })
+	xtesting.Panic(t, func() { MustGetByName("a") })
 
 	ProvideName("a", "a")
 	a, ok := GetByName("a")
 	xtesting.Equal(t, a, "a")
 	xtesting.True(t, ok)
-	a = GetByNameForce("a")
+	a = MustGetByName("a")
 	xtesting.Equal(t, a, "a")
 
 	ProvideName("a", 5)
 	a, ok = GetByName("a")
 	xtesting.Equal(t, a, 5)
 	xtesting.True(t, ok)
-	a = GetByNameForce("a")
+	a = MustGetByName("a")
 	xtesting.Equal(t, a, 5)
 
 	xtesting.Panic(t, func() { ProvideName("a", nil) })
@@ -43,20 +43,20 @@ func TestByName(t *testing.T) {
 func TestByType(t *testing.T) {
 	_, ok := GetByType("")
 	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { GetByTypeForce("") })
+	xtesting.Panic(t, func() { MustGetByType("") })
 
 	ProvideType("a")
 	a, ok := GetByType("")
 	xtesting.Equal(t, a, "a")
 	xtesting.True(t, ok)
-	a = GetByTypeForce("")
+	a = MustGetByType("")
 	xtesting.Equal(t, a, "a")
 
 	ProvideType("aa")
 	a, ok = GetByType("")
 	xtesting.Equal(t, a, "aa")
 	xtesting.True(t, ok)
-	a = GetByTypeForce("")
+	a = MustGetByType("")
 	xtesting.Equal(t, a, "aa")
 
 	xtesting.Panic(t, func() { ProvideType(nil) })
@@ -77,7 +77,7 @@ func TestByImpl(t *testing.T) {
 
 	_, ok := GetByImpl(i)
 	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { GetByImplForce(i) })
+	xtesting.Panic(t, func() { MustGetByImpl(i) })
 
 	ProvideImpl(i, s)
 	a, ok := GetByImpl(i)
@@ -86,7 +86,7 @@ func TestByImpl(t *testing.T) {
 	aa, ok := a.(*testByImplStruct1)
 	xtesting.Equal(t, aa, s)
 	xtesting.True(t, ok)
-	a = GetByImplForce(i)
+	a = MustGetByImpl(i)
 	xtesting.Equal(t, a, s)
 
 	s = &testByImplStruct1{I: 5}
@@ -98,7 +98,7 @@ func TestByImpl(t *testing.T) {
 	aa, ok = a.(*testByImplStruct1)
 	xtesting.Equal(t, aa, s)
 	xtesting.True(t, ok)
-	a = GetByImplForce(i)
+	a = MustGetByImpl(i)
 	xtesting.Equal(t, a, s)
 
 	n := 0
@@ -123,31 +123,31 @@ func TestInject(t *testing.T) {
 
 	type A struct {
 		// type
-		I   int     `di:"~"`
-		I8  int8    `di:"~"`
-		I16 int16   `di:"~"`
-		I32 int32   `di:"~"`
-		I64 int64   `di:"~"`
-		U   uint    `di:"~"`
-		U8  uint8   `di:"~"`
-		U16 uint16  `di:"~"`
-		U32 uint32  `di:"~"`
-		U64 uint64  `di:"~"`
-		F32 float32 `di:"~"`
-		F64 float64 `di:"~"`
+		I   int     `module:"~"`
+		I8  int8    `module:"~"`
+		I16 int16   `module:"~"`
+		I32 int32   `module:"~"`
+		I64 int64   `module:"~"`
+		U   uint    `module:"~"`
+		U8  uint8   `module:"~"`
+		U16 uint16  `module:"~"`
+		U32 uint32  `module:"~"`
+		U64 uint64  `module:"~"`
+		F32 float32 `module:"~"`
+		F64 float64 `module:"~"`
 
 		// name
-		B  bool              `di:"b"`
-		S  string            `di:"s"`
-		BS []byte            `di:"bs"`
-		IS []int             `di:"is"`
-		SS []string          `di:"ss"`
-		FA [3]float64        `di:"fa"`
-		BA [2]bool           `di:"ba"`
-		M  map[string]string `di:"m"`
+		B  bool              `module:"b"`
+		S  string            `module:"s"`
+		BS []byte            `module:"bs"`
+		IS []int             `module:"is"`
+		SS []string          `module:"ss"`
+		FA [3]float64        `module:"fa"`
+		BA [2]bool           `module:"ba"`
+		M  map[string]string `module:"m"`
 
-		Useless1 int         `di:""`
-		Useless2 chan func() `di:"-"`
+		Useless1 int         `module:""`
+		Useless2 chan func() `module:"-"`
 	}
 	a := &A{}
 
@@ -166,7 +166,7 @@ func TestInject(t *testing.T) {
 
 	all := Inject(a)
 	xtesting.False(t, all)
-	xtesting.Panic(t, func() { InjectForce(a) })
+	xtesting.Panic(t, func() { MustInject(a) })
 
 	ProvideName("b", true)
 	ProvideName("s", "sss")
@@ -178,7 +178,7 @@ func TestInject(t *testing.T) {
 	ProvideName("m", map[string]string{"a": "aa", "b": "bb"})
 
 	xtesting.True(t, Inject(a))
-	xtesting.NotPanic(t, func() { InjectForce(a) })
+	xtesting.NotPanic(t, func() { MustInject(a) })
 
 	xtesting.Equal(t, a.I, 1)
 	xtesting.Equal(t, a.I8, int8(1))
@@ -211,7 +211,7 @@ func TestLogger(t *testing.T) {
 	xtesting.EqualValue(t, LogAll, 15)   // 1111
 
 	type a struct {
-		A string `di:"a"`
+		A string `module:"a"`
 	}
 
 	log.Println("LogAll")
@@ -245,10 +245,10 @@ func TestLogger(t *testing.T) {
 	Inject(&a{})
 
 	LogLeftArrow = func(arg1, arg2, arg3 string) {
-		fmt.Printf("[XDI] %-8s %-50s <-- %s\n", arg1, arg2, arg3)
+		fmt.Printf("[XMODULE] %-8s %-50s <-- %s\n", arg1, arg2, arg3)
 	}
 	LogRightArrow = func(arg1, arg2, arg3 string) {
-		fmt.Printf("[XDI] %-8s %-50s --> %s\n", arg1, arg2, arg3)
+		fmt.Printf("[XMODULE] %-8s %-50s --> %s\n", arg1, arg2, arg3)
 	}
 
 	log.Println("LogAll 2")

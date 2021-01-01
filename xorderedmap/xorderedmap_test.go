@@ -25,7 +25,7 @@ func TestMap(t *testing.T) {
 	xtesting.False(t, ok)
 	v := m.GetDefault("b", "bbb") // GetDefault
 	xtesting.Equal(t, v, "bbb")
-	xtesting.Panic(t, func() { m.GetForce("b") }) // GetForce
+	xtesting.Panic(t, func() { m.MustGet("b") }) // MustGet
 	m.Set("b", "bb")
 	ok = m.Has("b") // Has
 	xtesting.True(t, ok)
@@ -33,7 +33,7 @@ func TestMap(t *testing.T) {
 	xtesting.Equal(t, v, "bb")
 	v = m.GetDefault("b", "bbb") // GetDefault
 	xtesting.Equal(t, v, "bb")
-	xtesting.Equal(t, m.GetForce("b"), "bb") // GetForce
+	xtesting.Equal(t, m.MustGet("b"), "bb") // MustGet
 
 	// Keys Values Len
 	m.Set("d", "dd")
@@ -101,5 +101,5 @@ func TestMu(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	xtesting.Equal(t, m.GetForce("a"), "2000")
+	xtesting.Equal(t, m.MustGet("a"), "2000")
 }

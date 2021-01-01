@@ -19,8 +19,8 @@
 
 + xcolor
 + xcondition
-+ **xdi**
 + xentity
++ **xmodule**
 + **xnumber**
 + xorderedmap
 + xpointer

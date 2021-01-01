@@ -46,70 +46,34 @@ var (
 	indexOutOfRangePanic = "xcondition: index out of range"
 )
 
-// GetFirst returns the first element of args, returns false if not exists.
-func GetFirst(args ...interface{}) (interface{}, bool) {
-	if len(args) <= 0 {
-		return nil, false
-	}
-	return args[0], true
-}
-
 // First returns the first element of args, panics if out of range.
 func First(args ...interface{}) interface{} {
-	i, ok := GetFirst(args...)
-	if !ok {
+	if len(args) <= 0 {
 		panic(indexOutOfRangePanic)
 	}
-	return i
-}
-
-// GetSecond returns the second element of args, returns false if not exists.
-func GetSecond(args ...interface{}) (interface{}, bool) {
-	if len(args) <= 1 {
-		return nil, false
-	}
-	return args[1], true
+	return args[0]
 }
 
 // Second returns the second element of args, panics if out of range.
 func Second(args ...interface{}) interface{} {
-	i, ok := GetSecond(args...)
-	if !ok {
+	if len(args) <= 1 {
 		panic(indexOutOfRangePanic)
 	}
-	return i
-}
-
-// GetThird returns the third element of args, returns false if not exists.
-func GetThird(args ...interface{}) (interface{}, bool) {
-	if len(args) <= 2 {
-		return nil, false
-	}
-	return args[2], true
+	return args[1]
 }
 
 // Third returns the third element of args, panics if out of range.
 func Third(args ...interface{}) interface{} {
-	i, ok := GetThird(args...)
-	if !ok {
+	if len(args) <= 2 {
 		panic(indexOutOfRangePanic)
 	}
-	return i
-}
-
-// GetLast returns the last element of args, returns false if empty slice.
-func GetLast(args ...interface{}) (interface{}, bool) {
-	if len(args) <= 0 {
-		return nil, false
-	}
-	return args[len(args)-1], true
+	return args[2]
 }
 
 // Last returns the last element of args, panics if out of range.
 func Last(args ...interface{}) interface{} {
-	i, ok := GetLast(args...)
-	if !ok {
+	if len(args) <= 0 {
 		panic(indexOutOfRangePanic)
 	}
-	return i
+	return args[len(args)-1]
 }

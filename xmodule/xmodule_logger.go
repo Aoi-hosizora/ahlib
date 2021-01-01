@@ -1,45 +1,45 @@
-package xdi
+package xmodule
 
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xcolor"
 )
 
-// LogLevel represents DiContainer's logger level.
+// LogLevel represents ModuleContainer's logger level.
 type LogLevel int8
 
 const (
-	// LogName logs only when DiContainer.ProvideName invoked.
+	// LogName logs only when ModuleContainer.ProvideName invoked.
 	LogName LogLevel = 1 << iota
 
-	// LogType logs only when DiContainer.ProvideType invoked.
+	// LogType logs only when ModuleContainer.ProvideType invoked.
 	LogType
 
-	// LogImpl logs only when DiContainer.ProvideImpl invoked.
+	// LogImpl logs only when ModuleContainer.ProvideImpl invoked.
 	LogImpl
 
-	// LogInject logs only when DiContainer.Inject invoked.
+	// LogInject logs only when ModuleContainer.Inject invoked.
 	LogInject
 
-	// LogAll logs when DiContainer.ProvideName, DiContainer.ProvideType, DiContainer.ProvideImpl, DiContainer.Inject invoked.
+	// LogAll logs when ModuleContainer.ProvideName, ModuleContainer.ProvideType, ModuleContainer.ProvideImpl, ModuleContainer.Inject invoked.
 	LogAll = LogName | LogType | LogImpl | LogInject
 
 	// LogSilent logs never, equals to disable the logger.
 	LogSilent = LogLevel(0)
 )
 
-// Logger represents DiContainer's logger.
+// Logger represents ModuleContainer's logger.
 type Logger interface {
-	// LogName invoked by DiContainer.ProvideName.
+	// LogName invoked by ModuleContainer.ProvideName.
 	LogName(name, typ string)
 
-	// LogType invoked by DiContainer.ProvideType.
+	// LogType invoked by ModuleContainer.ProvideType.
 	LogType(typ string)
 
-	// LogImpl invoked by DiContainer.ProvideImpl.
+	// LogImpl invoked by ModuleContainer.ProvideImpl.
 	LogImpl(itfTyp, srvTyp string)
 
-	// LogInject invoked by DiContainer.Inject.
+	// LogInject invoked by ModuleContainer.Inject.
 	LogInject(parentTyp, fieldTyp, fieldName string)
 }
 
@@ -57,8 +57,8 @@ func DefaultLogger(level LogLevel) Logger {
 }
 
 // LogName logs like:
-// 	[XDI] Name:    a <-- string
-// Here `a` (in red) is the name in ServiceName, `string` (in yellow) is the type of this service.
+// 	[XMODULE] Name:    a <-- string
+// Here `a` (in red) is the name in ModuleName, `string` (in yellow) is the type of this module.
 func (d *defaultLogger) LogName(name, typ string) {
 	if d.level&LogName != 0 {
 		name = xcolor.Red.Sprint(name)
@@ -68,8 +68,8 @@ func (d *defaultLogger) LogName(name, typ string) {
 }
 
 // LogType logs like:
-// 	[XDI] Type:    ~ <-- string
-// Here `~` (in red) is the flag of no name, `string` (in yellow) is the type of this service.
+// 	[XMODULE] Type:    ~ <-- string
+// Here `~` (in red) is the flag of no name, `string` (in yellow) is the type of this module.
 func (d *defaultLogger) LogType(typ string) {
 	if d.level&LogType != 0 {
 		auto := xcolor.Red.Sprint("~")
@@ -79,8 +79,8 @@ func (d *defaultLogger) LogType(typ string) {
 }
 
 // LogImpl logs like:
-// 	[XDI] Impl:    ~ <-- IService (*Service)
-// Here `~` (in red) is the flag of no name, `IService` (in yellow) is the interface type of service, `Service` (in yellow) is the type of this service.
+// 	[XMODULE] Impl:    ~ <-- IModule (*Module)
+// Here `~` (in red) is the flag of no name, `IModule` (in yellow) is the interface type of module, `Module` (in yellow) is the type of this module.
 func (d *defaultLogger) LogImpl(interfaceTyp, implTyp string) {
 	if d.level&LogImpl != 0 {
 		auto := xcolor.Red.Sprint("~")
@@ -91,8 +91,8 @@ func (d *defaultLogger) LogImpl(interfaceTyp, implTyp string) {
 }
 
 // Inject logs like:
-// 	[XDI] Inject:  int --> (*Service).I
-// Here `int` (in yellow) is the type of field, `Service` (in yellow) is the type of struct, `I` (in red) is the name of field.
+// 	[XMODULE] Inject:  int --> (*Module).I
+// Here `int` (in yellow) is the type of field, `Module` (in yellow) is the type of struct, `I` (in red) is the name of field.
 func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string) {
 	if d.level&LogInject != 0 {
 		parentTyp = xcolor.Yellow.Sprint(parentTyp)
@@ -105,11 +105,11 @@ func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string) {
 // LogLeftArrow is the logger function with <-- (used in LogName, LogType, LogImpl).
 // You can overwrite this function.
 var LogLeftArrow = func(arg1, arg2, arg3 string) {
-	fmt.Printf("[XDI] %-8s %-30s <-- %s\n", arg1, arg2, arg3)
+	fmt.Printf("[XMODULE] %-8s %-30s <-- %s\n", arg1, arg2, arg3)
 }
 
 // LogRightArrow is the logger function with --> (used in LogInject).
 // You can overwrite this function.
 var LogRightArrow = func(arg1, arg2, arg3 string) {
-	fmt.Printf("[XDI] %-8s %-30s --> %s\n", arg1, arg2, arg3)
+	fmt.Printf("[XMODULE] %-8s %-30s --> %s\n", arg1, arg2, arg3)
 }

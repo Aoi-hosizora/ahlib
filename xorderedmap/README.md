@@ -32,7 +32,7 @@
 + `func (l *OrderedMap) Has(key string) bool`
 + `func (l *OrderedMap) Get(key string) (interface{}, bool)`
 + `func (l *OrderedMap) GetDefault(key string, defaultValue interface{}) interface{}`
-+ `func (l *OrderedMap) GetForce(key string) interface{}`
++ `func (l *OrderedMap) MustGet(key string) interface{}`
 + `func (l *OrderedMap) Remove(key string) (interface{}, bool)`
 + `func (l *OrderedMap) Clear()`
 + `func (l *OrderedMap) MarshalJSON() ([]byte, error)`
