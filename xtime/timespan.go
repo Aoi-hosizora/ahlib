@@ -2,6 +2,7 @@ package xtime
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,16 +10,16 @@ import (
 )
 
 const (
-	Nanosecond  TimeSpan = 1
-	Microsecond          = 1000 * Nanosecond
-	Millisecond          = 1000 * Microsecond
-	Second               = 1000 * Millisecond
-	Minute               = 60 * Second
-	Hour                 = 60 * Minute
-	Day                  = 24 * Hour
+	Nanosecond  TimeSpan = 1                  // 1ns timespan
+	Microsecond          = 1000 * Nanosecond  // 1us timespan
+	Millisecond          = 1000 * Microsecond // 1ms timespan
+	Second               = 1000 * Millisecond // 1s timespan
+	Minute               = 60 * Second        // 1min timespan
+	Hour                 = 60 * Minute        // 1h timespan
+	Day                  = 24 * Hour          // 1d timespan
 )
 
-// TimeSpan rewrites some functions for time.Duration.
+// TimeSpan represents a timespan, it rewrites some methods for time.Duration.
 type TimeSpan time.Duration
 
 // NewTimeSpan creates a new TimeSpan from time.Duration.
@@ -31,70 +32,109 @@ func (t TimeSpan) Duration() time.Duration {
 	return time.Duration(t)
 }
 
+// Add adds a timespan to the current timespan and returns a new timespan.
 func (t TimeSpan) Add(t2 TimeSpan) TimeSpan {
 	return t + t2
 }
 
+// Sub subtracts a timespan from the current timespan and returns a new timespan.
 func (t TimeSpan) Sub(t2 TimeSpan) TimeSpan {
 	return t - t2
 }
 
+// Days returns the days component of the TimeSpan.
 func (t TimeSpan) Days() int {
 	return int(t) / (1e9 * 60 * 60 * 24)
 }
 
+// Hours returns the hours component of the TimeSpan.
 func (t TimeSpan) Hours() int {
 	return int(t)/(1e9*60*60) - int(t)/(1e9*60*60*24)*24
 }
 
+// Minutes returns the minutes component of the TimeSpan.
 func (t TimeSpan) Minutes() int {
 	return int(t)/(1e9*60) - int(t)/(1e9*60*60)*60
 }
 
+// Seconds returns the seconds component of the TimeSpan.
 func (t TimeSpan) Seconds() int {
 	return int(t)/1e9 - int(t)/(1e9*60)*60
 }
 
+// Milliseconds returns the milliseconds component of the TimeSpan.
 func (t TimeSpan) Milliseconds() int {
 	return int(t)/1e6 - int(t)/1e9*1e3
 }
 
+// Microseconds returns the microseconds component of the TimeSpan.
 func (t TimeSpan) Microseconds() int {
 	return int(t)/1e3 - int(t)/1e6*1e3
 }
 
+// Nanoseconds returns the nanoseconds component of the TimeSpan.
 func (t TimeSpan) Nanoseconds() int {
 	return int(t) - int(t)/1e3*1e3
 }
 
+// TotalDays returns the value of the TimeSpan expressed in whole and fractional days.
 func (t TimeSpan) TotalDays() float64 {
 	return t.Duration().Hours() / 24.0
 }
 
+// TotalHours returns the value of the TimeSpan expressed in whole and fractional hours.
 func (t TimeSpan) TotalHours() float64 {
 	return t.Duration().Hours()
 }
 
+// TotalMinutes returns the value of the TimeSpan expressed in whole and fractional minutes.
 func (t TimeSpan) TotalMinutes() float64 {
 	return t.Duration().Minutes()
 }
 
+// TotalSeconds returns the value of the TimeSpan expressed in whole and fractional seconds.
 func (t TimeSpan) TotalSeconds() float64 {
 	return t.Duration().Seconds()
 }
 
+// TotalMilliseconds returns the value of the TimeSpan expressed in whole and fractional milliseconds.
 func (t TimeSpan) TotalMilliseconds() int64 {
 	return int64(t) / 1e6
 }
 
+// TotalMicroseconds returns the value of the TimeSpan expressed in whole and fractional microseconds.
 func (t TimeSpan) TotalMicroseconds() int64 {
 	return int64(t) / 1e3
 }
 
+// TotalNanoseconds returns the value of the TimeSpan expressed in whole and fractional nanoseconds.
 func (t TimeSpan) TotalNanoseconds() int64 {
 	return int64(t)
 }
 
+var (
+	ErrScanTimeSpan = errors.New("xtime: value is not a int64 value")
+)
+
+// Scan implementations sql.Scanner.
+func (t *TimeSpan) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	val, ok := value.(int64)
+	if !ok {
+		return ErrScanTimeSpan
+	}
+	*t = TimeSpan(val)
+	return nil
+}
+
+// Value implementations driver.Valuer.
+func (t TimeSpan) Value() (driver.Value, error) {
+	return int64(t), nil
+}
+
+// String formats the TimeSpan to string value, and has d/h/m/s units.
 func (t TimeSpan) String() string {
 	flag := 1
 	if int64(t) < 0 {
@@ -138,20 +178,4 @@ func (t TimeSpan) String() string {
 	sp.WriteString("s")
 
 	return sp.String()
-}
-
-func (t *TimeSpan) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-	val, ok := value.(int64)
-	if !ok {
-		return fmt.Errorf("value is not a xtime.TimeSpan")
-	}
-	*t = TimeSpan(val)
-	return nil
-}
-
-func (t TimeSpan) Value() (driver.Value, error) {
-	return int64(t), nil
 }

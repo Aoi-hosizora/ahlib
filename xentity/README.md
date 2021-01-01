@@ -1,6 +1,6 @@
 # xentity
 
-## References
+## Dependencies
 
 + xtesting*
 

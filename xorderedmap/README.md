@@ -1,6 +1,6 @@
 # xorderedmap
 
-## References
+## Dependencies
 
 + xtesting*
 

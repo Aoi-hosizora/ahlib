@@ -1,6 +1,6 @@
 # xcolor
 
-## References
+## Dependencies
 
 + None
 

@@ -4,7 +4,7 @@ import (
 	"regexp"
 )
 
-// Some validator regexp, see github.com/go-playground/validator/v10
+// Some validator regexp, see https://github.com/go-playground/validator/blob/master/regexes.go.
 
 const (
 	alphaRegexString                 = "^[a-zA-Z]+$"
@@ -54,51 +54,50 @@ const (
 	splitParamsRegexString           = `'[^']*'|\S+`
 )
 
-// noinspection GoUnusedGlobalVariable
 var (
-	AlphaRegex                 = regexp.MustCompile(alphaRegexString)                 //
-	AlphaNumericRegex          = regexp.MustCompile(alphaNumericRegexString)          //
-	AlphaUnicodeRegex          = regexp.MustCompile(alphaUnicodeRegexString)          //
-	AlphaUnicodeNumericRegex   = regexp.MustCompile(alphaUnicodeNumericRegexString)   //
-	NumericRegex               = regexp.MustCompile(numericRegexString)               //
-	NumberRegex                = regexp.MustCompile(numberRegexString)                //
-	HexadecimalRegex           = regexp.MustCompile(hexadecimalRegexString)           //
-	HexColorRegex              = regexp.MustCompile(hexColorRegexString)              //
-	RgbRegex                   = regexp.MustCompile(rgbRegexString)                   //
-	RgbaRegex                  = regexp.MustCompile(rgbaRegexString)                  //
-	HslRegex                   = regexp.MustCompile(hslRegexString)                   //
-	HslaRegex                  = regexp.MustCompile(hslaRegexString)                  //
-	E164Regex                  = regexp.MustCompile(e164RegexString)                  //
-	EmailRegex                 = regexp.MustCompile(emailRegexString)                 //
-	Base64Regex                = regexp.MustCompile(base64RegexString)                //
-	Base64URLRegex             = regexp.MustCompile(base64URLRegexString)             //
-	ISBN10Regex                = regexp.MustCompile(iSBN10RegexString)                //
-	ISBN13Regex                = regexp.MustCompile(iSBN13RegexString)                //
-	UUID3Regex                 = regexp.MustCompile(uUID3RegexString)                 //
-	UUID4Regex                 = regexp.MustCompile(uUID4RegexString)                 //
-	UUID5Regex                 = regexp.MustCompile(uUID5RegexString)                 //
-	UUIDRegex                  = regexp.MustCompile(uUIDRegexString)                  //
-	UUID3RFC4122Regex          = regexp.MustCompile(uUID3RFC4122RegexString)          //
-	UUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)          //
-	UUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)          //
-	UUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)           //
-	ASCIIRegex                 = regexp.MustCompile(aSCIIRegexString)                 //
-	PrintableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)        //
-	MultibyteRegex             = regexp.MustCompile(multibyteRegexString)             //
-	DataURIRegex               = regexp.MustCompile(dataURIRegexString)               //
-	LatitudeRegex              = regexp.MustCompile(latitudeRegexString)              //
-	LongitudeRegex             = regexp.MustCompile(longitudeRegexString)             //
-	SSNRegex                   = regexp.MustCompile(sSNRegexString)                   //
-	HostnameRegexRFC952        = regexp.MustCompile(hostnameRegexStringRFC952)        //
-	HostnameRegexRFC1123       = regexp.MustCompile(hostnameRegexStringRFC1123)       //
-	BtcAddressRegex            = regexp.MustCompile(btcAddressRegexString)            //
-	BtcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32) //
-	BtcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32) //
-	EthAddressRegex            = regexp.MustCompile(ethAddressRegexString)            //
-	EthAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)       //
-	EthAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)       //
-	URLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)            //
-	HTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)           //
-	HTMLRegex                  = regexp.MustCompile(hTMLRegexString)                  //
-	SplitParamsRegex           = regexp.MustCompile(splitParamsRegexString)           //
+	AlphaRegex                 = regexp.MustCompile(alphaRegexString)
+	AlphaNumericRegex          = regexp.MustCompile(alphaNumericRegexString)
+	AlphaUnicodeRegex          = regexp.MustCompile(alphaUnicodeRegexString)
+	AlphaUnicodeNumericRegex   = regexp.MustCompile(alphaUnicodeNumericRegexString)
+	NumericRegex               = regexp.MustCompile(numericRegexString)
+	NumberRegex                = regexp.MustCompile(numberRegexString)
+	HexadecimalRegex           = regexp.MustCompile(hexadecimalRegexString)
+	HexColorRegex              = regexp.MustCompile(hexColorRegexString)
+	RgbRegex                   = regexp.MustCompile(rgbRegexString)
+	RgbaRegex                  = regexp.MustCompile(rgbaRegexString)
+	HslRegex                   = regexp.MustCompile(hslRegexString)
+	HslaRegex                  = regexp.MustCompile(hslaRegexString)
+	E164Regex                  = regexp.MustCompile(e164RegexString)
+	EmailRegex                 = regexp.MustCompile(emailRegexString)
+	Base64Regex                = regexp.MustCompile(base64RegexString)
+	Base64URLRegex             = regexp.MustCompile(base64URLRegexString)
+	ISBN10Regex                = regexp.MustCompile(iSBN10RegexString)
+	ISBN13Regex                = regexp.MustCompile(iSBN13RegexString)
+	UUID3Regex                 = regexp.MustCompile(uUID3RegexString)
+	UUID4Regex                 = regexp.MustCompile(uUID4RegexString)
+	UUID5Regex                 = regexp.MustCompile(uUID5RegexString)
+	UUIDRegex                  = regexp.MustCompile(uUIDRegexString)
+	UUID3RFC4122Regex          = regexp.MustCompile(uUID3RFC4122RegexString)
+	UUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)
+	UUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)
+	UUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)
+	ASCIIRegex                 = regexp.MustCompile(aSCIIRegexString)
+	PrintableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)
+	MultibyteRegex             = regexp.MustCompile(multibyteRegexString)
+	DataURIRegex               = regexp.MustCompile(dataURIRegexString)
+	LatitudeRegex              = regexp.MustCompile(latitudeRegexString)
+	LongitudeRegex             = regexp.MustCompile(longitudeRegexString)
+	SSNRegex                   = regexp.MustCompile(sSNRegexString)
+	HostnameRegexRFC952        = regexp.MustCompile(hostnameRegexStringRFC952)
+	HostnameRegexRFC1123       = regexp.MustCompile(hostnameRegexStringRFC1123)
+	BtcAddressRegex            = regexp.MustCompile(btcAddressRegexString)
+	BtcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
+	BtcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
+	EthAddressRegex            = regexp.MustCompile(ethAddressRegexString)
+	EthAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
+	EthAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
+	URLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
+	HTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
+	HTMLRegex                  = regexp.MustCompile(hTMLRegexString)
+	SplitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 )

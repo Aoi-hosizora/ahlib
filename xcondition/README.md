@@ -1,6 +1,6 @@
 # xcondition
 
-## References
+## Dependencies
 
 + xtesting*
 

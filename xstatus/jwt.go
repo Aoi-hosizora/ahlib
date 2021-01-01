@@ -1,46 +1,52 @@
 package xstatus
 
-type JwtStatus int8
+// JwtStatus represents a status value for jwt and database operator.
+type JwtStatus uint64
 
+// 0 - 11
 const (
-	JwtSuccess  JwtStatus = iota // success
-	JwtExpired                   // exp, ExpiresAt
-	JwtNotValid                  // nbf, NotBefore
-	JwtIssuer                    // iss, Issuer
-	JwtSubject                   // sub, Subject
-	JwtInvalid                   // generic
-	JwtBlank                     // blank
-	JwtNotFound                  // not found
-	JwtUserErr                   // user
-	JwtFailed                    // server error
-	JwtTagA                      // tag a
-	JwtTagB                      // tag b
-	JwtTagC                      // tag c
+	JwtUnknown JwtStatus = 0    // Unknown
+	JwtSuccess JwtStatus = iota // Success
+	JwtBlank                    // Blank token
+	JwtInvalid                  // Token could not be parsed (include: malformed, unverifiable, invalid signature)
 
-	// JwtNotIssued // iat, IssuedAt
-	// JwtAudience  // aud, Audience
+	JwtTokenNotFound // Token not found
+	JwtUserNotFound  // User not found
+	JwtFailed        // Something error
+	JwtTagA          // Tag a
+	JwtTagB          // Tag b
+	JwtTagC          // Tag c
+	JwtTagD          // Tag d
+	JwtTagE          // Tag e
+)
+
+// 16 - 2048
+const (
+	JwtAudience      JwtStatus = 16 << iota // AUD (Audience)
+	JwtExpired                              // EXP (Expires at)
+	JwtId                                   // JTI (Id)
+	JwtIssuedAt                             // IAT (Issued at)
+	JwtIssuer                               // ISS (Issuer)
+	JwtNotValidYet                          // NBF (Not before)
+	JwtSubject                              // SUB (Subject)
+	JwtClaimsInvalid                        // Generic
 )
 
 func (j JwtStatus) String() string {
 	switch j {
+	case JwtUnknown:
+		return "jwt-unknown"
 	case JwtSuccess:
 		return "jwt-success"
-	case JwtExpired:
-		return "jwt-expired"
-	case JwtNotValid:
-		return "jwt-not-valid"
-	case JwtIssuer:
-		return "jwt-issuer"
-	case JwtSubject:
-		return "jwt-subject"
-	case JwtInvalid:
-		return "jwt-invalid"
 	case JwtBlank:
 		return "jwt-blank"
-	case JwtNotFound:
-		return "jwt-not-found"
-	case JwtUserErr:
-		return "jwt-user-err"
+	case JwtInvalid:
+		return "jwt-invalid"
+
+	case JwtTokenNotFound:
+		return "jwt-token-not-found"
+	case JwtUserNotFound:
+		return "jwt-user-not-found"
 	case JwtFailed:
 		return "jwt-failed"
 	case JwtTagA:
@@ -49,6 +55,28 @@ func (j JwtStatus) String() string {
 		return "jwt-tag-b"
 	case JwtTagC:
 		return "jwt-tag-c"
+	case JwtTagD:
+		return "jwt-tag-d"
+	case JwtTagE:
+		return "jwt-tag-e"
+
+	case JwtAudience:
+		return "jwt-audience"
+	case JwtExpired:
+		return "jwt-expired"
+	case JwtId:
+		return "jwt-id"
+	case JwtIssuedAt:
+		return "jwt-issued-at"
+	case JwtIssuer:
+		return "jwt-issuer"
+	case JwtNotValidYet:
+		return "jwt-not-valid-yet"
+	case JwtSubject:
+		return "jwt-subject"
+	case JwtClaimsInvalid:
+		return "jwt-claims-invalid"
+
 	default:
 		return "jwt-?"
 	}

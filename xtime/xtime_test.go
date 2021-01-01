@@ -8,7 +8,7 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	now := time.Date(2020, time.Month(9), 30, 23, 39, 18, 5, time.FixedZone("", 8*60*60))
+	now := time.Date(2020, time.Month(9), 30, 23, 39, 18, 789, time.FixedZone("", 8*60*60))
 	zero := time.Time{}
 	xtesting.Equal(t, zero.Format(time.RFC3339), "0001-01-01T00:00:00Z")
 
@@ -24,8 +24,12 @@ func TestSet(t *testing.T) {
 	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:00Z")
 	zero = SetSecond(zero, now.Second())
 	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:18Z")
+	zero = SetMillisecond(zero, 123)
+	xtesting.Equal(t, zero.Format(time.RFC3339Nano), "2020-09-30T23:39:18.123Z")
+	zero = SetMicrosecond(zero, 123456)
+	xtesting.Equal(t, zero.Format(time.RFC3339Nano), "2020-09-30T23:39:18.123456Z")
 	zero = SetNanosecond(zero, now.Nanosecond())
-	xtesting.Equal(t, zero.Format(time.RFC3339Nano), "2020-09-30T23:39:18.000000005Z")
+	xtesting.Equal(t, zero.Format(time.RFC3339Nano), "2020-09-30T23:39:18.000000789Z")
 	zero = SetLocation(zero, now.Location())
 	xtesting.Equal(t, zero.Format(time.RFC3339), "2020-09-30T23:39:18+08:00")
 
@@ -38,10 +42,10 @@ func TestGetLocation(t *testing.T) {
 	t3, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+08:00") // Local
 	t4, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+09:00") // ""
 
-	xtesting.Equal(t, int(GetLocationDuration(t1.Location()).Seconds()), 0)
-	xtesting.Equal(t, int(GetLocationDuration(t2.Location()).Seconds()), -7*3600)
-	xtesting.Equal(t, int(GetLocationDuration(t3.Location()).Seconds()), 8*3600)
-	xtesting.Equal(t, int(GetLocationDuration(t4.Location()).Seconds()), 9*3600)
+	xtesting.Equal(t, int(LocationDuration(t1.Location()).Seconds()), 0)
+	xtesting.Equal(t, int(LocationDuration(t2.Location()).Seconds()), -7*3600)
+	xtesting.Equal(t, int(LocationDuration(t3.Location()).Seconds()), 8*3600)
+	xtesting.Equal(t, int(LocationDuration(t4.Location()).Seconds()), 9*3600)
 
 	t1l := GetLocation(t1) // "" +00:00
 	t2l := GetLocation(t2) // "" -07:00
@@ -51,10 +55,10 @@ func TestGetLocation(t *testing.T) {
 	xtesting.Equal(t, t2l.String(), "")
 	xtesting.Equal(t, t3l.String(), "")
 	xtesting.Equal(t, t4l.String(), "")
-	xtesting.Equal(t, int(GetLocationDuration(t1l).Seconds()), 0)
-	xtesting.Equal(t, int(GetLocationDuration(t2l).Seconds()), -7*3600)
-	xtesting.Equal(t, int(GetLocationDuration(t3l).Seconds()), 8*3600)
-	xtesting.Equal(t, int(GetLocationDuration(t4l).Seconds()), 9*3600)
+	xtesting.Equal(t, int(LocationDuration(t1l).Seconds()), 0)
+	xtesting.Equal(t, int(LocationDuration(t2l).Seconds()), -7*3600)
+	xtesting.Equal(t, int(LocationDuration(t3l).Seconds()), 8*3600)
+	xtesting.Equal(t, int(LocationDuration(t4l).Seconds()), 9*3600)
 }
 
 func TestTo(t *testing.T) {
@@ -69,7 +73,7 @@ func TestTo(t *testing.T) {
 	xtesting.Equal(t, date.Second(), 0)
 	xtesting.Equal(t, date.Nanosecond(), 0)
 	xtesting.Equal(t, date.Location().String(), "")
-	xtesting.Equal(t, GetLocationDuration(date.Location()), GetLocationDuration(now.Location()))
+	xtesting.Equal(t, LocationDuration(date.Location()), LocationDuration(now.Location()))
 
 	datetime := ToDateTime(now)
 	xtesting.Equal(t, datetime.Year(), now.Year())
@@ -80,7 +84,7 @@ func TestTo(t *testing.T) {
 	xtesting.Equal(t, datetime.Second(), now.Second())
 	xtesting.Equal(t, datetime.Nanosecond(), 0)
 	xtesting.Equal(t, datetime.Location().String(), "")
-	xtesting.Equal(t, GetLocationDuration(datetime.Location()), GetLocationDuration(now.Location()))
+	xtesting.Equal(t, LocationDuration(datetime.Location()), LocationDuration(now.Location()))
 }
 
 func TestNew(t *testing.T) {
@@ -120,22 +124,22 @@ func TestParse(t *testing.T) {
 
 	date1, _ := ParseRFC3339Date(dateStr)
 	xtesting.Equal(t, date1.Time(), date.Time())
-	date2 := ParseRFC3339DateDefault(dateStr, date)
+	date2 := ParseRFC3339DateOr(dateStr, date)
 	xtesting.Equal(t, date2.Time(), date.Time())
-	date3 := ParseRFC3339DateDefault("", date)
+	date3 := ParseRFC3339DateOr("", date)
 	xtesting.Equal(t, date3, date)
 
 	dateTime1, _ := ParseRFC3339DateTime(dateTimeStr)
 	xtesting.Equal(t, dateTime1, dateTime)
 	log.Println(dateTime1.String(), dateTime1.Time().Location())
 	log.Println(dateTime.String(), dateTime.Time().Location())
-	dateTime2 := ParseRFC3339DateTimeDefault(dateTimeStr, dateTime)
+	dateTime2 := ParseRFC3339DateTimeOr(dateTimeStr, dateTime)
 	xtesting.Equal(t, dateTime2, dateTime)
-	dateTime3 := ParseRFC3339DateTimeDefault("", dateTime)
+	dateTime3 := ParseRFC3339DateTimeOr("", dateTime)
 	xtesting.Equal(t, dateTime3, dateTime)
 }
 
-func TestGorm(t *testing.T) {
+func TestSql(t *testing.T) {
 	now := time.Now()
 	now2 := time.Now()
 	now2.Add(time.Hour * 24)

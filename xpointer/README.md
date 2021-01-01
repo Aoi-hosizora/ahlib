@@ -1,6 +1,6 @@
 # xpointer
 
-## References
+## Dependencies
 
 + xtesting*
 

@@ -1,6 +1,6 @@
 # xproperty
 
-## References
+## Dependencies
 
 + xtesting*
 

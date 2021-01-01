@@ -1,50 +1,66 @@
 # xtime
 
-### References
+## Dependencies
 
 + xtesting*
 
-### Functions
+## Documents
 
-#### Xtime
+### Types
 
-+ `SetYear(t time.Time, year int) time.Time`
-+ `SetMonth(t time.Time, month int) time.Time`
-+ `SetDay(t time.Time, day int) time.Time`
-+ `SetHour(t time.Time, hour int) time.Time`
-+ `SetMinute(t time.Time, minute int) time.Time`
-+ `SetSecond(t time.Time, second int) time.Time`
-+ `SetNanosecond(t time.Time, nanosecond int) time.Time`
-+ `SetLocation(t time.Time, loc *time.Location) time.Time`
-+ `GetLocation(t time.Time) *time.Location`
-+ `GetLocationDuration(loc *time.Location) time.Duration`
-+ `ToDate(t time.Time) time.Time`
-+ `ToDateTime(t time.Time) time.Time`
++ `type JsonDate time.Time`
++ `type JsonDateTime time.Time`
++ `type TimeSpan time.Duration`
 
-#### DateTime
+### Variables
+
++ None
+
+### Constants
 
 + `const RFC3339DateTime string`
 + `const ISO8601DateTime string`
 + `const CJKDateTime string`
-+ `type JsonDateTime time.Time`
-+ `NewJsonDateTime(t time.Time) JsonDateTime`
-+ `ParseRFC3339DateTime(dateTimeString string) (JsonDateTime, error)`
-+ `ParseRFC3339DateTimeDefault(dateTimeString string, defaultDateTime JsonDateTime) JsonDateTime`
-
-#### Date
-
 + `const RFC3339Date string`
 + `const ISO8601Date string`
 + `const CJKDate string`
-+ `type JsonDate time.Time`
-+ `NewJsonDate(t time.Time) JsonDate`
-+ `ParseRFC3339Date(dateString string) (JsonDate, error)`
-+ `ParseRFC3339DateDefault(dateString string, defaultDate JsonDate) JsonDate`
 
-#### TimeSpan
+### Functions
 
-+ `type TimeSpan time.Duration`
-+ `NewTimeSpan(du time.Duration) TimeSpan`
++ `func SetYear(t time.Time, year int) time.Time`
++ `func SetMonth(t time.Time, month int) time.Time`
++ `func SetDay(t time.Time, day int) time.Time`
++ `func SetHour(t time.Time, hour int) time.Time`
++ `func SetMinute(t time.Time, minute int) time.Time`
++ `func SetSecond(t time.Time, second int) time.Time`
++ `func SetMillisecond(t time.Time, millisecond int) time.Time`
++ `func SetMicrosecond(t time.Time, microsecond int) time.Time`
++ `func SetNanosecond(t time.Time, nanosecond int) time.Time`
++ `func SetLocation(t time.Time, loc *time.Location) time.Time`
++ `func LocationDuration(loc *time.Location) time.Duration`
++ `func GetLocation(t time.Time) *time.Location`
++ `func ToDate(t time.Time) time.Time`
++ `func ToDateTime(t time.Time) time.Time`
++ `func NewJsonDate(t time.Time) JsonDate`
++ `func ParseRFC3339Date(s string) (JsonDate, error)`
++ `func ParseRFC3339DateOr(s string, d JsonDate) JsonDate`
++ `func NewJsonDateTime(t time.Time) JsonDateTime`
++ `func ParseRFC3339DateTime(s string) (JsonDateTime, error)`
++ `func ParseRFC3339DateTimeOr(s string, d JsonDateTime) JsonDateTime`
++ `func NewTimeSpan(du time.Duration) TimeSpan`
+
+### Methods
+
++ `func (d JsonDate) Time() time.Time`
++ `func (d JsonDate) String() string`
++ `func (d JsonDate) MarshalJSON() ([]byte, error)`
++ `func (d *JsonDate) Scan(value interface{}) error`
++ `func (d JsonDate) Value() (driver.Value, error)`
++ `func (dt JsonDateTime) Time() time.Time`
++ `func (dt JsonDateTime) String() string`
++ `func (dt JsonDateTime) MarshalJSON() ([]byte, error)`
++ `func (dt *JsonDateTime) Scan(value interface{}) error`
++ `func (dt JsonDateTime) Value() (driver.Value, error)`
 + `(t TimeSpan) Duration() time.Duration`
 + `(t TimeSpan) Add(t2 TimeSpan) TimeSpan`
 + `(t TimeSpan) Sub(t2 TimeSpan) TimeSpan`
@@ -62,6 +78,6 @@
 + `(t TimeSpan) TotalMilliseconds() int64`
 + `(t TimeSpan) TotalMicroseconds() int64`
 + `(t TimeSpan) TotalNanoseconds() int64`
-+ `(t TimeSpan) String() string`
 + `(t *TimeSpan) Scan(value interface{}) error`
 + `(t TimeSpan) Value() (driver.Value, error)`
++ `(t TimeSpan) String() string`

@@ -1,6 +1,6 @@
 # xnumber
 
-## References
+## Dependencies
 
 + xtesting*
 
