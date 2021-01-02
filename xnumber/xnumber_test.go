@@ -47,7 +47,7 @@ func TestBool(t *testing.T) {
 }
 
 func TestIntSize(t *testing.T) {
-	xtesting.Equal(t, IntSize(), 32 << (^uint(0) >> 63))
+	xtesting.Equal(t, IntSize(), 32<<(^uint(0)>>63))
 }
 
 func TestMinMax(t *testing.T) {

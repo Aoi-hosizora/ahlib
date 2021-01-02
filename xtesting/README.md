@@ -1,6 +1,20 @@
 # xtesting
 
-### References
+## Dependencies
+
++ None
+
+## Documents
+
+### Types
+
++ None
+
+### Variables
+
++ None
+
+### Constants
 
 + None
 
@@ -25,13 +39,13 @@
 + `Contain(t testing.TB, container, object interface{}) bool`
 + `NotContain(t testing.TB, container, object interface{}) bool`
 + `ElementMatch(t testing.TB, listA, listB interface{}) bool`
++ `InDelta(t testing.TB, expected, actual interface{}, eps float64) bool`
++ `NotInDelta(t testing.TB, expected, actual interface{}, eps float64) bool`
 + `Implements(t testing.TB, interfaceObject interface{}, object interface{}) bool`
 + `IsType(t testing.TB, expected interface{}, object interface{}) bool`
 + `Panic(t testing.TB, f func()) bool`
 + `NotPanic(t testing.TB, f func()) bool`
 + `PanicWithValue(t testing.TB, expected interface{}, f func()) bool`
-+ `InDelta(t testing.TB, expected, actual interface{}, eps float64) bool`
-+ `NotInDelta(t testing.TB, expected, actual interface{}, eps float64) bool`
 
 #### Common Functions
 
@@ -42,3 +56,7 @@
 + `IsObjectNil(object interface{}) bool`
 + `IsObjectZero(object interface{}) bool`
 + `IsObjectEmpty(object interface{}) bool`
+
+### Methods
+
++ None

@@ -593,6 +593,72 @@ func TestElementMatch(t *testing.T) {
 	}
 }
 
+func TestInDelta(t *testing.T) {
+	mockT := &testing.T{}
+
+	for _, tc := range []struct {
+		a, b   interface{}
+		delta  float64
+		result bool
+	}{
+		{1.001, 1, 0.01, true},
+		{1, 1.001, 0.01, true},
+		{1, 2, 1, true},
+		{1, 2, 0.5, false},
+		{2, 1, 0.5, false},
+		{"", nil, 1, false},
+		{42, math.NaN(), 0.01, false},
+		{math.NaN(), 42, 0.01, false},
+		{uint(2), uint(1), 1, true},
+		{uint8(2), uint8(1), 1, true},
+		{uint16(2), uint16(1), 1, true},
+		{uint32(2), uint32(1), 1, true},
+		{uint64(2), uint64(1), 1, true},
+		{2, 1, 1, true},
+		{int8(2), int8(1), 1, true},
+		{int16(2), int16(1), 1, true},
+		{int32(2), int32(1), 1, true},
+		{int64(2), int64(1), 1, true},
+		{float32(2), float32(1), 1, true},
+		{float64(2), float64(1), 1, true},
+	} {
+		if InDelta(mockT, tc.a, tc.b, tc.delta) != tc.result {
+			fail(t)
+		}
+	}
+
+	for _, tc := range []struct {
+		a, b   interface{}
+		delta  float64
+		result bool
+	}{
+		{1.001, 1, 0.01, false},
+		{1, 1.001, 0.01, false},
+		{1, 2, 1, false},
+		{1, 2, 0.5, true},
+		{2, 1, 0.5, true},
+		{"", nil, 1, false},
+		{42, math.NaN(), 0.01, false},
+		{math.NaN(), 42, 0.01, false},
+		{uint(2), uint(1), 1, false},
+		{uint8(2), uint8(1), 1, false},
+		{uint16(2), uint16(1), 1, false},
+		{uint32(2), uint32(1), 1, false},
+		{uint64(2), uint64(1), 1, false},
+		{2, 1, 1, false},
+		{int8(2), int8(1), 1, false},
+		{int16(2), int16(1), 1, false},
+		{int32(2), int32(1), 1, false},
+		{int64(2), int64(1), 1, false},
+		{float32(2), float32(1), 1, false},
+		{float64(2), float64(1), 1, false},
+	} {
+		if NotInDelta(mockT, tc.a, tc.b, tc.delta) != tc.result {
+			fail(t)
+		}
+	}
+}
+
 type TypeInterface interface {
 	TestMethod()
 }
@@ -664,72 +730,6 @@ func TestPanics(t *testing.T) {
 		panic("Panic!")
 	}) {
 		fail(t)
-	}
-}
-
-func TestInDelta(t *testing.T) {
-	mockT := &testing.T{}
-
-	for _, tc := range []struct {
-		a, b   interface{}
-		delta  float64
-		result bool
-	}{
-		{1.001, 1, 0.01, true},
-		{1, 1.001, 0.01, true},
-		{1, 2, 1, true},
-		{1, 2, 0.5, false},
-		{2, 1, 0.5, false},
-		{"", nil, 1, false},
-		{42, math.NaN(), 0.01, false},
-		{math.NaN(), 42, 0.01, false},
-		{uint(2), uint(1), 1, true},
-		{uint8(2), uint8(1), 1, true},
-		{uint16(2), uint16(1), 1, true},
-		{uint32(2), uint32(1), 1, true},
-		{uint64(2), uint64(1), 1, true},
-		{2, 1, 1, true},
-		{int8(2), int8(1), 1, true},
-		{int16(2), int16(1), 1, true},
-		{int32(2), int32(1), 1, true},
-		{int64(2), int64(1), 1, true},
-		{float32(2), float32(1), 1, true},
-		{float64(2), float64(1), 1, true},
-	} {
-		if InDelta(mockT, tc.a, tc.b, tc.delta) != tc.result {
-			fail(t)
-		}
-	}
-
-	for _, tc := range []struct {
-		a, b   interface{}
-		delta  float64
-		result bool
-	}{
-		{1.001, 1, 0.01, false},
-		{1, 1.001, 0.01, false},
-		{1, 2, 1, false},
-		{1, 2, 0.5, true},
-		{2, 1, 0.5, true},
-		{"", nil, 1, false},
-		{42, math.NaN(), 0.01, false},
-		{math.NaN(), 42, 0.01, false},
-		{uint(2), uint(1), 1, false},
-		{uint8(2), uint8(1), 1, false},
-		{uint16(2), uint16(1), 1, false},
-		{uint32(2), uint32(1), 1, false},
-		{uint64(2), uint64(1), 1, false},
-		{2, 1, 1, false},
-		{int8(2), int8(1), 1, false},
-		{int16(2), int16(1), 1, false},
-		{int32(2), int32(1), 1, false},
-		{int64(2), int64(1), 1, false},
-		{float32(2), float32(1), 1, false},
-		{float64(2), float64(1), 1, false},
-	} {
-		if NotInDelta(mockT, tc.a, tc.b, tc.delta) != tc.result {
-			fail(t)
-		}
 	}
 }
 

@@ -209,6 +209,34 @@ func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interfac
 	return true
 }
 
+// InDelta asserts that the two numerals are within delta of each other.
+func InDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
+	}
+
+	if !in {
+		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotInDelta asserts that the two numerals are not within delta of each other.
+func NotInDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
+	}
+
+	if in {
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
+	}
+
+	return true
+}
+
 // Implements asserts that an object is implemented by the specified interface.
 func Implements(t testing.TB, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
@@ -269,30 +297,34 @@ func PanicWithValue(t testing.TB, expected interface{}, f func(), msgAndArgs ...
 	return true
 }
 
-// InDelta asserts that the two numerals are within delta of each other.
-func InDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
-	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
-	}
+/*
 
-	if !in {
-		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
-	}
+// Exit asserts that the code inside the specified function exits.
+func Exit(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
+	// 1. Create a temp code file, use exec.Command to run and get exit code => need to write code file manually
+	// https://github.com/sirupsen/logrus/blob/master/alt_exit_test.go#L75
+	// https://github.com/sirupsen/logrus/blob/master/alt_exit.go#L49
+	// https://stackoverflow.com/questions/10385551/get-exit-code-go
 
-	return true
-}
+	// 2. Use a stub function and replace os.Exit when test => need to replace all os.Exit and only for internal
+	// https://github.com/uber-go/zap/blob/a68efdbdd15b7816de33cdbe7e6def2a559bdf64/internal/exit/exit.go#L44
+	// https://github.com/uber-go/zap/blob/a68efdbdd1/zapcore/entry_test.go#L124
+	// https://github.com/uber-go/zap/blob/a68efdbdd15b7816de33cdbe7e6def2a559bdf64/zapcore/entry.go#L236
 
-// NotInDelta asserts that the two numerals are not within delta of each other.
-func NotInDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
-	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
-	}
+	// 3. Use exec.Command and rerun the test with an argument => gracefullest and recommend
+	// https://talks.golang.org/2014/testing.slide#23
 
-	if in {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
-	}
+	// 4. Replace os.Exit to other function (patch), and restore it later => unsafe when run os.Exec in concurrency and difficult
+	// https://stackoverflow.com/questions/26225513/how-to-test-os-exit-scenarios-in-go
+	// https://github.com/bouk/monkey/blob/master/monkey.go#L67
+	// https://github.com/bouk/monkey/blob/master/monkey.go#L119
 
 	return true
 }
+
+// ExitWithCode asserts that the code inside the specified function exits with a code which not equals the expected code.
+func ExitWithCode(t testing.TB, code int, f func(), msgAndArgs ...interface{}) bool {
+	return true
+}
+
+*/

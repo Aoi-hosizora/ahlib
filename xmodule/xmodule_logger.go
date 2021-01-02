@@ -6,7 +6,7 @@ import (
 )
 
 // LogLevel represents ModuleContainer's logger level.
-type LogLevel int8
+type LogLevel uint8
 
 const (
 	// LogName logs only when ModuleContainer.ProvideName invoked.

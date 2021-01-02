@@ -19,7 +19,7 @@ func TestForceColor(t *testing.T) {
 }
 
 func TestCode(t *testing.T) {
-	tests := []struct {
+	for _, tc := range []struct {
 		give uint8
 		want uint8
 	}{
@@ -65,15 +65,12 @@ func TestCode(t *testing.T) {
 		{BGBrightMagenta.Code(), 105},
 		{BGBrightCyan.Code(), 106},
 		{BGBrightWhite.Code(), 107},
-	}
-
-	for _, tc := range tests {
+	} {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 }
-
 func TestString(t *testing.T) {
-	tests := []struct {
+	for _, tc := range []struct {
 		give string
 		want string
 	}{
@@ -119,15 +116,13 @@ func TestString(t *testing.T) {
 		{BGBrightMagenta.String(), "105"},
 		{BGBrightCyan.String(), "106"},
 		{BGBrightWhite.String(), "107"},
-	}
-
-	for _, tc := range tests {
+	} {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 }
 
 func TestMixCode(t *testing.T) {
-	tests1 := []struct {
+	for _, tc := range []struct {
 		give []uint8
 		want []uint8
 	}{
@@ -136,12 +131,11 @@ func TestMixCode(t *testing.T) {
 		{MixCode{Bold.Code(), Bold.Code()}.Codes(), []uint8{Bold.Code(), Bold.Code()}},
 		{MixCode{Bold.Code(), Red.Code()}.Codes(), []uint8{Bold.Code(), Red.Code()}},
 		{MixCode{Bold.Code(), Red.Code(), BGWhite.Code()}.Codes(), []uint8{Bold.Code(), Red.Code(), BGWhite.Code()}},
-	}
-	for _, tc := range tests1 {
+	} {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 
-	tests2 := []struct {
+	for _, tc := range []struct {
 		give string
 		want string
 	}{
@@ -149,12 +143,11 @@ func TestMixCode(t *testing.T) {
 		{MixCode{Bold.Code(), Bold.Code()}.String(), Bold.String() + ";" + Bold.String()},
 		{MixCode{Bold.Code(), Red.Code()}.String(), Bold.String() + ";" + Red.String()},
 		{MixCode{Bold.Code(), Red.Code(), BGWhite.Code()}.String(), Bold.String() + ";" + Red.String() + ";" + BGWhite.String()},
-	}
-	for _, tc := range tests2 {
+	} {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 
-	tests3 := []struct {
+	for _, tc := range  []struct {
 		give MixCode
 		want MixCode
 	}{
@@ -166,8 +159,7 @@ func TestMixCode(t *testing.T) {
 		{BGWhite.WithStyle(Bold), []uint8{BGWhite.Code(), Bold.Code()}},
 		{BGWhite.WithColor(Red), []uint8{BGWhite.Code(), Red.Code()}},
 		{MixCode{}.WithStyle(Bold).WithColor(Red).WithBackground(BGWhite), []uint8{Bold.Code(), Red.Code(), BGWhite.Code()}},
-	}
-	for _, tc := range tests3 {
+	} {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 }
