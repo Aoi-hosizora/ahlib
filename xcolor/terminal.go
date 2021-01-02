@@ -6,23 +6,18 @@ import (
 	"sync"
 )
 
-// InitTerminal initials the io.Writer to support \x1b[%dm%s\x1b[0m style color.
-func InitTerminal(out io.Writer) {
-	checkTerminal(out)
+// InitTerminal initializes the given io.Writer to support ANSI escape code. Here writer must be an os.File.
+func InitTerminal(out io.Writer) bool {
+	return checkTerminal(out)
 }
 
-// InitOsStd initials the stdout and stderr to support \x1b[%dm%s\x1b[0m style color.
-func InitOsStd() {
-	InitTerminal(os.Stdout)
-	InitTerminal(os.Stderr)
-}
+// _forceColorOnce is a sync.Once for ForceColor.
+var _forceColorOnce sync.Once
 
-// forceColorOnce is a sync.Once for ForceColor.
-var forceColorOnce sync.Once
-
-// ForceColor initials the stdout and stderr to support \x1b[%dm%s\x1b[0m style color, which will only initial once.
+// ForceColor initializes os.Stdout and os.Stderr to support ANSI escape code.
 func ForceColor() {
-	forceColorOnce.Do(func() {
-		InitOsStd()
+	_forceColorOnce.Do(func() {
+		_ = InitTerminal(os.Stdout)
+		_ = InitTerminal(os.Stderr)
 	})
 }

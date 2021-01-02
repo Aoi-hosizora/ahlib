@@ -133,10 +133,9 @@ func Bool(b bool) int {
 	return 0
 }
 
-const intSize = 32 << (^uint(0) >> 63)
-
 // IntSize returns the int size (32 / 64).
 func IntSize() int {
+	const intSize = 32 << (^uint(0) >> 63)
 	return intSize
 }
 

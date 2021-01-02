@@ -23,7 +23,7 @@ func TestMap(t *testing.T) {
 	xtesting.False(t, ok)
 	_, ok = m.Get("b") // Get
 	xtesting.False(t, ok)
-	v := m.GetDefault("b", "bbb") // GetDefault
+	v := m.GetOr("b", "bbb") // GetOr
 	xtesting.Equal(t, v, "bbb")
 	xtesting.Panic(t, func() { m.MustGet("b") }) // MustGet
 	m.Set("b", "bb")
@@ -31,7 +31,7 @@ func TestMap(t *testing.T) {
 	xtesting.True(t, ok)
 	v, _ = m.Get("b") // Get
 	xtesting.Equal(t, v, "bb")
-	v = m.GetDefault("b", "bbb") // GetDefault
+	v = m.GetOr("b", "bbb") // GetOr
 	xtesting.Equal(t, v, "bb")
 	xtesting.Equal(t, m.MustGet("b"), "bb") // MustGet
 

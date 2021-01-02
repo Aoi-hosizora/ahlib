@@ -22,19 +22,19 @@ func TestDefaultIfNil(t *testing.T) {
 	xtesting.Equal(t, DefaultIfNil(nil, nil), nil)
 }
 
-func TestFirstNotNil(t *testing.T) {
-	xtesting.Equal(t, FirstNotNil(1), 1)
-	xtesting.Equal(t, FirstNotNil(nil, 1), 1)
-	xtesting.Equal(t, FirstNotNil(nil, nil, 1), 1)
-	xtesting.Equal(t, FirstNotNil(nil, nil, nil, nil), nil)
-}
-
 func TestPanicIfErr(t *testing.T) {
 	xtesting.Equal(t, PanicIfErr(0, nil), 0)
 	xtesting.Equal(t, PanicIfErr("0", nil), "0")
 	xtesting.PanicWithValue(t, fmt.Errorf("test"), func() {
 		PanicIfErr(nil, fmt.Errorf("test"))
 	})
+}
+
+func TestFirstNotNil(t *testing.T) {
+	xtesting.Equal(t, FirstNotNil(1), 1)
+	xtesting.Equal(t, FirstNotNil(nil, 1), 1)
+	xtesting.Equal(t, FirstNotNil(nil, nil, 1), 1)
+	xtesting.Equal(t, FirstNotNil(nil, nil, nil, nil), nil)
 }
 
 var (

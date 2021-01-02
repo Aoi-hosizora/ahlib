@@ -24,6 +24,14 @@ func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
 	return defaultValue
 }
 
+// PanicIfErr returns an interface if err is nil, otherwise panics.
+func PanicIfErr(i interface{}, err error) interface{} {
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
 // FirstNotNil returns the first value which is not nil.
 func FirstNotNil(values ...interface{}) interface{} {
 	for _, val := range values {
@@ -32,14 +40,6 @@ func FirstNotNil(values ...interface{}) interface{} {
 		}
 	}
 	return nil
-}
-
-// PanicIfErr returns an interface if err is nil, otherwise panics.
-func PanicIfErr(i interface{}, err error) interface{} {
-	if err != nil {
-		panic(err)
-	}
-	return i
 }
 
 var (

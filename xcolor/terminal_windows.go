@@ -8,17 +8,13 @@ import (
 	"syscall"
 )
 
-// checkTerminal needs to call the Kernel32 api and initial the Windows terminal.
 func checkTerminal(w io.Writer) bool {
-	var ret bool
-	switch v := w.(type) {
-	case *os.File:
-		err := enableVirtualTerminalProcessing(syscall.Handle(v.Fd()), true)
-		ret = err == nil
-	default:
-		ret = false
+	if f, ok := w.(*os.File); ok {
+		h := syscall.Handle(f.Fd())
+		err := enableVirtualTerminalProcessing(h, true)
+		return err == nil
 	}
-	return ret
+	return false
 }
 
 func enableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {

@@ -84,8 +84,8 @@ func (l *OrderedMap) Get(key string) (interface{}, bool) {
 	return value, exist
 }
 
-// GetDefault returns the value by key from OrderedMap, returns defaultValue if the key not found.
-func (l *OrderedMap) GetDefault(key string, defaultValue interface{}) interface{} {
+// GetOr returns the value by key from OrderedMap, returns defaultValue if the key not found.
+func (l *OrderedMap) GetOr(key string, defaultValue interface{}) interface{} {
 	l.mu.Lock()
 	value, exist := l.m[key]
 	l.mu.Unlock()
