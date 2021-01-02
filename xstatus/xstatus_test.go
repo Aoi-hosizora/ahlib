@@ -42,6 +42,7 @@ func TestJwtStatus(t *testing.T) {
 	xtesting.Equal(t, JwtBlank.String(), "jwt-blank")
 	xtesting.Equal(t, JwtInvalid.String(), "jwt-invalid")
 	xtesting.Equal(t, JwtTokenNotFound.String(), "jwt-token-not-found")
+	xtesting.Equal(t, JwtUserNotFound.String(), "jwt-user-not-found")
 	xtesting.Equal(t, JwtFailed.String(), "jwt-failed")
 	xtesting.Equal(t, JwtTagA.String(), "jwt-tag-a")
 	xtesting.Equal(t, JwtTagB.String(), "jwt-tag-b")

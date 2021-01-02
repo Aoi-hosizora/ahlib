@@ -199,7 +199,10 @@ func StringToBytes(s string) []byte {
 	if s == "" {
 		return []byte{}
 	}
-	return *(*[]byte)(unsafe.Pointer(&s))
+	return *(*[]byte)(unsafe.Pointer(&struct{
+		string
+		Cap int
+	}{s, len(s)}))
 }
 
 // Unsafe case to string.

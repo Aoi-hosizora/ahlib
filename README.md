@@ -20,19 +20,19 @@
 + xcolor
 + xcondition
 + xentity
-+ **xmodule**
-+ **xnumber**
++ xmodule
++ xnumber
 + xorderedmap
 + xpointer
 + xproperty
 + xreflect
 + xregexp
 + xruntime
-+ **xslice**
-+ **xstatus**
-+ **xstring**
-+ **xtesting**
-+ **xtime**
++ xslice (waiting for refactoring)
++ xstatus
++ xstring (waiting for refactoring)
++ xtesting
++ xtime
 + xzone
 
 ### Dependency

@@ -28,6 +28,7 @@ func TestTraceStack(t *testing.T) {
 	fmt.Println("lineIndex:", lineIndex)
 	fmt.Println("lineText:", lineText)
 	fmt.Println(s[0].String())
+	fmt.Println()
 	fmt.Println(s.String())
 
 	/*

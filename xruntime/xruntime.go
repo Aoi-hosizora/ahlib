@@ -43,19 +43,17 @@ type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.
 func (t *TraceStack) String() string {
-	if len(*t) == 0 {
-		return ""
-	}
-
+	l := len(*t)
 	sb := strings.Builder{}
-	for _, frame := range *t {
+	for i, frame := range *t {
 		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.Pc))
 		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf("\t%s", frame.LineText))
-		sb.WriteString("\n")
+		if i != l-1 {
+			sb.WriteString("\n")
+		}
 	}
-
-	return sb.String()[:sb.Len()-1]
+	return sb.String()
 }
 
 // RuntimeTraceStack returns a slice of TraceFrame from runtime trace stacks using given skip.
