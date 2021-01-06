@@ -1,4 +1,4 @@
-package xzone
+package zones
 
 // reference: https://jp.cybozu.help/general/ja/admin/list_systemadmin/list_system_time/timezone.html
 

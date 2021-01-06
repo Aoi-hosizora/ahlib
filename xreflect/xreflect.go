@@ -7,20 +7,20 @@ import (
 
 // ElemType returns the actual reflect.Type of a reflect.Ptr kind value.
 func ElemType(i interface{}) reflect.Type {
-	t := reflect.TypeOf(i)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
+	typ := reflect.TypeOf(i)
+	for typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
 	}
-	return t
+	return typ
 }
 
 // ElemValue returns the actual reflect.Value of a reflect.Ptr kind value.
 func ElemValue(i interface{}) reflect.Value {
-	v := reflect.ValueOf(i)
-	for v.Kind() == reflect.Ptr {
-		v = v.Elem()
+	val := reflect.ValueOf(i)
+	for val.Kind() == reflect.Ptr {
+		val = val.Elem()
 	}
-	return v
+	return val
 }
 
 // GetUnexportedField gets the unexported field value.

@@ -14,8 +14,8 @@ type TraceFrame struct {
 	// Index represents the index of frame in stack.
 	Index int
 
-	// Pc represents the frame's program count.
-	Pc uintptr
+	// PC represents the frame's program count.
+	PC uintptr
 
 	// Filename represents the file full name.
 	Filename string
@@ -35,7 +35,7 @@ type TraceFrame struct {
 
 // String returns the formatted TraceFrame.
 func (t *TraceFrame) String() string {
-	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", t.Filename, t.LineIndex, t.Pc, t.FuncName, t.LineText)
+	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", t.Filename, t.LineIndex, t.PC, t.FuncName, t.LineText)
 }
 
 // TrackStack represents the runtime trace stack, that is a slice of TraceFrame.
@@ -46,7 +46,7 @@ func (t *TraceStack) String() string {
 	l := len(*t)
 	sb := strings.Builder{}
 	for i, frame := range *t {
-		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.Pc))
+		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.PC))
 		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf("\t%s", frame.LineText))
 		if i != l-1 {
@@ -84,7 +84,7 @@ func RuntimeTraceStack(skip int) TraceStack {
 		// out
 		frames = append(frames, &TraceFrame{
 			Index:        i,
-			Pc:           pc,
+			PC:           pc,
 			Filename:     filename,
 			FuncFullName: funcFullName,
 			FuncName:     funcName,

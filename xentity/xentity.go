@@ -31,7 +31,7 @@ type EntityMapper struct {
 	mapFunc MapFunc
 }
 
-// MapFunc represents a mapping function, describe how to map from source to destination.
+// MapFunc represents a mapping function, describes how to map from source to destination.
 type MapFunc func(source interface{}, destination interface{}) error
 
 // New creates an empty EntityMappers.

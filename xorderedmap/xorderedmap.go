@@ -9,86 +9,86 @@ import (
 	"sync"
 )
 
-// OrderedMap represents a go-map which is in ordered.
-// This type is concurrent safe.
+// OrderedMap represents a map which is in ordered. This type is concurrent safe.
 type OrderedMap struct {
-	// m is the kv dictionary.
-	m map[string]interface{}
+	// kv is the kv dictionary.
+	kv map[string]interface{}
 
-	// i is the key list in ordered.
-	i []string
+	// keys is the key list in ordered.
+	keys []string
 
-	// mu locks m and i.
-	mu sync.Mutex
+	// mu locks kv and keys.
+	mu sync.RWMutex
 }
 
 // New creates an empty OrderedMap.
 func New() *OrderedMap {
 	return &OrderedMap{
-		m: make(map[string]interface{}),
-		i: make([]string, 0),
+		kv:   make(map[string]interface{}),
+		keys: make([]string, 0),
 	}
 }
 
 // Keys returns the keys in ordered from OrderedMap.
 func (l *OrderedMap) Keys() []string {
-	l.mu.Lock()
-	i := l.i
-	l.mu.Unlock()
-	return i
+	l.mu.RLock()
+	keys := make([]string, len(l.keys))
+	copy(keys, l.keys)
+	l.mu.RUnlock()
+	return keys
 }
 
 // Values returns the values in ordered from OrderedMap.
 func (l *OrderedMap) Values() []interface{} {
-	l.mu.Lock()
-	val := make([]interface{}, len(l.i))
-	for idx, key := range l.i {
-		val[idx] = l.m[key]
+	l.mu.RLock()
+	values := make([]interface{}, len(l.keys))
+	for idx, key := range l.keys {
+		values[idx] = l.kv[key]
 	}
-	l.mu.Unlock()
-	return val
+	l.mu.RUnlock()
+	return values
 }
 
 // Len returns the length of OrderedMap.
 func (l *OrderedMap) Len() int {
-	l.mu.Lock()
-	i := l.i
-	l.mu.Unlock()
-	return len(i)
+	l.mu.RLock()
+	length := len(l.keys)
+	l.mu.RUnlock()
+	return length
 }
 
 // Set sets a key-value pair to OrderedMap.
 func (l *OrderedMap) Set(key string, value interface{}) {
 	l.mu.Lock()
-	_, exist := l.m[key]
-	l.m[key] = value
+	_, exist := l.kv[key]
+	l.kv[key] = value
 	if !exist {
-		l.i = append(l.i, key)
+		l.keys = append(l.keys, key)
 	}
 	l.mu.Unlock()
 }
 
 // Has returns true if key is in OrderedMap.
 func (l *OrderedMap) Has(key string) bool {
-	l.mu.Lock()
-	_, exist := l.m[key]
-	l.mu.Unlock()
+	l.mu.RLock()
+	_, exist := l.kv[key]
+	l.mu.RUnlock()
 	return exist
 }
 
 // Get returns the value by key from OrderedMap, returns false if the key not found.
 func (l *OrderedMap) Get(key string) (interface{}, bool) {
-	l.mu.Lock()
-	value, exist := l.m[key]
-	l.mu.Unlock()
+	l.mu.RLock()
+	value, exist := l.kv[key]
+	l.mu.RUnlock()
 	return value, exist
 }
 
 // GetOr returns the value by key from OrderedMap, returns defaultValue if the key not found.
 func (l *OrderedMap) GetOr(key string, defaultValue interface{}) interface{} {
-	l.mu.Lock()
-	value, exist := l.m[key]
-	l.mu.Unlock()
+	l.mu.RLock()
+	value, exist := l.kv[key]
+	l.mu.RUnlock()
 	if !exist {
 		return defaultValue
 	}
@@ -97,9 +97,9 @@ func (l *OrderedMap) GetOr(key string, defaultValue interface{}) interface{} {
 
 // MustGet returns the value by key from OrderedMap, panics if the key not found.
 func (l *OrderedMap) MustGet(key string) interface{} {
-	l.mu.Lock()
-	value, exist := l.m[key]
-	l.mu.Unlock()
+	l.mu.RLock()
+	value, exist := l.kv[key]
+	l.mu.RUnlock()
 	if !exist {
 		panic("xorderedmap: key `" + key + "` not found")
 	}
@@ -111,57 +111,57 @@ func (l *OrderedMap) Remove(key string) (interface{}, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	value, exist := l.m[key]
+	value, exist := l.kv[key]
 	if !exist {
 		return value, false
 	}
-	delete(l.m, key)
+	delete(l.kv, key)
 
 	currIdx := -1
-	for idx, val := range l.i {
-		if val == key {
+	for idx, k := range l.keys {
+		if k == key {
 			currIdx = idx
 			break
 		}
 	}
 	if currIdx != -1 {
-		if len(l.i) == currIdx+1 {
-			l.i = l.i[:currIdx]
+		if currIdx == len(l.keys)-1 {
+			l.keys = l.keys[:currIdx]
 		} else {
-			l.i = append(l.i[:currIdx], l.i[currIdx+1:]...)
+			l.keys = append(l.keys[:currIdx], l.keys[currIdx+1:]...)
 		}
 	}
 
-	return value, exist
+	return value, true
 }
 
 // Clear clears the OrderedMap.
 func (l *OrderedMap) Clear() {
 	l.mu.Lock()
-	l.m = make(map[string]interface{})
-	l.i = make([]string, 0)
+	l.kv = make(map[string]interface{})
+	l.keys = make([]string, 0)
 	l.mu.Unlock()
 }
 
 // MarshalJSON marshals OrderedMap to json bytes.
 func (l *OrderedMap) MarshalJSON() ([]byte, error) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 
-	ov := make([]interface{}, len(l.i))
-	for idx, field := range l.i {
-		ov[idx] = l.m[field]
+	ov := make([]interface{}, len(l.keys))
+	for idx, field := range l.keys {
+		ov[idx] = l.kv[field]
 	}
 
 	buf := &bytes.Buffer{}
 	buf.Write([]byte{'{'})
-	for idx, field := range l.i {
+	for idx, field := range l.keys {
 		b, err := json.Marshal(ov[idx])
 		if err != nil {
 			return []byte{}, err
 		}
 		buf.Write([]byte(fmt.Sprintf("\"%s\":%s", field, string(b))))
-		if idx < len(l.i)-1 {
+		if idx < len(l.keys)-1 {
 			buf.Write([]byte(","))
 		}
 	}
@@ -172,11 +172,11 @@ func (l *OrderedMap) MarshalJSON() ([]byte, error) {
 // MarshalYAML marshals OrderedMap to yaml supported object.
 func (l *OrderedMap) MarshalYAML() (interface{}, error) {
 	m := make(map[string]interface{})
-	l.mu.Lock()
-	for k, v := range l.m {
+	l.mu.RLock()
+	for k, v := range l.kv {
 		m[k] = v
 	}
-	l.mu.Unlock()
+	l.mu.RUnlock()
 	return m, nil
 }
 
@@ -194,19 +194,18 @@ var (
 	nonStructPanic = "xorderedmap: non-struct object"
 )
 
-// FromInterface creates an OrderedMap from a struct, panics if using nil object or non-struct object.
+// FromInterface creates an OrderedMap from a struct, panics if using nil or non-struct object.
 func FromInterface(object interface{}) *OrderedMap {
-	om := New()
 	if object == nil {
 		panic(nilObjectPanic)
 	}
-
 	typ := reflect.TypeOf(object)
 	val := reflect.ValueOf(object)
 	if typ.Kind() != reflect.Struct {
 		panic(nonStructPanic)
 	}
 
+	om := New()
 	for i := 0; i < typ.NumField(); i++ {
 		// get tag
 		relField := typ.Field(i)

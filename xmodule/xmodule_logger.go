@@ -24,7 +24,7 @@ const (
 	// LogAll logs when ModuleContainer.ProvideName, ModuleContainer.ProvideType, ModuleContainer.ProvideImpl, ModuleContainer.Inject invoked.
 	LogAll = LogName | LogType | LogImpl | LogInject
 
-	// LogSilent logs never, equals to disable the logger.
+	// LogSilent never logs, equals to disable the logger.
 	LogSilent = LogLevel(0)
 )
 
@@ -37,7 +37,7 @@ type Logger interface {
 	LogType(typ string)
 
 	// LogImpl invoked by ModuleContainer.ProvideImpl.
-	LogImpl(itfTyp, srvTyp string)
+	LogImpl(interfaceTyp, moduleTyp string)
 
 	// LogInject invoked by ModuleContainer.Inject.
 	LogInject(parentTyp, fieldTyp, fieldName string)
@@ -81,12 +81,12 @@ func (d *defaultLogger) LogType(typ string) {
 // LogImpl logs like:
 // 	[XMODULE] Impl:    ~ <-- IModule (*Module)
 // Here `~` (in red) is the flag of no name, `IModule` (in yellow) is the interface type of module, `Module` (in yellow) is the type of this module.
-func (d *defaultLogger) LogImpl(interfaceTyp, implTyp string) {
+func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string) {
 	if d.level&LogImpl != 0 {
 		auto := xcolor.Red.Sprint("~")
 		interfaceTyp = xcolor.Yellow.Sprint(interfaceTyp)
-		implTyp = xcolor.Yellow.Sprint(implTyp)
-		LogLeftArrow("Impl:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, implTyp))
+		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
+		LogLeftArrow("Impl:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
 	}
 }
 

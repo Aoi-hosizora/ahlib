@@ -5,10 +5,10 @@ import (
 	"math"
 )
 
-// Accuracy represents a type of function, which includes some compare functions using accuracy.
+// Accuracy represents an accuracy with some compare methods in accuracy.
 type Accuracy func() float64
 
-// NewAccuracy creates an Accuracy, using eps as accuracy.
+// NewAccuracy creates an Accuracy, using eps as its accuracy.
 func NewAccuracy(eps float64) Accuracy {
 	return func() float64 {
 		return eps
@@ -48,32 +48,32 @@ func (eps Accuracy) SmallerOrEqual(a, b float64) bool {
 // _acc represents a default Accuracy with 1e-3 as default accuracy.
 var _acc = NewAccuracy(1e-3)
 
-// EqualInAccuracy checks eq between two float64 in default Accuracy.
+// EqualInAccuracy checks eq between two float64 in default Accuracy: 1e-3.
 func EqualInAccuracy(a, b float64) bool {
 	return _acc.Equal(a, b)
 }
 
-// NotEqualInAccuracy checks ne between two float64 in default Accuracy.
+// NotEqualInAccuracy checks ne between two float64 in default Accuracy: 1e-3.
 func NotEqualInAccuracy(a, b float64) bool {
 	return _acc.NotEqual(a, b)
 }
 
-// GreaterInAccuracy checks gt between two float64 in default Accuracy.
+// GreaterInAccuracy checks gt between two float64 in default Accuracy: 1e-3.
 func GreaterInAccuracy(a, b float64) bool {
 	return _acc.Greater(a, b)
 }
 
-// SmallerInAccuracy checks lt between two float64 in default Accuracy.
+// SmallerInAccuracy checks lt between two float64 in default Accuracy: 1e-3.
 func SmallerInAccuracy(a, b float64) bool {
 	return _acc.Smaller(a, b)
 }
 
-// GreaterOrEqualInAccuracy checks gte between two float64 in default Accuracy.
+// GreaterOrEqualInAccuracy checks gte between two float64 in default Accuracy: 1e-3.
 func GreaterOrEqualInAccuracy(a, b float64) bool {
 	return _acc.GreaterOrEqual(a, b)
 }
 
-// SmallerOrEqualInAccuracy checks lte between two float64 in default Accuracy.
+// SmallerOrEqualInAccuracy checks lte between two float64 in default Accuracy: 1e-3.
 func SmallerOrEqualInAccuracy(a, b float64) bool {
 	return _acc.SmallerOrEqual(a, b)
 }

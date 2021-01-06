@@ -36,13 +36,13 @@ type PropertyMapperValue struct {
 	// id represents the property order `id`.
 	id int
 
-	// revert represents need destination `revert` in sort.
+	// revert represents if need `revert` in sort for destination.
 	revert bool
 
 	// arg represents some other arguments for property.
 	arg interface{}
 
-	// destinations represents a destination properties.
+	// destinations represents the destination properties.
 	destinations []string
 }
 
@@ -111,6 +111,30 @@ func NewValueCompletely(id int, revert bool, arg interface{}, destinations ...st
 	}
 }
 
+// WithId creates a new PropertyMapperValue with id.
+func (p *PropertyMapperValue) WithId(id int) *PropertyMapperValue {
+	p.id = id
+	return p
+}
+
+// WithRevert creates a new PropertyMapperValue with revert.
+func (p *PropertyMapperValue) WithRevert(revert bool) *PropertyMapperValue {
+	p.revert = revert
+	return p
+}
+
+// WithArg creates a new PropertyMapperValue with arg.
+func (p *PropertyMapperValue) WithArg(arg interface{}) *PropertyMapperValue {
+	p.arg = arg
+	return p
+}
+
+// WithDestinations creates a new PropertyMapperValue with destinations.
+func (p *PropertyMapperValue) WithDestinations(destinations []string) *PropertyMapperValue {
+	p.destinations = destinations
+	return p
+}
+
 // GetDict returns the PropertyDict from PropertyMapper.
 func (p *PropertyMapper) GetDict() PropertyDict {
 	return p.dict
@@ -158,7 +182,7 @@ func (p *PropertyMappers) GetMapper(src interface{}, dest interface{}) (*Propert
 func (p *PropertyMappers) GetDefaultMapper(src interface{}, dest interface{}) *PropertyMapper {
 	mapper, err := p.GetMapper(src, dest)
 	if err != nil {
-		return NewMapper(src, dest, nil) // dict: PropertyDict{}
+		return NewMapper(src, dest, PropertyDict{})
 	}
 	return mapper
 }

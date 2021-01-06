@@ -2,12 +2,13 @@ package xtime
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"github.com/Aoi-hosizora/ahlib/xtime/zones"
 	"log"
 	"testing"
 	"time"
 )
 
-func TestSet(t *testing.T) {
+func TestSetXXX(t *testing.T) {
 	now := time.Date(2020, time.Month(9), 30, 23, 39, 18, 789, time.FixedZone("", 8*60*60))
 	zero := time.Time{}
 	xtesting.Equal(t, zero.Format(time.RFC3339), "0001-01-01T00:00:00Z")
@@ -36,32 +37,7 @@ func TestSet(t *testing.T) {
 	xtesting.Equal(t, zero, now)
 }
 
-func TestGetLocation(t *testing.T) {
-	t1, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52Z")      // UTC
-	t2, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52-07:00") // ""
-	t3, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+08:00") // Local
-	t4, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+09:00") // ""
-
-	xtesting.Equal(t, int(LocationDuration(t1.Location()).Seconds()), 0)
-	xtesting.Equal(t, int(LocationDuration(t2.Location()).Seconds()), -7*3600)
-	xtesting.Equal(t, int(LocationDuration(t3.Location()).Seconds()), 8*3600)
-	xtesting.Equal(t, int(LocationDuration(t4.Location()).Seconds()), 9*3600)
-
-	t1l := GetLocation(t1) // "" +00:00
-	t2l := GetLocation(t2) // "" -07:00
-	t3l := GetLocation(t3) // "" +08:00
-	t4l := GetLocation(t4) // "" +09:00
-	xtesting.Equal(t, t1l.String(), "")
-	xtesting.Equal(t, t2l.String(), "")
-	xtesting.Equal(t, t3l.String(), "")
-	xtesting.Equal(t, t4l.String(), "")
-	xtesting.Equal(t, int(LocationDuration(t1l).Seconds()), 0)
-	xtesting.Equal(t, int(LocationDuration(t2l).Seconds()), -7*3600)
-	xtesting.Equal(t, int(LocationDuration(t3l).Seconds()), 8*3600)
-	xtesting.Equal(t, int(LocationDuration(t4l).Seconds()), 9*3600)
-}
-
-func TestTo(t *testing.T) {
+func TestToDateAndToDateTime(t *testing.T) {
 	now := time.Now()
 
 	date := ToDate(now)
@@ -87,7 +63,110 @@ func TestTo(t *testing.T) {
 	xtesting.Equal(t, LocationDuration(datetime.Location()), LocationDuration(now.Location()))
 }
 
-func TestNew(t *testing.T) {
+func TestGetTimeLocationAndDuration(t *testing.T) {
+	t1, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52Z")      // UTC
+	t2, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52-07:00") // ""
+	t3, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+08:00") // Local
+	t4, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+09:00") // ""
+
+	xtesting.Equal(t, int(LocationDuration(t1.Location()).Seconds()), 0)
+	xtesting.Equal(t, int(LocationDuration(t2.Location()).Seconds()), -7*3600)
+	xtesting.Equal(t, int(LocationDuration(t3.Location()).Seconds()), 8*3600)
+	xtesting.Equal(t, int(LocationDuration(t4.Location()).Seconds()), 9*3600)
+
+	t1l := GetTimeLocation(t1) // "" +00:00
+	t2l := GetTimeLocation(t2) // "" -07:00
+	t3l := GetTimeLocation(t3) // "" +08:00
+	t4l := GetTimeLocation(t4) // "" +09:00
+	xtesting.Equal(t, t1l.String(), "")
+	xtesting.Equal(t, t2l.String(), "")
+	xtesting.Equal(t, t3l.String(), "")
+	xtesting.Equal(t, t4l.String(), "")
+	xtesting.Equal(t, int(LocationDuration(t1l).Seconds()), 0)
+	xtesting.Equal(t, int(LocationDuration(t2l).Seconds()), -7*3600)
+	xtesting.Equal(t, int(LocationDuration(t3l).Seconds()), 8*3600)
+	xtesting.Equal(t, int(LocationDuration(t4l).Seconds()), 9*3600)
+}
+
+func TestParseTimezone(t *testing.T) {
+	re := timezoneRegexp
+	xtesting.Equal(t, re.Match([]byte("+")), false)
+	xtesting.Equal(t, re.Match([]byte("+0")), true)
+	xtesting.Equal(t, re.Match([]byte("+09")), true)
+	xtesting.Equal(t, re.Match([]byte("+09:")), false)
+	xtesting.Equal(t, re.Match([]byte("-9:0")), true)
+	xtesting.Equal(t, re.Match([]byte("+9:00")), true)
+	xtesting.Equal(t, re.Match([]byte("-09:0")), true)
+	xtesting.Equal(t, re.Match([]byte("+09:30")), true)
+
+	_, err := ParseTimezone("+")
+	xtesting.NotNil(t, err)
+
+	loc, err := ParseTimezone("+0")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC+00:00")
+
+	loc, err = ParseTimezone("+09")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC+09:00")
+
+	loc, err = ParseTimezone("+09:")
+	xtesting.NotNil(t, err)
+
+	loc, err = ParseTimezone("-9:0")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC-09:00")
+
+	loc, err = ParseTimezone("+9:00")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC+09:00")
+
+	loc, err = ParseTimezone("-09:0")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC-09:00")
+
+	loc, err = ParseTimezone("+09:30")
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, loc.String(), "UTC+09:30")
+}
+
+func TestMoveToTimezoneAndLocation(t *testing.T) {
+	_, err := MoveToTimezone(time.Now(), "")
+	xtesting.NotNil(t, err)
+
+	tt, _ := time.Parse(time.RFC3339, "2020-08-06T12:46:43+08:00")
+
+	tt2, _ := MoveToTimezone(tt, "+8")
+	xtesting.Equal(t, tt2.Hour(), 12)
+	xtesting.Equal(t, tt2.Minute(), 46)
+
+	tt3, _ := MoveToTimezone(tt, "+09:00")
+	xtesting.Equal(t, tt3.Hour(), 13)
+	xtesting.Equal(t, tt3.Minute(), 46)
+
+	tt4, _ := MoveToTimezone(tt, "-00:30")
+	xtesting.Equal(t, tt4.Hour(), 4)
+	xtesting.Equal(t, tt4.Minute(), 16)
+
+	_, err = MoveToLocation(time.Now(), "x")
+	xtesting.NotNil(t, err)
+	_, err = MoveToLocation(time.Now(), "Asia/Shangha")
+	xtesting.NotNil(t, err)
+
+	tt5, _ := MoveToLocation(tt, zones.Asia_Tokyo)
+	xtesting.Equal(t, tt5.Hour(), 13)
+	xtesting.Equal(t, tt5.Minute(), 46)
+
+	tt6, _ := MoveToLocation(tt, zones.Asia_Shanghai)
+	xtesting.Equal(t, tt6.Hour(), 12)
+	xtesting.Equal(t, tt6.Minute(), 46)
+
+	tt7, _ := MoveToLocation(tt, "")
+	xtesting.Equal(t, tt7.Hour(), 4)
+	xtesting.Equal(t, tt7.Minute(), 46)
+}
+
+func TestDateAndDateTimeNew(t *testing.T) {
 	_ = RFC3339Date
 	_ = ISO8601Date
 	_ = CJKDate
@@ -113,7 +192,7 @@ func TestNew(t *testing.T) {
 	xtesting.Equal(t, string(bs2), "\""+dateTimeStr+"\"")
 }
 
-func TestParse(t *testing.T) {
+func TestDateAndDateTimeParse(t *testing.T) {
 	now := time.Now()
 	// now = now.In(time.UTC)
 
@@ -139,7 +218,7 @@ func TestParse(t *testing.T) {
 	xtesting.Equal(t, dateTime3, dateTime)
 }
 
-func TestSql(t *testing.T) {
+func TestDateAndDateTimeScanValue(t *testing.T) {
 	now := time.Now()
 	now2 := time.Now()
 	now2.Add(time.Hour * 24)

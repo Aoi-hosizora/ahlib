@@ -9,7 +9,7 @@
 
 ### Types
 
-+ `type ServiceName string`
++ `type ModuleName string`
 + `type ModuleContainer struct`
 + `type LogLevel int8`
 + `type Logger interface`
@@ -32,14 +32,14 @@
 
 + `func NewModuleContainer() *ModuleContainer`
 + `func SetLogger(logger Logger)`
-+ `func ProvideName(name ServiceName, service interface{})`
-+ `func ProvideType(service interface{})`
-+ `func ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
-+ `func GetByName(name ServiceName) (service interface{}, exist bool)`
-+ `func MustGetByName(name ServiceName) interface{}`
-+ `func GetByType(serviceType interface{}) (service interface{}, exist bool)`
-+ `func MustGetByType(serviceType interface{}) interface{}`
-+ `func GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
++ `func ProvideName(name ModuleName, module interface{})`
++ `func ProvideType(module interface{})`
++ `func ProvideImpl(interfacePtr interface{}, moduleImpl interface{})`
++ `func GetByName(name ModuleName) (module interface{}, exist bool)`
++ `func MustGetByName(name ModuleName) interface{}`
++ `func GetByType(moduleType interface{}) (module interface{}, exist bool)`
++ `func MustGetByType(moduleType interface{}) interface{}`
++ `func GetByImpl(interfacePtr interface{}) (module interface{}, exist bool)`
 + `func MustGetByImpl(interfacePtr interface{}) interface{}`
 + `func Inject(ctrl interface{}) (allInjected bool)`
 + `func MustInject(ctrl interface{})`
@@ -47,20 +47,20 @@
 
 ### Methods
 
-+ `func (s ServiceName) String() string`
++ `func (s ModuleName) String() string`
 + `func (m *ModuleContainer) SetLogger(logger Logger)`
-+ `func (m *ModuleContainer) ProvideName(name ServiceName, service interface{})`
-+ `func (m *ModuleContainer) ProvideType(service interface{})`
-+ `func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, serviceImpl interface{})`
-+ `func (m *ModuleContainer) GetByName(name ServiceName) (service interface{}, exist bool)`
-+ `func (m *ModuleContainer) MustGetByName(name ServiceName) interface{}`
-+ `func (m *ModuleContainer) GetByType(serviceType interface{}) (service interface{}, exist bool)`
-+ `func (m *ModuleContainer) MustGetByType(serviceType interface{}) interface{}`
-+ `func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (service interface{}, exist bool)`
++ `func (m *ModuleContainer) ProvideName(name ModuleName, module interface{})`
++ `func (m *ModuleContainer) ProvideType(module interface{})`
++ `func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl interface{})`
++ `func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist bool)`
++ `func (m *ModuleContainer) MustGetByName(name ModuleName) interface{}`
++ `func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{}, exist bool)`
++ `func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{}`
++ `func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{}, exist bool)`
 + `func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{}`
 + `func (m *ModuleContainer) Inject(ctrl interface{}) (allInjected bool)`
 + `func (m *ModuleContainer) MustInject(ctrl interface{})`
 + `func (d *defaultLogger) LogName(name, typ string)`
 + `func (d *defaultLogger) LogType(typ string)`
-+ `func (d *defaultLogger) LogImpl(itfTyp, srvTyp string)`
++ `func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string)`
 + `func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string)`

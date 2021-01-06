@@ -54,25 +54,12 @@ func SetLocation(t time.Time, loc *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
 }
 
-// LocationDuration returns a time.Duration that equals to the given time.Location duration.
-func LocationDuration(loc *time.Location) time.Duration {
-	t := time.Date(2020, time.Month(10), 1, 0, 0, 0, 0, loc)
-	t2 := SetLocation(t.In(time.UTC), loc)
-	return t.Sub(t2)
-}
-
-// GetLocation returns a time.Location for given time. Note that Time.Location() will return a unused location.
-func GetLocation(t time.Time) *time.Location {
-	du := LocationDuration(t.Location())
-	return time.FixedZone("", int(du.Seconds())) // use empty name
-}
-
 // ToDate preserves year, month, day and location parsed.
 func ToDate(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetLocation(t))
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetTimeLocation(t))
 }
 
 // ToDateTime preserves year, month, day, hour, minute, second and location parsed.
 func ToDateTime(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, GetLocation(t))
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, GetTimeLocation(t))
 }

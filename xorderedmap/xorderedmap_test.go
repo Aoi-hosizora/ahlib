@@ -70,7 +70,7 @@ func TestMap(t *testing.T) {
 	xtesting.Equal(t, string(bs), `{"b":"bb","a":123,"c":"cc"}`)
 	obj, err := m.MarshalYAML()
 	xtesting.Nil(t, err)
-	xtesting.Equal(t, obj, m.m)
+	xtesting.Equal(t, obj, m.kv)
 
 	// String
 	m.Set("o", cmx)

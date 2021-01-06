@@ -38,6 +38,10 @@
 + `func (p *PropertyMapperValue) GetRevert() bool`
 + `func (p *PropertyMapperValue) GetArg() interface{}`
 + `func (p *PropertyMapperValue) GetDestinations() []string`
++ `func (p *PropertyMapperValue) WithId(id int) *PropertyMapperValue`
++ `func (p *PropertyMapperValue) WithRevert(revert bool) *PropertyMapperValue`
++ `func (p *PropertyMapperValue) WithArg(arg interface{}) *PropertyMapperValue`
++ `func (p *PropertyMapperValue) WithDestinations(destinations []string) *PropertyMapperValue`
 + `func (p *PropertyMapper) GetDict() PropertyDict`
 + `func (p *PropertyMappers) AddMapper(mapper *PropertyMapper)`
 + `func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper)`

@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// ModuleName represents a global module name, and it could not be [ |-|~].
+// ModuleName represents a global module name, and it could not be empty, - and ~.
 type ModuleName string
 
 // String returns the string value of ModuleName.
@@ -44,7 +44,7 @@ func NewModuleContainer() *ModuleContainer {
 // SetLogger sets the Logger for ModuleContainer.
 //
 // Example:
-// 	SetLogger(DefaultLogger(LogAll))    // set default logger
+// 	SetLogger(DefaultLogger(LogAll))    // set to default logger
 // 	SetLogger(DefaultLogger(LogSilent)) // disable logger
 func (m *ModuleContainer) SetLogger(logger Logger) {
 	m.logger = logger
@@ -115,16 +115,16 @@ func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl inter
 	if itfTyp.Kind() != reflect.Interface {
 		panic(NonInterfacePtrPanic)
 	}
-	srvTyp := reflect.TypeOf(moduleImpl)
-	if !srvTyp.Implements(itfTyp) {
-		panic(fmt.Sprintf(notImplementInterfacePanic, srvTyp.String(), itfTyp.String()))
+	modTyp := reflect.TypeOf(moduleImpl)
+	if !modTyp.Implements(itfTyp) {
+		panic(fmt.Sprintf(notImplementInterfacePanic, modTyp.String(), itfTyp.String()))
 	}
 
 	m.muByType.Lock()
 	m.provByType[itfTyp] = moduleImpl // interface type
 	m.muByType.Unlock()
 
-	m.logger.LogImpl(itfTyp.String(), srvTyp.String())
+	m.logger.LogImpl(itfTyp.String(), modTyp.String())
 }
 
 // GetByName returns the module provided by name, panics when using invalid module name.
@@ -203,7 +203,7 @@ func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{} {
 // core
 // ====
 
-// Inject injects into struct fields using its module tag.
+// Inject injects into struct fields using its module tag, returns true if all fields with `module` tag has been injected.
 //
 // Example:
 // 	type AStruct struct {
@@ -218,7 +218,7 @@ func (m *ModuleContainer) Inject(ctrl interface{}) (allInjected bool) {
 	return coreInject(m, ctrl, false)
 }
 
-// MustInject injects into struct fields using its module tag, panics when not all fields are injected.
+// MustInject injects into struct fields using its module tag, panics when not all fields with `module` tag are injected.
 //
 // Example:
 // 	type AStruct struct {
@@ -303,7 +303,7 @@ var _module = NewModuleContainer()
 // SetLogger sets the Logger for ModuleContainer.
 //
 // Example:
-// 	SetLogger(DefaultLogger(LogAll))    // set default logger
+// 	SetLogger(DefaultLogger(LogAll))    // set to default logger
 // 	SetLogger(DefaultLogger(LogSilent)) // disable logger
 func SetLogger(logger Logger) {
 	_module.SetLogger(logger)
@@ -358,7 +358,7 @@ func MustGetByImpl(interfacePtr interface{}) interface{} {
 	return _module.MustGetByImpl(interfacePtr)
 }
 
-// Inject injects into struct fields using its module tag.
+// Inject injects into struct fields using its module tag, returns true if all fields with `module` tag has been injected.
 //
 // Example:
 // 	type AStruct struct {
@@ -373,7 +373,7 @@ func Inject(ctrl interface{}) (allInjected bool) {
 	return _module.Inject(ctrl)
 }
 
-// MustInject injects into struct fields using its module tag, panics when not all fields are injected.
+// MustInject injects into struct fields using its module tag, panics when not all fields with `module` tag are injected.
 //
 // Example:
 // 	type AStruct struct {

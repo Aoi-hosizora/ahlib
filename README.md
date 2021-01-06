@@ -33,7 +33,6 @@
 + xstring (waiting for refactoring)
 + xtesting
 + xtime
-+ xzone
 
 ### Dependency
 

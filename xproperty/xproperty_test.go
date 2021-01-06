@@ -17,8 +17,7 @@ func TestPropertyMappers(t *testing.T) {
 	AddMapper(NewMapper(typ, typ, nil))
 	xtesting.Equal(t, GetDefaultMapper(typ, typ).GetDict(), PropertyDict{})
 
-	AddMappers(NewMapper(typ, typ,
-		PropertyDict{"a": NewValueCompletely(5, true, 0.5, "a1", "a2")}))
+	AddMappers(NewMapper(typ, typ, PropertyDict{"a": NewValueCompletely(5, true, 0.5, "a1", "a2")}))
 	mapper, err = GetMapper(typ, typ)
 	xtesting.Nil(t, err)
 	dict := mapper.GetDict()["a"]
@@ -38,4 +37,10 @@ func TestPropertyMappers(t *testing.T) {
 
 	xtesting.Panic(t, func() { NewMapper(nil, 0, nil) })
 	xtesting.Panic(t, func() { NewMapper(0, nil, nil) })
+
+	v := NewValue(false).WithId(1).WithRevert(true).WithArg(0).WithDestinations([]string{"0"})
+	xtesting.Equal(t, v.id, 1)
+	xtesting.Equal(t, v.revert, true)
+	xtesting.Equal(t, v.arg, 0)
+	xtesting.Equal(t, v.destinations, []string{"0"})
 }

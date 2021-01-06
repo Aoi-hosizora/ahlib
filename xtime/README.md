@@ -37,10 +37,13 @@
 + `func SetMicrosecond(t time.Time, microsecond int) time.Time`
 + `func SetNanosecond(t time.Time, nanosecond int) time.Time`
 + `func SetLocation(t time.Time, loc *time.Location) time.Time`
-+ `func LocationDuration(loc *time.Location) time.Duration`
-+ `func GetLocation(t time.Time) *time.Location`
 + `func ToDate(t time.Time) time.Time`
 + `func ToDateTime(t time.Time) time.Time`
++ `func LocationDuration(loc *time.Location) time.Duration`
++ `func GetTimeLocation(t time.Time) *time.Location`
++ `func ParseTimezone(timezone string) (*time.Location, error)`
++ `func MoveToTimezone(t time.Time, timezone string) (time.Time, error)`
++ `func MoveToLocation(t time.Time, location string) (time.Time, error)`
 + `func NewJsonDate(t time.Time) JsonDate`
 + `func ParseRFC3339Date(s string) (JsonDate, error)`
 + `func ParseRFC3339DateOr(s string, d JsonDate) JsonDate`

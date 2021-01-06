@@ -8,7 +8,7 @@ const (
 	JwtUnknown JwtStatus = 0    // Unknown
 	JwtSuccess JwtStatus = iota // Success
 	JwtBlank                    // Blank token
-	JwtInvalid                  // Token could not be parsed (include: malformed, unverifiable, invalid signature)
+	JwtInvalid                  // Could not be parsed (malformed, unverifiable, invalid signature)
 
 	JwtTokenNotFound // Token not found
 	JwtUserNotFound  // User not found
