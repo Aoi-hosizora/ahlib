@@ -19,10 +19,8 @@
 ### Constants
 
 + `const RFC3339DateTime string`
-+ `const ISO8601DateTime string`
 + `const CJKDateTime string`
 + `const RFC3339Date string`
-+ `const ISO8601Date string`
 + `const CJKDate string`
 
 ### Functions
@@ -45,11 +43,11 @@
 + `func MoveToTimezone(t time.Time, timezone string) (time.Time, error)`
 + `func MoveToLocation(t time.Time, location string) (time.Time, error)`
 + `func NewJsonDate(t time.Time) JsonDate`
-+ `func ParseRFC3339Date(s string) (JsonDate, error)`
-+ `func ParseRFC3339DateOr(s string, d JsonDate) JsonDate`
 + `func NewJsonDateTime(t time.Time) JsonDateTime`
-+ `func ParseRFC3339DateTime(s string) (JsonDateTime, error)`
-+ `func ParseRFC3339DateTimeOr(s string, d JsonDateTime) JsonDateTime`
++ `func ParseJsonDate(s string) (JsonDate, error)`
++ `func ParseJsonDateOr(s string, d JsonDate) JsonDate`
++ `func ParseJsonDateTime(s string) (JsonDateTime, error)`
++ `func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime`
 + `func NewTimeSpan(du time.Duration) TimeSpan`
 
 ### Methods
@@ -64,23 +62,23 @@
 + `func (dt JsonDateTime) MarshalJSON() ([]byte, error)`
 + `func (dt *JsonDateTime) Scan(value interface{}) error`
 + `func (dt JsonDateTime) Value() (driver.Value, error)`
-+ `(t TimeSpan) Duration() time.Duration`
-+ `(t TimeSpan) Add(t2 TimeSpan) TimeSpan`
-+ `(t TimeSpan) Sub(t2 TimeSpan) TimeSpan`
-+ `(t TimeSpan) Days() int`
-+ `(t TimeSpan) Hours() int`
-+ `(t TimeSpan) Minutes() int`
-+ `(t TimeSpan) Seconds() int`
-+ `(t TimeSpan) Milliseconds() int`
-+ `(t TimeSpan) Microseconds() int`
-+ `(t TimeSpan) Nanoseconds() int`
-+ `(t TimeSpan) TotalDays() float64`
-+ `(t TimeSpan) TotalHours() float64`
-+ `(t TimeSpan) TotalMinutes() float64`
-+ `(t TimeSpan) TotalSeconds() float64`
-+ `(t TimeSpan) TotalMilliseconds() int64`
-+ `(t TimeSpan) TotalMicroseconds() int64`
-+ `(t TimeSpan) TotalNanoseconds() int64`
-+ `(t *TimeSpan) Scan(value interface{}) error`
-+ `(t TimeSpan) Value() (driver.Value, error)`
-+ `(t TimeSpan) String() string`
++ `func (t TimeSpan) Duration() time.Duration`
++ `func (t TimeSpan) Add(t2 TimeSpan) TimeSpan`
++ `func (t TimeSpan) Sub(t2 TimeSpan) TimeSpan`
++ `func (t TimeSpan) Days() int`
++ `func (t TimeSpan) Hours() int`
++ `func (t TimeSpan) Minutes() int`
++ `func (t TimeSpan) Seconds() int`
++ `func (t TimeSpan) Milliseconds() int`
++ `func (t TimeSpan) Microseconds() int`
++ `func (t TimeSpan) Nanoseconds() int`
++ `func (t TimeSpan) TotalDays() float64`
++ `func (t TimeSpan) TotalHours() float64`
++ `func (t TimeSpan) TotalMinutes() float64`
++ `func (t TimeSpan) TotalSeconds() float64`
++ `func (t TimeSpan) TotalMilliseconds() int64`
++ `func (t TimeSpan) TotalMicroseconds() int64`
++ `func (t TimeSpan) TotalNanoseconds() int64`
++ `func (t *TimeSpan) Scan(value interface{}) error`
++ `func (t TimeSpan) Value() (driver.Value, error)`
++ `func (t TimeSpan) String() string`

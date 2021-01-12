@@ -42,7 +42,7 @@ func FirstNotNil(values ...interface{}) interface{} {
 	return nil
 }
 
-var (
+const (
 	indexOutOfRangePanic = "xcondition: index out of range"
 )
 

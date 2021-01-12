@@ -101,7 +101,7 @@ func (i *Smpval) Flag() Smpflag {
 	return i.flag
 }
 
-// Smplen represents the length for some simple and collection types.
+// Smplen represents the length for some simple types and collection types.
 // Includes:
 // 	1. Int (value): int, int8 (byte), int16, int32 (rune), int64.
 // 	2. Int (length): string, slice, map, array.
@@ -173,48 +173,52 @@ func (i *Smplen) Flag() Smpflag {
 	return i.flag
 }
 
-// SmpvalOf creates the Smpval from the given argument, returns error when using invalid value.
+const (
+	badTypePanic = "xreflect: bad type `%T`"
+)
+
+// SmpvalOf gets the Smpval from the given value, panics when using unsupported type.
 // Only supports:
 // 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string
-func SmpvalOf(i interface{}) (*Smpval, error) {
+func SmpvalOf(i interface{}) *Smpval {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return intSmpval(val.Int()), nil
+		return intSmpval(val.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return uintSmpval(val.Uint()), nil
+		return uintSmpval(val.Uint())
 	case reflect.Float32, reflect.Float64:
-		return floatSmpval(val.Float()), nil
+		return floatSmpval(val.Float())
 	case reflect.Complex64, reflect.Complex128:
-		return complexSmpval(val.Complex()), nil
+		return complexSmpval(val.Complex())
 	case reflect.Bool:
-		return boolSmpval(val.Bool()), nil
+		return boolSmpval(val.Bool())
 	case reflect.String:
-		return stringSmpval(val.String()), nil
+		return stringSmpval(val.String())
 	}
-	return nil, fmt.Errorf("xreflect: bad type `%T`", val.Interface())
+	panic(fmt.Sprintf(badTypePanic, val.Interface()))
 }
 
-// SmplenOf get the Smplen of given argument, returns error when using invalid value.
+// SmplenOf gets the Smplen of given value, panics when using unsupported type.
 // Only supports:
 // 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, map, array
-func SmplenOf(i interface{}) (*Smplen, error) {
+func SmplenOf(i interface{}) *Smplen {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return intSmplen(val.Int()), nil
+		return intSmplen(val.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return uintSmplen(val.Uint()), nil
+		return uintSmplen(val.Uint())
 	case reflect.Float32, reflect.Float64:
-		return floatSmplen(val.Float()), nil
+		return floatSmplen(val.Float())
 	case reflect.Complex64, reflect.Complex128:
-		return complexSmplen(val.Complex()), nil
+		return complexSmplen(val.Complex())
 	case reflect.Bool:
-		return boolSmplen(val.Bool()), nil
+		return boolSmplen(val.Bool())
 	case reflect.String:
-		return intSmplen(int64(len([]rune(val.String())))), nil
+		return intSmplen(int64(len([]rune(val.String()))))
 	case reflect.Slice, reflect.Map, reflect.Array:
-		return intSmplen(int64(val.Len())), nil
+		return intSmplen(int64(val.Len()))
 	}
-	return nil, fmt.Errorf("xreflect: bad type `%T`", val.Interface())
+	panic(fmt.Sprintf(badTypePanic, val.Interface()))
 }

@@ -38,8 +38,8 @@
 + `func GetComplex(i interface{}) (complex128, bool)`
 + `func GetBool(i interface{}) (bool, bool)`
 + `func GetString(i interface{}) (string, bool)`
-+ `func SmpvalOf(i interface{}) (*Smpval, error)`
-+ `func SmplenOf(i interface{}) (*Smplen, error)`
++ `func SmpvalOf(i interface{}) *Smpval`
++ `func SmplenOf(i interface{}) *Smplen`
 
 ### Methods
 

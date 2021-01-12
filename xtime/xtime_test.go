@@ -37,7 +37,7 @@ func TestSetXXX(t *testing.T) {
 	xtesting.Equal(t, zero, now)
 }
 
-func TestToDateAndToDateTime(t *testing.T) {
+func TestToXXX(t *testing.T) {
 	now := time.Now()
 
 	date := ToDate(now)
@@ -63,7 +63,7 @@ func TestToDateAndToDateTime(t *testing.T) {
 	xtesting.Equal(t, LocationDuration(datetime.Location()), LocationDuration(now.Location()))
 }
 
-func TestGetTimeLocationAndDuration(t *testing.T) {
+func TestLocationDuration(t *testing.T) {
 	t1, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52Z")      // UTC
 	t2, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52-07:00") // ""
 	t3, _ := time.Parse(time.RFC3339, "2020-09-30T23:56:52+08:00") // Local
@@ -88,7 +88,7 @@ func TestGetTimeLocationAndDuration(t *testing.T) {
 	xtesting.Equal(t, int(LocationDuration(t4l).Seconds()), 9*3600)
 }
 
-func TestParseTimezone(t *testing.T) {
+func TestTimezone(t *testing.T) {
 	re := timezoneRegexp
 	xtesting.Equal(t, re.Match([]byte("+")), false)
 	xtesting.Equal(t, re.Match([]byte("+0")), true)
@@ -128,10 +128,8 @@ func TestParseTimezone(t *testing.T) {
 	loc, err = ParseTimezone("+09:30")
 	xtesting.Nil(t, err)
 	xtesting.Equal(t, loc.String(), "UTC+09:30")
-}
 
-func TestMoveToTimezoneAndLocation(t *testing.T) {
-	_, err := MoveToTimezone(time.Now(), "")
+	_, err = MoveToTimezone(time.Now(), "")
 	xtesting.NotNil(t, err)
 
 	tt, _ := time.Parse(time.RFC3339, "2020-08-06T12:46:43+08:00")
@@ -166,12 +164,10 @@ func TestMoveToTimezoneAndLocation(t *testing.T) {
 	xtesting.Equal(t, tt7.Minute(), 46)
 }
 
-func TestDateAndDateTimeNew(t *testing.T) {
+func TestNewDateAndNewDateTime(t *testing.T) {
 	_ = RFC3339Date
-	_ = ISO8601Date
 	_ = CJKDate
 	_ = RFC3339DateTime
-	_ = ISO8601DateTime
 	_ = CJKDateTime
 
 	now := time.Now()
@@ -192,7 +188,7 @@ func TestDateAndDateTimeNew(t *testing.T) {
 	xtesting.Equal(t, string(bs2), "\""+dateTimeStr+"\"")
 }
 
-func TestDateAndDateTimeParse(t *testing.T) {
+func TestParseDateAndParseDateTime(t *testing.T) {
 	now := time.Now()
 	// now = now.In(time.UTC)
 
@@ -201,20 +197,20 @@ func TestDateAndDateTimeParse(t *testing.T) {
 	dateStr := date.String()
 	dateTimeStr := dateTime.String()
 
-	date1, _ := ParseRFC3339Date(dateStr)
+	date1, _ := ParseJsonDate(dateStr)
 	xtesting.Equal(t, date1.Time(), date.Time())
-	date2 := ParseRFC3339DateOr(dateStr, date)
+	date2 := ParseJsonDateOr(dateStr, date)
 	xtesting.Equal(t, date2.Time(), date.Time())
-	date3 := ParseRFC3339DateOr("", date)
+	date3 := ParseJsonDateOr("", date)
 	xtesting.Equal(t, date3, date)
 
-	dateTime1, _ := ParseRFC3339DateTime(dateTimeStr)
+	dateTime1, _ := ParseJsonDateTime(dateTimeStr)
 	xtesting.Equal(t, dateTime1, dateTime)
 	log.Println(dateTime1.String(), dateTime1.Time().Location())
 	log.Println(dateTime.String(), dateTime.Time().Location())
-	dateTime2 := ParseRFC3339DateTimeOr(dateTimeStr, dateTime)
+	dateTime2 := ParseJsonDateTimeOr(dateTimeStr, dateTime)
 	xtesting.Equal(t, dateTime2, dateTime)
-	dateTime3 := ParseRFC3339DateTimeOr("", dateTime)
+	dateTime3 := ParseJsonDateTimeOr("", dateTime)
 	xtesting.Equal(t, dateTime3, dateTime)
 }
 

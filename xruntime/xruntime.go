@@ -44,7 +44,7 @@ type TraceStack []*TraceFrame
 // String returns the formatted TraceStack.
 func (t *TraceStack) String() string {
 	l := len(*t)
-	sb := strings.Builder{}
+	sb := &strings.Builder{}
 	for i, frame := range *t {
 		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.PC))
 		sb.WriteString("\n")

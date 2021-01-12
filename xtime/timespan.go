@@ -113,7 +113,7 @@ func (t TimeSpan) TotalNanoseconds() int64 {
 }
 
 var (
-	ErrScanTimeSpan = errors.New("xtime: value is not a int64 value")
+	scanTimeSpanErr = errors.New("xtime: value is not a int64 value")
 )
 
 // Scan implementations sql.Scanner.
@@ -123,7 +123,7 @@ func (t *TimeSpan) Scan(value interface{}) error {
 	}
 	val, ok := value.(int64)
 	if !ok {
-		return ErrScanTimeSpan
+		return scanTimeSpanErr
 	}
 	*t = TimeSpan(val)
 	return nil

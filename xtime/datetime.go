@@ -8,20 +8,18 @@ import (
 
 const (
 	RFC3339Date = "2006-01-02" // RFC3339 date format
-	ISO8601Date = "2006-01-02" // ISO8601 date format
 	CJKDate     = "2006-01-02" // CJK date format
 
 	RFC3339DateTime = "2006-01-02T15:04:05Z07:00" // RFC3339 datetime format
-	ISO8601DateTime = "2006-01-02T15:04:05-0700"  // ISO8601 datetime format
 	CJKDateTime     = "2006-01-02 15:04:05"       // CJK datetime format
 )
 
 // JsonDate represents a parsed time.Time, will be used in json (string#date format).
-// It only preserve year, month, day value.
+// It only preserves year, month, day value.
 type JsonDate time.Time
 
 // JsonDateTime represents a parsed time.Time, will be used in json (string#date-time format).
-// It only preserve year, month, day, hour, minute, second, zone value.
+// It only preserves year, month, day, hour, minute, second, zone value.
 type JsonDateTime time.Time
 
 // NewJsonDate creates a JsonDate from time.Time, will only preserve year, month, day and location parsed.
@@ -69,8 +67,8 @@ func (dt JsonDateTime) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	ErrScanJsonDate     = errors.New("xtime: value is not a time.Time")
-	ErrScanJsonDateTime = errors.New("xtime: value is not a time.Time")
+	scanJsonDateErr     = errors.New("xtime: value is not a time.Time")
+	scanJsonDateTimeErr = errors.New("xtime: value is not a time.Time")
 )
 
 // Scan implementations sql.Scanner.
@@ -80,7 +78,7 @@ func (d *JsonDate) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return ErrScanJsonDate
+		return scanJsonDateErr
 	}
 	*d = JsonDate(val)
 	return nil
@@ -93,7 +91,7 @@ func (dt *JsonDateTime) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return ErrScanJsonDateTime
+		return scanJsonDateTimeErr
 	}
 	*dt = JsonDateTime(val)
 	return nil
@@ -109,8 +107,8 @@ func (dt JsonDateTime) Value() (driver.Value, error) {
 	return dt.Time(), nil
 }
 
-// ParseRFC3339Date parses a string to JsonDate in RFC3339Date format, it uses the current timezone.
-func ParseRFC3339Date(s string) (JsonDate, error) {
+// ParseJsonDate parses a string to JsonDate in RFC3339Date format, it uses the current timezone.
+func ParseJsonDate(s string) (JsonDate, error) {
 	n, err := time.Parse(RFC3339Date, s)
 	if err == nil {
 		n = ToDate(SetLocation(n, time.Now().Location())) // <<<
@@ -118,8 +116,8 @@ func ParseRFC3339Date(s string) (JsonDate, error) {
 	return JsonDate(n), err
 }
 
-// ParseRFC3339DateTime parses a string to JsonDateTime in RFC3339DateTime format.
-func ParseRFC3339DateTime(s string) (JsonDateTime, error) {
+// ParseJsonDateTime parses a string to JsonDateTime in RFC3339DateTime format.
+func ParseJsonDateTime(s string) (JsonDateTime, error) {
 	n, err := time.Parse(RFC3339DateTime, s)
 	if err == nil {
 		n = ToDateTime(n) // <<<
@@ -127,18 +125,18 @@ func ParseRFC3339DateTime(s string) (JsonDateTime, error) {
 	return JsonDateTime(n), err
 }
 
-// ParseRFC3339DateOr parses a string to JsonDate in RFC3339Date format with a fallback value, it uses the current timezone.
-func ParseRFC3339DateOr(s string, d JsonDate) JsonDate {
-	n, err := ParseRFC3339Date(s)
+// ParseJsonDateOr parses a string to JsonDate in RFC3339Date format with a fallback value, it uses the current timezone.
+func ParseJsonDateOr(s string, d JsonDate) JsonDate {
+	n, err := ParseJsonDate(s)
 	if err != nil {
 		return d
 	}
 	return n
 }
 
-// ParseRFC3339DateTime parses a string to JsonDateTime in RFC3339DateTime format with a fallback value.
-func ParseRFC3339DateTimeOr(s string, d JsonDateTime) JsonDateTime {
-	n, err := ParseRFC3339DateTime(s)
+// ParseJsonDateTimeOr parses a string to JsonDateTime in RFC3339DateTime format with a fallback value.
+func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime {
+	n, err := ParseJsonDateTime(s)
 	if err != nil {
 		return d
 	}

@@ -50,7 +50,7 @@ func (m *ModuleContainer) SetLogger(logger Logger) {
 	m.logger = logger
 }
 
-var (
+const (
 	invalidModuleNamePanic = "xmodule: using invalid module name (empty, '-' and '~')"
 	nilModulePanic         = "xmodule: using nil module"
 	nilInterfacePtrPanic   = "xmodule: using nil interface pointer"

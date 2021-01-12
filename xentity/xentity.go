@@ -41,13 +41,15 @@ func New() *EntityMappers {
 	}
 }
 
-var (
+const (
 	nilModelPanic          = "xentity: nil model"
 	nilCtorPanic           = "xentity: nil constructor"
 	nilMapFuncPanic        = "xentity: nil mapFunc"
 	nonStructPtrModelPanic = "xentity: non-struct-pointer model"
 	nonSliceModelPanic     = "xentity: non-slice model"
+)
 
+var (
 	mapperNotFoundErr = errors.New("xentity: mapper not found")
 )
 

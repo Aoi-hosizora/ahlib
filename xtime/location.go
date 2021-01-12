@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// LocationDuration returns a time.Duration that equals to the given time.Location duration.
+// LocationDuration returns a time.Duration that equals to the duration in the given time.Location.
 func LocationDuration(loc *time.Location) time.Duration {
 	t := time.Date(2020, time.Month(10), 1, 0, 0, 0, 0, loc)
 	tUtc := t.In(time.UTC)
@@ -26,14 +26,14 @@ func GetTimeLocation(t time.Time) *time.Location {
 var timezoneRegexp = regexp.MustCompile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
 
 var (
-	ErrWrongFormat = errors.New("xzone: timezone string has a wrong format")
+	wrongFormatErr = errors.New("xtime: wrong format timezone string")
 )
 
-// ParseTimezone parses timezone string to time.Location. Format: `^[+-][0-9]{1,2}([0-9]{1,2})?$`
+// ParseTimezone parses timezone string to time.Location. Format: `^[+-][0-9]{1,2}([0-9]{1,2})?$`.
 func ParseTimezone(timezone string) (*time.Location, error) {
 	matches := timezoneRegexp.FindAllStringSubmatch(timezone, 1)
 	if len(matches) == 0 || len(matches[0][1:]) < 3 {
-		return nil, ErrWrongFormat
+		return nil, wrongFormatErr
 	}
 
 	group := matches[0][1:]

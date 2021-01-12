@@ -73,9 +73,11 @@ func New() *PropertyMappers {
 	}
 }
 
-var (
+const (
 	nilModelPanic = "xproperty: nil model"
+)
 
+var (
 	mapperNotFoundErr = errors.New("xproperty: mapper not found")
 )
 

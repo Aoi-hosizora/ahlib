@@ -189,7 +189,7 @@ func (l *OrderedMap) String() string {
 	return string(buf)
 }
 
-var (
+const (
 	nilObjectPanic = "xorderedmap: nil object"
 	nonStructPanic = "xorderedmap: non-struct object"
 )
