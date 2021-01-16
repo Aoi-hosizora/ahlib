@@ -25,9 +25,7 @@ func TestDefaultIfNil(t *testing.T) {
 func TestPanicIfErr(t *testing.T) {
 	xtesting.Equal(t, PanicIfErr(0, nil), 0)
 	xtesting.Equal(t, PanicIfErr("0", nil), "0")
-	xtesting.PanicWithValue(t, fmt.Errorf("test"), func() {
-		PanicIfErr(nil, fmt.Errorf("test"))
-	})
+	xtesting.PanicWithValue(t, "test", func() { PanicIfErr(nil, fmt.Errorf("test")) })
 }
 
 func TestFirstNotNil(t *testing.T) {
@@ -38,18 +36,10 @@ func TestFirstNotNil(t *testing.T) {
 }
 
 var (
-	f1 = func() int {
-		return 1
-	}
-	f2 = func() (int, int) {
-		return 1, 2
-	}
-	f3 = func() (int, int, int) {
-		return 1, 2, 3
-	}
-	f4 = func() (int, int, int, int) {
-		return 1, 2, 3, 4
-	}
+	f1 = func() int { return 1 }
+	f2 = func() (int, int) { return 1, 2 }
+	f3 = func() (int, int, int) { return 1, 2, 3 }
+	f4 = func() (int, int, int, int) { return 1, 2, 3, 4 }
 )
 
 func TestFirst(t *testing.T) {

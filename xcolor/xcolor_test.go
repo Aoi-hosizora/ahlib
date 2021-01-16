@@ -3,6 +3,7 @@ package xcolor
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"os"
 	"testing"
 )
 
@@ -147,7 +148,7 @@ func TestMixCode(t *testing.T) {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 
-	for _, tc := range  []struct {
+	for _, tc := range []struct {
 		give MixCode
 		want MixCode
 	}{
@@ -165,6 +166,7 @@ func TestMixCode(t *testing.T) {
 }
 
 func TestPrint(t *testing.T) {
+	// style
 	Bold.Print("bold\n")
 	Faint.Printf("%s\n", "faint")
 	Italic.Println("italic")
@@ -173,15 +175,16 @@ func TestPrint(t *testing.T) {
 	fmt.Print(Strikethrough.Sprintln("strikethrough"))
 	fmt.Println()
 
+	// color
 	Red.Print("red\n")
 	Green.Printf("%s\n", "green")
 	Yellow.Println("yellow")
 	fmt.Print(Blue.Sprint("blue\n"))
 	fmt.Print(Magenta.Sprintf("%s\n", "magenta"))
 	fmt.Print(Cyan.Sprintln("cyan"))
-	Black.Println("black")
-	White.Println("white")
-	Default.Println("default")
+	_, _ = Black.Fprint(os.Stdout, "black\n")
+	_, _ = White.Fprintf(os.Stdout, "%s\n", "white")
+	_, _ = Default.Fprintln(os.Stdout, "default")
 	BrightBlack.Println("bright_black")
 	BrightRed.Println("bright_red")
 	BrightGreen.Println("bright_green")
@@ -192,15 +195,16 @@ func TestPrint(t *testing.T) {
 	BrightWhite.Println("bright_white")
 	fmt.Println()
 
+	// background
 	BGRed.Print("bg_red\n")
 	BGGreen.Printf("%s\n", "bg_green")
 	BGYellow.Println("bg_yellow")
 	fmt.Print(BGBlue.Sprint("bg_blue\n"))
 	fmt.Print(BGMagenta.Sprintf("%s\n", "bg_magenta"))
 	fmt.Print(BGCyan.Sprintln("bg_cyan"))
-	BGBlack.Println("bg_black")
-	BGWhite.Println("bg_white")
-	BGDefault.Println("bg_default")
+	_, _ = BGBlack.Fprint(os.Stdout, "bg_black\n")
+	_, _ = BGWhite.Fprintf(os.Stdout, "%s\n", "bg_white")
+	_, _ = BGDefault.Fprintln(os.Stdout, "bg_default")
 	BGBrightBlack.Println("bg_bright_black")
 	BGBrightRed.Println("bg_bright_red")
 	BGBrightGreen.Println("bg_bright_green")
@@ -211,6 +215,7 @@ func TestPrint(t *testing.T) {
 	BGBrightWhite.Println("bg_bright_white")
 	fmt.Println()
 
+	// mix code
 	Bold.WithStyle(Italic).Print("bold;italic\n")
 	Bold.WithColor(Red).Printf("%s\n", "bold;red")
 	Bold.WithBackground(BGWhite).Println("bold;bg_white")

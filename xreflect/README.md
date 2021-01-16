@@ -27,11 +27,9 @@
 
 ### Functions
 
-+ `func ElemType(i interface{}) reflect.Type`
-+ `func ElemValue(i interface{}) reflect.Value`
 + `func GetUnexportedField(field reflect.Value) interface{}`
 + `func SetUnexportedField(field reflect.Value, value interface{})`
-+ `func GetStructFields(i interface{}) []reflect.StructField`
++ `func IsEmptyValue(i interface{}) bool`
 + `func GetInt(i interface{}) (int64, bool)`
 + `func GetUint(i interface{}) (uint64, bool)`
 + `func GetFloat(i interface{}) (float64, bool)`

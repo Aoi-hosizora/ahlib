@@ -2,151 +2,193 @@ package xreflect
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"math"
 	"reflect"
 	"testing"
 )
 
-func TestElemType(t *testing.T) {
-	var a ****int
-	t1 := ElemType(a).String()
-	xtesting.Equal(t, t1, "int")
-
-	var b int
-	t2 := ElemType(b).String()
-	xtesting.Equal(t, t2, "int")
-}
-
-func TestElemValue(t *testing.T) {
-	var a *****int
-	v1 := ElemValue(a)
-	xtesting.Equal(t, v1.IsValid(), false)
-
-	var b int
-	v2 := ElemValue(b).Interface()
-	xtesting.Equal(t, v2, 0)
-
-	var c = &b
-	v3 := ElemValue(c).Interface()
-	xtesting.Equal(t, v3, 0)
-}
-
 func TestUnexportedField(t *testing.T) {
-	type s struct {
+	type testStruct struct {
 		a string
 		b int64
 		c uint64
 		d float64
 	}
-	ss := &s{}
-	el := reflect.ValueOf(ss).Elem()
+	test := &testStruct{}
+	val := reflect.ValueOf(test).Elem()
 
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("a")), "")
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("b")), int64(0))
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("c")), uint64(0))
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("d")), 0.0)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")), "")
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")), int64(0))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")), uint64(0))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")), 0.0)
 
-	SetUnexportedField(el.FieldByName("a"), "string")
-	SetUnexportedField(el.FieldByName("b"), int64(9223372036854775807))
-	SetUnexportedField(el.FieldByName("c"), uint64(18446744073709551615))
-	SetUnexportedField(el.FieldByName("d"), 0.333)
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("a"), "string") })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("b"), int64(9223372036854775807)) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("c"), uint64(18446744073709551615)) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("d"), 0.333) })
 
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("a")), "string")
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("b")), int64(9223372036854775807))
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("c")), uint64(18446744073709551615))
-	xtesting.Equal(t, GetUnexportedField(el.FieldByName("d")), 0.333)
+	xtesting.Equal(t, test.a, "string")
+	xtesting.Equal(t, test.b, int64(9223372036854775807))
+	xtesting.Equal(t, test.c, uint64(18446744073709551615))
+	xtesting.Equal(t, test.d, 0.333)
+
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")), "string")
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")), int64(9223372036854775807))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")), uint64(18446744073709551615))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")), 0.333)
 }
 
-func TestGetStructFields(t *testing.T) {
-	a := struct {
-		A int
-		B string
-		C float64
-	}{}
-	fields := GetStructFields(a)
-
-	xtesting.Equal(t, len(fields), 3)
-	xtesting.True(t, fields[0].Name == "A" && fields[0].Type == reflect.TypeOf(0))
-	xtesting.True(t, fields[1].Name == "B" && fields[1].Type == reflect.TypeOf(""))
-	xtesting.True(t, fields[2].Name == "C" && fields[2].Type == reflect.TypeOf(0.))
+func TestIsEmptyValue(t *testing.T) {
+	for _, tc := range []*struct {
+		give interface{}
+		want bool
+	}{
+		{0, true},
+		{uint(0), true},
+		{0.0, true},
+		{false, true},
+		{"", true},
+		{[0]int{}, true},
+		{[]int{}, true},
+		{map[string]interface{}{}, true},
+		{(*int)(nil), true},
+		{make(chan int), true},
+		{func() {}, false},
+	} {
+		xtesting.Equal(t, IsEmptyValue(tc.give), tc.want)
+	}
 }
 
-func TestGet(t *testing.T) {
-	i := 9223372036854775807
-	i8 := int8(127)
-	i16 := int16(32767)
-	i32 := int32(2147483647)
-	i64 := int64(9223372036854775807)
-	u := uint(18446744073709551615)
-	u8 := uint8(255)
-	u16 := uint16(65535)
-	u32 := uint32(4294967295)
-	u64 := uint64(18446744073709551615)
-	up := uintptr(18446744073709551615)
-	f32 := float32(0.1)
-	f64 := 0.1
-	c64 := complex64(0.1 + 0.1i)
-	c128 := 0.1 + 0.1i
-	str1 := "test"
-	str2 := "测试テスト"
-	str3 := ""
+func TestGetXXX(t *testing.T) {
+	for _, tc := range []*struct {
+		give interface{}
+		want int64
+		ok   bool
+	}{
+		{9223372036854775807, 9223372036854775807, true},
+		{int8(127), 127, true},
+		{int16(32767), 32767, true},
+		{int32(2147483647), 2147483647, true},
+		{int64(9223372036854775807), 9223372036854775807, true},
+		{"", 0, false},
+	} {
+		i, ok := GetInt(tc.give)
+		if tc.ok {
+			xtesting.Equal(t, i, tc.want)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, i, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 
-	ii, _ := GetInt(i)
-	xtesting.Equal(t, ii, int64(i))
-	ii, _ = GetInt(i8)
-	xtesting.Equal(t, ii, int64(i8))
-	ii, _ = GetInt(i16)
-	xtesting.Equal(t, ii, int64(i16))
-	ii, _ = GetInt(i32)
-	xtesting.Equal(t, ii, int64(i32))
-	ii, _ = GetInt(i64)
-	xtesting.Equal(t, ii, i64)
-	_, err := GetInt("")
-	xtesting.NotNil(t, err)
+	for _, tc := range []*struct {
+		give interface{}
+		want uint64
+		ok   bool
+	}{
+		{uint(18446744073709551615), 18446744073709551615, true},
+		{uint8(255), 255, true},
+		{uint16(65535), 65535, true},
+		{uint32(4294967295), 4294967295, true},
+		{uint64(18446744073709551615), 18446744073709551615, true},
+		{uintptr(18446744073709551615), 18446744073709551615, true},
+		{"", 0, false},
+	} {
+		u, ok := GetUint(tc.give)
+		if tc.ok {
+			xtesting.Equal(t, u, tc.want)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, u, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 
-	uu, _ := GetUint(u)
-	xtesting.Equal(t, uu, uint64(u))
-	uu, _ = GetUint(u8)
-	xtesting.Equal(t, uu, uint64(u8))
-	uu, _ = GetUint(u16)
-	xtesting.Equal(t, uu, uint64(u16))
-	uu, _ = GetUint(u32)
-	xtesting.Equal(t, uu, uint64(u32))
-	uu, _ = GetUint(u64)
-	xtesting.Equal(t, uu, u64)
-	uu, _ = GetUint(up)
-	xtesting.Equal(t, uu, uint64(up))
-	_, err = GetUint("")
-	xtesting.NotNil(t, err)
+	for _, tc := range []*struct {
+		give interface{}
+		want float64
+		ok   bool
+	}{
+		{float32(0.1), 0.1, true},
+		{0.1, 0.1, true},
+		{float32(math.SmallestNonzeroFloat32), math.SmallestNonzeroFloat32, true},
+		{math.SmallestNonzeroFloat64, math.SmallestNonzeroFloat64, true},
+		{float32(math.MaxFloat32), math.MaxFloat32, true},
+		{math.MaxFloat64, math.MaxFloat64, true},
+		{"", 0, false},
+	} {
+		f, ok := GetFloat(tc.give)
+		if tc.ok {
+			xtesting.InDelta(t, f, tc.want, 1e-5)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, f, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 
-	ff, _ := GetFloat(f32)
-	xtesting.InDelta(t, ff, 0.1, 1e-3)
-	ff, _ = GetFloat(f64)
-	xtesting.InDelta(t, ff, 0.1, 1e-3)
-	_, err = GetFloat("")
-	xtesting.NotNil(t, err)
+	for _, tc := range []*struct {
+		give interface{}
+		want complex128
+		ok   bool
+	}{
+		{complex64(0.1 + 0.1i), 0.1 + 0.1i, true},
+		{0.1 + 0.1i, 0.1 + 0.1i, true},
+		{complex64(math.SmallestNonzeroFloat32 + math.SmallestNonzeroFloat32*1i), math.SmallestNonzeroFloat32 + math.SmallestNonzeroFloat32*1i, true},
+		{math.SmallestNonzeroFloat64 + math.SmallestNonzeroFloat64*1i, math.SmallestNonzeroFloat64 + math.SmallestNonzeroFloat64*1i, true},
+		{complex64(math.MaxFloat32 + math.MaxFloat32*1i), math.MaxFloat32 + math.MaxFloat32*1i, true},
+		{math.MaxFloat64 + math.MaxFloat64*1i, math.MaxFloat64 + math.MaxFloat64*1i, true},
+		{"", 0, false},
+	} {
+		c, ok := GetComplex(tc.give)
+		if tc.ok {
+			xtesting.InDelta(t, real(c), real(tc.want), 1e-5)
+			xtesting.InDelta(t, imag(c), imag(tc.want), 1e-5)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, c, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 
-	cc, _ := GetComplex(c64)
-	xtesting.InDelta(t, real(cc), 0.1, 1e-3)
-	xtesting.InDelta(t, imag(cc), 0.1, 1e-3)
-	cc, _ = GetComplex(c128)
-	xtesting.InDelta(t, real(cc), 0.1, 1e-3)
-	xtesting.InDelta(t, imag(cc), 0.1, 1e-3)
-	_, err = GetComplex("")
-	xtesting.NotNil(t, err)
+	for _, tc := range []*struct {
+		give interface{}
+		want string
+		ok   bool
+	}{
+		{"", "", true},
+		{"test", "test", true},
+		{"测试", "测试", true},
+		{"テス", "テス", true},
+		{0, "", false},
+	} {
+		s, ok := GetString(tc.give)
+		if tc.ok {
+			xtesting.Equal(t, s, tc.want)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, s, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 
-	ss, _ := GetString(str1)
-	xtesting.Equal(t, ss, str1)
-	ss, _ = GetString(str2)
-	xtesting.Equal(t, ss, str2)
-	ss, _ = GetString(str3)
-	xtesting.Equal(t, ss, str3)
-	_, err = GetString(0)
-	xtesting.NotNil(t, err)
-
-	bb, _ := GetBool(true)
-	xtesting.Equal(t, bb, true)
-	_, err = GetBool(0)
-	xtesting.NotNil(t, err)
-	bb, _ = GetBool(false)
-	xtesting.Equal(t, bb, false)
+	for _, tc := range []*struct {
+		give interface{}
+		want bool
+		ok   bool
+	}{
+		{true, true, true},
+		{false, false, true},
+		{"", false, false},
+	} {
+		b, ok := GetBool(tc.give)
+		if tc.ok {
+			xtesting.Equal(t, b, tc.want)
+			xtesting.True(t, ok)
+		} else {
+			xtesting.Equal(t, b, tc.want)
+			xtesting.False(t, ok)
+		}
+	}
 }

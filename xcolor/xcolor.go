@@ -2,6 +2,7 @@ package xcolor
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -135,7 +136,8 @@ func (b Background) WithColor(c Color) MixCode {
 	return MixCode{b.Code(), c.Code()}
 }
 
-// MixCode represents an ANSI escape code, has mix styles in Style, Color and Background. See https://en.wikipedia.org/wiki/ANSI_escape_code and https://tforgione.fr/posts/ansi-escape-codes/ for details.
+// MixCode represents an ANSI escape code, has mix styles in Style, Color and Background.
+// See https://en.wikipedia.org/wiki/ANSI_escape_code and https://tforgione.fr/posts/ansi-escape-codes/ for details.
 type MixCode []uint8
 
 // String returns the string value of the code.
@@ -176,52 +178,75 @@ func (m MixCode) WithBackground(b Background) MixCode {
 // FullTpl represents the ANSI escape code template. That is ESC[X,Ym ... ESC[0m
 const FullTpl = "\x1b[%sm%s\x1b[0m"
 
-// doPrint prints the colored string, with the given Color and message.
+// doPrint prints the string, with the given code string and message.
 func doPrint(c string, message string) {
 	fmt.Printf(FullTpl, c, message)
 }
 
-// doSprint returns the colored string, with the given Color and message.
+// doSprint returns the string, with the given code string and message.
 func doSprint(c string, message string) string {
 	return fmt.Sprintf(FullTpl, c, message)
 }
 
+// doFprint writes the string to io.Writer, with the given code string and message.
+func doFprint(w io.Writer, c string, message string) (n int, err error) {
+	return fmt.Fprintf(w, FullTpl, c, message)
+}
+
 // ***********************************************************************************
 
-// Print prints the colored string, with the given Style.
+// Print prints the styled string, with the given Style.
 func (s Style) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
 	doPrint(s.String(), message)
 }
 
-// Printf formats and prints the colored string, with the given Style.
+// Printf formats and prints the styled string, with the given Style.
 func (s Style) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
 	doPrint(s.String(), message)
 }
 
-// Println prints the colored string and a newline, with the given Style.
+// Println prints the styled string and a newline, with the given Style.
 func (s Style) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
 	doPrint(s.String(), message)
 }
 
-// Sprint returns the colored string, with the given Style.
+// Sprint returns the styled string, with the given Style.
 func (s Style) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
 	return doSprint(s.String(), message)
 }
 
-// Sprintf formats and returns the colored string, with the given Style.
+// Sprintf formats and returns the styled string, with the given Style.
 func (s Style) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
 	return doSprint(s.String(), message)
 }
 
-// Sprintln returns the colored string and a newline, with the given Style.
+// Sprintln returns the styled string and a newline, with the given Style.
 func (s Style) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
 	return doSprint(s.String(), message)
+}
+
+// Fprint writes the styled string to io.Writer, with the given Style.
+func (s Style) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(w, s.String(), message)
+}
+
+// Fprintf formats and writes the styled string to io.Writer, with the given Style.
+func (s Style) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(w, s.String(), message)
+}
+
+// Fprintln writes the styled string and a newline to io.Writer, with the given Style.
+func (s Style) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprint(w, s.String(), message)
 }
 
 // Print prints the colored string, with the given Color.
@@ -260,6 +285,24 @@ func (c Color) Sprintln(a ...interface{}) string {
 	return doSprint(c.String(), message)
 }
 
+// Fprint writes the colored string to io.Writer, with the given Color.
+func (c Color) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(w, c.String(), message)
+}
+
+// Fprintf formats and writes the colored string to io.Writer, with the given Color.
+func (c Color) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(w, c.String(), message)
+}
+
+// Fprintln writes the colored string and a newline to io.Writer, with the given Color.
+func (c Color) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprint(w, c.String(), message)
+}
+
 // Print prints the colored string, with the given Background.
 func (b Background) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
@@ -296,38 +339,74 @@ func (b Background) Sprintln(a ...interface{}) string {
 	return doSprint(b.String(), message)
 }
 
-// Print prints the colored string, with the given MixCode.
+// Fprint writes the colored string to io.Writer, with the given Background.
+func (b Background) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(w, b.String(), message)
+}
+
+// Fprintf formats and writes the colored string to io.Writer, with the given Background.
+func (b Background) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(w, b.String(), message)
+}
+
+// Fprintln writes the colored string and a newline to io.Writer, with the given Background.
+func (b Background) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprint(w, b.String(), message)
+}
+
+// Print prints the styled and colored string, with the given MixCode.
 func (m MixCode) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
 	doPrint(m.String(), message)
 }
 
-// Printf formats and prints the colored string, with the given MixCode.
+// Printf formats and prints the styled and colored string, with the given MixCode.
 func (m MixCode) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
 	doPrint(m.String(), message)
 }
 
-// Println prints the colored string and a newline, with the given MixCode.
+// Println prints the styled and colored string and a newline, with the given MixCode.
 func (m MixCode) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
 	doPrint(m.String(), message)
 }
 
-// Sprint returns the colored string, with the given MixCode.
+// Sprint returns the styled and colored string, with the given MixCode.
 func (m MixCode) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
 	return doSprint(m.String(), message)
 }
 
-// Sprintf formats and returns the colored string, with the given MixCode.
+// Sprintf formats and returns the styled and colored string, with the given MixCode.
 func (m MixCode) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
 	return doSprint(m.String(), message)
 }
 
-// Sprintln returns the colored string and a newline, with the given MixCode.
+// Sprintln returns the styled and colored string and a newline, with the given MixCode.
 func (m MixCode) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
 	return doSprint(m.String(), message)
+}
+
+// Fprint writes the styled and colored string to io.Writer, with the given MixCode.
+func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(w, m.String(), message)
+}
+
+// Fprintf formats and writes the styled and colored string to io.Writer, with the given MixCode.
+func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(w, m.String(), message)
+}
+
+// Fprintln writes the styled and colored string and a newline to io.Writer, with the given MixCode.
+func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprint(w, m.String(), message)
 }

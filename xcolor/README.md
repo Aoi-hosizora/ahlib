@@ -79,6 +79,9 @@
 + `func (s Style) Sprint(a ...interface{}) string`
 + `func (s Style) Sprintf(format string, a ...interface{}) string`
 + `func (s Style) Sprintln(a ...interface{}) string`
++ `func (s Style) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (s Style) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (s Style) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (c Color) String() string`
 + `func (c Color) Code() string`
 + `func (c Color) WithStyle(s Style) MixCode`
@@ -89,6 +92,9 @@
 + `func (c Color) Sprint(a ...interface{}) string`
 + `func (c Color) Sprintf(format string, a ...interface{}) string`
 + `func (c Color) Sprintln(a ...interface{}) string`
++ `func (c Color) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (c Color) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (c Color) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (b Background) String() string`
 + `func (b Background) Code() string`
 + `func (b Background) WithStyle(s Style) MixCode`
@@ -99,6 +105,9 @@
 + `func (b Background) Sprint(a ...interface{}) string`
 + `func (b Background) Sprintf(format string, a ...interface{}) string`
 + `func (b Background) Sprintln(a ...interface{}) string`
++ `func (b Background) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (b Background) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (b Background) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (m MixCode) String() string`
 + `func (m MixCode) Codes() []uint8`
 + `func (m MixCode) WithStyle(s Style) MixCode`
@@ -110,4 +119,7 @@
 + `func (m MixCode) Sprint(a ...interface{}) string`
 + `func (m MixCode) Sprintf(format string, a ...interface{}) string`
 + `func (m MixCode) Sprintln(a ...interface{}) string`
++ `func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
 

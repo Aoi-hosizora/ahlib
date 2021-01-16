@@ -1,105 +1,180 @@
 package xorderedmap
 
 import (
+	"encoding/json"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"sync"
 	"testing"
 )
 
-var cmx = struct {
-	F1 string
-	F2 float32     `json:"-"`
-	F3 []int       `json:"ff3"`
-	F4 interface{} `json:"f4,omitempty"`
-	F5 interface{}
-	F6 string `json:"f6,omitempty"`
-}{"3", 4.5, []int{6, 7, 8}, nil, nil, ""}
-
-func TestMap(t *testing.T) {
+func TestSet(t *testing.T) {
 	m := New()
+	m.Set("a", "1")
+	m.Set("c", "3")
+	m.Set("b", "2")
 
-	// Has Set Get
-	ok := m.Has("b") // Has
-	xtesting.False(t, ok)
-	_, ok = m.Get("b") // Get
-	xtesting.False(t, ok)
-	v := m.GetOr("b", "bbb") // GetOr
-	xtesting.Equal(t, v, "bbb")
-	xtesting.Panic(t, func() { m.MustGet("b") }) // MustGet
-	m.Set("b", "bb")
-	ok = m.Has("b") // Has
-	xtesting.True(t, ok)
-	v, _ = m.Get("b") // Get
-	xtesting.Equal(t, v, "bb")
-	v = m.GetOr("b", "bbb") // GetOr
-	xtesting.Equal(t, v, "bb")
-	xtesting.Equal(t, m.MustGet("b"), "bb") // MustGet
-
-	// Keys Values Len
-	m.Set("d", "dd")
-	m.Set("a", "aa2")
-	m.Set("a", "aa")
-	m.Set("c", "cc")
-	xtesting.Equal(t, m.Keys(), []string{"b", "d", "a", "c"})
-	xtesting.Equal(t, m.Values(), []interface{}{"bb", "dd", "aa", "cc"})
-	xtesting.Equal(t, m.Len(), 4)
-
-	// Remove
-	_, ok = m.Remove("d")
-	xtesting.True(t, ok)
-	_, ok = m.Remove("d")
-	xtesting.False(t, ok)
-	xtesting.Equal(t, m.Keys(), []string{"b", "a", "c"})
-	xtesting.Equal(t, m.Values(), []interface{}{"bb", "aa", "cc"})
+	xtesting.Equal(t, m.Keys(), []string{"a", "c", "b"})
+	xtesting.Equal(t, m.Values(), []interface{}{"1", "3", "2"})
 	xtesting.Equal(t, m.Len(), 3)
-	_, ok = m.Remove("c")
-	xtesting.True(t, ok)
-	xtesting.Equal(t, m.Keys(), []string{"b", "a"})
-	xtesting.Equal(t, m.Values(), []interface{}{"bb", "aa"})
-	xtesting.Equal(t, m.Len(), 2)
+	xtesting.True(t, m.Has("a"))
+	xtesting.True(t, m.Has("c"))
+	xtesting.True(t, m.Has("b"))
+	xtesting.False(t, m.Has("d"))
 
-	// Marshal
-	m.Set("a", func() {})
-	_, err := m.MarshalJSON()
-	xtesting.NotNil(t, err)
-	xtesting.Equal(t, m.String(), ``)
-	m.Set("a", 123)
-	m.Set("c", "cc")
-	bs, err := m.MarshalJSON()
-	xtesting.Nil(t, err)
-	xtesting.Equal(t, string(bs), `{"b":"bb","a":123,"c":"cc"}`)
-	obj, err := m.MarshalYAML()
-	xtesting.Nil(t, err)
-	xtesting.Equal(t, obj, m.kv)
+	m.Set("c", "3") // do not change the order
+	m.Set("e", "5")
+	m.Set("d", "4")
 
-	// String
-	m.Set("o", cmx)
-	xtesting.Equal(t, m.Len(), 4)
-	xtesting.Equal(t, m.String(), `{"b":"bb","a":123,"c":"cc","o":{"F1":"3","ff3":[6,7,8],"F5":null}}`)
+	xtesting.Equal(t, m.Keys(), []string{"a", "c", "b", "e", "d"})
+	xtesting.Equal(t, m.Values(), []interface{}{"1", "3", "2", "5", "4"})
+	xtesting.Equal(t, m.Len(), 5)
+	xtesting.True(t, m.Has("e"))
+	xtesting.True(t, m.Has("d"))
+	xtesting.False(t, m.Has("f"))
+
 	m.Clear()
-	xtesting.Equal(t, m.String(), "{}")
-	xtesting.Equal(t, New().String(), "{}")
+	xtesting.Equal(t, m.Keys(), []string{})
+	xtesting.Equal(t, m.Values(), []interface{}{})
+	xtesting.Equal(t, m.Len(), 0)
+}
+
+func TestGet(t *testing.T) {
+	m := New()
+	m.Set("a", "1")
+	m.Set("c", "3")
+	m.Set("b", "2")
+
+	i, ok := m.Get("a")
+	xtesting.Equal(t, i, "1")
+	xtesting.True(t, ok)
+	i, ok = m.Get("c")
+	xtesting.Equal(t, i, "3")
+	xtesting.True(t, ok)
+	i, ok = m.Get("b")
+	xtesting.Equal(t, i, "2")
+	xtesting.True(t, ok)
+	i, ok = m.Get("d")
+	xtesting.Equal(t, i, nil)
+	xtesting.False(t, ok)
+
+	xtesting.Equal(t, m.MustGet("a"), "1")
+	xtesting.Equal(t, m.MustGet("c"), "3")
+	xtesting.Equal(t, m.MustGet("b"), "2")
+	xtesting.Panic(t, func() { m.MustGet("d") })
+
+	xtesting.Equal(t, m.GetOr("a", ""), "1")
+	xtesting.Equal(t, m.GetOr("c", ""), "3")
+	xtesting.Equal(t, m.GetOr("b", ""), "2")
+	xtesting.Equal(t, m.GetOr("d", ""), "")
+}
+
+func TestRemove(t *testing.T) {
+	m := New()
+	m.Set("a", "1")
+	m.Set("c", "3")
+	m.Set("b", "2")
+
+	i, ok := m.Remove("a")
+	xtesting.Equal(t, i, "1")
+	xtesting.True(t, ok)
+	xtesting.Equal(t, m.Len(), 2)
+	xtesting.False(t, m.Has("a"))
+	xtesting.True(t, m.Has("c"))
+	xtesting.True(t, m.Has("b"))
+
+	i, ok = m.Remove("b")
+	xtesting.Equal(t, i, "2")
+	xtesting.True(t, ok)
+	xtesting.Equal(t, m.Len(), 1)
+	xtesting.False(t, m.Has("b"))
+	xtesting.True(t, m.Has("c"))
+
+	i, ok = m.Remove("c")
+	xtesting.Equal(t, i, "3")
+	xtesting.True(t, ok)
+	xtesting.Equal(t, m.Len(), 0)
+	xtesting.False(t, m.Has("c"))
+
+	i, ok = m.Remove("d")
+	xtesting.Equal(t, i, nil)
+	xtesting.False(t, ok)
+
+	m.Clear()
+	i, ok = m.Remove("a")
+	xtesting.Equal(t, i, nil)
+	xtesting.False(t, ok)
+}
+
+func TestMarshal(t *testing.T) {
+	m := New()
+	m.Set("a", 1)
+	m.Set("c", 3)
+	m.Set("b", 2)
+
+	bs, err := m.MarshalJSON()
+	xtesting.Equal(t, string(bs), `{"a":1,"c":3,"b":2}`)
+	xtesting.Nil(t, err)
+	bs, err = json.Marshal(m)
+	xtesting.Equal(t, string(bs), `{"a":1,"c":3,"b":2}`)
+	xtesting.Nil(t, err)
+	xtesting.Equal(t, m.String(), `{"a":1,"c":3,"b":2}`)
+
+	m.Clear()
+	m.Set("f", func() {})
+	bs, err = m.MarshalJSON()
+	xtesting.Equal(t, len(bs), 0)
+	xtesting.NotNil(t, err)
+	xtesting.Equal(t, m.String(), "")
+
+	m.Clear()
+	m.Set("a", 1)
+	m.Set("c", 3)
+	m.Set("b", 2)
+	i, err := m.MarshalYAML()
+	xtesting.Equal(t, i, map[string]interface{}{"a": 1, "c": 3, "b": 2})
+	xtesting.Nil(t, err)
 }
 
 func TestFromInterface(t *testing.T) {
-	xtesting.Equal(t, FromInterface(struct{}{}).String(), "{}")
-	xtesting.Equal(t, FromInterface(struct{ A int }{}).String(), "{\"A\":0}")
-	xtesting.Equal(t, FromInterface(cmx).String(), "{\"F1\":\"3\",\"ff3\":[6,7,8],\"F5\":null}")
 	xtesting.Panic(t, func() { FromInterface(nil) })
-	xtesting.Panic(t, func() { FromInterface(&struct{}{}) })
 	xtesting.Panic(t, func() { FromInterface(0) })
-}
+	dummy := 0
+	xtesting.Panic(t, func() { FromInterface(&dummy) })
 
-func TestMu(t *testing.T) {
-	wg := sync.WaitGroup{}
-	wg.Add(20001)
-	m := New()
-	for i := 0; i <= 20000; i++ {
-		go func(i int) {
-			m.Set("a", "2000")
-			wg.Done()
-		}(i)
+	type testStruct struct {
+		Int    int
+		Uint   uint      `json:"omitempty"`
+		Float  float64   `json:"float"`
+		Bool   bool      `json:"bool"`
+		String string    `json:"string,omitempty"`
+		Array  [2]string `json:"-"`
+		Slice  []string  `json:""`
+		Ptr    *int      `json:"ptr,omitempty"`
+		Ch     chan int  `json:"ch,omitempty"`
 	}
-	wg.Wait()
-	xtesting.Equal(t, m.MustGet("a"), "2000")
+
+	test1 := &testStruct{
+		Int:    1,
+		Uint:   0,
+		Float:  1.5,
+		Bool:   false,
+		String: "",
+		Slice:  []string{},
+
+	}
+	om := FromInterface(test1)
+	om = FromInterface(*test1)
+	xtesting.Equal(t, om.Keys(), []string{"Int", "omitempty", "float", "bool", "Slice", "ch"})
+	xtesting.Equal(t, om.Values(), []interface{}{1, uint(0), 1.5, false, []string{}, (chan int)(nil)})
+
+	test2 := &testStruct{
+		Int:    0,
+		Uint:   1,
+		Float:  0.0,
+		Bool:   true,
+		String: "test",
+		Ptr:    &dummy,
+	}
+	om = FromInterface(test2)
+	xtesting.Equal(t, om.Keys(), []string{"Int", "omitempty", "float", "bool", "string", "Slice", "ptr", "ch"})
+	xtesting.Equal(t, om.Values(), []interface{}{0, uint(1), 0.0, true, "test", []string(nil), &dummy, (chan int)(nil)})
 }

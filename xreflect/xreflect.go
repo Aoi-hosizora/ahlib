@@ -5,24 +5,6 @@ import (
 	"unsafe"
 )
 
-// ElemType returns the actual reflect.Type of a reflect.Ptr kind value.
-func ElemType(i interface{}) reflect.Type {
-	typ := reflect.TypeOf(i)
-	for typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	return typ
-}
-
-// ElemValue returns the actual reflect.Value of a reflect.Ptr kind value.
-func ElemValue(i interface{}) reflect.Value {
-	val := reflect.ValueOf(i)
-	for val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	return val
-}
-
 // GetUnexportedField gets the unexported field value.
 // Example:
 // 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).(gin.HandlersChain)
@@ -37,18 +19,29 @@ func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
 }
 
-// GetStructFields gets a slice of reflect.StructField from the given struct value.
-func GetStructFields(i interface{}) []reflect.StructField {
-	typ := reflect.TypeOf(i)
-	fnum := typ.NumField()
-	fields := make([]reflect.StructField, fnum)
-	for idx := 0; idx < fnum; idx++ {
-		fields[idx] = typ.Field(idx)
+// IsEmptyValue checks if a value is a empty value. As for numeric values, it equals to check zero; as for
+// collection values, it equals to check the size; as for pointer adn interface, it equals to check nil,
+// Note that this is different from xtesting.IsObjectEmpty.
+func IsEmptyValue(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String, reflect.Chan:
+		return v.Len() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
 	}
-	return fields
+	return false
 }
 
-// GetInt returns the int64 value from int, int8, int32, int64.
+// GetInt returns the int64 value from int, int8, int32, int64 interface.
 func GetInt(i interface{}) (int64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -58,7 +51,7 @@ func GetInt(i interface{}) (int64, bool) {
 	return 0, false
 }
 
-// GetUint returns the uint64 value from uint, uint8, uint16, uint32, uint64, uintptr.
+// GetUint returns the uint64 value from uint, uint8, uint16, uint32, uint64, uintptr interface.
 func GetUint(i interface{}) (uint64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -68,7 +61,7 @@ func GetUint(i interface{}) (uint64, bool) {
 	return 0, false
 }
 
-// GetFloat returns the float64 value from float32, float64.
+// GetFloat returns the float64 value from float32, float64 interface.
 func GetFloat(i interface{}) (float64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -78,7 +71,7 @@ func GetFloat(i interface{}) (float64, bool) {
 	return 0, false
 }
 
-// GetComplex returns the complex128 value from complex64, complex128.
+// GetComplex returns the complex128 value from complex64, complex128 interface.
 func GetComplex(i interface{}) (complex128, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -88,7 +81,7 @@ func GetComplex(i interface{}) (complex128, bool) {
 	return 0, false
 }
 
-// GetBool returns a bool value from a bool interface.
+// GetBool returns a bool value from bool interface.
 func GetBool(i interface{}) (bool, bool) {
 	s, ok := i.(bool)
 	if ok {
@@ -97,7 +90,7 @@ func GetBool(i interface{}) (bool, bool) {
 	return false, false
 }
 
-// GetString returns a string value from a string interface.
+// GetString returns a string value from string interface.
 func GetString(i interface{}) (string, bool) {
 	s, ok := i.(string)
 	if ok {

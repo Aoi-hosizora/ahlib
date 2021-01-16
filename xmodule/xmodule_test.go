@@ -1,205 +1,339 @@
 package xmodule
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"log"
+	"reflect"
+	"strings"
 	"testing"
 )
 
-func TestByName(t *testing.T) {
-	sn := ModuleName("")
-	xtesting.Equal(t, sn.String(), "")
-	sn = "test"
-	xtesting.Equal(t, sn.String(), "test")
-
-	_, ok := GetByName("a")
-	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { MustGetByName("a") })
-
-	ProvideName("a", "a")
-	a, ok := GetByName("a")
-	xtesting.Equal(t, a, "a")
-	xtesting.True(t, ok)
-	a = MustGetByName("a")
-	xtesting.Equal(t, a, "a")
-
-	ProvideName("a", 5)
-	a, ok = GetByName("a")
-	xtesting.Equal(t, a, 5)
-	xtesting.True(t, ok)
-	a = MustGetByName("a")
-	xtesting.Equal(t, a, 5)
-
-	xtesting.Panic(t, func() { ProvideName("a", nil) })
-	xtesting.Panic(t, func() { ProvideName("", 0) })
-	xtesting.Panic(t, func() { ProvideName("-", 0) })
-	xtesting.Panic(t, func() { ProvideName("~", 0) })
-	xtesting.Panic(t, func() { GetByName("") })
-	xtesting.Panic(t, func() { GetByName("-") })
-	xtesting.Panic(t, func() { GetByName("~") })
+func TestModuleName(t *testing.T) {
+	xtesting.Equal(t, ModuleName("").String(), "")
+	xtesting.Equal(t, ModuleName("test").String(), "test")
 }
 
-func TestByType(t *testing.T) {
-	_, ok := GetByType("")
-	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { MustGetByType("") })
+func TestProvideName(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	for _, tc := range []*struct {
+		giveName   ModuleName
+		giveModule interface{}
+		wantPanic  bool
+	}{
+		{ModuleName(""), 0, true},
+		{ModuleName("-"), 0, true},
+		{ModuleName("~"), 0, true},
+		{ModuleName("0"), nil, true},
+		{ModuleName("int"), 12, false},                    // int
+		{ModuleName("uint"), uint(12), false},             // uint
+		{ModuleName("float"), 12.5, false},                // float
+		{ModuleName("bool"), true, false},                 // bool
+		{ModuleName("string"), "a", false},                // string
+		{ModuleName("array"), [2]string{"1", "2"}, false}, // array
+		{ModuleName("slice"), []string{"1", "2"}, false},  // slice
+		{ModuleName("pointer"), &struct{}{}, false},       // pointer
+		{ModuleName("struct"), struct{ int }{1}, false},   // struct
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { ProvideName(tc.giveName, tc.giveModule) })
+		} else {
+			ProvideName(tc.giveName, tc.giveModule)
+			xtesting.Equal(t, _mc.provByName[tc.giveName], tc.giveModule)
+		}
+	}
+}
 
+func TestProvideType(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	for _, tc := range []*struct {
+		giveModule interface{}
+		wantPanic  bool
+	}{
+		{nil, true},
+		{12, false},                  // int
+		{uint(12), false},            // uint
+		{12.5, false},                // float
+		{true, false},                // bool
+		{"a", false},                 // string
+		{[2]string{"1", "2"}, false}, // array
+		{[]string{"1", "2"}, false},  // slice
+		{&struct{}{}, false},         // pointer
+		{struct{ int }{1}, false},    // struct
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { ProvideType(tc.giveModule) })
+		} else {
+			ProvideType(tc.giveModule)
+			xtesting.Equal(t, _mc.provByType[reflect.TypeOf(tc.giveModule)], tc.giveModule)
+		}
+	}
+}
+
+func TestProvideImpl(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	for _, tc := range []*struct {
+		givePtr   interface{}
+		giveImpl  interface{}
+		wantPanic bool
+	}{
+		{nil, 0, true},
+		{0, nil, true},
+		{0, errors.New(""), true}, // non ptr
+		{t, "", true},             // non itf
+		{(*error)(nil), "", true}, // non impl
+		{(*error)(nil), errors.New("test"), false},
+		{(*fmt.Stringer)(nil), &strings.Builder{}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { ProvideImpl(tc.givePtr, tc.giveImpl) })
+		} else {
+			ProvideImpl(tc.givePtr, tc.giveImpl)
+			xtesting.Equal(t, _mc.provByType[reflect.TypeOf(tc.givePtr).Elem()], tc.giveImpl)
+		}
+	}
+}
+
+func TestGetByName(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	ProvideName("int", 12)
+	ProvideName("uint", uint(12))
+	ProvideName("float", 12.5)
+	ProvideName("bool", true)
+	ProvideName("string", "a")
+	ProvideName("array", [2]string{"1", "2"})
+	ProvideName("slice", []string{"1", "2"})
+	ProvideName("pointer", &struct{}{})
+	ProvideName("struct", struct{ int }{1})
+
+	for _, tc := range []*struct {
+		giveName   ModuleName
+		wantModule interface{}
+		wantPanic  bool
+	}{
+		{ModuleName(""), nil, true},
+		{ModuleName("~"), nil, true},
+		{ModuleName("-"), nil, true},
+		{ModuleName("int"), 12, false},                    // int
+		{ModuleName("uint"), uint(12), false},             // uint
+		{ModuleName("float"), 12.5, false},                // float
+		{ModuleName("bool"), true, false},                 // bool
+		{ModuleName("string"), "a", false},                // string
+		{ModuleName("array"), [2]string{"1", "2"}, false}, // array
+		{ModuleName("slice"), []string{"1", "2"}, false},  // slice
+		{ModuleName("pointer"), &struct{}{}, false},       // pointer
+		{ModuleName("struct"), struct{ int }{1}, false},   // struct
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { GetByName(tc.giveName) })
+		} else {
+			module, ok := GetByName(tc.giveName)
+			xtesting.Equal(t, module, tc.wantModule)
+			xtesting.True(t, ok)
+			xtesting.Equal(t, MustGetByName(tc.giveName), tc.wantModule)
+		}
+	}
+
+	xtesting.Panic(t, func() { MustGetByName("not exist") })
+}
+
+func TestGetByType(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	ProvideType(12)
+	ProvideType(uint(12))
+	ProvideType(12.5)
+	ProvideType(true)
 	ProvideType("a")
-	a, ok := GetByType("")
-	xtesting.Equal(t, a, "a")
-	xtesting.True(t, ok)
-	a = MustGetByType("")
-	xtesting.Equal(t, a, "a")
+	ProvideType([2]string{"1", "2"})
+	ProvideType([]string{"1", "2"})
+	ProvideType(&struct{}{})
+	ProvideType(struct{ int }{1})
 
-	ProvideType("aa")
-	a, ok = GetByType("")
-	xtesting.Equal(t, a, "aa")
-	xtesting.True(t, ok)
-	a = MustGetByType("")
-	xtesting.Equal(t, a, "aa")
+	for _, tc := range []*struct {
+		wantModule interface{}
+		wantPanic  bool
+	}{
+		{nil, true},
+		{nil, true},
+		{nil, true},
+		{12, false},                  // int
+		{uint(12), false},            // uint
+		{12.5, false},                // float
+		{true, false},                // bool
+		{"a", false},                 // string
+		{[2]string{"1", "2"}, false}, // array
+		{[]string{"1", "2"}, false},  // slice
+		{&struct{}{}, false},         // pointer
+		{struct{ int }{1}, false},    // struct
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { GetByType(tc.wantModule) })
+		} else {
+			module, ok := GetByType(tc.wantModule)
+			xtesting.Equal(t, module, tc.wantModule)
+			xtesting.True(t, ok)
+			xtesting.Equal(t, MustGetByType(tc.wantModule), tc.wantModule)
+		}
+	}
 
-	xtesting.Panic(t, func() { ProvideType(nil) })
-	xtesting.Panic(t, func() { GetByType(nil) })
+	xtesting.Panic(t, func() { MustGetByType(struct{}{}) })
 }
 
-type testByImplInterface1 interface{ A() }
+func TestGetByImpl(t *testing.T) {
+	SetLogger(DefaultLogger(LogSilent))
+	ProvideImpl((*error)(nil), errors.New("test"))
+	ProvideImpl((*fmt.Stringer)(nil), &strings.Builder{})
 
-type testByImplStruct1 struct{ I int }
+	for _, tc := range []*struct {
+		givePtr    interface{}
+		wantModule interface{}
+		wantPanic  bool
+	}{
+		{nil, 0, true},
+		{0, errors.New(""), true}, // non ptr
+		{t, "", true}, // non itf
+		{(*error)(nil), errors.New("test"), false},
+		{(*fmt.Stringer)(nil), &strings.Builder{}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { GetByImpl(tc.givePtr) })
+		} else {
+			module, ok := GetByImpl(tc.givePtr)
+			xtesting.Equal(t, module, tc.wantModule)
+			xtesting.True(t, ok)
+			xtesting.Equal(t, MustGetByImpl(tc.givePtr), tc.wantModule)
+		}
+	}
 
-func (t *testByImplStruct1) A() {}
-
-type testByImplStruct2 struct{}
-
-func TestByImpl(t *testing.T) {
-	i := (*testByImplInterface1)(nil)
-	s := &testByImplStruct1{I: 0}
-
-	_, ok := GetByImpl(i)
-	xtesting.False(t, ok)
-	xtesting.Panic(t, func() { MustGetByImpl(i) })
-
-	ProvideImpl(i, s)
-	a, ok := GetByImpl(i)
-	xtesting.Equal(t, a, testByImplInterface1(s))
-	xtesting.True(t, ok)
-	aa, ok := a.(*testByImplStruct1)
-	xtesting.Equal(t, aa, s)
-	xtesting.True(t, ok)
-	a = MustGetByImpl(i)
-	xtesting.Equal(t, a, s)
-
-	s = &testByImplStruct1{I: 5}
-
-	ProvideImpl(i, s)
-	a, ok = GetByImpl(i)
-	xtesting.Equal(t, a, testByImplInterface1(s))
-	xtesting.True(t, ok)
-	aa, ok = a.(*testByImplStruct1)
-	xtesting.Equal(t, aa, s)
-	xtesting.True(t, ok)
-	a = MustGetByImpl(i)
-	xtesting.Equal(t, a, s)
-
-	n := 0
-	ptr := &n
-	xtesting.Panic(t, func() { ProvideImpl(nil, 0) })
-	xtesting.Panic(t, func() { ProvideImpl("0", 0) })
-	xtesting.Panic(t, func() { ProvideImpl(0, 0) })
-	xtesting.Panic(t, func() { ProvideImpl(ptr, 0) })
-	xtesting.Panic(t, func() { ProvideImpl(i, nil) })
-	xtesting.Panic(t, func() { ProvideImpl(i, &testByImplStruct2{}) })
-	xtesting.Panic(t, func() { GetByImpl(nil) })
-	xtesting.Panic(t, func() { GetByImpl("0") })
-	xtesting.Panic(t, func() { GetByImpl(0) })
-	xtesting.Panic(t, func() { GetByImpl(ptr) })
+	xtesting.Panic(t, func() { MustGetByImpl((*fmt.GoStringer)(nil)) })
 }
 
 func TestInject(t *testing.T) {
-	xtesting.Panic(t, func() { Inject(nil) })
-	xtesting.Panic(t, func() { Inject("") })
-	xtesting.Panic(t, func() { Inject(struct{}{}) })
-	xtesting.Panic(t, func() { Inject(&[]int{}) })
+	SetLogger(DefaultLogger(LogSilent))
 
-	type A struct {
-		// type
-		I   int     `module:"~"`
-		I8  int8    `module:"~"`
-		I16 int16   `module:"~"`
-		I32 int32   `module:"~"`
-		I64 int64   `module:"~"`
-		U   uint    `module:"~"`
-		U8  uint8   `module:"~"`
-		U16 uint16  `module:"~"`
-		U32 uint32  `module:"~"`
-		U64 uint64  `module:"~"`
-		F32 float32 `module:"~"`
-		F64 float64 `module:"~"`
-
-		// name
-		B  bool              `module:"b"`
-		S  string            `module:"s"`
-		BS []byte            `module:"bs"`
-		IS []int             `module:"is"`
-		SS []string          `module:"ss"`
-		FA [3]float64        `module:"fa"`
-		BA [2]bool           `module:"ba"`
-		M  map[string]string `module:"m"`
-
-		Useless1 int         `module:""`
-		Useless2 chan func() `module:"-"`
+	// abnormal
+	type testStruct1 struct {
+		unexportedField string
+		ExportedField1  string
+		ExportedField2  string `module:""`
+		ExportedField3  string `module:"-"`
 	}
-	a := &A{}
+	test1 := &testStruct1{}
+	dummy := 0
+	for _, tc := range []*struct {
+		giveCtrl  interface{}
+		wantAll   bool
+		wantPanic bool
+	}{
+		{nil, true, true},
+		{testStruct1{}, true, true},
+		{&dummy, true, true},
+		{test1, true, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { Inject(tc.giveCtrl) })
+		} else {
+			xtesting.Equal(t, Inject(tc.giveCtrl), tc.wantAll)
+		}
+	}
+	for _, tc := range []*struct {
+		give interface{}
+		want interface{}
+	}{
+		{test1.unexportedField, ""},
+		{test1.ExportedField1, ""},
+		{test1.ExportedField2, ""},
+		{test1.ExportedField3, ""},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 
-	ProvideType(1)
-	ProvideType(int8(1))
-	ProvideType(int16(1))
-	ProvideType(int32(1))
-	ProvideType(int64(1))
-	ProvideType(uint(1))
-	ProvideType(uint8(1))
-	ProvideType(uint16(1))
-	ProvideType(uint32(1))
-	ProvideType(uint64(1))
-	ProvideType(float32(0.5))
-	ProvideType(0.5)
+	// normal
+	ProvideName("int", 12)
+	ProvideName("uint", uint(12))
+	ProvideName("float", 12.5)
+	ProvideName("bool", true)
+	ProvideName("string", "a")
+	ProvideName("array", [2]string{"1", "2"})
+	ProvideName("slice", []string{"1", "2"})
+	ProvideName("pointer", &struct{}{})
+	ProvideName("struct", struct{ int }{1})
+	ProvideType(12)
+	ProvideType(uint(12))
+	ProvideType(12.5)
+	ProvideType(true)
+	ProvideType("a")
+	ProvideType([2]string{"1", "2"})
+	ProvideType([]string{"1", "2"})
+	ProvideType(&struct{}{})
+	ProvideType(struct{ int }{1})
+	ProvideImpl((*error)(nil), errors.New("test"))
+	ProvideImpl((*fmt.Stringer)(nil), &strings.Builder{})
 
-	all := Inject(a)
-	xtesting.False(t, all)
-	xtesting.Panic(t, func() { MustInject(a) })
+	type testStruct2 struct {
+		Int1     int           `module:"int"`
+		Uint1    uint          `module:"uint"`
+		Float1   float64       `module:"float"`
+		Bool1    bool          `module:"bool"`
+		String1  string        `module:"string"`
+		Array1   [2]string     `module:"array"`
+		Slice1   []string      `module:"slice"`
+		Pointer1 *struct{}     `module:"pointer"`
+		Struct1  struct{ int } `module:"struct"`
+		Int2     int           `module:"~"`
+		Uint2    uint          `module:"~"`
+		Float2   float64       `module:"~"`
+		Bool2    bool          `module:"~"`
+		String2  string        `module:"~"`
+		Array2   [2]string     `module:"~"`
+		Slice2   []string      `module:"~"`
+		Pointer2 *struct{}     `module:"~"`
+		Struct2  struct{ int } `module:"~"`
+		Err      error         `module:"~"`
+		Sb       fmt.Stringer  `module:"~"`
+	}
 
-	ProvideName("b", true)
-	ProvideName("s", "sss")
-	ProvideName("bs", []byte("sss"))
-	ProvideName("is", []int{1, 2, 3})
-	ProvideName("ss", []string{"1", "2", "3"})
-	ProvideName("fa", [3]float64{0, 1.5, 0.5})
-	ProvideName("ba", [2]bool{true, false})
-	ProvideName("m", map[string]string{"a": "aa", "b": "bb"})
+	test2 := &testStruct2{}
+	all := Inject(test2)
+	xtesting.True(t, all)
+	xtesting.NotPanic(t, func() { MustInject(test2) })
 
-	xtesting.True(t, Inject(a))
-	xtesting.NotPanic(t, func() { MustInject(a) })
+	for _, tc := range []*struct {
+		give interface{}
+		want interface{}
+	}{
+		{test2.Int1, 12},
+		{test2.Uint1, uint(12)},
+		{test2.Float1, 12.5},
+		{test2.Bool1, true},
+		{test2.String1, "a"},
+		{test2.Array1, [2]string{"1", "2"}},
+		{test2.Slice1, []string{"1", "2"}},
+		{test2.Pointer1, &struct{}{}},
+		{test2.Struct1, struct{ int }{1}},
+		{test2.Int2, 12},
+		{test2.Uint2, uint(12)},
+		{test2.Float2, 12.5},
+		{test2.Bool2, true},
+		{test2.String2, "a"},
+		{test2.Array2, [2]string{"1", "2"}},
+		{test2.Slice2, []string{"1", "2"}},
+		{test2.Pointer2, &struct{}{}},
+		{test2.Struct2, struct{ int }{1}},
+		{test2.Err, errors.New("test")},
+		{test2.Sb, &strings.Builder{}},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 
-	xtesting.Equal(t, a.I, 1)
-	xtesting.Equal(t, a.I8, int8(1))
-	xtesting.Equal(t, a.I16, int16(1))
-	xtesting.Equal(t, a.I32, int32(1))
-	xtesting.Equal(t, a.I64, int64(1))
-	xtesting.Equal(t, a.U, uint(1))
-	xtesting.Equal(t, a.U8, uint8(1))
-	xtesting.Equal(t, a.U16, uint16(1))
-	xtesting.Equal(t, a.U32, uint32(1))
-	xtesting.Equal(t, a.U64, uint64(1))
-	xtesting.Equal(t, a.F32, float32(0.5))
-	xtesting.Equal(t, a.F64, 0.5)
-	xtesting.Equal(t, a.B, true)
-	xtesting.Equal(t, a.S, "sss")
-	xtesting.Equal(t, a.BS, []byte("sss"))
-	xtesting.Equal(t, a.IS, []int{1, 2, 3})
-	xtesting.Equal(t, a.SS, []string{"1", "2", "3"})
-	xtesting.Equal(t, a.FA, [...]float64{0, 1.5, 0.5})
-	xtesting.Equal(t, a.BA, [2]bool{true, false})
-	xtesting.Equal(t, a.M, map[string]string{"a": "aa", "b": "bb"})
+	type testStruct3 struct {
+		Struct2 struct{} `module:"struct2"`
+		Struct3 struct{} `module:"~"`
+	}
+	test3 := &testStruct3{}
+	xtesting.False(t, Inject(test3))
+	xtesting.Panic(t, func() { MustInject(test3) })
 }
 
 func TestLogger(t *testing.T) {
@@ -210,54 +344,45 @@ func TestLogger(t *testing.T) {
 	xtesting.EqualValue(t, LogInject, 8) // 1000
 	xtesting.EqualValue(t, LogAll, 15)   // 1111
 
-	type a struct {
-		A string `module:"a"`
+	type testStruct struct {
+		Int    int    `module:"int"`
+		String string `module:"~"`
+		Err    error  `module:"~"`
 	}
 
-	log.Println("LogAll")
-	SetLogger(DefaultLogger(LogAll))
-	ProvideName("a", "a")
-	ProvideType("a")
-	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
-	GetByName("a")
-	GetByType("")
-	GetByImpl((*testByImplInterface1)(nil))
-	Inject(&a{})
+	for _, tc := range []*struct {
+		str       string
+		giveLevel LogLevel
+		change    bool
+	}{
+		{"LogSilent", LogSilent, false},
+		{"LogName", LogName, false},
+		{"LogType", LogType, false},
+		{"LogImpl", LogImpl, false},
+		{"LogName | LogType", LogName | LogType, false},
+		{"LogType | LogImpl", LogType | LogImpl, false},
+		{"LogName | LogImpl", LogName | LogImpl, false},
+		{"LogInject", LogInject, false},
+		{"LogAll", LogAll, false},
+		{"LogAll 2", LogAll, true},
+	} {
+		log.Println(tc.str)
+		SetLogger(DefaultLogger(tc.giveLevel))
+		if tc.change {
+			LogLeftArrow = func(arg1, arg2, arg3 string) {
+				fmt.Printf("[XMODULE] %-8s %-20s <-- %s\n", arg1, arg2, arg3)
+			}
+			LogRightArrow = func(arg1, arg2, arg3 string) {
+				fmt.Printf("[XMODULE] %-8s %-20s --> %s\n", arg1, arg2, arg3)
+			}
+		}
 
-	log.Println("LogSilent")
-	SetLogger(DefaultLogger(LogSilent))
-	ProvideName("a", "a")
-	ProvideType("a")
-	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
-	GetByName("a")
-	GetByType("")
-	GetByImpl((*testByImplInterface1)(nil))
-	Inject(&a{})
-
-	log.Println("LogName | LogImpl")
-	SetLogger(DefaultLogger(LogName | LogImpl))
-	ProvideName("a", "a")
-	ProvideType("a")
-	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
-	GetByName("a")
-	GetByType("")
-	GetByImpl((*testByImplInterface1)(nil))
-	Inject(&a{})
-
-	LogLeftArrow = func(arg1, arg2, arg3 string) {
-		fmt.Printf("[XMODULE] %-8s %-50s <-- %s\n", arg1, arg2, arg3)
+		ProvideName("int", 0)
+		ProvideType("test")
+		ProvideImpl((*error)(nil), errors.New("test"))
+		GetByName("int")
+		GetByType("")
+		GetByImpl((*error)(nil))
+		Inject(&testStruct{})
 	}
-	LogRightArrow = func(arg1, arg2, arg3 string) {
-		fmt.Printf("[XMODULE] %-8s %-50s --> %s\n", arg1, arg2, arg3)
-	}
-
-	log.Println("LogAll 2")
-	SetLogger(DefaultLogger(LogAll))
-	ProvideName("a", "a")
-	ProvideType("a")
-	ProvideImpl((*testByImplInterface1)(nil), &testByImplStruct1{})
-	GetByName("a")
-	GetByType("")
-	GetByImpl((*testByImplInterface1)(nil))
-	Inject(&a{})
 }

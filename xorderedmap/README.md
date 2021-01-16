@@ -21,7 +21,7 @@
 ### Functions
 
 + `func New() *OrderedMap`
-+ `FromInterface(object interface{}) *OrderedMap`
++ `func FromInterface(object interface{}) *OrderedMap`
 
 ### Methods
 

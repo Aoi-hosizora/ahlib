@@ -1,15 +1,15 @@
 package xcondition
 
-// IfThen returns valueA if condition is true, otherwise returns nil.
-func IfThen(condition bool, value1 interface{}) interface{} {
+// IfThen returns value if condition is true, otherwise returns nil.
+func IfThen(condition bool, value interface{}) interface{} {
 	if condition {
-		return value1
+		return value
 	}
 	return nil
 }
 
-// IfThenElse returns valueA if condition is true, otherwise returns value2.
-func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interface{} {
+// IfThenElse returns value1 if condition is true, otherwise returns value2.
+func IfThenElse(condition bool, value1, value2 interface{}) interface{} {
 	if condition {
 		return value1
 	}
@@ -17,19 +17,19 @@ func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interfac
 }
 
 // DefaultIfNil returns value if it is not nil, otherwise returns defaultValue.
-func DefaultIfNil(value interface{}, defaultValue interface{}) interface{} {
+func DefaultIfNil(value, defaultValue interface{}) interface{} {
 	if value != nil {
 		return value
 	}
 	return defaultValue
 }
 
-// PanicIfErr returns an interface if err is nil, otherwise panics.
-func PanicIfErr(i interface{}, err error) interface{} {
+// PanicIfErr returns value if err is nil, otherwise panics with error message.
+func PanicIfErr(value interface{}, err error) interface{} {
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
-	return i
+	return value
 }
 
 // FirstNotNil returns the first value which is not nil.
