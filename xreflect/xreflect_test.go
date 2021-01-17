@@ -38,29 +38,8 @@ func TestUnexportedField(t *testing.T) {
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")), 0.333)
 }
 
-func TestIsEmptyValue(t *testing.T) {
-	for _, tc := range []*struct {
-		give interface{}
-		want bool
-	}{
-		{0, true},
-		{uint(0), true},
-		{0.0, true},
-		{false, true},
-		{"", true},
-		{[0]int{}, true},
-		{[]int{}, true},
-		{map[string]interface{}{}, true},
-		{(*int)(nil), true},
-		{make(chan int), true},
-		{func() {}, false},
-	} {
-		xtesting.Equal(t, IsEmptyValue(tc.give), tc.want)
-	}
-}
-
 func TestGetXXX(t *testing.T) {
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want int64
 		ok   bool
@@ -82,7 +61,7 @@ func TestGetXXX(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want uint64
 		ok   bool
@@ -105,7 +84,7 @@ func TestGetXXX(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want float64
 		ok   bool
@@ -128,7 +107,7 @@ func TestGetXXX(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want complex128
 		ok   bool
@@ -152,7 +131,7 @@ func TestGetXXX(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want string
 		ok   bool
@@ -173,7 +152,7 @@ func TestGetXXX(t *testing.T) {
 		}
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want bool
 		ok   bool
@@ -189,6 +168,72 @@ func TestGetXXX(t *testing.T) {
 		} else {
 			xtesting.Equal(t, b, tc.want)
 			xtesting.False(t, ok)
+		}
+	}
+}
+
+func TestIsEmptyValue(t *testing.T) {
+	for _, tc := range []struct {
+		give      interface{}
+		wantEmpty bool
+		wantPanic bool
+	}{
+		{0, true, false},
+		{int8(0), true, false},
+		{int16(0), true, false},
+		{int32(0), true, false},
+		{int64(0), true, false},
+		{1, false, false},
+		{int8(1), false, false},
+		{int16(1), false, false},
+		{int32(1), false, false},
+		{int64(1), false, false},
+
+		{uint(0), true, false},
+		{uint8(0), true, false},
+		{uint16(0), true, false},
+		{uint32(0), true, false},
+		{uint64(0), true, false},
+		{uintptr(0), true, false},
+		{uint(1), false, false},
+		{uint8(1), false, false},
+		{uint16(1), false, false},
+		{uint32(1), false, false},
+		{uint64(1), false, false},
+		{uintptr(1), false, false},
+
+		{float32(0.0), true, false},
+		{0.0, true, false},
+		{float32(0.1), false, false},
+		{0.1, false, false},
+
+		{complex64(0 + 0i), true, false},
+		{0 + 0i, true, false},
+		{complex64(0 + 1i), false, false},
+		{0 + 1i, false, false},
+
+		{false, true, false},
+		{true, false, false},
+
+		{"", true, false},
+		{[0]int{}, true, false},
+		{[]int{}, true, false},
+		{map[string]interface{}{}, true, false},
+		{".", false, false},
+		{[1]int{}, false, false},
+		{[]int{1}, false, false},
+		{map[string]interface{}{"": nil}, false, false},
+
+		{(*int)(nil), true, false},
+		{t, false, false},
+
+		{make(chan int), false, true},
+		{func() {}, false, true},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { IsEmptyValue(tc.give) })
+		} else {
+			xtesting.Equal(t, IsEmptyValue(tc.give), tc.wantEmpty)
 		}
 	}
 }

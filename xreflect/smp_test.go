@@ -6,7 +6,7 @@ import (
 )
 
 func TestSmpFlag(t *testing.T) {
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give *Smpval
 		want Smpflag
 	}{
@@ -20,7 +20,7 @@ func TestSmpFlag(t *testing.T) {
 		xtesting.Equal(t, tc.give.Flag(), tc.want)
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give *Smplen
 		want Smpflag
 	}{
@@ -35,7 +35,7 @@ func TestSmpFlag(t *testing.T) {
 }
 
 func TestSmpvalOf(t *testing.T) {
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give      interface{}
 		wantValue interface{}
 		wantFlag  Smpflag
@@ -85,10 +85,10 @@ func TestSmpvalOf(t *testing.T) {
 			case Uint:
 				xtesting.Equal(t, i.Uint(), tc.wantValue)
 			case Float:
-				xtesting.InDelta(t, i.Float(), tc.wantValue, 1e-5)
+				xtesting.InDelta(t, i.Float(), tc.wantValue, 1e-3)
 			case Complex:
-				xtesting.InDelta(t, real(i.Complex()), real(tc.wantValue.(complex128)), 1e-5)
-				xtesting.InDelta(t, imag(i.Complex()), imag(tc.wantValue.(complex128)), 1e-5)
+				xtesting.InDelta(t, real(i.Complex()), real(tc.wantValue.(complex128)), 1e-3)
+				xtesting.InDelta(t, imag(i.Complex()), imag(tc.wantValue.(complex128)), 1e-3)
 			case String:
 				xtesting.Equal(t, i.String(), tc.wantValue)
 			case Bool:
@@ -99,7 +99,7 @@ func TestSmpvalOf(t *testing.T) {
 }
 
 func TestSmplenOf(t *testing.T) {
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give      interface{}
 		wantValue interface{}
 		wantFlag  Smpflag
@@ -150,10 +150,10 @@ func TestSmplenOf(t *testing.T) {
 			case Uint:
 				xtesting.Equal(t, i.Uint(), tc.wantValue)
 			case Float:
-				xtesting.InDelta(t, i.Float(), tc.wantValue, 1e-5)
+				xtesting.InDelta(t, i.Float(), tc.wantValue, 1e-3)
 			case Complex:
-				xtesting.InDelta(t, real(i.Complex()), real(tc.wantValue.(complex128)), 1e-5)
-				xtesting.InDelta(t, imag(i.Complex()), imag(tc.wantValue.(complex128)), 1e-5)
+				xtesting.InDelta(t, real(i.Complex()), real(tc.wantValue.(complex128)), 1e-3)
+				xtesting.InDelta(t, imag(i.Complex()), imag(tc.wantValue.(complex128)), 1e-3)
 			case Bool:
 				xtesting.Equal(t, i.Bool(), tc.wantValue)
 			}

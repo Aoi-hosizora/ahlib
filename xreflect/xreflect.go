@@ -1,6 +1,7 @@
 package xreflect
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -17,28 +18,6 @@ func GetUnexportedField(field reflect.Value) interface{} {
 // 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
 func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
-}
-
-// IsEmptyValue checks if a value is a empty value. As for numeric values, it equals to check zero; as for
-// collection values, it equals to check the size; as for pointer adn interface, it equals to check nil,
-// Note that this is different from xtesting.IsObjectEmpty.
-func IsEmptyValue(i interface{}) bool {
-	v := reflect.ValueOf(i)
-	switch v.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.Array, reflect.Map, reflect.Slice, reflect.String, reflect.Chan:
-		return v.Len() == 0
-	case reflect.Interface, reflect.Ptr:
-		return v.IsNil()
-	}
-	return false
 }
 
 // GetInt returns the int64 value from int, int8, int32, int64 interface.
@@ -97,4 +76,28 @@ func GetString(i interface{}) (string, bool) {
 		return s, true
 	}
 	return "", false
+}
+
+// IsEmptyValue checks if a value is a empty value, panics when using unsupported type.
+// Only supports:
+// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, interface, pointer.
+func IsEmptyValue(i interface{}) bool {
+	val := reflect.ValueOf(i)
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return val.Float() == 0
+	case reflect.Complex64, reflect.Complex128:
+		return val.Complex() == 0
+	case reflect.Bool:
+		return !val.Bool()
+	case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+		return val.Len() == 0
+	case reflect.Interface, reflect.Ptr:
+		return val.IsNil()
+	}
+	panic(fmt.Sprintf(badTypePanic, val.Interface()))
 }

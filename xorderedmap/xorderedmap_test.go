@@ -140,41 +140,53 @@ func TestFromInterface(t *testing.T) {
 	dummy := 0
 	xtesting.Panic(t, func() { FromInterface(&dummy) })
 
-	type testStruct struct {
+	type testStruct1 struct {
 		Int    int
-		Uint   uint      `json:"omitempty"`
-		Float  float64   `json:"float"`
-		Bool   bool      `json:"bool"`
-		String string    `json:"string,omitempty"`
-		Array  [2]string `json:"-"`
-		Slice  []string  `json:""`
-		Ptr    *int      `json:"ptr,omitempty"`
-		Ch     chan int  `json:"ch,omitempty"`
+		Uint   uint    `json:"omitempty"`
+		Float  float64 `json:"float"`
+		Bool   bool    `json:"bool"`
+		String string  `json:"-"`
 	}
-
-	test1 := &testStruct{
+	test1 := &testStruct1{
 		Int:    1,
 		Uint:   0,
 		Float:  1.5,
 		Bool:   false,
 		String: "",
-		Slice:  []string{},
-
 	}
-	om := FromInterface(test1)
-	om = FromInterface(*test1)
-	xtesting.Equal(t, om.Keys(), []string{"Int", "omitempty", "float", "bool", "Slice", "ch"})
-	xtesting.Equal(t, om.Values(), []interface{}{1, uint(0), 1.5, false, []string{}, (chan int)(nil)})
+	om := FromInterface(*test1)
+	xtesting.NotPanic(t, func() { om = FromInterface(test1) })
+	xtesting.Equal(t, om.Keys(), []string{"Int", "omitempty", "float", "bool"})
+	xtesting.Equal(t, om.Values(), []interface{}{1, uint(0), 1.5, false})
 
-	test2 := &testStruct{
-		Int:    0,
-		Uint:   1,
-		Float:  0.0,
-		Bool:   true,
-		String: "test",
-		Ptr:    &dummy,
+	type testStruct2 struct {
+		Int     int                    `json:"int,omitempty"`
+		Uint    uint                   `json:"uint,omitempty"`
+		Float   float64                `json:"float,omitempty"`
+		Complex complex128             `json:"complex,omitempty"`
+		Bool    bool                   `json:"bool,omitempty"`
+		String  string                 `json:"string,omitempty"`
+		Slice   []int                  `json:"slice,omitempty"`
+		Array   [0]int                 `json:"array,omitempty"`
+		Map     map[string]interface{} `json:"map,omitempty"`
+		Ptr     *int                   `json:"ptr,omitempty"`
+		Chan    chan int               `json:"chan,omitempty"`
+	}
+	ch := make(chan int)
+	test2 := &testStruct2{
+		Int:     0,
+		Uint:    0,
+		Float:   0,
+		Complex: 0,
+		Bool:    false,
+		String:  "",
+		Slice:   make([]int, 0),
+		Array:   [0]int{},
+		Map:     make(map[string]interface{}, 0),
+		Ptr:     nil,
+		Chan:    ch,
 	}
 	om = FromInterface(test2)
-	xtesting.Equal(t, om.Keys(), []string{"Int", "omitempty", "float", "bool", "string", "Slice", "ptr", "ch"})
-	xtesting.Equal(t, om.Values(), []interface{}{0, uint(1), 0.0, true, "test", []string(nil), &dummy, (chan int)(nil)})
+	xtesting.Equal(t, om.keys, []string{"chan"})
+	xtesting.Equal(t, om.Values(), []interface{}{ch})
 }

@@ -17,7 +17,7 @@ func TestModuleName(t *testing.T) {
 
 func TestProvideName(t *testing.T) {
 	SetLogger(DefaultLogger(LogSilent))
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		giveName   ModuleName
 		giveModule interface{}
 		wantPanic  bool
@@ -47,7 +47,7 @@ func TestProvideName(t *testing.T) {
 
 func TestProvideType(t *testing.T) {
 	SetLogger(DefaultLogger(LogSilent))
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		giveModule interface{}
 		wantPanic  bool
 	}{
@@ -73,7 +73,7 @@ func TestProvideType(t *testing.T) {
 
 func TestProvideImpl(t *testing.T) {
 	SetLogger(DefaultLogger(LogSilent))
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		givePtr   interface{}
 		giveImpl  interface{}
 		wantPanic bool
@@ -107,7 +107,7 @@ func TestGetByName(t *testing.T) {
 	ProvideName("pointer", &struct{}{})
 	ProvideName("struct", struct{ int }{1})
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		giveName   ModuleName
 		wantModule interface{}
 		wantPanic  bool
@@ -150,7 +150,7 @@ func TestGetByType(t *testing.T) {
 	ProvideType(&struct{}{})
 	ProvideType(struct{ int }{1})
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		wantModule interface{}
 		wantPanic  bool
 	}{
@@ -185,7 +185,7 @@ func TestGetByImpl(t *testing.T) {
 	ProvideImpl((*error)(nil), errors.New("test"))
 	ProvideImpl((*fmt.Stringer)(nil), &strings.Builder{})
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		givePtr    interface{}
 		wantModule interface{}
 		wantPanic  bool
@@ -221,7 +221,7 @@ func TestInject(t *testing.T) {
 	}
 	test1 := &testStruct1{}
 	dummy := 0
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		giveCtrl  interface{}
 		wantAll   bool
 		wantPanic bool
@@ -237,7 +237,7 @@ func TestInject(t *testing.T) {
 			xtesting.Equal(t, Inject(tc.giveCtrl), tc.wantAll)
 		}
 	}
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want interface{}
 	}{
@@ -299,7 +299,7 @@ func TestInject(t *testing.T) {
 	xtesting.True(t, all)
 	xtesting.NotPanic(t, func() { MustInject(test2) })
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		give interface{}
 		want interface{}
 	}{
@@ -350,7 +350,7 @@ func TestLogger(t *testing.T) {
 		Err    error  `module:"~"`
 	}
 
-	for _, tc := range []*struct {
+	for _, tc := range []struct {
 		str       string
 		giveLevel LogLevel
 		change    bool

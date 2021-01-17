@@ -195,6 +195,8 @@ const (
 )
 
 // isEmptyValue is almost the same as xreflect.IsEmptyValue, and is different from xtesting.IsObjectEmpty.
+// Only supports:
+// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, ~~interface~~, pointer.
 func isEmptyValue(i interface{}) bool {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -204,11 +206,13 @@ func isEmptyValue(i interface{}) bool {
 		return v.Uint() == 0
 	case reflect.Float32, reflect.Float64:
 		return v.Float() == 0
+	case reflect.Complex64, reflect.Complex128:
+		return v.Complex() == 0
 	case reflect.Bool:
 		return !v.Bool()
-	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+	case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
 		return v.Len() == 0
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Ptr:
 		return v.IsNil()
 	}
 	return false
@@ -245,7 +249,7 @@ func FromInterface(object interface{}) *OrderedMap {
 		value := val.Field(i).Interface()
 
 		if field != "-" {
-			if !isEmptyValue(value) || !omitempty {
+			if !omitempty || !isEmptyValue(value) {
 				om.Set(field, value)
 			}
 		}

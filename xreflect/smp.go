@@ -179,7 +179,7 @@ const (
 
 // SmpvalOf gets the Smpval from the given value, panics when using unsupported type.
 // Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string
+// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string.
 func SmpvalOf(i interface{}) *Smpval {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
@@ -201,7 +201,7 @@ func SmpvalOf(i interface{}) *Smpval {
 
 // SmplenOf gets the Smplen of given value, panics when using unsupported type.
 // Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, map, array
+// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map.
 func SmplenOf(i interface{}) *Smplen {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
@@ -217,7 +217,7 @@ func SmplenOf(i interface{}) *Smplen {
 		return boolSmplen(val.Bool())
 	case reflect.String:
 		return intSmplen(int64(len([]rune(val.String()))))
-	case reflect.Slice, reflect.Map, reflect.Array:
+	case reflect.Slice, reflect.Array, reflect.Map:
 		return intSmplen(int64(val.Len()))
 	}
 	panic(fmt.Sprintf(badTypePanic, val.Interface()))

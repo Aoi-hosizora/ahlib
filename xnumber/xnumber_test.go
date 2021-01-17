@@ -23,20 +23,27 @@ func TestAccuracy(t *testing.T) {
 }
 
 func TestRenderByte(t *testing.T) {
-	xtesting.Equal(t, RenderByte(-1025), "-1.00KB")
-	xtesting.Equal(t, RenderByte(-5), "-5B")
-	xtesting.Equal(t, RenderByte(0), "0B")
-	xtesting.Equal(t, RenderByte(1023), "1023B")
-	xtesting.Equal(t, RenderByte(1024), "1.00KB")
-	xtesting.Equal(t, RenderByte(1030), "1.01KB")
-	xtesting.Equal(t, RenderByte(1536), "1.50KB")
-	xtesting.Equal(t, RenderByte(2048), "2.00KB")
-	xtesting.Equal(t, RenderByte(1024*1024), "1.00MB")
-	xtesting.Equal(t, RenderByte(2.51*1024*1024), "2.51MB")
-	xtesting.Equal(t, RenderByte(1024*1024*1024), "1.00GB")
-	xtesting.Equal(t, RenderByte(2.51*1024*1024*1024), "2.51GB")
-	xtesting.Equal(t, RenderByte(1024*1024*1024*1024), "1.00TB")
-	xtesting.Equal(t, RenderByte(1.1*1024*1024*1024*1024), "1.10TB")
+	for _, tc := range []struct {
+		give float64
+		want string
+	}{
+		{-1025, "-1.00KB"},
+		{-5, "-5B"},
+		{0, "0B"},
+		{1023, "1023B"},
+		{1024, "1.00KB"},
+		{1030, "1.01KB"},
+		{1536, "1.50KB"},
+		{2048, "2.00KB"},
+		{1024 * 1024, "1.00MB"},
+		{2.51 * 1024 * 1024, "2.51MB"},
+		{1024 * 1024 * 1024, "1.00GB"},
+		{2.51 * 1024 * 1024 * 1024, "2.51GB"},
+		{1024 * 1024 * 1024 * 1024, "1.00TB"},
+		{1.1 * 1024 * 1024 * 1024 * 1024, "1.10TB"},
+	} {
+		xtesting.Equal(t, RenderByte(tc.give), tc.want)
+	}
 }
 
 func TestBool(t *testing.T) {

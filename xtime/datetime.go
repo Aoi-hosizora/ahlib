@@ -14,64 +14,109 @@ const (
 	CJKDateTime     = "2006-01-02 15:04:05"       // CJK datetime format
 )
 
-// JsonDate represents a parsed time.Time, will be used in json (string#date format).
-// It only preserves year, month, day value.
+// JsonDate represents a parsed time.Time in time.RFC3339, that is in openapi `string#date` format. This time only preserves
+// year, month, day value. DO NOT create it by xtime.JsonDate(time.Now()), just use xtime.NewJsonDate.
 type JsonDate time.Time
 
-// JsonDateTime represents a parsed time.Time, will be used in json (string#date-time format).
-// It only preserves year, month, day, hour, minute, second, zone value.
+// JsonDateTime represents a parsed time.Time in time.RFC3339, that is in openapi `string#date-time` format. This time only preserves
+// year, month, day, hour, minute, second value and use parsed location. DO NOT create it by xtime.JsonDateTime(time.Now()), just use xtime.NewJsonDateTime.
 type JsonDateTime time.Time
 
-// NewJsonDate creates a JsonDate from time.Time, will only preserve year, month, day and location parsed.
+// NewJsonDate creates a JsonDate from time.Time, it only preserves year, month, day value.
 func NewJsonDate(t time.Time) JsonDate {
-	t = ToDate(t)
-	return JsonDate(t)
+	d := ToDate(t)
+	return JsonDate(d)
 }
 
-// NewJsonDateTime creates a JsonDateTime from time.Time, will only preserve year, month, day, hour, minute, second and location parsed.
+// NewJsonDateTime creates a JsonDateTime from time.Time, it only preserves year, month, day, hour, minute, second value and use parsed location.
 func NewJsonDateTime(t time.Time) JsonDateTime {
-	t = ToDateTime(t)
-	return JsonDateTime(t)
+	dt := ToDateTime(t)
+	return JsonDateTime(dt)
 }
 
-// Time returns the time.Time value from JsonDate.
+// Time returns the time.Time value from JsonDate, it does not equal to the parameter for NewJsonDate.
 func (d JsonDate) Time() time.Time {
 	return time.Time(d)
 }
 
-// Time returns the time.Time value from JsonDateTime.
+// Time returns the time.Time value from JsonDateTime, it does not equal to the parameter for NewJsonDateTime.
 func (dt JsonDateTime) Time() time.Time {
 	return time.Time(dt)
 }
 
-// String parses the time value in RFC3339Date format.
+// String parses and returns the time value in RFC3339Date format.
 func (d JsonDate) String() string {
 	return d.Time().Format(RFC3339Date)
 }
 
-// String parses the time value in RFC3339DateTime format.
+// String parses and returns the time value in RFC3339DateTime format.
 func (dt JsonDateTime) String() string {
 	return dt.Time().Format(RFC3339DateTime)
 }
 
-// MarshalJSON marshals the time value in RFC3339Date format.
+// ===================
+// marshal & unmarshal
+// ===================
+
+// MarshalJSON marshals the time value to json bytes in RFC3339Date format.
 func (d JsonDate) MarshalJSON() ([]byte, error) {
 	str := "\"" + d.String() + "\""
 	return []byte(str), nil
 }
 
-// MarshalJSON marshals the time value in RFC3339DateTime format.
+// MarshalJSON marshals the time value to json bytes in RFC3339DateTime format.
 func (dt JsonDateTime) MarshalJSON() ([]byte, error) {
 	str := "\"" + dt.String() + "\""
 	return []byte(str), nil
 }
 
 var (
+	unmarshalJsonDateErr     = errors.New("xtime: given bytes could not be unmarshaled to JsonDate")
+	unmarshalJsonDateTimeErr = errors.New("xtime: given bytes could not be unmarshaled to JsonDateTime")
+)
+
+// UnmarshalJSON unmarshals the time value from json bytes in RFC3339Date format.
+func (d *JsonDate) UnmarshalJSON(bytes []byte) error {
+	str := string(bytes)
+	if str == "null" {
+		return nil
+	}
+	if len(str) <= 2 || str[0] != '"' || str[len(str)-1] != '"' {
+		return unmarshalJsonDateErr
+	}
+
+	str = str[1 : len(str)-1]
+	var err error
+	*d, err = ParseJsonDate(str)
+	return err
+}
+
+// UnmarshalJSON unmarshals the time value from json bytes in RFC3339DateTime format.
+func (dt *JsonDateTime) UnmarshalJSON(bytes []byte) error {
+	str := string(bytes)
+	if str == "null" {
+		return nil
+	}
+	if len(str) <= 2 || str[0] != '"' || str[len(str)-1] != '"' {
+		return unmarshalJsonDateTimeErr
+	}
+
+	str = str[1 : len(str)-1]
+	var err error
+	*dt, err = ParseJsonDateTime(str)
+	return err
+}
+
+// ============
+// scan & value
+// ============
+
+var (
 	scanJsonDateErr     = errors.New("xtime: value is not a time.Time")
 	scanJsonDateTimeErr = errors.New("xtime: value is not a time.Time")
 )
 
-// Scan implementations sql.Scanner.
+// Scan implementations sql.Scanner to support sql scan.
 func (d *JsonDate) Scan(value interface{}) error {
 	if value == nil {
 		return nil
@@ -80,11 +125,11 @@ func (d *JsonDate) Scan(value interface{}) error {
 	if !ok {
 		return scanJsonDateErr
 	}
-	*d = JsonDate(val)
+	*d = NewJsonDate(val)
 	return nil
 }
 
-// Scan implementations sql.Scanner.
+// Scan implementations sql.Scanner to support sql scan.
 func (dt *JsonDateTime) Scan(value interface{}) error {
 	if value == nil {
 		return nil
@@ -93,52 +138,56 @@ func (dt *JsonDateTime) Scan(value interface{}) error {
 	if !ok {
 		return scanJsonDateTimeErr
 	}
-	*dt = JsonDateTime(val)
+	*dt = NewJsonDateTime(val)
 	return nil
 }
 
-// Value implementations driver.Valuer.
+// Value implementations driver.Valuer to support sql value.
 func (d JsonDate) Value() (driver.Value, error) {
 	return d.Time(), nil
 }
 
-// Value implementations driver.Valuer.
+// Value implementations driver.Valuer to support sql value.
 func (dt JsonDateTime) Value() (driver.Value, error) {
 	return dt.Time(), nil
 }
 
-// ParseJsonDate parses a string to JsonDate in RFC3339Date format, it uses the current timezone.
+// =====
+// parse
+// =====
+
+// ParseJsonDate parses a string to JsonDate in RFC3339Date format, it uses the local timezone.
 func ParseJsonDate(s string) (JsonDate, error) {
-	n, err := time.Parse(RFC3339Date, s)
-	if err == nil {
-		n = ToDate(SetLocation(n, time.Now().Location())) // <<<
+	t, err := time.Parse(RFC3339Date, s)
+	if err != nil {
+		return JsonDate{}, err
 	}
-	return JsonDate(n), err
+	return NewJsonDate(SetLocation(t, time.Now().Location())), nil // <<<
 }
 
 // ParseJsonDateTime parses a string to JsonDateTime in RFC3339DateTime format.
 func ParseJsonDateTime(s string) (JsonDateTime, error) {
-	n, err := time.Parse(RFC3339DateTime, s)
-	if err == nil {
-		n = ToDateTime(n) // <<<
+	t, err := time.Parse(RFC3339DateTime, s)
+	if err != nil {
+		return JsonDateTime{}, err
 	}
-	return JsonDateTime(n), err
+	return NewJsonDateTime(t), err
 }
 
-// ParseJsonDateOr parses a string to JsonDate in RFC3339Date format with a fallback value, it uses the current timezone.
+// ParseJsonDateOr parses a string to JsonDate in RFC3339Date format with a fallback value, it uses the local timezone.
 func ParseJsonDateOr(s string, d JsonDate) JsonDate {
-	n, err := ParseJsonDate(s)
+	t, err := ParseJsonDate(s)
 	if err != nil {
 		return d
 	}
-	return n
+	return t
 }
 
 // ParseJsonDateTimeOr parses a string to JsonDateTime in RFC3339DateTime format with a fallback value.
-func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime {
-	n, err := ParseJsonDateTime(s)
+func ParseJsonDateTimeOr(s string, dt JsonDateTime) JsonDateTime {
+	t, err := ParseJsonDateTime(s)
 	if err != nil {
-		return d
+		return dt
 	}
-	return n
+	return t
 }
