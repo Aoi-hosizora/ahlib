@@ -140,6 +140,7 @@ func TestGetXXX(t *testing.T) {
 		{"test", "test", true},
 		{"测试", "测试", true},
 		{"テス", "テス", true},
+		{"тест", "тест", true},
 		{0, "", false},
 	} {
 		s, ok := GetString(tc.give)

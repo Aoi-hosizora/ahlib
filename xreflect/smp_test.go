@@ -64,6 +64,7 @@ func TestSmpvalOf(t *testing.T) {
 		{"test", "test", String, false},
 		{"测试", "测试", String, false},
 		{"テス", "テス", String, false},
+		{"тест", "тест", String, false},
 
 		{true, true, Bool, false},
 		{false, false, Bool, false},
@@ -128,6 +129,7 @@ func TestSmplenOf(t *testing.T) {
 		{"test", int64(4), Int, false},
 		{"测试", int64(2), Int, false},
 		{"テス", int64(2), Int, false},
+		{"тест", int64(4), Int, false},
 
 		{true, true, Bool, false},
 		{false, false, Bool, false},

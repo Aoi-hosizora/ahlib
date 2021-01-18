@@ -10,7 +10,6 @@
 
 + `type JsonDate time.Time`
 + `type JsonDateTime time.Time`
-+ `type TimeSpan time.Duration`
 
 ### Variables
 
@@ -37,48 +36,43 @@
 + `func SetLocation(t time.Time, loc *time.Location) time.Time`
 + `func ToDate(t time.Time) time.Time`
 + `func ToDateTime(t time.Time) time.Time`
++ `func ToDateTimeNS(t time.Time) time.Time`
 + `func LocationDuration(loc *time.Location) time.Duration`
 + `func GetTimeLocation(t time.Time) *time.Location`
++ `func GetLocalLocation() *time.Location`
 + `func ParseTimezone(timezone string) (*time.Location, error)`
-+ `func MoveToTimezone(t time.Time, timezone string) (time.Time, error)`
-+ `func MoveToLocation(t time.Time, location string) (time.Time, error)`
++ `func DurationNanosecondComponent(d time.Duration) int`
++ `func DurationMicrosecondComponent(d time.Duration) int`
++ `func DurationMillisecondComponent(d time.Duration) int`
++ `func DurationSecondComponent(d time.Duration) int`
++ `func DurationMinuteComponent(d time.Duration) int`
++ `func DurationHourComponent(d time.Duration) int`
++ `func DurationDayComponent(d time.Duration) int`
++ `func DurationTotalNanoseconds(d time.Duration) int64`
++ `func DurationTotalMicroseconds(d time.Duration) int64`
++ `func DurationTotalMilliseconds(d time.Duration) int64`
++ `func DurationTotalSeconds(d time.Duration) float64`
++ `func DurationTotalMinutes(d time.Duration) float64`
++ `func DurationTotalHours(d time.Duration) float64`
++ `func DurationTotalDays(d time.Duration) float64`
 + `func NewJsonDate(t time.Time) JsonDate`
 + `func NewJsonDateTime(t time.Time) JsonDateTime`
 + `func ParseJsonDate(s string) (JsonDate, error)`
 + `func ParseJsonDateOr(s string, d JsonDate) JsonDate`
 + `func ParseJsonDateTime(s string) (JsonDateTime, error)`
 + `func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime`
-+ `func NewTimeSpan(du time.Duration) TimeSpan`
 
 ### Methods
 
 + `func (d JsonDate) Time() time.Time`
 + `func (d JsonDate) String() string`
 + `func (d JsonDate) MarshalJSON() ([]byte, error)`
++ `func (d *JsonDate) UnmarshalJSON(bytes []byte) error`
 + `func (d *JsonDate) Scan(value interface{}) error`
 + `func (d JsonDate) Value() (driver.Value, error)`
 + `func (dt JsonDateTime) Time() time.Time`
 + `func (dt JsonDateTime) String() string`
 + `func (dt JsonDateTime) MarshalJSON() ([]byte, error)`
++ `func (dt *JsonDateTime) UnmarshalJSON(bytes []byte) error`
 + `func (dt *JsonDateTime) Scan(value interface{}) error`
 + `func (dt JsonDateTime) Value() (driver.Value, error)`
-+ `func (t TimeSpan) Duration() time.Duration`
-+ `func (t TimeSpan) Add(t2 TimeSpan) TimeSpan`
-+ `func (t TimeSpan) Sub(t2 TimeSpan) TimeSpan`
-+ `func (t TimeSpan) Days() int`
-+ `func (t TimeSpan) Hours() int`
-+ `func (t TimeSpan) Minutes() int`
-+ `func (t TimeSpan) Seconds() int`
-+ `func (t TimeSpan) Milliseconds() int`
-+ `func (t TimeSpan) Microseconds() int`
-+ `func (t TimeSpan) Nanoseconds() int`
-+ `func (t TimeSpan) TotalDays() float64`
-+ `func (t TimeSpan) TotalHours() float64`
-+ `func (t TimeSpan) TotalMinutes() float64`
-+ `func (t TimeSpan) TotalSeconds() float64`
-+ `func (t TimeSpan) TotalMilliseconds() int64`
-+ `func (t TimeSpan) TotalMicroseconds() int64`
-+ `func (t TimeSpan) TotalNanoseconds() int64`
-+ `func (t *TimeSpan) Scan(value interface{}) error`
-+ `func (t TimeSpan) Value() (driver.Value, error)`
-+ `func (t TimeSpan) String() string`

@@ -30,7 +30,7 @@
 + xruntime
 + xslice (waiting for refactoring)
 + xstatus
-+ xstring (waiting for refactoring)
++ xstring
 + xtesting
 + xtime
 

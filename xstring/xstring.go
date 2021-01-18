@@ -10,9 +10,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/gobeam/Stringy
-
-// Capitalize capitalizes the first letter of the whole string.
+// Capitalize capitalizes the first letter of the whole string, this will ignore all trailing spaces.
 func Capitalize(s string) string {
 	if len(s) == 0 {
 		return ""
@@ -26,7 +24,7 @@ func Capitalize(s string) string {
 	return first + string(r[1:])
 }
 
-// Uncapitalize uncapitalizes the first letter of the whole string.
+// Uncapitalize uncapitalizes the first letter of the whole string, this will ignore all trailing spaces.
 func Uncapitalize(s string) string {
 	if len(s) == 0 {
 		return ""
@@ -40,7 +38,7 @@ func Uncapitalize(s string) string {
 	return first + string(r[1:])
 }
 
-// CapitalizeAll capitalizes all the first letter in words of the whole string.
+// CapitalizeAll capitalizes all the first letter in words of the whole string, this will trim the trailing space.
 func CapitalizeAll(s string) string {
 	sp := strings.Split(s, " ")
 	out := make([]string, 0, len(sp))
@@ -52,7 +50,7 @@ func CapitalizeAll(s string) string {
 	return strings.Join(out, " ")
 }
 
-// UncapitalizeAll uncapitalizes all the first letter in words of the whole string.
+// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, this will trim the trailing space.
 func UncapitalizeAll(s string) string {
 	sp := strings.Split(s, " ")
 	out := make([]string, 0, len(sp))
@@ -71,32 +69,69 @@ func RemoveBlanks(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// func ToSnakeCase(s string) string {
-// 	// TODO
-// 	out := ""
-// 	newStr := Uncapitalize(s)
-// 	for _, ch := range []rune(newStr) {
-// 		if unicode.IsUpper(ch) {
-// 			out += "_" + strings.ToLower(string(ch))
-// 		} else if ch == ' ' {
-// 			out += "_"
-// 		} else {
-// 			out += string(ch)
-// 		}
-// 	}
-// 	return out
-// }
+// caseHelper split a string to a word array using default and given word separator. Default separators are "_", "-". ".", " ", "　".
+func caseHelper(s string, seps ...string) []string {
+	seps = append(seps, "_", "-", ".", "　")
+	oldNews := make([]string, 0, len(seps)*2)
+	for _, rule := range seps {
+		if rule != "" {
+			oldNews = append(oldNews, rule, " ")
+		}
+	}
+	replacer := strings.NewReplacer(oldNews...)
 
-// TimeUUID creates a uuid from given time. If the count is larger than 21, the remaining bits will be filled by rand numbers.
+	re := regexp.MustCompile(`([a-z])([A-Z])`)
+	s = re.ReplaceAllString(s, `$1 $2`)                         // split lowercase and capital
+	s = strings.Join(strings.Fields(strings.TrimSpace(s)), " ") // remove duplicate spaces
+	s = replacer.Replace(s)                                     // split by rules
+
+	words := strings.Fields(strings.ToLower(s))
+	return words
+}
+
+// PascalCase rewrites string in pascal case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func PascalCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	for i, word := range wordArray {
+		wordArray[i] = Capitalize(word)
+	}
+	return strings.Join(wordArray, "")
+}
+
+// CamelCase rewrites string in camel case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func CamelCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	for i, word := range wordArray {
+		if i > 0 {
+			wordArray[i] = Capitalize(word)
+		}
+	}
+	return strings.Join(wordArray, "")
+}
+
+// SnakeCase rewrites string in snake case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func SnakeCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	return strings.Join(wordArray, "_")
+}
+
+// KebabCase rewrites string in kebab case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func KebabCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	return strings.Join(wordArray, "-")
+}
+
+// TimeUUID creates a uuid from given time. If the count is larger than 23, the remaining bits will be filled by rand numbers.
 func TimeUUID(t time.Time, count int) string {
-	layoutWithNanosecond := "20060102150405.0000000"
+	layoutWithNanosecond := "20060102150405.000000000"
 	uuid := t.Format(layoutWithNanosecond)
 	uuid = uuid[:14] + uuid[15:]
+	l := len(uuid) // 23
 
-	if count <= len(uuid) {
+	if count <= l {
 		return uuid[:count]
 	} else {
-		return uuid + RandNumberString(count-len(uuid))
+		return uuid + RandNumberString(count-l)
 	}
 }
 
@@ -149,44 +184,38 @@ func RandLowercaseLetterNumberString(count int) string {
 	return RandString(count, lowercaseLetterNumberRunes)
 }
 
-// DefaultMaskToken masks a token string, the masked result only shows the first two and last two characters.
+// DefaultMaskToken masks and returns a token string. Here the masked result only shows the first and last two characters at most,
+// and the length of characters shown is restrict less than masked.
 func DefaultMaskToken(s string) string {
-	if len(s) == 0 {
+	switch {
+	case len(s) == 0:
 		return ""
 	}
 
 	r := []rune(s)
-	l := len(r)
-	sb := strings.Builder{}
-	switch l {
+	switch l := len(r); l {
 	case 1:
-		return "*" // *
+		return "*" // * -> 0:1
 	case 2:
-		return "**" // **
+		return "**" // ** -> 0:2
 	case 3:
-		return "**" + string(r[2]) // **2
+		return "**" + string(r[2]) // **3 -> 1:2
 	case 4:
-		sb.WriteRune(r[0])
-		sb.WriteString("**")
-		sb.WriteRune(r[3]) // 0**3
+		return "***" + string(r[3]) // ***4 -> 1:3
 	case 5:
-		sb.WriteRune(r[0])
-		sb.WriteString("***")
-		sb.WriteRune(r[4]) // 0***4
+		return string(r[0]) + "***" + string(r[4]) // 1***5 -> 2:3
+	case 6:
+		return string(r[0]) + "****" + string(r[5]) // 1****6 -> 2:4
+	case 7:
+		return string(r[0]) + "****" + string(r[5:7]) // 1****67 -> 3:4
+	case 8:
+		return string(r[0]) + "*****" + string(r[6:8]) // 1*****78 -> 3:5
 	default:
-		sb.WriteRune(r[0])
-		sb.WriteRune(r[1])
-		for i :=0; i < l - 4; i++ {
-			sb.WriteRune('*')
-		}
-		sb.WriteRune(r[l-2])
-		sb.WriteRune(r[l-1]) // 01***56
+		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:l]) // 12*****89 -> 4:5
 	}
-
-	return sb.String()
 }
 
-// MaskToken masks a token string with given mask and indices, which support minus index.
+// MaskToken masks and returns a token string with given mask run and indices array, which support minus index.
 func MaskToken(s string, mask rune, indices ...int) string {
 	switch {
 	case len(s) == 0:
@@ -255,29 +284,26 @@ func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string)
 
 	sb := strings.Builder{}
 	for _, k := range keys {
+		key := k
 		if escapeFunc != nil {
-			k = escapeFunc(k)
+			key = escapeFunc(key)
 		}
 		for _, v := range values[k] {
+			val := v
 			if escapeFunc != nil {
-				v = escapeFunc(v)
+				val = escapeFunc(val)
 			}
 
 			if sb.Len() > 0 {
 				sb.WriteString("&")
 			}
-			sb.WriteString(k)
+			sb.WriteString(key)
 			sb.WriteString("=")
-			sb.WriteString(v)
+			sb.WriteString(val)
 		}
 	}
 
 	return sb.String()
-}
-
-// IsMark determines whether the rune is a marker.
-func IsMark(r rune) bool {
-	return unicode.Is(unicode.Mn, r) || unicode.Is(unicode.Me, r) || unicode.Is(unicode.Mc, r)
 }
 
 // PadLeft returns the string with length of totalLength, which is padded by char in left.
@@ -304,6 +330,10 @@ func PadRight(s string, char rune, totalLength int) string {
 
 // GetLeft gets the left part of the string with length.
 func GetLeft(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
+
 	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
@@ -314,6 +344,10 @@ func GetLeft(s string, length int) string {
 
 // GetRight gets the right part of the string with length.
 func GetRight(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
+
 	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
@@ -325,13 +359,14 @@ func GetRight(s string, length int) string {
 // SplitAndGet returns the string item from the split result slices, this also supports minus index.
 func SplitAndGet(s string, sep string, index int) string {
 	sp := strings.Split(s, sep)
-	if len(sp) == 0 {
-		return ""
+	l := len(sp)
+
+	if index >= 0 && index < l {
+		return sp[index]
+	}
+	if newIndex := l + index; newIndex >= 0 && newIndex < l {
+		return sp[newIndex]
 	}
 
-	if index >= 0 {
-		return sp[index]
-	} else {
-		return sp[len(sp)+index]
-	}
+	panic("xstring: index out of range")
 }

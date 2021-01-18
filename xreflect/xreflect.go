@@ -6,14 +6,14 @@ import (
 	"unsafe"
 )
 
-// GetUnexportedField gets the unexported field value.
+// GetUnexportedField gets the unexported struct field value.
 // Example:
 // 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).(gin.HandlersChain)
 func GetUnexportedField(field reflect.Value) interface{} {
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
 }
 
-// SetUnexportedField sets the unexported field to value.
+// SetUnexportedField sets value to unexported struct field.
 // Example:
 // 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
 func SetUnexportedField(field reflect.Value, value interface{}) {
@@ -78,7 +78,7 @@ func GetString(i interface{}) (string, bool) {
 	return "", false
 }
 
-// IsEmptyValue checks if a value is a empty value, panics when using unsupported type.
+// IsEmptyValue checks if a value is an empty value, panics when using unsupported type.
 // Only supports:
 // 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, interface, pointer.
 func IsEmptyValue(i interface{}) bool {
