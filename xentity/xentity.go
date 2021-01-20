@@ -46,7 +46,9 @@ const (
 	nilCtorPanic           = "xentity: nil constructor"
 	nilMapFuncPanic        = "xentity: nil mapFunc"
 	nonStructPtrModelPanic = "xentity: non-struct-pointer model"
-	nonSliceModelPanic     = "xentity: non-slice model"
+
+	nilMapperPanic     = "xentity: nil mapper"
+	nonSliceModelPanic = "xentity: non-slice model"
 )
 
 var (
@@ -89,8 +91,12 @@ func (e *EntityMapper) GetMapFunc() MapFunc {
 	return e.mapFunc
 }
 
-// AddMapper adds an EntityMapper to EntityMappers.
+// AddMapper adds an EntityMapper to EntityMappers, panics when use nil EntityMapper.
 func (e *EntityMappers) AddMapper(mapper *EntityMapper) {
+	if mapper == nil {
+		panic(nilMapperPanic)
+	}
+
 	for _, m := range e.mappers {
 		if m.srcType == mapper.srcType && m.destType == mapper.destType {
 			m.destCtor = mapper.destCtor
@@ -98,10 +104,18 @@ func (e *EntityMappers) AddMapper(mapper *EntityMapper) {
 			return
 		}
 	}
-	e.mappers = append(e.mappers, mapper)
+
+	e.mappers = append(e.mappers, &EntityMapper{ // deep copy
+		source:      mapper.source,
+		destination: mapper.destination,
+		srcType:     mapper.srcType,
+		destType:    mapper.destType,
+		destCtor:    mapper.destCtor,
+		mapFunc:     mapper.mapFunc,
+	})
 }
 
-// AddMappers adds some EntityMapper-s to EntityMappers.
+// AddMappers adds some EntityMapper-s to EntityMappers, panics when use nil EntityMapper.
 func (e *EntityMappers) AddMappers(mappers ...*EntityMapper) {
 	for _, m := range mappers {
 		e.AddMapper(m)
@@ -189,7 +203,7 @@ func (e *EntityMappers) MapSlice(srcSlice interface{}, destModel interface{}, op
 	}
 	destSliceTyp := reflect.SliceOf(reflect.TypeOf(destModel))
 	destSliceVal := reflect.MakeSlice(destSliceTyp, len(srcItfSlice), len(srcItfSlice))
-	if len(srcItfSlice) == 0 {
+	if len(srcItfSlice) == 0 { // return first
 		return destSliceVal.Interface(), nil
 	}
 

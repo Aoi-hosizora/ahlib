@@ -374,6 +374,7 @@ func BenchmarkFastStob(b *testing.B) {
 
 func BenchmarkFastBtos(b *testing.B) {
 	bs := []byte{'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'}
+
 	b.Run("FastBtos", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_ = FastBtos(bs)

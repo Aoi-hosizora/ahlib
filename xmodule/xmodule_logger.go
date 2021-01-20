@@ -45,7 +45,6 @@ type Logger interface {
 
 // defaultLogger represents a default Logger.
 type defaultLogger struct {
-	Logger
 	level LogLevel
 }
 

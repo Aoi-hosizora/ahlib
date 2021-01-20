@@ -74,7 +74,8 @@ func New() *PropertyMappers {
 }
 
 const (
-	nilModelPanic = "xproperty: nil model"
+	nilModelPanic  = "xproperty: nil model"
+	nilMapperPanic = "xproperty: nil mapper"
 )
 
 var (
@@ -142,18 +143,28 @@ func (p *PropertyMapper) GetDict() PropertyDict {
 	return p.dict
 }
 
-// AddMapper adds a PropertyMapper to PropertyMappers.
+// AddMapper adds a PropertyMapper to PropertyMappers, panics when use nil PropertyMapper.
 func (p *PropertyMappers) AddMapper(mapper *PropertyMapper) {
+	if mapper == nil {
+		panic(nilMapperPanic)
+	}
+
 	for _, m := range p.mappers {
 		if m.srcType == mapper.srcType || m.destType == mapper.destType {
 			m.dict = mapper.dict
 			return
 		}
 	}
-	p.mappers = append(p.mappers, mapper)
+	p.mappers = append(p.mappers, &PropertyMapper{ // deep copy
+		source:      mapper.source,
+		destination: mapper.destination,
+		srcType:     mapper.srcType,
+		destType:    mapper.destType,
+		dict:        mapper.dict,
+	})
 }
 
-// AddMappers adds some PropertyMapper-s to PropertyMappers.
+// AddMappers adds some PropertyMapper-s to PropertyMappers, panics when use nil PropertyMapper.
 func (p *PropertyMappers) AddMappers(mappers ...*PropertyMapper) {
 	for _, m := range mappers {
 		p.AddMapper(m)

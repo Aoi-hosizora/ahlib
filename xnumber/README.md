@@ -43,9 +43,9 @@
 + `func EqualInAccuracy(a, b float64) bool`
 + `func NotEqualInAccuracy(a, b float64) bool`
 + `func GreaterInAccuracy(a, b float64) bool`
-+ `func SmallerInAccuracy(a, b float64) bool`
++ `func LessInAccuracy(a, b float64) bool`
 + `func GreaterOrEqualInAccuracy(a, b float64) bool`
-+ `func SmallerOrEqualInAccuracy(a, b float64) bool`
++ `func LessOrEqualInAccuracy(a, b float64) bool`
 + `func RenderByte(bytes float64) string`
 + `func Bool(b bool) int`
 + `func IntSize() int`
@@ -127,6 +127,6 @@
 + `func (eps Accuracy) Equal(a, b float64) bool`
 + `func (eps Accuracy) NotEqual(a, b float64) bool`
 + `func (eps Accuracy) Greater(a, b float64) bool`
-+ `func (eps Accuracy) Smaller(a, b float64) bool`
++ `func (eps Accuracy) Less(a, b float64) bool`
 + `func (eps Accuracy) GreaterOrEqual(a, b float64) bool`
-+ `func (eps Accuracy) SmallerOrEqual(a, b float64) bool`
++ `func (eps Accuracy) LessOrEqual(a, b float64) bool`

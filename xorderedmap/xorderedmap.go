@@ -189,11 +189,6 @@ func (l *OrderedMap) String() string {
 	return string(buf)
 }
 
-const (
-	nilObjectPanic = "xorderedmap: nil object"
-	nonStructPanic = "xorderedmap: non-struct object"
-)
-
 // isEmptyValue is almost the same as xreflect.IsEmptyValue, and is different from xtesting.IsObjectEmpty.
 // Only supports:
 // 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, ~~interface~~, pointer.
@@ -217,6 +212,11 @@ func isEmptyValue(i interface{}) bool {
 	}
 	return false
 }
+
+const (
+	nilObjectPanic = "xorderedmap: nil object"
+	nonStructPanic = "xorderedmap: non-struct object"
+)
 
 // FromInterface creates an OrderedMap from a struct (with json tag), panics if using nil or non-struct object.
 func FromInterface(object interface{}) *OrderedMap {

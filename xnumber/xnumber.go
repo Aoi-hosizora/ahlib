@@ -22,7 +22,7 @@ func (eps Accuracy) Equal(a, b float64) bool {
 
 // NotEqual checks ne between two float64.
 func (eps Accuracy) NotEqual(a, b float64) bool {
-	return !eps.Equal(a, b)
+	return math.Abs(a-b) >= eps()
 }
 
 // Greater checks gt between two float64.
@@ -30,8 +30,8 @@ func (eps Accuracy) Greater(a, b float64) bool {
 	return math.Max(a, b) == a && math.Abs(a-b) > eps()
 }
 
-// Smaller checks lt between two float64.
-func (eps Accuracy) Smaller(a, b float64) bool {
+// Less checks lt between two float64.
+func (eps Accuracy) Less(a, b float64) bool {
 	return math.Max(a, b) == b && math.Abs(a-b) > eps()
 }
 
@@ -40,8 +40,8 @@ func (eps Accuracy) GreaterOrEqual(a, b float64) bool {
 	return math.Max(a, b) == a || math.Abs(a-b) < eps()
 }
 
-// SmallerOrEqual checks lte between two float64.
-func (eps Accuracy) SmallerOrEqual(a, b float64) bool {
+// LessOrEqual checks lte between two float64.
+func (eps Accuracy) LessOrEqual(a, b float64) bool {
 	return math.Max(a, b) == b || math.Abs(a-b) < eps()
 }
 
@@ -63,9 +63,9 @@ func GreaterInAccuracy(a, b float64) bool {
 	return _acc.Greater(a, b)
 }
 
-// SmallerInAccuracy checks lt between two float64 in default Accuracy: 1e-3.
-func SmallerInAccuracy(a, b float64) bool {
-	return _acc.Smaller(a, b)
+// LessInAccuracy checks lt between two float64 in default Accuracy: 1e-3.
+func LessInAccuracy(a, b float64) bool {
+	return _acc.Less(a, b)
 }
 
 // GreaterOrEqualInAccuracy checks gte between two float64 in default Accuracy: 1e-3.
@@ -73,9 +73,9 @@ func GreaterOrEqualInAccuracy(a, b float64) bool {
 	return _acc.GreaterOrEqual(a, b)
 }
 
-// SmallerOrEqualInAccuracy checks lte between two float64 in default Accuracy: 1e-3.
-func SmallerOrEqualInAccuracy(a, b float64) bool {
-	return _acc.SmallerOrEqual(a, b)
+// LessOrEqualInAccuracy checks lte between two float64 in default Accuracy: 1e-3.
+func LessOrEqualInAccuracy(a, b float64) bool {
+	return _acc.LessOrEqual(a, b)
 }
 
 // RenderByte renders a byte size to string (using %.2f), support `B` `KB` `MB` `GB` `TB`.
@@ -98,25 +98,25 @@ func RenderByte(bytes float64) string {
 
 	// 1 - 1023B
 	b := bytes
-	if SmallerInAccuracy(b, divider) {
+	if LessInAccuracy(b, divider) {
 		return ret(fmt.Sprintf("%dB", int(b)))
 	}
 
 	// 1 - 1023K
 	kb := bytes / divider
-	if SmallerInAccuracy(kb, divider) {
+	if LessInAccuracy(kb, divider) {
 		return ret(fmt.Sprintf("%.2fKB", kb))
 	}
 
 	// 1 - 1023M
 	mb := kb / divider
-	if SmallerInAccuracy(mb, divider) {
+	if LessInAccuracy(mb, divider) {
 		return ret(fmt.Sprintf("%.2fMB", mb))
 	}
 
 	// 1 - 1023G
 	gb := mb / divider
-	if SmallerInAccuracy(gb, divider) {
+	if LessInAccuracy(gb, divider) {
 		return ret(fmt.Sprintf("%.2fGB", gb))
 	}
 

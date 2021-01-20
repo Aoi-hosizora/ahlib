@@ -22,7 +22,7 @@ type JsonDate time.Time
 // year, month, day, hour, minute, second value and use parsed location. DO NOT create it by xtime.JsonDateTime(time.Now()), just use xtime.NewJsonDateTime.
 type JsonDateTime time.Time
 
-// NewJsonDate creates a JsonDate from time.Time, it only preserves year, month, day value.
+// NewJsonDate creates a JsonDate from time.Time, it only preserves year, month, day value and use parsed location.
 func NewJsonDate(t time.Time) JsonDate {
 	d := ToDate(t)
 	return JsonDate(d)

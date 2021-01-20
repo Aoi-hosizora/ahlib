@@ -19,13 +19,13 @@ type ModuleContainer struct {
 	provByName map[ModuleName]interface{}
 
 	// muByName locks the provByName.
-	muByName sync.Mutex
+	muByName sync.RWMutex
 
 	// provByType saves the modules provided by type.
 	provByType map[reflect.Type]interface{}
 
 	// muByType locks the provByType.
-	muByType sync.Mutex
+	muByType sync.RWMutex
 
 	// logger represents the log for ModuleContainer.
 	logger Logger
@@ -131,9 +131,9 @@ func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist 
 		panic(invalidModuleNamePanic)
 	}
 
-	m.muByName.Lock()
+	m.muByName.RLock()
 	module, exist = m.provByName[name]
-	m.muByName.Unlock()
+	m.muByName.RUnlock()
 	return
 }
 
@@ -153,9 +153,9 @@ func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{},
 	}
 
 	typ := reflect.TypeOf(moduleType)
-	m.muByType.Lock()
+	m.muByType.RLock()
 	module, exist = m.provByType[typ]
-	m.muByType.Unlock()
+	m.muByType.RUnlock()
 	return
 }
 
@@ -182,9 +182,9 @@ func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{
 		panic(nonInterfacePtrPanic)
 	}
 
-	m.muByType.Lock()
+	m.muByType.RLock()
 	module, exist = m.provByType[itfTyp] // interface type
-	m.muByType.Unlock()
+	m.muByType.RUnlock()
 	return
 }
 
@@ -264,14 +264,14 @@ func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 		var exist bool
 		if moduleTag != "~" {
 			// inject by name
-			mc.muByName.Lock()
+			mc.muByName.RLock()
 			module, exist = mc.provByName[ModuleName(moduleTag)]
-			mc.muByName.Unlock()
+			mc.muByName.RUnlock()
 		} else {
 			// inject by type or impl
-			mc.muByType.Lock()
+			mc.muByType.RLock()
 			module, exist = mc.provByType[field.Type]
-			mc.muByType.Unlock()
+			mc.muByType.RUnlock()
 		}
 
 		// exist
