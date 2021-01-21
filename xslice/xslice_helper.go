@@ -4,301 +4,259 @@ import (
 	"reflect"
 )
 
-// Sti means slice to interface slice.
-// Example:
-// 	Sti([]int{0, 1}) -> []interface{}{0, 1}
-func Sti(slice interface{}) []interface{} {
+// ==========
+// innerSlice
+// ==========
+
+const (
+	indexOutOfRangePanic = "xslice: index out of range"
+	invalidSlicePanic    = "xslice: invalid slice type"
+	invalidItemPanic     = "xslice: invalid slice item"
+)
+
+// innerSlice represents a slice type used for xslice package.
+type innerSlice interface {
+	actual() interface{}
+	length() int
+	get(index int) interface{}
+	set(index int, item interface{})
+	remove(index int)
+	slice(index1, index2 int) []interface{}
+	replace(newSlice interface{})
+	append(item interface{})
+}
+
+// innerOfInterfaceSlice represents a []interface{} type slice.
+type innerOfInterfaceSlice struct {
+	origin []interface{}
+}
+
+func (i *innerOfInterfaceSlice) actual() interface{} {
+	return i.origin
+}
+
+func (i *innerOfInterfaceSlice) length() int {
+	return len(i.origin)
+}
+
+func (i *innerOfInterfaceSlice) get(index int) interface{} {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	return i.origin[index]
+}
+
+func (i *innerOfInterfaceSlice) set(index int, item interface{}) {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	i.origin[index] = item
+}
+
+func (i *innerOfInterfaceSlice) remove(index int) {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	if index == i.length()-1 {
+		i.origin = i.origin[:index]
+	} else {
+		i.origin = append(i.origin[:index], i.origin[index+1:]...)
+	}
+}
+
+func (i *innerOfInterfaceSlice) slice(index1 int, index2 int) []interface{} {
+	if index1 < 0 || index2 < 0 || index1 > i.length() || index2 > i.length() || index2 < index1 {
+		panic(indexOutOfRangePanic)
+	}
+	return i.origin[index1:index2]
+}
+
+func (i *innerOfInterfaceSlice) replace(newSlice interface{}) {
+	if newSlice == nil {
+		panic(invalidSlicePanic)
+	}
+	if newSlice, ok := newSlice.([]interface{}); !ok {
+		panic(invalidSlicePanic)
+	} else {
+		i.origin = newSlice
+	}
+}
+
+func (i *innerOfInterfaceSlice) append(item interface{}) {
+	i.origin = append(i.origin, item)
+}
+
+// innerInterfaceWrappedSlice represents a []T type slice.
+type innerInterfaceWrappedSlice struct {
+	origin interface{}
+	typ    reflect.Type
+	val    reflect.Value
+}
+
+func (i *innerInterfaceWrappedSlice) actual() interface{} {
+	return i.origin
+}
+
+func (i *innerInterfaceWrappedSlice) length() int {
+	return i.val.Len()
+}
+
+func (i *innerInterfaceWrappedSlice) get(index int) interface{} {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	return i.val.Index(index).Interface()
+}
+
+func (i *innerInterfaceWrappedSlice) set(index int, item interface{}) {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	if item == nil {
+		item = reflect.Zero(i.typ.Elem()).Interface()
+	}
+	if reflect.TypeOf(item) != i.typ.Elem() {
+		panic(invalidItemPanic)
+	}
+	i.val.Index(index).Set(reflect.ValueOf(item))
+}
+
+func (i *innerInterfaceWrappedSlice) remove(index int) {
+	if index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	if index == i.length()-1 {
+		i.origin = i.val.Slice(0, index).Interface()
+	} else {
+		i.origin = reflect.AppendSlice(i.val.Slice(0, index), i.val.Slice(index+1, i.val.Len())).Interface()
+	}
+	i.val = reflect.ValueOf(i.origin)
+}
+
+func (i *innerInterfaceWrappedSlice) slice(index1 int, index2 int) []interface{} {
+	if index1 < 0 || index2 < 0 || index1 > i.length() || index2 > i.length() || index2 < index1 {
+		panic(indexOutOfRangePanic)
+	}
+	sliceVal := i.val.Slice(index1, index2)
+	slice := make([]interface{}, sliceVal.Len())
+	for idx := range slice {
+		slice[idx] = sliceVal.Index(idx).Interface()
+	}
+	return slice
+}
+
+func (i *innerInterfaceWrappedSlice) replace(newSlice interface{}) {
+	if newSlice == nil {
+		panic(invalidSlicePanic)
+	}
+	typ := reflect.TypeOf(newSlice)
+	val := reflect.ValueOf(newSlice)
+	if typ.Kind() != reflect.Slice || typ.Elem() != i.typ.Elem() {
+		panic(invalidSlicePanic)
+	}
+
+	i.origin = newSlice
+	i.val = val
+}
+
+func (i *innerInterfaceWrappedSlice) append(item interface{}) {
+	if item == nil {
+		item = reflect.Zero(i.typ.Elem()).Interface()
+	}
+	i.origin = reflect.Append(i.val, reflect.ValueOf(item)).Interface()
+	i.val = reflect.ValueOf(i.origin)
+}
+
+// ==========
+// checkParam
+// ==========
+
+const (
+	nonSliceInterfacePanic = "xslice: non-slice interface"
+	differentTypesPanic    = "xslice: different types slice"
+)
+
+func checkSliceParam(slice []interface{}) *innerOfInterfaceSlice {
+	return &innerOfInterfaceSlice{origin: slice}
+}
+
+func checkInterfaceParam(slice interface{}) *innerInterfaceWrappedSlice {
 	if slice == nil {
-		return nil
+		panic(nonSliceInterfacePanic)
 	}
 
-	v := reflect.ValueOf(slice)
-	if v.Type().Kind() != reflect.Slice {
-		panic("Sti: parameter must be a slice")
+	typ := reflect.TypeOf(slice)
+	val := reflect.ValueOf(slice)
+	if typ.Kind() != reflect.Slice {
+		panic(nonSliceInterfacePanic)
 	}
 
-	l := v.Len()
-	arr := make([]interface{}, l)
-	for idx := 0; idx < l; idx++ {
-		arr[idx] = v.Index(idx).Interface()
-	}
-	return arr
+	return &innerInterfaceWrappedSlice{origin: slice, typ: typ, val: val}
 }
 
-// Its means interface slice to slice.
-// Example:
-// 	Its([]interface{}{0, 1}, 0).([]int) -> []int{0, 1}
-func Its(slice []interface{}, model interface{}) interface{} {
-	if model == nil {
-		panic("Its: model must be non-nil")
-	}
-	if slice == nil {
-		return nil
+func checkSameInterfaceParam(slice1, slice2 interface{}) (*innerInterfaceWrappedSlice, *innerInterfaceWrappedSlice) {
+	if slice1 == nil || slice2 == nil {
+		panic(nonSliceInterfacePanic)
 	}
 
-	t := reflect.TypeOf(model)
-	l := len(slice)
-
-	out := reflect.MakeSlice(reflect.SliceOf(t), l, l)
-	for idx := range slice {
-		v := reflect.ValueOf(slice[idx])
-		out.Index(idx).Set(v)
+	typ1 := reflect.TypeOf(slice1)
+	val1 := reflect.ValueOf(slice1)
+	if typ1.Kind() != reflect.Slice {
+		panic(nonSliceInterfacePanic)
 	}
-	return out.Interface()
+
+	typ2 := reflect.TypeOf(slice2)
+	val2 := reflect.ValueOf(slice2)
+	if typ2.Kind() != reflect.Slice {
+		panic(nonSliceInterfacePanic)
+	}
+
+	if typ1.Elem() != typ2.Elem() {
+		panic(differentTypesPanic)
+	}
+
+	return &innerInterfaceWrappedSlice{origin: slice1, typ: typ1, val: val1},
+		&innerInterfaceWrappedSlice{origin: slice2, typ: typ2, val: val2}
 }
 
-func StiOfInt(slice []int) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
+// ======================
+// cloneSlice & makeSlice
+// ======================
+
+func cloneInterfaceSlice(s []interface{}) []interface{} {
+	newSlice := make([]interface{}, len(s))
+	for idx, item := range s {
+		newSlice[idx] = item
 	}
-	return out
+	return newSlice
 }
 
-func StiOfInt8(slice []int8) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
+func cloneSliceInterface(s interface{}) interface{} {
+	typ := reflect.TypeOf(s)
+	val := reflect.ValueOf(s)
+	if val.Kind() != reflect.Slice {
+		panic(nonSliceInterfacePanic)
 	}
-	return out
+	newSliceVal := reflect.MakeSlice(typ, val.Len(), val.Len())
+	for idx := 0; idx < val.Len(); idx++ {
+		newSliceVal.Index(idx).Set(val.Index(idx))
+	}
+	return newSliceVal.Interface()
 }
 
-func StiOfInt16(slice []int16) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
+func makeInnerSlice(typ innerSlice, length, capacity int) innerSlice {
+	if length < 0 {
+		panic(indexOutOfRangePanic)
 	}
-	return out
-}
+	if capacity < length {
+		capacity = length
+	}
 
-func StiOfInt32(slice []int32) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
+	if slice, ok := typ.(*innerInterfaceWrappedSlice); ok {
+		newSlice := reflect.MakeSlice(slice.typ, length, capacity).Interface()
+		return checkInterfaceParam(newSlice)
+	} else {
+		newSlice := make([]interface{}, length, capacity)
+		return checkSliceParam(newSlice)
 	}
-	return out
-}
-
-func StiOfInt64(slice []int64) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfUint(slice []uint) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfUint8(slice []uint8) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfUint16(slice []uint16) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfUint32(slice []uint32) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfUint64(slice []uint64) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfFloat32(slice []float32) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfFloat64(slice []float64) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfByte(slice []byte) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfRune(slice []rune) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfString(slice []string) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func StiOfBool(slice []bool) []interface{} {
-	out := make([]interface{}, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx]
-	}
-	return out
-}
-
-func ItsOfInt(slice []interface{}) []int {
-	out := make([]int, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(int)
-	}
-	return out
-}
-
-func ItsOfInt8(slice []interface{}) []int8 {
-	out := make([]int8, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(int8)
-	}
-	return out
-}
-
-func ItsOfInt16(slice []interface{}) []int16 {
-	out := make([]int16, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(int16)
-	}
-	return out
-}
-
-func ItsOfInt32(slice []interface{}) []int32 {
-	out := make([]int32, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(int32)
-	}
-	return out
-}
-
-func ItsOfInt64(slice []interface{}) []int64 {
-	out := make([]int64, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(int64)
-	}
-	return out
-}
-
-func ItsOfUint(slice []interface{}) []uint {
-	out := make([]uint, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint)
-	}
-	return out
-}
-
-func ItsOfUint8(slice []interface{}) []uint8 {
-	out := make([]uint8, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint8)
-	}
-	return out
-}
-
-func ItsOfUint16(slice []interface{}) []uint16 {
-	out := make([]uint16, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint16)
-	}
-	return out
-}
-
-func ItsOfUint32(slice []interface{}) []uint32 {
-	out := make([]uint32, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint32)
-	}
-	return out
-}
-
-func ItsOfUint64(slice []interface{}) []uint64 {
-	out := make([]uint64, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(uint64)
-	}
-	return out
-}
-
-func ItsOfFloat32(slice []interface{}) []float32 {
-	out := make([]float32, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(float32)
-	}
-	return out
-}
-
-func ItsOfFloat64(slice []interface{}) []float64 {
-	out := make([]float64, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(float64)
-	}
-	return out
-}
-
-func ItsOfByte(slice []interface{}) []byte {
-	out := make([]byte, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(byte)
-	}
-	return out
-}
-
-func ItsOfRune(slice []interface{}) []rune {
-	out := make([]rune, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(rune)
-	}
-	return out
-}
-
-func ItsOfString(slice []interface{}) []string {
-	out := make([]string, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(string)
-	}
-	return out
-}
-
-func ItsOfBool(slice []interface{}) []bool {
-	out := make([]bool, len(slice))
-	for idx := range slice {
-		out[idx] = slice[idx].(bool)
-	}
-	return out
 }

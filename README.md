@@ -19,12 +19,10 @@
 
 + xcolor
 + xcondition
-+ xentity
 + xmodule
 + xnumber
 + xorderedmap
 + xpointer
-+ xproperty
 + xreflect
 + xregexp
 + xruntime

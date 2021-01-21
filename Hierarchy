@@ -4,12 +4,10 @@ xcolor          (xtesting)
 
 $1 -- the common libraries, base on libraries in $0 group
 xcondition      (xtesting)
-xentity         (xtesting)
 xmodule         (xtesting, xcolor)
 xnumber         (xtesting)
 xorderedmap     (xtesting)
 xpointer        (xtesting)
-xproperty       (xtesting)
 xreflect        (xtesting)
 xregexp         (x)
 xruntime        (x)
