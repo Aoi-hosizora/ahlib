@@ -20,8 +20,8 @@ type innerSlice interface {
 	length() int
 	get(index int) interface{}
 	set(index int, item interface{})
-	remove(index int)
 	slice(index1, index2 int) []interface{}
+	remove(index int)
 	replace(newSlice interface{})
 	append(item interface{})
 }
@@ -30,6 +30,8 @@ type innerSlice interface {
 type innerOfInterfaceSlice struct {
 	origin []interface{}
 }
+
+var _ innerSlice = (*innerOfInterfaceSlice)(nil)
 
 func (i *innerOfInterfaceSlice) actual() interface{} {
 	return i.origin
@@ -40,28 +42,17 @@ func (i *innerOfInterfaceSlice) length() int {
 }
 
 func (i *innerOfInterfaceSlice) get(index int) interface{} {
-	if index >= i.length() {
+	if index < 0 || index >= i.length() {
 		panic(indexOutOfRangePanic)
 	}
 	return i.origin[index]
 }
 
 func (i *innerOfInterfaceSlice) set(index int, item interface{}) {
-	if index >= i.length() {
+	if index < 0 || index >= i.length() {
 		panic(indexOutOfRangePanic)
 	}
 	i.origin[index] = item
-}
-
-func (i *innerOfInterfaceSlice) remove(index int) {
-	if index >= i.length() {
-		panic(indexOutOfRangePanic)
-	}
-	if index == i.length()-1 {
-		i.origin = i.origin[:index]
-	} else {
-		i.origin = append(i.origin[:index], i.origin[index+1:]...)
-	}
 }
 
 func (i *innerOfInterfaceSlice) slice(index1 int, index2 int) []interface{} {
@@ -69,6 +60,17 @@ func (i *innerOfInterfaceSlice) slice(index1 int, index2 int) []interface{} {
 		panic(indexOutOfRangePanic)
 	}
 	return i.origin[index1:index2]
+}
+
+func (i *innerOfInterfaceSlice) remove(index int) {
+	if index < 0 || index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	if index == i.length()-1 {
+		i.origin = i.origin[:index]
+	} else {
+		i.origin = append(i.origin[:index], i.origin[index+1:]...)
+	}
 }
 
 func (i *innerOfInterfaceSlice) replace(newSlice interface{}) {
@@ -93,6 +95,8 @@ type innerInterfaceWrappedSlice struct {
 	val    reflect.Value
 }
 
+var _ innerSlice = (*innerOfInterfaceSlice)(nil)
+
 func (i *innerInterfaceWrappedSlice) actual() interface{} {
 	return i.origin
 }
@@ -102,14 +106,14 @@ func (i *innerInterfaceWrappedSlice) length() int {
 }
 
 func (i *innerInterfaceWrappedSlice) get(index int) interface{} {
-	if index >= i.length() {
+	if index < 0 || index >= i.length() {
 		panic(indexOutOfRangePanic)
 	}
 	return i.val.Index(index).Interface()
 }
 
 func (i *innerInterfaceWrappedSlice) set(index int, item interface{}) {
-	if index >= i.length() {
+	if index < 0 || index >= i.length() {
 		panic(indexOutOfRangePanic)
 	}
 	if item == nil {
@@ -119,18 +123,6 @@ func (i *innerInterfaceWrappedSlice) set(index int, item interface{}) {
 		panic(invalidItemPanic)
 	}
 	i.val.Index(index).Set(reflect.ValueOf(item))
-}
-
-func (i *innerInterfaceWrappedSlice) remove(index int) {
-	if index >= i.length() {
-		panic(indexOutOfRangePanic)
-	}
-	if index == i.length()-1 {
-		i.origin = i.val.Slice(0, index).Interface()
-	} else {
-		i.origin = reflect.AppendSlice(i.val.Slice(0, index), i.val.Slice(index+1, i.val.Len())).Interface()
-	}
-	i.val = reflect.ValueOf(i.origin)
 }
 
 func (i *innerInterfaceWrappedSlice) slice(index1 int, index2 int) []interface{} {
@@ -143,6 +135,18 @@ func (i *innerInterfaceWrappedSlice) slice(index1 int, index2 int) []interface{}
 		slice[idx] = sliceVal.Index(idx).Interface()
 	}
 	return slice
+}
+
+func (i *innerInterfaceWrappedSlice) remove(index int) {
+	if index < 0 || index >= i.length() {
+		panic(indexOutOfRangePanic)
+	}
+	if index == i.length()-1 {
+		i.origin = i.val.Slice(0, index).Interface()
+	} else {
+		i.origin = reflect.AppendSlice(i.val.Slice(0, index), i.val.Slice(index+1, i.val.Len())).Interface()
+	}
+	i.val = reflect.ValueOf(i.origin)
 }
 
 func (i *innerInterfaceWrappedSlice) replace(newSlice interface{}) {
@@ -173,10 +177,12 @@ func (i *innerInterfaceWrappedSlice) append(item interface{}) {
 
 const (
 	nonSliceInterfacePanic = "xslice: non-slice interface"
-	differentTypesPanic    = "xslice: different types slice"
 )
 
 func checkSliceParam(slice []interface{}) *innerOfInterfaceSlice {
+	if slice == nil {
+		slice = []interface{}{}
+	}
 	return &innerOfInterfaceSlice{origin: slice}
 }
 
@@ -191,32 +197,10 @@ func checkInterfaceParam(slice interface{}) *innerInterfaceWrappedSlice {
 		panic(nonSliceInterfacePanic)
 	}
 
+	if val.IsNil() {
+		slice = reflect.MakeSlice(typ, 0, 0).Interface()
+	}
 	return &innerInterfaceWrappedSlice{origin: slice, typ: typ, val: val}
-}
-
-func checkSameInterfaceParam(slice1, slice2 interface{}) (*innerInterfaceWrappedSlice, *innerInterfaceWrappedSlice) {
-	if slice1 == nil || slice2 == nil {
-		panic(nonSliceInterfacePanic)
-	}
-
-	typ1 := reflect.TypeOf(slice1)
-	val1 := reflect.ValueOf(slice1)
-	if typ1.Kind() != reflect.Slice {
-		panic(nonSliceInterfacePanic)
-	}
-
-	typ2 := reflect.TypeOf(slice2)
-	val2 := reflect.ValueOf(slice2)
-	if typ2.Kind() != reflect.Slice {
-		panic(nonSliceInterfacePanic)
-	}
-
-	if typ1.Elem() != typ2.Elem() {
-		panic(differentTypesPanic)
-	}
-
-	return &innerInterfaceWrappedSlice{origin: slice1, typ: typ1, val: val1},
-		&innerInterfaceWrappedSlice{origin: slice2, typ: typ2, val: val2}
 }
 
 // ======================
@@ -252,6 +236,9 @@ func makeInnerSlice(typ innerSlice, length, capacity int) innerSlice {
 		capacity = length
 	}
 
+	if typ == nil {
+		panic(invalidSlicePanic)
+	}
 	if slice, ok := typ.(*innerInterfaceWrappedSlice); ok {
 		newSlice := reflect.MakeSlice(slice.typ, length, capacity).Interface()
 		return checkInterfaceParam(newSlice)

@@ -3,7 +3,6 @@ package xstring
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"log"
 	"net/url"
 	"testing"
 	"time"
@@ -155,6 +154,9 @@ func TestXXXCase(t *testing.T) {
 	}
 }
 
+// showFn represents need to show shuffle and random result
+var showFn = func() bool { return true }
+
 func TestTimeUUID(t *testing.T) {
 	zero := time.Time{}
 	now := time.Date(2021, time.Month(1), 18, 15, 07, 25, 123456789, time.UTC)
@@ -183,11 +185,14 @@ func TestTimeUUID(t *testing.T) {
 			xtesting.Equal(t, uuid[:23], tc.want)
 
 			for i := 0; i < 4; i++ {
+				time.Sleep(2 * time.Nanosecond)
 				uuid1 := TimeUUID(tc.giveTime, tc.giveCount)
 				time.Sleep(2 * time.Nanosecond)
 				uuid2 := TimeUUID(tc.giveTime, tc.giveCount)
 				xtesting.NotEqual(t, uuid1, uuid2)
-				log.Println(uuid1[23:], uuid2[23:])
+				if showFn() {
+					fmt.Println(uuid1, uuid2)
+				}
 			}
 		}
 	}
@@ -197,31 +202,30 @@ func TestRandXXXString(t *testing.T) {
 	for _, tc := range []struct {
 		giveFn    func(int) string
 		giveCount int
-		show      bool
 	}{
-		{RandCapitalLetterString, 0, false},
-		{RandCapitalLetterString, 5, false},
-		{RandCapitalLetterString, 20, true},
+		{RandCapitalLetterString, 0},
+		{RandCapitalLetterString, 5},
+		{RandCapitalLetterString, 20},
 
-		{RandLowercaseLetterString, 0, false},
-		{RandLowercaseLetterString, 5, false},
-		{RandLowercaseLetterString, 20, true},
+		{RandLowercaseLetterString, 0},
+		{RandLowercaseLetterString, 5},
+		{RandLowercaseLetterString, 20},
 
-		{RandLetterString, 0, false},
-		{RandLetterString, 5, false},
-		{RandLetterString, 20, true},
+		{RandLetterString, 0},
+		{RandLetterString, 5},
+		{RandLetterString, 20},
 
-		{RandNumberString, 0, false},
-		{RandNumberString, 5, false},
-		{RandNumberString, 20, true},
+		{RandNumberString, 0},
+		{RandNumberString, 5},
+		{RandNumberString, 20},
 
-		{RandCapitalLetterNumberString, 0, false},
-		{RandCapitalLetterNumberString, 5, false},
-		{RandCapitalLetterNumberString, 20, true},
+		{RandCapitalLetterNumberString, 0},
+		{RandCapitalLetterNumberString, 5},
+		{RandCapitalLetterNumberString, 20},
 
-		{RandLowercaseLetterNumberString, 0, false},
-		{RandLowercaseLetterNumberString, 5, false},
-		{RandLowercaseLetterNumberString, 20, true},
+		{RandLowercaseLetterNumberString, 0},
+		{RandLowercaseLetterNumberString, 5},
+		{RandLowercaseLetterNumberString, 20},
 	} {
 		r := tc.giveFn(tc.giveCount)
 		if tc.giveCount == 0 {
@@ -229,18 +233,15 @@ func TestRandXXXString(t *testing.T) {
 		} else {
 			xtesting.Equal(t, len(r), tc.giveCount)
 
-			for i := 0; i < 8; i++ {
+			for i := 0; i < 4; i++ {
+				time.Sleep(2 * time.Nanosecond)
 				r1 := tc.giveFn(tc.giveCount)
 				time.Sleep(2 * time.Nanosecond)
 				r2 := tc.giveFn(tc.giveCount)
 				xtesting.NotEqual(t, r1, r2)
-
-				if tc.show {
-					log.Println(r1, r2)
+				if showFn() {
+					fmt.Println(r1, r2)
 				}
-			}
-			if tc.show {
-				fmt.Println()
 			}
 		}
 	}
