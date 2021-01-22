@@ -3,74 +3,231 @@ package xcolor
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"os"
 	"testing"
 )
 
 func TestForceColor(t *testing.T) {
-	EnableColor()
+	fmt.Println("\x1b[31mhello world\x1b[0m")
+	fmt.Println("\x1b[4;31mhello world\x1b[0m")
+	fmt.Println("\x1b[31;103mhello world\x1b[0m")
+	fmt.Println("\x1b[4;31;103mhello world\x1b[0m")
 	ForceColor()
-	fmt.Println("test")
-	fmt.Printf(FullColorTpl+"\n", 32, "test")
-	fmt.Printf(FullColorTpl+"\n", 33, "test")
+	fmt.Println("\x1b[31mhello world\x1b[0m")
+	fmt.Println("\x1b[4;31mhello world\x1b[0m")
+	fmt.Println("\x1b[31;103mhello world\x1b[0m")
+	fmt.Println("\x1b[4;31;103mhello world\x1b[0m")
 }
 
-func TestDisableColor(t *testing.T) {
-	EnableColor()
-	Red.Println("test red")
-	fmt.Println(Red.Sprint("test red"))
-	Yellow.Println("test yellow")
-	fmt.Println(Yellow.Sprint("test yellow"))
+func TestCode(t *testing.T) {
+	for _, tc := range []struct {
+		give uint8
+		want uint8
+	}{
+		{Bold.Code(), 1},
+		{Faint.Code(), 2},
+		{Italic.Code(), 3},
+		{Underline.Code(), 4},
+		{Reverse.Code(), 7},
+		{Strikethrough.Code(), 9},
 
-	DisableColor()
-	Red.Println("test red (disable)")
-	fmt.Println(Red.Sprint("test red (disable)"))
-	Yellow.Println("test yellow (disable)")
-	fmt.Println(Yellow.Sprint("test yellow (disable)"))
+		{Black.Code(), 30},
+		{Red.Code(), 31},
+		{Green.Code(), 32},
+		{Yellow.Code(), 33},
+		{Blue.Code(), 34},
+		{Magenta.Code(), 35},
+		{Cyan.Code(), 36},
+		{White.Code(), 37},
+		{Default.Code(), 39},
+		{BrightBlack.Code(), 90},
+		{BrightRed.Code(), 91},
+		{BrightGreen.Code(), 92},
+		{BrightYellow.Code(), 93},
+		{BrightBlue.Code(), 94},
+		{BrightMagenta.Code(), 95},
+		{BrightCyan.Code(), 96},
+		{BrightWhite.Code(), 97},
+
+		{BGBlack.Code(), 40},
+		{BGRed.Code(), 41},
+		{BGGreen.Code(), 42},
+		{BGYellow.Code(), 43},
+		{BGBlue.Code(), 44},
+		{BGMagenta.Code(), 45},
+		{BGCyan.Code(), 46},
+		{BGWhite.Code(), 47},
+		{BGDefault.Code(), 49},
+		{BGBrightBlack.Code(), 100},
+		{BGBrightRed.Code(), 101},
+		{BGBrightGreen.Code(), 102},
+		{BGBrightYellow.Code(), 103},
+		{BGBrightBlue.Code(), 104},
+		{BGBrightMagenta.Code(), 105},
+		{BGBrightCyan.Code(), 106},
+		{BGBrightWhite.Code(), 107},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
+}
+func TestString(t *testing.T) {
+	for _, tc := range []struct {
+		give string
+		want string
+	}{
+		{Bold.String(), "1"},
+		{Faint.String(), "2"},
+		{Italic.String(), "3"},
+		{Underline.String(), "4"},
+		{Reverse.String(), "7"},
+		{Strikethrough.String(), "9"},
+
+		{Black.String(), "30"},
+		{Red.String(), "31"},
+		{Green.String(), "32"},
+		{Yellow.String(), "33"},
+		{Blue.String(), "34"},
+		{Magenta.String(), "35"},
+		{Cyan.String(), "36"},
+		{White.String(), "37"},
+		{Default.String(), "39"},
+		{BrightBlack.String(), "90"},
+		{BrightRed.String(), "91"},
+		{BrightGreen.String(), "92"},
+		{BrightYellow.String(), "93"},
+		{BrightBlue.String(), "94"},
+		{BrightMagenta.String(), "95"},
+		{BrightCyan.String(), "96"},
+		{BrightWhite.String(), "97"},
+
+		{BGBlack.String(), "40"},
+		{BGRed.String(), "41"},
+		{BGGreen.String(), "42"},
+		{BGYellow.String(), "43"},
+		{BGBlue.String(), "44"},
+		{BGMagenta.String(), "45"},
+		{BGCyan.String(), "46"},
+		{BGWhite.String(), "47"},
+		{BGDefault.String(), "49"},
+		{BGBrightBlack.String(), "100"},
+		{BGBrightRed.String(), "101"},
+		{BGBrightGreen.String(), "102"},
+		{BGBrightYellow.String(), "103"},
+		{BGBrightBlue.String(), "104"},
+		{BGBrightMagenta.String(), "105"},
+		{BGBrightCyan.String(), "106"},
+		{BGBrightWhite.String(), "107"},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 }
 
-func TestColor(t *testing.T) {
-	xtesting.Equal(t, Black.String(), "30")
-	xtesting.Equal(t, Red.String(), "31")
-	xtesting.Equal(t, Green.String(), "32")
-	xtesting.Equal(t, Yellow.String(), "33")
-	xtesting.Equal(t, Blue.String(), "34")
-	xtesting.Equal(t, Magenta.String(), "35")
-	xtesting.Equal(t, Cyan.String(), "36")
-	xtesting.Equal(t, White.String(), "37")
-	xtesting.Equal(t, Default.String(), "39")
+func TestMixCode(t *testing.T) {
+	for _, tc := range []struct {
+		give []uint8
+		want []uint8
+	}{
+		{MixCode{}.Codes(), []uint8{}},
+		{MixCode{Bold.Code()}.Codes(), []uint8{Bold.Code()}},
+		{MixCode{Bold.Code(), Bold.Code()}.Codes(), []uint8{Bold.Code(), Bold.Code()}},
+		{MixCode{Bold.Code(), Red.Code()}.Codes(), []uint8{Bold.Code(), Red.Code()}},
+		{MixCode{Bold.Code(), Red.Code(), BGWhite.Code()}.Codes(), []uint8{Bold.Code(), Red.Code(), BGWhite.Code()}},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 
-	xtesting.Equal(t, Black.Code(), "30")
-	xtesting.Equal(t, Red.Code(), "31")
-	xtesting.Equal(t, Green.Code(), "32")
-	xtesting.Equal(t, Yellow.Code(), "33")
-	xtesting.Equal(t, Blue.Code(), "34")
-	xtesting.Equal(t, Magenta.Code(), "35")
-	xtesting.Equal(t, Cyan.Code(), "36")
-	xtesting.Equal(t, White.Code(), "37")
-	xtesting.Equal(t, Default.Code(), "39")
+	for _, tc := range []struct {
+		give string
+		want string
+	}{
+		{MixCode{}.String(), "0"},
+		{MixCode{Bold.Code(), Bold.Code()}.String(), Bold.String() + ";" + Bold.String()},
+		{MixCode{Bold.Code(), Red.Code()}.String(), Bold.String() + ";" + Red.String()},
+		{MixCode{Bold.Code(), Red.Code(), BGWhite.Code()}.String(), Bold.String() + ";" + Red.String() + ";" + BGWhite.String()},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 
-	xtesting.Equal(t, Black.Len(), 9)
-	xtesting.Equal(t, Red.Len(), 9)
-	xtesting.Equal(t, Green.Len(), 9)
-	xtesting.Equal(t, Yellow.Len(), 9)
-	xtesting.Equal(t, Blue.Len(), 9)
-	xtesting.Equal(t, Magenta.Len(), 9)
-	xtesting.Equal(t, Cyan.Len(), 9)
-	xtesting.Equal(t, White.Len(), 9)
-	xtesting.Equal(t, Default.Len(), 9)
+	for _, tc := range []struct {
+		give MixCode
+		want MixCode
+	}{
+		{Bold.WithStyle(Italic), []uint8{Bold.Code(), Italic.Code()}},
+		{Bold.WithColor(Red), []uint8{Bold.Code(), Red.Code()}},
+		{Bold.WithBackground(BGWhite), []uint8{Bold.Code(), BGWhite.Code()}},
+		{Red.WithStyle(Bold), []uint8{Red.Code(), Bold.Code()}},
+		{Red.WithBackground(BGWhite), []uint8{Red.Code(), BGWhite.Code()}},
+		{BGWhite.WithStyle(Bold), []uint8{BGWhite.Code(), Bold.Code()}},
+		{BGWhite.WithColor(Red), []uint8{BGWhite.Code(), Red.Code()}},
+		{MixCode{}.WithStyle(Bold).WithColor(Red).WithBackground(BGWhite), []uint8{Bold.Code(), Red.Code(), BGWhite.Code()}},
+	} {
+		xtesting.Equal(t, tc.give, tc.want)
+	}
 }
 
 func TestPrint(t *testing.T) {
-	EnableColor()
-	for _, color := range []Color{
-		Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default,
-	} {
-		color.Print("test\n")
-		color.Println("test")
-		color.Printf("%s\n", "test")
+	// style
+	Bold.Print("bold\n")
+	Faint.Printf("%s\n", "faint")
+	Italic.Println("italic")
+	fmt.Print(Underline.Sprint("underline\n"))
+	fmt.Print(Reverse.Sprintf("%s\n", "reverse"))
+	fmt.Print(Strikethrough.Sprintln("strikethrough"))
+	_, _ = Bold.Fprint(os.Stdout, "bold\n")
+	_, _ = Faint.Fprintf(os.Stdout, "%s\n", "faint")
+	_, _ = Italic.Fprintln(os.Stdout, "italic")
+	fmt.Println()
 
-		fmt.Print(color.Sprint("test\n"))
-		fmt.Print(color.Sprintln("test"))
-		fmt.Print(color.Sprintf("%s\n", "test"))
-	}
+	// color
+	Red.Print("red\n")
+	Green.Printf("%s\n", "green")
+	Yellow.Println("yellow")
+	fmt.Print(Blue.Sprint("blue\n"))
+	fmt.Print(Magenta.Sprintf("%s\n", "magenta"))
+	fmt.Print(Cyan.Sprintln("cyan"))
+	_, _ = Black.Fprint(os.Stdout, "black\n")
+	_, _ = White.Fprintf(os.Stdout, "%s\n", "white")
+	_, _ = Default.Fprintln(os.Stdout, "default")
+	BrightBlack.Println("bright_black")
+	BrightRed.Println("bright_red")
+	BrightGreen.Println("bright_green")
+	BrightYellow.Println("bright_yellow")
+	BrightBlue.Println("bright_blue")
+	BrightMagenta.Println("bright_magenta")
+	BrightCyan.Println("bright_cyan")
+	BrightWhite.Println("bright_white")
+	fmt.Println()
+
+	// background
+	BGRed.Print("bg_red\n")
+	BGGreen.Printf("%s\n", "bg_green")
+	BGYellow.Println("bg_yellow")
+	fmt.Print(BGBlue.Sprint("bg_blue\n"))
+	fmt.Print(BGMagenta.Sprintf("%s\n", "bg_magenta"))
+	fmt.Print(BGCyan.Sprintln("bg_cyan"))
+	_, _ = BGBlack.Fprint(os.Stdout, "bg_black\n")
+	_, _ = BGWhite.Fprintf(os.Stdout, "%s\n", "bg_white")
+	_, _ = BGDefault.Fprintln(os.Stdout, "bg_default")
+	BGBrightBlack.Println("bg_bright_black")
+	BGBrightRed.Println("bg_bright_red")
+	BGBrightGreen.Println("bg_bright_green")
+	BGBrightYellow.Println("bg_bright_yellow")
+	BGBrightBlue.Println("bg_bright_blue")
+	BGBrightMagenta.Println("bg_bright_magenta")
+	BGBrightCyan.Println("bg_bright_cyan")
+	BGBrightWhite.Println("bg_bright_white")
+	fmt.Println()
+
+	// mix code
+	Bold.WithStyle(Italic).Print("bold;italic\n")
+	Bold.WithColor(Red).Printf("%s\n", "bold;red")
+	Bold.WithBackground(BGWhite).Println("bold;bg_white")
+	fmt.Print(Red.WithStyle(Bold).Sprint("red;bold\n"))
+	fmt.Print(Red.WithBackground(BGWhite).Sprintf("%s\n", "red;bg_white"))
+	fmt.Print(BGWhite.WithStyle(Bold).Sprintln("bg_white;bold"))
+	BGWhite.WithColor(Red).Println("bg_white;red")
+	Bold.WithColor(Red).WithBackground(BGWhite).Println("bold;red;bg_white")
+	_, _ = Bold.WithStyle(Italic).Fprint(os.Stdout, "bold;italic\n")
+	_, _ = Bold.WithColor(Red).Fprintf(os.Stdout, "%s\n", "bold;red")
+	_, _ = Bold.WithBackground(BGWhite).Fprintln(os.Stdout, "bold;bg_white")
 }

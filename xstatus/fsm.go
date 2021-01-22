@@ -1,14 +1,17 @@
 package xstatus
 
-type FsmStatus int8
+// FsmStatus represents a status value for finite status machine. Actually this is a dummy type.
+type FsmStatus uint64
 
 const (
-	FsmNone FsmStatus = iota
-	FsmInState
-	FsmFinal
-	FsmTagA
-	FsmTagB
-	FsmTagC
+	FsmNone    FsmStatus = iota      // None
+	FsmInState                       // In state
+	FsmFinal                         // Final
+	FsmTagA    FsmStatus = iota + 98 // Tag a
+	FsmTagB                          // Tag b
+	FsmTagC                          // Tag c
+	FsmTagD                          // Tag d
+	FsmTagE                          // Tag e
 )
 
 func (f FsmStatus) String() string {
@@ -25,6 +28,10 @@ func (f FsmStatus) String() string {
 		return "fsm-tag-b"
 	case FsmTagC:
 		return "fsm-tag-c"
+	case FsmTagD:
+		return "fsm-tag-d"
+	case FsmTagE:
+		return "fsm-tag-e"
 	default:
 		return "fsm-?"
 	}

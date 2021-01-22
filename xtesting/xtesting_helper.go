@@ -97,7 +97,7 @@ func IsObjectZero(object interface{}) bool {
 // Example:
 // 	1. Array, Chan, Map, Slice -> Len = 0
 // 	2. Ptr -> ptr == nil || ptr == nil
-// `3. Other -> zero value
+// 	3. Other -> zero value
 func IsObjectEmpty(object interface{}) bool {
 	// get nil case out of the way
 	if object == nil {

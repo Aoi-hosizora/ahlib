@@ -6,19 +6,18 @@ import (
 	"sync"
 )
 
-func InitTerminal(out io.Writer) {
-	checkTerminal(out)
+// InitTerminal initializes the given io.Writer to support ANSI escape code. Notice that io.Writer must be an os.File.
+func InitTerminal(out io.Writer) bool {
+	return checkTerminal(out)
 }
 
-func InitOsStd() {
-	InitTerminal(os.Stdout)
-	InitTerminal(os.Stderr)
-}
+// _forceColorOnce is a sync.Once for ForceColor.
+var _forceColorOnce sync.Once
 
-var _initColor sync.Once
-
+// ForceColor initializes os.Stdout and os.Stderr to support ANSI escape code.
 func ForceColor() {
-	_initColor.Do(func() {
-		InitOsStd()
+	_forceColorOnce.Do(func() {
+		_ = InitTerminal(os.Stdout)
+		_ = InitTerminal(os.Stderr)
 	})
 }

@@ -3,88 +3,106 @@ package xruntime
 import (
 	"bytes"
 	"fmt"
-	"github.com/Aoi-hosizora/ahlib/xcolor"
 	"io/ioutil"
-	"log"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-type Stack struct {
-	Index     int     `json:"index"`
-	Filename  string  `json:"filename"`
-	Function  string  `json:"function"`
-	Pc        uintptr `json:"pc"`
-	LineIndex int     `json:"line_index"`
-	Line      string  `json:"line"`
+// TraceFrame represents a line of the runtime trace stack.
+type TraceFrame struct {
+	// Index represents the index of frame in stack.
+	Index int
+
+	// PC represents the frame's program count.
+	PC uintptr
+
+	// Filename represents the file full name.
+	Filename string
+
+	// FuncFullName represents the function fill name.
+	FuncFullName string
+
+	// FuncName represents the function name.
+	FuncName string
+
+	// LineIndex represents the line index in the file.
+	LineIndex int
+
+	// LineText represents the line text in the file.
+	LineText string
 }
 
-func (s *Stack) String() string {
-	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", s.Filename, s.LineIndex, s.Pc, s.Function, s.Line)
+// String returns the formatted TraceFrame.
+func (t *TraceFrame) String() string {
+	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", t.Filename, t.LineIndex, t.PC, t.FuncName, t.LineText)
 }
 
-// GetStack returns a slice of Stack from runtime stacks using given skip.
-func GetStack(skip int) []*Stack {
+// TrackStack represents the runtime trace stack, that is a slice of TraceFrame.
+type TraceStack []*TraceFrame
+
+// String returns the formatted TraceStack.
+func (t *TraceStack) String() string {
+	l := len(*t)
+	sb := &strings.Builder{}
+	for i, frame := range *t {
+		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.PC))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("\t%s", frame.LineText))
+		if i != l-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
+}
+
+// RuntimeTraceStack returns a slice of TraceFrame from runtime trace stacks using given skip.
+func RuntimeTraceStack(skip int) TraceStack {
 	skip++
-	out := make([]*Stack, 0)
+	frames := make([]*TraceFrame, 0)
 	for i := skip; ; i++ {
-		pc, filename, lineNumber, ok := runtime.Caller(i)
+		pc, filename, lineIndex, ok := runtime.Caller(i)
 		if !ok {
 			break
 		}
-		function := runtime.FuncForPC(pc).Name()
-		_, function = filepath.Split(function)
 
-		lineContent := "?"
+		// func
+		funcFullName := runtime.FuncForPC(pc).Name()
+		_, funcName := filepath.Split(funcFullName)
+
+		// line
+		lineText := "?"
 		if filename != "" {
 			if data, err := ioutil.ReadFile(filename); err == nil {
 				lines := bytes.Split(data, []byte{'\n'})
-				if lineNumber > 0 && lineNumber <= len(lines) {
-					lineContent = string(bytes.TrimSpace(lines[lineNumber-1]))
+				if lineIndex > 0 && lineIndex <= len(lines) {
+					lineText = string(bytes.TrimSpace(lines[lineIndex-1]))
 				}
 			}
 		}
-		out = append(out, &Stack{
-			Index:     i,
-			Filename:  filename,
-			Function:  function,
-			Pc:        pc,
-			LineIndex: lineNumber,
-			Line:      lineContent,
+
+		// out
+		frames = append(frames, &TraceFrame{
+			Index:        i,
+			PC:           pc,
+			Filename:     filename,
+			FuncFullName: funcFullName,
+			FuncName:     funcName,
+			LineIndex:    lineIndex,
+			LineText:     lineText,
 		})
 	}
 
-	return out
+	return frames
 }
 
-// GetStackWithInfo returns some information from the first runtime stack using given skip.
-func GetStackWithInfo(skip int) (stacks []*Stack, filename string, funcname string, lineIndex int, line string) {
+// RuntimeTraceStackWithInfo get a slice of TraceFrame, with some information from the first trace stack line using given skip.
+func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string) {
 	skip++
-	stacks = GetStack(skip)
-	if len(stacks) == 0 {
-		return []*Stack{}, "", "", -1, ""
+	stack = RuntimeTraceStack(skip)
+	if len(stack) == 0 {
+		return []*TraceFrame{}, "", "", -1, ""
 	}
-	top := stacks[0]
-	return stacks, top.Filename, top.Function, top.LineIndex, top.Line
-}
-
-// PrintStacks prints a slice of stacks.
-func PrintStacks(stacks []*Stack) {
-	for _, s := range stacks {
-		fmt.Println(s.String())
-	}
-}
-
-// PrintStacksRed prints a slice of stacks using xcolor.Red.
-func PrintStacksRed(stacks []*Stack) {
-	l := log.New(os.Stderr, "", 0)
-	xcolor.ForceColor()
-	for _, s := range stacks {
-		line := s.String()
-		for _, s := range strings.Split(line, "\n") {
-			l.Println(xcolor.Red.Sprint(s))
-		}
-	}
+	top := stack[0]
+	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
 }

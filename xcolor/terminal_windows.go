@@ -8,24 +8,16 @@ import (
 	"syscall"
 )
 
-var (
-	kernel32Dll    = syscall.NewLazyDLL("Kernel32.dll")
-	setConsoleMode = kernel32Dll.NewProc("SetConsoleMode")
-)
-
 func checkTerminal(w io.Writer) bool {
-	var ret bool
-	switch v := w.(type) {
-	case *os.File:
-		err := EnableVirtualTerminalProcessing(syscall.Handle(v.Fd()), true)
-		ret = err == nil
-	default:
-		ret = false
+	if f, ok := w.(*os.File); ok {
+		h := syscall.Handle(f.Fd())
+		err := enableVirtualTerminalProcessing(h, true)
+		return err == nil
 	}
-	return ret
+	return false
 }
 
-func EnableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
+func enableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
 	const EnableVirtualTerminalProcessing uint32 = 0x4
 
 	var mode uint32
@@ -40,6 +32,8 @@ func EnableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
 		mode &^= EnableVirtualTerminalProcessing
 	}
 
+	kernel32Dll := syscall.NewLazyDLL("Kernel32.dll")
+	setConsoleMode := kernel32Dll.NewProc("SetConsoleMode")
 	ret, _, err := setConsoleMode.Call(uintptr(stream), uintptr(mode))
 	if ret == 0 {
 		return err

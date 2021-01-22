@@ -1,7 +1,6 @@
 package xstring
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -11,134 +10,132 @@ import (
 	"unsafe"
 )
 
-// Capitalize capitalizes string.
-func Capitalize(str string) string {
-	if len(str) == 0 {
+// Capitalize capitalizes the first letter of the whole string, this will ignore all trailing spaces.
+func Capitalize(s string) string {
+	if len(s) == 0 {
 		return ""
 	}
-	return strings.ToUpper(ChatAt(str, 0)) + SubStringFrom(str, 1)
+
+	r := []rune(s)
+	first := string(unicode.ToUpper(r[0]))
+	if len(s) == 1 {
+		return first
+	}
+	return first + string(r[1:])
 }
 
-// Uncapitalize uncapitalizes string.
-func Uncapitalize(str string) string {
-	if len(str) == 0 {
+// Uncapitalize uncapitalizes the first letter of the whole string, this will ignore all trailing spaces.
+func Uncapitalize(s string) string {
+	if len(s) == 0 {
 		return ""
 	}
-	return strings.ToLower(ChatAt(str, 0)) + SubStringFrom(str, 1)
-}
 
-// RemoveSpaces removes ` ` `\n` `\t` from string.
-func RemoveSpaces(str string) string {
-	r, _ := regexp.Compile(`[\s　]+`) // BS \n \t
-	str = r.ReplaceAllString(str, " ")
-	return strings.TrimSpace(str)
-}
-
-func ChatAt(str string, idx int) string {
-	return string([]rune(str)[idx])
-}
-
-func SubString(str string, f int, t int) string {
-	return string([]rune(str)[f:t])
-}
-
-func SubStringFrom(str string, f int) string {
-	return string([]rune(str)[f:])
-}
-
-func SubStringTo(str string, t int) string {
-	return string([]rune(str)[:t])
-}
-
-func ToRune(char string) rune {
-	if char == "" {
-		return 0
+	r := []rune(s)
+	first := string(unicode.ToLower(r[0]))
+	if len(s) == 1 {
+		return first
 	}
-	return []rune(char)[0]
+	return first + string(r[1:])
 }
 
-func ToByte(char string) byte {
-	if char == "" {
-		return 0
-	}
-	return char[0]
-}
-
-func IsUppercase(char rune) bool {
-	return char >= ToRune("A") && char <= ToRune("Z")
-}
-
-func IsLowercase(char rune) bool {
-	return char >= ToRune("a") && char <= ToRune("z")
-}
-
-func ToSnakeCase(s string) string {
-	out := ""
-	newStr := Uncapitalize(s)
-	for _, ch := range []rune(newStr) {
-		if IsUppercase(ch) {
-			out += "_" + strings.ToLower(string(ch))
-		} else if ch == ToRune(" ") {
-			out += "_"
-		} else {
-			out += string(ch)
+// CapitalizeAll capitalizes all the first letter in words of the whole string, this will trim the trailing space.
+func CapitalizeAll(s string) string {
+	sp := strings.Split(s, " ")
+	out := make([]string, 0, len(sp))
+	for _, word := range sp {
+		if len(word) != 0 {
+			out = append(out, Capitalize(word))
 		}
 	}
-	return out
+	return strings.Join(out, " ")
 }
 
-func PrettifyJson(jsonString string, intent int, char string) string {
-	curr := 0
-	sb := strings.Builder{}
-	jsonString = RemoveSpaces(jsonString)
-	l := len(jsonString)
-	for idx, c := range jsonString {
-		switch c {
-		case '{', '[':
-			curr++
-			sb.WriteRune(c)
-			if idx+1 < l && jsonString[idx+1] != '}' && jsonString[idx+1] != ']' {
-				sb.WriteString("\n")
-				sb.WriteString(strings.Repeat(char, curr*intent))
-			}
-		case '}', ']':
-			curr--
-			if idx-1 > -1 && jsonString[idx-1] != '{' && jsonString[idx-1] != '[' {
-				sb.WriteString("\n")
-				sb.WriteString(strings.Repeat(char, curr*intent))
-			}
-			sb.WriteRune(c)
-		case ',':
-			sb.WriteString(",\n")
-			sb.WriteString(strings.Repeat(char, curr*intent))
-		case ':':
-			sb.WriteString(": ")
-		// case ' ', '\n', '\t':
-		// 	// pass
-		default:
-			sb.WriteRune(c)
+// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, this will trim the trailing space.
+func UncapitalizeAll(s string) string {
+	sp := strings.Split(s, " ")
+	out := make([]string, 0, len(sp))
+	for _, word := range sp {
+		if len(word) != 0 {
+			out = append(out, Uncapitalize(word))
 		}
 	}
-	return sb.String()
+	return strings.Join(out, " ")
 }
 
-func CurrentTimeUuid(count int) string {
-	return TimeUuid(time.Now(), count)
+// RemoveBlanks replaces all blanks (\s and a wide space) to a single space. About blank, see unicode.IsSpace.
+func RemoveBlanks(s string) string {
+	// [\t\n\v\f\r\x85\xA0 　]
+	s = regexp.MustCompile(`[\s　]+`).ReplaceAllString(s, " ")
+	return strings.TrimSpace(s)
 }
 
-// count: [0, 21+]
-func TimeUuid(t time.Time, count int) string {
-	nanosecondLayout := "20060102150405.0000000"
-	uuid := t.Format(nanosecondLayout)
+// caseHelper split a string to a word array using default and given word separator. Default separators are "_", "-". ".", " ", "　".
+func caseHelper(s string, seps ...string) []string {
+	seps = append(seps, "_", "-", ".", "　")
+	oldNews := make([]string, 0, len(seps)*2)
+	for _, rule := range seps {
+		if rule != "" {
+			oldNews = append(oldNews, rule, " ")
+		}
+	}
+	replacer := strings.NewReplacer(oldNews...)
+
+	re := regexp.MustCompile(`([a-z])([A-Z])`)
+	s = re.ReplaceAllString(s, `$1 $2`)                         // split lowercase and capital
+	s = strings.Join(strings.Fields(strings.TrimSpace(s)), " ") // remove duplicate spaces
+	s = replacer.Replace(s)                                     // split by rules
+
+	words := strings.Fields(strings.ToLower(s))
+	return words
+}
+
+// PascalCase rewrites string in pascal case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func PascalCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	for i, word := range wordArray {
+		wordArray[i] = Capitalize(word)
+	}
+	return strings.Join(wordArray, "")
+}
+
+// CamelCase rewrites string in camel case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func CamelCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	for i, word := range wordArray {
+		if i > 0 {
+			wordArray[i] = Capitalize(word)
+		}
+	}
+	return strings.Join(wordArray, "")
+}
+
+// SnakeCase rewrites string in snake case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func SnakeCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	return strings.Join(wordArray, "_")
+}
+
+// KebabCase rewrites string in kebab case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+func KebabCase(s string, seps ...string) string {
+	wordArray := caseHelper(s, seps...)
+	return strings.Join(wordArray, "-")
+}
+
+// TimeUUID creates a uuid from given time. If the count is larger than 23, the remaining bits will be filled by rand numbers.
+func TimeUUID(t time.Time, count int) string {
+	layoutWithNanosecond := "20060102150405.000000000"
+	uuid := t.Format(layoutWithNanosecond)
 	uuid = uuid[:14] + uuid[15:]
+	l := len(uuid) // 23
 
-	if count <= len(uuid) {
+	if count <= l {
 		return uuid[:count]
 	} else {
-		return uuid + RandNumberString(count-len(uuid))
+		return uuid + RandNumberString(count-l)
 	}
 }
 
+// RandString generates a string by given rune slice in random order.
 func RandString(count int, runes []rune) string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, count)
@@ -149,88 +146,136 @@ func RandString(count int, runes []rune) string {
 }
 
 var (
-	CapitalLetterRunes   = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	LowercaseLetterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
-	NumberRunes          = []rune("0123456789")
-
-	LetterRunes                = append(CapitalLetterRunes, LowercaseLetterRunes...)
-	LetterNumberRunes          = append(LetterRunes, NumberRunes...)
-	CapitalLetterNumberRunes   = append(CapitalLetterRunes, NumberRunes...)
-	LowercaseLetterNumberRunes = append(LowercaseLetterRunes, NumberRunes...)
+	capitalLetterRunes         = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	lowercaseLetterRunes       = []rune("abcdefghijklmnopqrstuvwxyz")
+	allcaseLetterRunes         = append(capitalLetterRunes, lowercaseLetterRunes...)
+	numberRunes                = []rune("0123456789")
+	capitalLetterNumberRunes   = append(capitalLetterRunes, numberRunes...)
+	lowercaseLetterNumberRunes = append(lowercaseLetterRunes, numberRunes...)
 )
 
-// Capital + Lower: ABCDEFGHIJKLMNOPQRSTUVWXYZ + abcdefghijklmnopqrstuvwxyz
+// RandCapitalLetterString generates a random string combined by capital letters, that is ABCDEFGHIJKLMNOPQRSTUVWXYZ.
+func RandCapitalLetterString(count int) string {
+	return RandString(count, capitalLetterRunes)
+}
+
+// RandLowercaseLetterString generates a random string combined by lowercase letters, that is abcdefghijklmnopqrstuvwxyz.
+func RandLowercaseLetterString(count int) string {
+	return RandString(count, lowercaseLetterRunes)
+}
+
+// RandLetterString generates a random string combined by allcase letters, that is ABCDEFGHIJKLMNOPQRSTUVWXYZ + abcdefghijklmnopqrstuvwxyz.
 func RandLetterString(count int) string {
-	return RandString(count, LetterRunes)
+	return RandString(count, allcaseLetterRunes)
 }
 
-// Only number: 0123456789
+// RandNumberString generates a random string combined by numbers, that is 0123456789.
 func RandNumberString(count int) string {
-	return RandString(count, NumberRunes)
+	return RandString(count, numberRunes)
 }
 
-// Letter + Number: abcdefghijklmnopqrstuvwxyz + 0123456789
-func RandLetterNumberString(count int) string {
-	return RandString(count, LowercaseLetterNumberRunes)
+// RandCapitalLetterNumberString generates a random string combined by capital letters and numbers, that is ABCDEFGHIJKLMNOPQRSTUVWXYZ + 0123456789.
+func RandCapitalLetterNumberString(count int) string {
+	return RandString(count, capitalLetterNumberRunes)
 }
 
-func MaskToken(token string) string {
-	r := []rune(token)
-	switch l := len(r); l {
-	case 0:
+// RandLowercaseLetterNumberString generates a random string combined by lowercase letters and numbers, that is abcdefghijklmnopqrstuvwxyz + 0123456789.
+func RandLowercaseLetterNumberString(count int) string {
+	return RandString(count, lowercaseLetterNumberRunes)
+}
+
+// DefaultMaskToken masks and returns a token string. Here the masked result only shows the first and last two characters at most,
+// and the length of characters shown is restrict less than masked.
+func DefaultMaskToken(s string) string {
+	switch {
+	case len(s) == 0:
 		return ""
+	}
+
+	r := []rune(s)
+	switch l := len(r); l {
 	case 1:
-		return "*" // *
+		return "*" // * -> 0:1
 	case 2:
-		return "*" + string(r[1:]) // *1
+		return "**" // ** -> 0:2
 	case 3:
-		return "**" + string(r[2:3]) // **2
+		return "**" + string(r[2]) // **3 -> 1:2
 	case 4:
-		return string(r[0:1]) + "**" + string(r[3:4]) // 0**3
+		return "***" + string(r[3]) // ***4 -> 1:3
 	case 5:
-		return string(r[0:1]) + "***" + string(r[4:5]) // 0***4
+		return string(r[0]) + "***" + string(r[4]) // 1***5 -> 2:3
+	case 6:
+		return string(r[0]) + "****" + string(r[5]) // 1****6 -> 2:4
+	case 7:
+		return string(r[0]) + "****" + string(r[5:7]) // 1****67 -> 3:4
+	case 8:
+		return string(r[0]) + "*****" + string(r[6:8]) // 1*****78 -> 3:5
 	default:
-		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:]) // 01***56
+		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:l]) // 12*****89 -> 4:5
 	}
 }
 
-// Unsafe case to []byte.
-func StringToBytes(s string) []byte {
+// MaskToken masks and returns a token string with given mask run and indices array, which support minus index.
+func MaskToken(s string, mask rune, indices ...int) string {
+	switch {
+	case len(s) == 0:
+		return ""
+	case len(indices) == 0:
+		return s
+	}
+
+	r := []rune(s)
+	l := len(r)
+	idxs := make([]int, 0, len(indices))
+	for _, index := range indices {
+		if 0 <= index && index < l {
+			idxs = append(idxs, index)
+		} else if -l <= index && index < 0 {
+			idxs = append(idxs, l+index)
+		}
+	}
+	sort.Ints(idxs)
+
+	idxKvs := make(map[int]bool)
+	for i, index := range idxs {
+		if i == 0 || idxs[i-1] != index {
+			idxKvs[index] = true
+		}
+	}
+
+	sb := strings.Builder{}
+	for i := range r {
+		if _, ok := idxKvs[i]; !ok {
+			sb.WriteRune(r[i])
+		} else {
+			sb.WriteRune(mask)
+		}
+	}
+	return sb.String()
+}
+
+// FastStob fast casts string to []byte in an unsafe ways.
+func FastStob(s string) []byte {
 	if s == "" {
 		return []byte{}
 	}
-	return *(*[]byte)(unsafe.Pointer(&s))
+	return *(*[]byte)(unsafe.Pointer(&struct {
+		string
+		Cap int
+	}{s, len(s)}))
 }
 
-// Unsafe case to string.
-func BytesToString(bs []byte) string {
+// FastBtos fast casts []byte to string in an unsafe ways.
+func FastBtos(bs []byte) string {
 	if bs == nil || len(bs) == 0 {
 		return ""
 	}
 	return *(*string)(unsafe.Pointer(&bs))
 }
 
-// MapSliceToMap returns map[string]string to map[string][]string.
-func MapSliceToMap(m map[string][]string) map[string]string {
-	out := make(map[string]string)
-	for k, v := range m {
-		if l := len(v); l > 0 {
-			out[k] = v[l-1]
-		}
-	}
-	return out
-}
-
-// MapToMapSlice returns map[string][]string to map[string]string.
-func MapToMapSlice(m map[string]string) map[string][]string {
-	out := make(map[string][]string)
-	for k, v := range m {
-		out[k] = []string{v}
-	}
-	return out
-}
-
-func QueryString(values map[string][]string) string {
+// EncodeUrlValues encodes the values (see url.Values) into url encoded form ("bar=baz&foo=quux") sorted by key with escape.
+// The escapeFunc can be url.QueryEscape, url.PathEscape or the functions you defined, use nil for no escape.
+func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string) string {
 	keys := make([]string, 0, len(values))
 	for k := range values {
 		keys = append(keys, k)
@@ -239,96 +284,56 @@ func QueryString(values map[string][]string) string {
 
 	sb := strings.Builder{}
 	for _, k := range keys {
+		key := k
+		if escapeFunc != nil {
+			key = escapeFunc(key)
+		}
 		for _, v := range values[k] {
+			val := v
+			if escapeFunc != nil {
+				val = escapeFunc(val)
+			}
+
 			if sb.Len() > 0 {
 				sb.WriteString("&")
 			}
-			sb.WriteString(k)
+			sb.WriteString(key)
 			sb.WriteString("=")
-			sb.WriteString(v)
+			sb.WriteString(val)
 		}
 	}
 
 	return sb.String()
 }
 
-// StringInterface returns a string value from any interface.
-func StringInterface(i interface{}) string {
-	s, ok := i.(string)
-	if ok {
-		return s
-	}
-	return fmt.Sprintf("%v", i)
-}
-
-// ErrorInterface returns an error value from any interface.
-func ErrorInterface(i interface{}) error {
-	s, ok := i.(error)
-	if ok {
-		return s
-	}
-	return fmt.Errorf("%v", i)
-}
-
-// DefaultFormatString returns the default format string of interface, equals to '%v'.
-func DefaultFormatString(i interface{}) string {
-	return fmt.Sprintf("%v", i)
-}
-
-// GoSyntaxString returns the go-syntax representation of interface, equals to '%#v'.
-func GoSyntaxString(i interface{}) string {
-	return fmt.Sprintf("%#v", i)
-}
-
-// IsMark determines whether the rune is a marker
-func IsMark(r rune) bool {
-	return unicode.Is(unicode.Mn, r) || unicode.Is(unicode.Me, r) || unicode.Is(unicode.Mc, r)
-}
-
-// IsEmpty returns true if the string is empty.
-func IsEmpty(text string) bool {
-	return len(text) == 0
-}
-
-// IsNotEmpty returns true if the string is not empty.
-func IsNotEmpty(text string) bool {
-	return !IsEmpty(text)
-}
-
-// IsBlank returns true if the string is blank (all whitespace).
-func IsBlank(text string) bool {
-	return len(strings.TrimSpace(text)) == 0
-}
-
-// IsNotBlank returns true if the string is not blank.
-func IsNotBlank(text string) bool {
-	return !IsBlank(text)
-}
-
-// PadLeft returns the string with length, which is padded by paddingChar in left.
-func PadLeft(s string, paddingChar rune, totalLength int) string {
+// PadLeft returns the string with length of totalLength, which is padded by char in left.
+func PadLeft(s string, char rune, totalLength int) string {
 	l := len([]rune(s))
 	sp := strings.Builder{}
 	for i := 0; i < totalLength-l; i++ {
-		sp.WriteRune(paddingChar)
+		sp.WriteRune(char)
 	}
 	sp.WriteString(s)
 	return sp.String()
 }
 
-// PadRight returns the string with length, which is padded by paddingChar in right.
-func PadRight(s string, paddingChar rune, totalLength int) string {
+// PadRight returns the string with length of totalLength, which is padded by char in right.
+func PadRight(s string, char rune, totalLength int) string {
 	l := len([]rune(s))
 	sp := strings.Builder{}
 	sp.WriteString(s)
 	for i := 0; i < totalLength-l; i++ {
-		sp.WriteRune(paddingChar)
+		sp.WriteRune(char)
 	}
 	return sp.String()
 }
 
 // GetLeft gets the left part of the string with length.
 func GetLeft(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
+
 	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
@@ -339,6 +344,10 @@ func GetLeft(s string, length int) string {
 
 // GetRight gets the right part of the string with length.
 func GetRight(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
+
 	runes := []rune(s)
 	l := len(runes)
 	if l <= length {
@@ -347,20 +356,21 @@ func GetRight(s string, length int) string {
 	return string(runes[l-length:])
 }
 
-// SliceAndGet returns both plus and minus item in slice.
-func SliceAndGet(sp []string, index int) string {
-	if len(sp) == 0 {
-		return ""
-	}
-	if index >= 0 {
-		return sp[index]
-	} else {
-		return sp[len(sp)+index]
-	}
-}
+const (
+	indexOutOfRangePanic = "xstring: index out of range"
+)
 
-// SplitAndGet returns both plus and minus item in split result.
+// SplitAndGet returns the string item from the split result slices, this also supports minus index.
 func SplitAndGet(s string, sep string, index int) string {
 	sp := strings.Split(s, sep)
-	return SliceAndGet(sp, index)
+	l := len(sp)
+
+	if index >= 0 && index < l {
+		return sp[index]
+	}
+	if newIndex := l + index; newIndex >= 0 && newIndex < l {
+		return sp[newIndex]
+	}
+
+	panic(indexOutOfRangePanic)
 }

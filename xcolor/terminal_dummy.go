@@ -7,5 +7,6 @@ import (
 )
 
 func checkTerminal(w io.Writer) bool {
+	// dummy
 	return false
 }

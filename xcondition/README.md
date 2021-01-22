@@ -1,17 +1,35 @@
 # xcondition
 
-### References
+## Dependencies
 
 + xtesting*
 
+## Documents
+
+### Types
+
++ None
+
+### Variables
+
++ None
+
+### Constants
+
++ None
+
 ### Functions
 
-+ `IfThen(condition bool, a interface{}) interface{}`
-+ `IfThenElse(condition bool, a interface{}, b interface{}) interface{}`
-+ `DefaultIfNil(value interface{}, defaultValue interface{}) interface{}`
-+ `FirstNotNil(values ...interface{}) interface{}`
-+ `PanicIfErr(i interface{}, err error) interface{}`
-+ `First(args ...interface{}) interface{}`
-+ `Second(args ...interface{}) interface{}`
-+ `Third(args ...interface{}) interface{}`
-+ `Last(args ...interface{}) interface{}`
++ `func IfThen(condition bool, value1 interface{}) interface{}`
++ `func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interface{}`
++ `func DefaultIfNil(value interface{}, defaultValue interface{}) interface{}`
++ `func PanicIfErr(i interface{}, err error) interface{}`
++ `func FirstNotNil(values ...interface{}) interface{}`
++ `func First(args ...interface{}) interface{}`
++ `func Second(args ...interface{}) interface{}`
++ `func Third(args ...interface{}) interface{}`
++ `func Last(args ...interface{}) interface{}`
+
+### Methods
+
++ None
