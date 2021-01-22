@@ -71,8 +71,8 @@ func (dt JsonDateTime) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	unmarshalJsonDateErr     = errors.New("xtime: given bytes could not be unmarshaled to JsonDate")
-	unmarshalJsonDateTimeErr = errors.New("xtime: given bytes could not be unmarshaled to JsonDateTime")
+	errUnmarshalJsonDate     = errors.New("xtime: given bytes could not be unmarshaled to JsonDate")
+	errUnmarshalJsonDateTime = errors.New("xtime: given bytes could not be unmarshaled to JsonDateTime")
 )
 
 // UnmarshalJSON unmarshals the time value from json bytes in RFC3339Date format.
@@ -82,7 +82,7 @@ func (d *JsonDate) UnmarshalJSON(bytes []byte) error {
 		return nil
 	}
 	if len(str) <= 2 || str[0] != '"' || str[len(str)-1] != '"' {
-		return unmarshalJsonDateErr
+		return errUnmarshalJsonDate
 	}
 
 	str = str[1 : len(str)-1]
@@ -98,7 +98,7 @@ func (dt *JsonDateTime) UnmarshalJSON(bytes []byte) error {
 		return nil
 	}
 	if len(str) <= 2 || str[0] != '"' || str[len(str)-1] != '"' {
-		return unmarshalJsonDateTimeErr
+		return errUnmarshalJsonDateTime
 	}
 
 	str = str[1 : len(str)-1]
@@ -112,8 +112,8 @@ func (dt *JsonDateTime) UnmarshalJSON(bytes []byte) error {
 // ============
 
 var (
-	scanJsonDateErr     = errors.New("xtime: value is not a time.Time")
-	scanJsonDateTimeErr = errors.New("xtime: value is not a time.Time")
+	errScanJsonDate     = errors.New("xtime: value is not a time.Time")
+	errScanJsonDateTime = errors.New("xtime: value is not a time.Time")
 )
 
 // Scan implementations sql.Scanner to support sql scan.
@@ -123,7 +123,7 @@ func (d *JsonDate) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return scanJsonDateErr
+		return errScanJsonDate
 	}
 	*d = NewJsonDate(val)
 	return nil
@@ -136,7 +136,7 @@ func (dt *JsonDateTime) Scan(value interface{}) error {
 	}
 	val, ok := value.(time.Time)
 	if !ok {
-		return scanJsonDateTimeErr
+		return errScanJsonDateTime
 	}
 	*dt = NewJsonDateTime(val)
 	return nil

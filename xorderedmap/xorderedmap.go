@@ -97,7 +97,7 @@ func (l *OrderedMap) GetOr(key string, defaultValue interface{}) interface{} {
 }
 
 const (
-	keyNotFoundPanic = "xorderedmap: key `%s` not found"
+	panicKeyNotFound = "xorderedmap: key `%s` not found"
 )
 
 // MustGet returns the value by key, panics if the key not found.
@@ -106,7 +106,7 @@ func (l *OrderedMap) MustGet(key string) interface{} {
 	value, exist := l.kv[key]
 	l.mu.RUnlock()
 	if !exist {
-		panic(fmt.Sprintf(keyNotFoundPanic, key))
+		panic(fmt.Sprintf(panicKeyNotFound, key))
 	}
 	return value
 }
@@ -196,14 +196,14 @@ func (l *OrderedMap) String() string {
 }
 
 const (
-	nilObjectPanic = "xorderedmap: nil object"
-	nonStructPanic = "xorderedmap: non-struct object"
+	panicNilObject = "xorderedmap: nil object"
+	panicNonStruct = "xorderedmap: non-struct object"
 )
 
 // FromInterface creates an OrderedMap from a struct (with json tag), panics if using nil or non-struct object.
 func FromInterface(object interface{}) *OrderedMap {
 	if object == nil {
-		panic(nilObjectPanic)
+		panic(panicNilObject)
 	}
 	typ := reflect.TypeOf(object)
 	val := reflect.ValueOf(object)
@@ -212,7 +212,7 @@ func FromInterface(object interface{}) *OrderedMap {
 		val = val.Elem()
 	}
 	if typ.Kind() != reflect.Struct {
-		panic(nonStructPanic)
+		panic(panicNonStruct)
 	}
 
 	om := New()

@@ -87,10 +87,6 @@ func coreReverse(slice innerSlice) {
 	}
 }
 
-const (
-	nilLesserPanic = "xslice: nil less function"
-)
-
 // SortSelf sorts the []interface{} slice with less function directly.
 func SortSelf(slice []interface{}, less Lesser) {
 	coreSort(checkInterfaceSliceParam(slice), less, false)
@@ -142,7 +138,7 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 // coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
 	if less == nil {
-		panic(nilLesserPanic)
+		panic(panicNilLesser)
 	}
 	ss := &sortSlice{slice: slice, less: less}
 	if stable {
@@ -195,13 +191,13 @@ func ContainsWith(slice []interface{}, value interface{}, equaller Equaller) boo
 	return coreContains(checkInterfaceSliceParam(slice), value, equaller)
 }
 
-// Contains returns true if value is in the []T slice, is the generic function of Contains.
+// ContainsG returns true if value is in the []T slice, is the generic function of Contains.
 func ContainsG(slice interface{}, value interface{}) bool {
 	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreContains(s, v, defaultEqualler)
 }
 
-// ContainsWith returns true if value is in the []T slice with Equaller, is the generic function of ContainsWith.
+// ContainsWithG returns true if value is in the []T slice with Equaller, is the generic function of ContainsWith.
 func ContainsWithG(slice interface{}, value interface{}, equaller Equaller) bool {
 	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreContains(s, v, equaller)
@@ -455,12 +451,12 @@ func ToSetWith(slice []interface{}, equaller Equaller) []interface{} {
 	return coreToSet(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
 }
 
-// ToSet removes the duplicate items from []T slice as a set, is the generic function of ToSet.
+// ToSetG removes the duplicate items from []T slice as a set, is the generic function of ToSet.
 func ToSetG(slice interface{}) interface{} {
 	return coreToSet(checkSliceInterfaceParam(slice), defaultEqualler).actual()
 }
 
-// ToSetWith removes the duplicate items from []T slice as a set with Equaller, is the generic function of ToSetWith.
+// ToSetWithG removes the duplicate items from []T slice as a set with Equaller, is the generic function of ToSetWith.
 func ToSetWithG(slice interface{}, equaller Equaller) interface{} {
 	return coreToSet(checkSliceInterfaceParam(slice), equaller).actual()
 }
@@ -487,13 +483,13 @@ func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool {
 	return coreElementMatch(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller)
 }
 
-// ElementMatch checks if two []T slice equal without order, is the generic function of ElementMatch.
+// ElementMatchG checks if two []T slice equal without order, is the generic function of ElementMatch.
 func ElementMatchG(slice1, slice2 interface{}) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, defaultEqualler)
 }
 
-// ElementMatchWith checks if two []T slice equal without order with Equaller, is the generic function of ElementMatchWith.
+// ElementMatchWithG checks if two []T slice equal without order with Equaller, is the generic function of ElementMatchWith.
 func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, equaller)
@@ -535,16 +531,16 @@ func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 }
 
 const (
-	minLargerThenMaxPanic = "xslice: min is larger than max"
-	stepLessThenZeroPanic = "xslice: step is less then or equals to 0"
+	panicMinLargerThenMax = "xslice: min is larger than max"
+	panicStepLessThenZero = "xslice: step is less then or equals to 0"
 )
 
 // Range generates a []int slice from min index to max index with step.
 func Range(min, max, step int) []int {
 	if min > max {
-		panic(minLargerThenMaxPanic)
+		panic(panicMinLargerThenMax)
 	} else if step <= 0 {
-		panic(stepLessThenZeroPanic)
+		panic(panicStepLessThenZero)
 	}
 
 	out := make([]int, 0)
@@ -557,9 +553,9 @@ func Range(min, max, step int) []int {
 // ReverseRange generates a reverse []int slice from max index to min index with step.
 func ReverseRange(min, max, step int) []int {
 	if min > max {
-		panic(minLargerThenMaxPanic)
+		panic(panicMinLargerThenMax)
 	} else if step <= 0 {
-		panic(stepLessThenZeroPanic)
+		panic(panicStepLessThenZero)
 	}
 
 	out := make([]int, 0)

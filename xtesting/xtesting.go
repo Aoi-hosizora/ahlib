@@ -133,7 +133,7 @@ func Zero(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// NotEmpty asserts that the specified object is not the zero value for its type.
+// NotZero asserts that the specified object is not the zero value for its type.
 func NotZero(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
 	if IsObjectZero(object) {
 		return failTest(t, 1, fmt.Sprintf("NotZero: expected not to be zero value, actual `%#v`", object), msgAndArgs...)

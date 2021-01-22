@@ -38,7 +38,7 @@ func (t *TraceFrame) String() string {
 	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", t.Filename, t.LineIndex, t.PC, t.FuncName, t.LineText)
 }
 
-// TrackStack represents the runtime trace stack, that is a slice of TraceFrame.
+// TraceStack represents the runtime trace stack, that is a slice of TraceFrame.
 type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.

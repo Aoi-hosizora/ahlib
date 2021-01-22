@@ -174,7 +174,7 @@ func (i *Smplen) Flag() Smpflag {
 }
 
 const (
-	badTypePanic = "xreflect: bad type `%T`"
+	panicBadType = "xreflect: bad type `%T`"
 )
 
 // SmpvalOf gets the Smpval from the given value, panics when using unsupported type.
@@ -196,7 +196,7 @@ func SmpvalOf(i interface{}) *Smpval {
 	case reflect.String:
 		return stringSmpval(val.String())
 	}
-	panic(fmt.Sprintf(badTypePanic, val.Interface()))
+	panic(fmt.Sprintf(panicBadType, val.Interface()))
 }
 
 // SmplenOf gets the Smplen of given value, panics when using unsupported type.
@@ -220,5 +220,5 @@ func SmplenOf(i interface{}) *Smplen {
 	case reflect.Slice, reflect.Array, reflect.Map:
 		return intSmplen(int64(val.Len()))
 	}
-	panic(fmt.Sprintf(badTypePanic, val.Interface()))
+	panic(fmt.Sprintf(panicBadType, val.Interface()))
 }

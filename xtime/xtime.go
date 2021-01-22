@@ -111,14 +111,14 @@ var (
 	// For more details of time.RFC3339 offset, see https://tools.ietf.org/html/rfc3339#section-4.2.
 	timezoneRegexp = regexp.MustCompile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
 
-	wrongFormatErr = errors.New("xtime: wrong format timezone string")
+	errWrongFormat = errors.New("xtime: wrong format timezone string")
 )
 
 // ParseTimezone parses a UTC offset timezone string to time.Location (with UTC+00:00 name), format: `[+-][0-9]{1,2}(:[0-9]{1,2})?`.
 func ParseTimezone(timezone string) (*time.Location, error) {
 	matches := timezoneRegexp.FindAllStringSubmatch(timezone, 1)
 	if len(matches) == 0 || len(matches[0][1:]) < 3 {
-		return nil, wrongFormatErr
+		return nil, errWrongFormat
 	}
 
 	group := matches[0][1:]

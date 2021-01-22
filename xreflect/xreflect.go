@@ -99,5 +99,5 @@ func IsEmptyValue(i interface{}) bool {
 	case reflect.Interface, reflect.Ptr:
 		return val.IsNil()
 	}
-	panic(fmt.Sprintf(badTypePanic, val.Interface()))
+	panic(fmt.Sprintf(panicBadType, val.Interface()))
 }

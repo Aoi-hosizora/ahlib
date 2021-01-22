@@ -50,25 +50,25 @@ func (m *ModuleContainer) SetLogger(logger Logger) {
 }
 
 const (
-	invalidModuleNamePanic     = "xmodule: using invalid module name (empty, '-' and '~')"
-	nilModulePanic             = "xmodule: using nil module"
-	nilInterfacePtrPanic       = "xmodule: using nil interface pointer"
-	nonInterfacePtrPanic       = "xmodule: using non-interface pointer"
-	notImplementInterfacePanic = "xmodule: module do not implement the interface"
-	moduleNotFoundPanic        = "xmodule: module not found"
+	panicInvalidModuleName     = "xmodule: using invalid module name (empty, '-' and '~')"
+	panicNilModule             = "xmodule: using nil module"
+	panicNilInterfacePtr       = "xmodule: using nil interface pointer"
+	panicNonInterfacePtr       = "xmodule: using non-interface pointer"
+	panicNotImplementInterface = "xmodule: module do not implement the interface"
+	panicModuleNotFound        = "xmodule: module not found"
 
-	injectIntoNilPanic          = "xmodule: inject into nil struct"
-	injectIntoNonStructPtrPanic = "xmodule: inject into non-struct pointer"
-	notAllFieldsInjectedPanic   = "xmodule: not all fields with module tag are injected"
+	panicInjectIntoNil          = "xmodule: inject into nil struct"
+	panicInjectIntoNonStructPtr = "xmodule: inject into non-struct pointer"
+	panicNotAllFieldsInjected   = "xmodule: not all fields with module tag are injected"
 )
 
 // ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
 func (m *ModuleContainer) ProvideName(name ModuleName, module interface{}) {
 	if name == "" || name == "-" || name == "~" {
-		panic(invalidModuleNamePanic)
+		panic(panicInvalidModuleName)
 	}
 	if module == nil {
-		panic(nilModulePanic)
+		panic(panicNilModule)
 	}
 
 	m.muByName.Lock()
@@ -81,7 +81,7 @@ func (m *ModuleContainer) ProvideName(name ModuleName, module interface{}) {
 // ProvideType provides a module using its type, panics when using nil module.
 func (m *ModuleContainer) ProvideType(module interface{}) {
 	if module == nil {
-		panic(nilModulePanic)
+		panic(panicNilModule)
 	}
 	typ := reflect.TypeOf(module)
 
@@ -99,23 +99,23 @@ func (m *ModuleContainer) ProvideType(module interface{}) {
 // 	GetByImpl((*Interface)(nil))
 func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl interface{}) {
 	if interfacePtr == nil {
-		panic(nilInterfacePtrPanic)
+		panic(panicNilInterfacePtr)
 	}
 	if moduleImpl == nil {
-		panic(nilModulePanic)
+		panic(panicNilModule)
 	}
 
 	itfTyp := reflect.TypeOf(interfacePtr)
 	if itfTyp.Kind() != reflect.Ptr {
-		panic(nonInterfacePtrPanic)
+		panic(panicNonInterfacePtr)
 	}
 	itfTyp = itfTyp.Elem()
 	if itfTyp.Kind() != reflect.Interface {
-		panic(nonInterfacePtrPanic)
+		panic(panicNonInterfacePtr)
 	}
 	modTyp := reflect.TypeOf(moduleImpl)
 	if !modTyp.Implements(itfTyp) {
-		panic(notImplementInterfacePanic)
+		panic(panicNotImplementInterface)
 	}
 
 	m.muByType.Lock()
@@ -128,7 +128,7 @@ func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl inter
 // GetByName returns the module provided by name, panics when using invalid module name.
 func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist bool) {
 	if name == "" || name == "~" || name == "-" {
-		panic(invalidModuleNamePanic)
+		panic(panicInvalidModuleName)
 	}
 
 	m.muByName.RLock()
@@ -141,7 +141,7 @@ func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist 
 func (m *ModuleContainer) MustGetByName(name ModuleName) interface{} {
 	module, exist := m.GetByName(name)
 	if !exist {
-		panic(moduleNotFoundPanic)
+		panic(panicModuleNotFound)
 	}
 	return module
 }
@@ -149,7 +149,7 @@ func (m *ModuleContainer) MustGetByName(name ModuleName) interface{} {
 // GetByType returns a module provided by type, panics when using nil type.
 func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{}, exist bool) {
 	if moduleType == nil {
-		panic(nilModulePanic)
+		panic(panicNilModule)
 	}
 
 	typ := reflect.TypeOf(moduleType)
@@ -163,7 +163,7 @@ func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{},
 func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{} {
 	module, exist := m.GetByType(moduleType)
 	if !exist {
-		panic(moduleNotFoundPanic)
+		panic(panicModuleNotFound)
 	}
 	return module
 }
@@ -171,15 +171,15 @@ func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{} {
 // GetByImpl returns a module by interface pointer, panics when using invalid interface pointer.
 func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{}, exist bool) {
 	if interfacePtr == nil {
-		panic(nilInterfacePtrPanic)
+		panic(panicNilInterfacePtr)
 	}
 	itfTyp := reflect.TypeOf(interfacePtr)
 	if itfTyp.Kind() != reflect.Ptr {
-		panic(nonInterfacePtrPanic)
+		panic(panicNonInterfacePtr)
 	}
 	itfTyp = itfTyp.Elem()
 	if itfTyp.Kind() != reflect.Interface {
-		panic(nonInterfacePtrPanic)
+		panic(panicNonInterfacePtr)
 	}
 
 	m.muByType.RLock()
@@ -192,7 +192,7 @@ func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{
 func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{} {
 	module, exist := m.GetByImpl(interfacePtr)
 	if !exist {
-		panic(moduleNotFoundPanic)
+		panic(panicModuleNotFound)
 	}
 	return module
 }
@@ -234,18 +234,18 @@ func (m *ModuleContainer) MustInject(ctrl interface{}) {
 // coreInject is the core implementation for Inject and MustInject.
 func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 	if ctrl == nil {
-		panic(injectIntoNilPanic)
+		panic(panicInjectIntoNil)
 	}
 	ctrlTyp := reflect.TypeOf(ctrl)
 	ctrlTypName := ctrlTyp.String()
 	ctrlVal := reflect.ValueOf(ctrl)
 	if ctrlTyp.Kind() != reflect.Ptr {
-		panic(injectIntoNonStructPtrPanic)
+		panic(panicInjectIntoNonStructPtr)
 	}
 	ctrlTyp = ctrlTyp.Elem()
 	ctrlVal = ctrlVal.Elem()
 	if ctrlTyp.Kind() != reflect.Struct {
-		panic(injectIntoNonStructPtrPanic)
+		panic(panicInjectIntoNonStructPtr)
 	}
 
 	// record is all injected
@@ -280,7 +280,7 @@ func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 		if !exist {
 			if force {
 				// if force inject and module not found, panic
-				panic(notAllFieldsInjectedPanic)
+				panic(panicNotAllFieldsInjected)
 			}
 			allInjected = false
 			continue

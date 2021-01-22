@@ -130,9 +130,8 @@ func TimeUUID(t time.Time, count int) string {
 
 	if count <= l {
 		return uuid[:count]
-	} else {
-		return uuid + RandNumberString(count-l)
 	}
+	return uuid + RandNumberString(count-l)
 }
 
 // RandString generates a string by given rune slice in random order.
@@ -357,7 +356,7 @@ func GetRight(s string, length int) string {
 }
 
 const (
-	indexOutOfRangePanic = "xstring: index out of range"
+	panicIndexOutOfRange = "xstring: index out of range"
 )
 
 // SplitAndGet returns the string item from the split result slices, this also supports minus index.
@@ -372,5 +371,5 @@ func SplitAndGet(s string, sep string, index int) string {
 		return sp[newIndex]
 	}
 
-	panic(indexOutOfRangePanic)
+	panic(panicIndexOutOfRange)
 }

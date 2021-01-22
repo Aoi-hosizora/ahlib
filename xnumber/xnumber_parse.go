@@ -483,4 +483,3 @@ func F32toa(f float32) string {
 func F64toa(f float64) string {
 	return FormatFloat64(f, 'f', -1)
 }
-

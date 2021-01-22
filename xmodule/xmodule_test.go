@@ -191,7 +191,7 @@ func TestGetByImpl(t *testing.T) {
 	}{
 		{nil, 0, true},
 		{0, errors.New(""), true}, // non ptr
-		{t, "", true}, // non itf
+		{t, "", true},             // non itf
 		{(*error)(nil), errors.New("test"), false},
 		{(*fmt.Stringer)(nil), &strings.Builder{}, false},
 	} {

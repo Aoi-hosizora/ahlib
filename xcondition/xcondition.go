@@ -43,13 +43,13 @@ func FirstNotNil(values ...interface{}) interface{} {
 }
 
 const (
-	indexOutOfRangePanic = "xcondition: index out of range"
+	panicIndexOutOfRange = "xcondition: index out of range"
 )
 
 // First returns the first element of args, panics if out of range.
 func First(args ...interface{}) interface{} {
 	if len(args) <= 0 {
-		panic(indexOutOfRangePanic)
+		panic(panicIndexOutOfRange)
 	}
 	return args[0]
 }
@@ -57,7 +57,7 @@ func First(args ...interface{}) interface{} {
 // Second returns the second element of args, panics if out of range.
 func Second(args ...interface{}) interface{} {
 	if len(args) <= 1 {
-		panic(indexOutOfRangePanic)
+		panic(panicIndexOutOfRange)
 	}
 	return args[1]
 }
@@ -65,7 +65,7 @@ func Second(args ...interface{}) interface{} {
 // Third returns the third element of args, panics if out of range.
 func Third(args ...interface{}) interface{} {
 	if len(args) <= 2 {
-		panic(indexOutOfRangePanic)
+		panic(panicIndexOutOfRange)
 	}
 	return args[2]
 }
@@ -73,7 +73,7 @@ func Third(args ...interface{}) interface{} {
 // Last returns the last element of args, panics if out of range.
 func Last(args ...interface{}) interface{} {
 	if len(args) <= 0 {
-		panic(indexOutOfRangePanic)
+		panic(panicIndexOutOfRange)
 	}
 	return args[len(args)-1]
 }
