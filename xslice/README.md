@@ -1,82 +1,85 @@
 # xslice
 
-### References
+## Dependencies
 
 + xtesting*
 
+## Documents
+
+### Types
+
++ `type Equaller func`
++ `type Lesser func`
+
+### Variables
+
++ None
+
+### Constants
+
++ None
+
 ### Functions
 
-#### Common
++ `func ShuffleSelf(slice []interface{})`
++ `func Shuffle(slice []interface{}) []interface{}`
++ `func ShuffleSelfG(slice interface{})`
++ `func ShuffleG(slice interface{}) interface{}`
++ `func ReverseSelf(slice []interface{})`
++ `func Reverse(slice []interface{}) []interface{}`
++ `func ReverseSelfG(slice interface{})`
++ `func ReverseG(slice interface{}) interface{}`
++ `func SortSelf(slice []interface{}, less Lesser)`
++ `func Sort(slice []interface{}, less Lesser) []interface{}`
++ `func SortSelfG(slice interface{}, less Lesser)`
++ `func SortG(slice interface{}, less Lesser) interface{}`
++ `func StableSortSelf(slice []interface{}, less Lesser)`
++ `func StableSort(slice []interface{}, less Lesser) []interface{}`
++ `func StableSortSelfG(slice interface{}, less Lesser)`
++ `func StableSortG(slice interface{}, less Lesser) interface{}`
++ `func IndexOf(slice []interface{}, value interface{}) int`
++ `func IndexOfWith(slice []interface{}, value interface{}, equaller Equaller)`
++ `func IndexOfG(slice interface{}, value interface{})`
++ `func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller)`
++ `func Contains(slice []interface{}, value interface{}) bool`
++ `func ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool`
++ `func ContainsG(slice interface{}, value interface{}) bool`
++ `func ContainsWithG(slice interface{}, value interface{}, equaller Equaller) bool`
++ `func Count(slice []interface{}, value interface{}) int`
++ `func CountWith(slice []interface{}, value interface{}, equaller Equaller) int`
++ `func CountG(slice interface{}, value interface{}) int`
++ `func CountWithG(slice interface{}, value interface{}, equaller Equaller) int`
++ `func Delete(slice []interface{}, value interface{}, n int) []interface{}`
++ `func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
++ `func DeleteG(slice interface{}, value interface{}, n int) interface{}`
++ `func DeleteWithG(slice interface{}, value interface{}, n int, equaller Equaller) interface{}`
++ `func DeleteAll(slice []interface{}, value interface{}) []interface{}`
++ `func DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{}`
++ `func DeleteAllG(slice interface{}, value interface{}) interface{}`
++ `func DeleteAllWithG(slice interface{}, value interface{}, equaller Equaller) interface{}`
++ `func Diff(slice1, slice2 []interface{}) []interface{}`
++ `func DiffWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
++ `func DiffG(slice1, slice2 interface{}) interface{}`
++ `func DiffWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
++ `func Union(slice1, slice2 []interface{}) []interface{}`
++ `func UnionWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
++ `func UnionG(slice1, slice2 interface{}) interface{}`
++ `func UnionWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
++ `func Intersection(slice1, slice2 []interface{}) []interface{}`
++ `func IntersectionWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
++ `func IntersectionG(slice1, slice2 interface{}) interface{}`
++ `func IntersectionWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
++ `func ToSet(slice []interface{}) []interface{}`
++ `func ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
++ `func ToSetG(slice interface{}) interface{}`
++ `func ToSetWithG(slice interface{}, equaller Equaller) interface{}`
++ `func ElementMatch(slice1, slice2 []interface{}) bool`
++ `func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool`
++ `func ElementMatchG(slice1, slice2 interface{}) bool`
++ `func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool`
++ `func Range(min, max, step int) []int`
++ `func ReverseRange(min, max, step int) []int`
 
-+ `Shuffle(slice []interface{})`
-+ `ShuffleNew(slice []interface{}) []interface{}`
-+ `Reverse(slice []interface{}) []interface{}`
-+ `ReverseNew(slice []interface{}) []interface{}`
-+ `ForEach(slice []interface{}, each func(interface{}))`
-+ `GoForEach(slice []interface{}, each func(interface{}))`
-+ `Map(slice []interface{}, mapFunc func(interface{}) interface{}) []interface{}`
-+ `IndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int`
-+ `IndexOf(slice []interface{}, value interface{}) int`
-+ `ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool`
-+ `Contains(slice []interface{}, value interface{}) bool`
-+ `CountWith(slice []interface{}, value interface{}, equaller Equaller) int`
-+ `Count(slice []interface{}, value interface{}) int`
-+ `DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
-+ `Delete(slice []interface{}, value interface{}, n int) []interface{}`
-+ `DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{}`
-+ `DeleteAll(slice []interface{}, value interface{}) []interface{}`
-+ `DiffWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
-+ `Diff(s1 []interface{}, s2 []interface{}) []interface{}`
-+ `UnionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
-+ `Union(s1 []interface{}, s2 []interface{}) []interface{}`
-+ `IntersectionWith(s1 []interface{}, s2 []interface{}, equaller Equaller) []interface{}`
-+ `Intersection(s1 []interface{}, s2 []interface{}) []interface{}`
-+ `ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
-+ `ToSet(s []interface{}) []interface{}`
-+ `EqualWith(s1 []interface{}, s2 []interface{}, equaller Equaller) bool`
-+ `Equal(s1 []interface{}, s2 []interface{}) bool`
-+ `Range(min, max, step int) []int`
-+ `ReverseRange(min, max, step int) []int`
-+ `GenerateByIndex(index []int, f func(i int) interface{}) []interface{}`
-+ `type SortSlice struct {}`
-+ `NewSortSlice(s []interface{}, less func(i, j int) bool) SortSlice`
-+ `ReverseSortSlice(s SortSlice) SortSlice`
-+ `Sort(s []interface{}, less func(i, j int) bool)`
-+ `StableSort(s []interface{}, less func(i, j int) bool)`
+### Methods
 
-#### Helper
-
-+ `Sti(slice interface{}) []interface{}`
-+ `Its(slice []interface{}, model interface{}) interface{}`
-+ `StiInt(slice []int) []interface{}`
-+ `StiInt8(slice []int8) []interface{}`
-+ `StiInt16(slice []int16) []interface{}`
-+ `StiInt32(slice []int32) []interface{}`
-+ `StiInt64(slice []int64) []interface{}`
-+ `StiUint(slice []uint) []interface{}`
-+ `StiUint8(slice []uint8) []interface{}`
-+ `StiUint16(slice []uint16) []interface{}`
-+ `StiUint32(slice []uint32) []interface{}`
-+ `StiUint64(slice []uint64) []interface{}`
-+ `StiFloat32(slice []float32) []interface{}`
-+ `StiFloat64(slice []float64) []interface{}`
-+ `StiByte(slice []byte) []interface{}`
-+ `StiRune(slice []rune) []interface{}`
-+ `StiString(slice []string) []interface{}`
-+ `StiBool(slice []bool) []interface{}`
-+ `ItsOfInt(slice []interface{}) []int`
-+ `ItsOfInt8(slice []interface{}) []int8`
-+ `ItsOfInt16(slice []interface{}) []int16`
-+ `ItsOfInt32(slice []interface{}) []int32`
-+ `ItsOfInt64(slice []interface{}) []int64`
-+ `ItsOfUint(slice []interface{}) []uint`
-+ `ItsOfUint8(slice []interface{}) []uint8`
-+ `ItsOfUint16(slice []interface{}) []uint16`
-+ `ItsOfUint32(slice []interface{}) []uint32`
-+ `ItsOfUint64(slice []interface{}) []uint64`
-+ `ItsOfFloat32(slice []interface{}) []float32`
-+ `ItsOfFloat64(slice []interface{}) []float64`
-+ `ItsOfByte(slice []interface{}) []byte`
-+ `ItsOfRune(slice []interface{}) []rune`
-+ `ItsOfString(slice []interface{}) []string`
-+ `ItsOfBool(slice []interface{}) []bool`
++ None

@@ -20,7 +20,7 @@ func TestCheckParam(t *testing.T) {
 		{[]interface{}{1, 1, 1}, []interface{}{1, 1, 1}},
 		{[]interface{}{1, nil, "2", false, 3.3}, []interface{}{1, nil, "2", false, 3.3}},
 	} {
-		xtesting.Equal(t, checkSliceParam(tc.give).origin, tc.want)
+		xtesting.Equal(t, checkInterfaceSliceParam(tc.give).origin, tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -38,15 +38,68 @@ func TestCheckParam(t *testing.T) {
 		{[]int{1, 3, 0, 2}, []int{1, 3, 0, 2}, false},
 	} {
 		if tc.wantPanic {
-			xtesting.Panic(t, func() { checkInterfaceParam(tc.give) })
+			xtesting.Panic(t, func() { checkSliceInterfaceParam(tc.give) })
 		} else {
-			xtesting.Equal(t, checkInterfaceParam(tc.give).origin, tc.want)
+			xtesting.Equal(t, checkSliceInterfaceParam(tc.give).origin, tc.want)
+		}
+	}
+
+	for _, tc := range []struct {
+		give1     interface{}
+		give2     interface{}
+		want1     interface{}
+		want2     interface{}
+		wantPanic bool
+	}{
+		{nil, []interface{}{}, nil, nil, true},
+		{[]interface{}{}, nil, nil, nil, true},
+		{nil, 0, nil, nil, true},
+		{0, nil, nil, nil, true},
+		{0, []int{}, nil, nil, true},
+		{[]int{}, 0, nil, nil, true},
+		{[]int{}, []string{}, nil, nil, true},
+		{[]int(nil), []int(nil), []int{}, []int{}, false},
+		{[]int{}, []int{}, []int{}, []int{}, false},
+		{[]int{0}, []int{1}, []int{0}, []int{1}, false},
+		{[]int{0, 0, 0}, []int{1, 1, 1}, []int{0, 0, 0}, []int{1, 1, 1}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { checkTwoSliceInterfaceParam(tc.give1, tc.give2) })
+		} else {
+			s1, s2 := checkTwoSliceInterfaceParam(tc.give1, tc.give2)
+			xtesting.Equal(t, s1.origin, tc.want1)
+			xtesting.Equal(t, s2.origin, tc.want2)
+		}
+	}
+
+	for _, tc := range []struct {
+		give1     interface{}
+		give2     interface{}
+		want1     interface{}
+		want2     interface{}
+		wantPanic bool
+	}{
+		{nil, 0, nil, nil, true},
+		{0, 0, nil, nil, true},
+		{[]int{}, "0", nil, nil, true},
+		{[]int{}, nil, []int{}, 0, false},
+		{[]int{}, 0, []int{}, 0, false},
+		{[]int(nil), 0, []int{}, 0, false},
+		{[]int{0}, 0, []int{0}, 0, false},
+		{[]int{1, 1, 1}, 1, []int{1, 1, 1}, 1, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { checkSliceInterfaceAndElemParam(tc.give1, tc.give2) })
+		} else {
+			s, v := checkSliceInterfaceAndElemParam(tc.give1, tc.give2)
+			xtesting.Equal(t, s.origin, tc.want1)
+			xtesting.Equal(t, v, tc.want2)
 		}
 	}
 }
 
 func TestInnerOfInterfaceSlice(t *testing.T) {
-	slice := checkSliceParam([]interface{}{1, 2, 3, 4, 5, 6})
+	slice := checkInterfaceSliceParam([]interface{}{1, 2, 3, 4, 5, 6})
 	// actual
 	xtesting.Equal(t, slice.actual(), []interface{}{1, 2, 3, 4, 5, 6})
 	// length
@@ -89,10 +142,14 @@ func TestInnerOfInterfaceSlice(t *testing.T) {
 	// append
 	slice.append(7)
 	xtesting.Equal(t, slice.origin, []interface{}{1, 2, 3, 4, 5, 6, 7})
+	slice.append(nil)
+	xtesting.Equal(t, slice.origin, []interface{}{1, 2, 3, 4, 5, 6, 7, nil})
+	slice.append("0")
+	xtesting.Equal(t, slice.origin, []interface{}{1, 2, 3, 4, 5, 6, 7, nil, "0"})
 }
 
 func TestInnerInterfaceWrappedSlice(t *testing.T) {
-	slice := checkInterfaceParam([]int{1, 2, 3, 4, 5, 6})
+	slice := checkSliceInterfaceParam([]int{1, 2, 3, 4, 5, 6})
 	// actual
 	xtesting.Equal(t, slice.actual(), []int{1, 2, 3, 4, 5, 6})
 	// length
@@ -140,6 +197,7 @@ func TestInnerInterfaceWrappedSlice(t *testing.T) {
 	xtesting.Equal(t, slice.origin, []int{1, 2, 3, 4, 5, 6, 7})
 	slice.append(nil)
 	xtesting.Equal(t, slice.origin, []int{1, 2, 3, 4, 5, 6, 7, 0})
+	xtesting.Panic(t, func() { slice.append("0") })
 }
 
 func TestCloneAndMakeSlice(t *testing.T) {
@@ -203,8 +261,6 @@ func TestCloneAndMakeSlice(t *testing.T) {
 }
 
 func TestShuffle(t *testing.T) {
-	var showFn = func() bool { return true }
-
 	// Shuffle & ShuffleSelf
 	for _, tc := range []struct {
 		give []interface{}
@@ -217,24 +273,18 @@ func TestShuffle(t *testing.T) {
 		for _, item := range tc.give {
 			me = append(me, item)
 		}
-
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			result := Shuffle(tc.give)
 			xtesting.Equal(t, tc.give, me)
 			xtesting.ElementMatch(t, result, me)
-			if showFn() {
-				fmt.Println(result)
-			}
+			fmt.Println(result)
 		}
-
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			ShuffleSelf(tc.give)
 			xtesting.ElementMatch(t, tc.give, me)
-			if showFn() {
-				fmt.Println(tc.give)
-			}
+			fmt.Println(tc.give)
 		}
 	}
 
@@ -250,24 +300,18 @@ func TestShuffle(t *testing.T) {
 		for _, item := range tc.give {
 			me = append(me, item)
 		}
-
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			result := ShuffleG(tc.give)
 			xtesting.Equal(t, tc.give, me)
 			xtesting.ElementMatch(t, result, me)
-			if showFn() {
-				fmt.Println(result)
-			}
+			fmt.Println(result)
 		}
-
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			ShuffleSelfG(tc.give)
 			xtesting.ElementMatch(t, tc.give, me)
-			if showFn() {
-				fmt.Println(tc.give)
-			}
+			fmt.Println(tc.give)
 		}
 	}
 }
@@ -281,7 +325,12 @@ func TestReverse(t *testing.T) {
 		{[]interface{}{0}, []interface{}{0}},
 		{[]interface{}{1, 2, 3}, []interface{}{3, 2, 1}},
 	} {
+		me := make([]interface{}, 0, len(tc.give))
+		for _, item := range tc.give {
+			me = append(me, item)
+		}
 		result := Reverse(tc.give)
+		xtesting.Equal(t, tc.give, me)
 		xtesting.Equal(t, result, tc.want)
 		ReverseSelf(tc.give)
 		xtesting.Equal(t, tc.give, tc.want)
@@ -295,17 +344,201 @@ func TestReverse(t *testing.T) {
 		{[]int{0}, []int{0}},
 		{[]int{1, 2, 3}, []int{3, 2, 1}},
 	} {
+		me := make([]int, 0, len(tc.give))
+		for _, item := range tc.give {
+			me = append(me, item)
+		}
 		result := ReverseG(tc.give)
+		xtesting.Equal(t, tc.give, me)
 		xtesting.Equal(t, result, tc.want)
 		ReverseSelfG(tc.give)
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 }
 
+func TestSort(t *testing.T) {
+	le := func(i, j interface{}) bool { return i.(int) < j.(int) }
+
+	for _, tc := range []struct {
+		give      []interface{}
+		giveLess  Lesser
+		want      []interface{}
+		wantPanic bool
+	}{
+		{[]interface{}{}, nil, nil, true},
+		{[]interface{}{}, le, []interface{}{}, false},
+		{[]interface{}{0}, le, []interface{}{0}, false},
+		{[]interface{}{1, 1, 1}, le, []interface{}{1, 1, 1}, false},
+		{[]interface{}{4, 3, 2, 1}, le, []interface{}{1, 2, 3, 4}, false},
+		{[]interface{}{8, 1, 6, 8, 1, 2}, le, []interface{}{1, 1, 2, 6, 8, 8}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { Sort(tc.give, tc.giveLess) })
+		} else {
+			me := make([]interface{}, 0, len(tc.give))
+			for _, item := range tc.give {
+				me = append(me, item)
+			}
+			result := Sort(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, me)
+			xtesting.Equal(t, result, tc.want)
+			SortSelf(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, tc.want)
+		}
+	}
+
+	for _, tc := range []struct {
+		give      []int
+		giveLess  Lesser
+		want      []int
+		wantPanic bool
+	}{
+		{[]int{}, nil, nil, true},
+		{[]int{}, le, []int{}, false},
+		{[]int{0}, le, []int{0}, false},
+		{[]int{1, 1, 1}, le, []int{1, 1, 1}, false},
+		{[]int{4, 3, 2, 1}, le, []int{1, 2, 3, 4}, false},
+		{[]int{8, 1, 6, 8, 1, 2}, le, []int{1, 1, 2, 6, 8, 8}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { SortG(tc.give, tc.giveLess) })
+		} else {
+			me := make([]int, 0, len(tc.give))
+			for _, item := range tc.give {
+				me = append(me, item)
+			}
+			result := SortG(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, me)
+			xtesting.Equal(t, result, tc.want)
+			SortSelfG(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, tc.want)
+		}
+	}
+}
+
+func TestStableSort(t *testing.T) {
+	type testStruct struct {
+		value int
+		other int
+	}
+	new1 := func(v int) testStruct { return testStruct{value: v} }
+	new2 := func(v, o int) testStruct { return testStruct{value: v, other: o} }
+	le := func(i, j interface{}) bool { return i.(testStruct).value < j.(testStruct).value }
+
+	for _, tc := range []struct {
+		give      []interface{}
+		giveLess  Lesser
+		want      []interface{}
+		wantPanic bool
+	}{
+		{[]interface{}{}, nil, nil, true},
+		{[]interface{}{}, le, []interface{}{}, false},
+		{[]interface{}{new1(0)}, le, []interface{}{new1(0)}, false},
+		{[]interface{}{new2(1, 3), new2(1, 2), new2(1, 1)}, le,
+			[]interface{}{new2(1, 3), new2(1, 2), new2(1, 1)}, false},
+		{[]interface{}{new1(4), new1(3), new1(2), new1(1)}, le,
+			[]interface{}{new1(1), new1(2), new1(3), new1(4)}, false},
+		{[]interface{}{new2(8, 2), new2(1, 2), new1(6), new2(8, 1), new2(1, 1), new1(2)}, le,
+			[]interface{}{new2(1, 2), new2(1, 1), new1(2), new1(6), new2(8, 2), new2(8, 1)}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { Sort(tc.give, tc.giveLess) })
+		} else {
+			me := make([]interface{}, 0, len(tc.give))
+			for _, item := range tc.give {
+				me = append(me, item)
+			}
+			result := StableSort(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, me)
+			xtesting.Equal(t, result, tc.want)
+			StableSortSelf(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, tc.want)
+		}
+	}
+
+	for _, tc := range []struct {
+		give      []testStruct
+		giveLess  Lesser
+		want      []testStruct
+		wantPanic bool
+	}{
+		{[]testStruct{}, nil, nil, true},
+		{[]testStruct{}, le, []testStruct{}, false},
+		{[]testStruct{new1(0)}, le, []testStruct{new1(0)}, false},
+		{[]testStruct{new2(1, 3), new2(1, 2), new2(1, 1)}, le,
+			[]testStruct{new2(1, 3), new2(1, 2), new2(1, 1)}, false},
+		{[]testStruct{new1(4), new1(3), new1(2), new1(1)}, le,
+			[]testStruct{new1(1), new1(2), new1(3), new1(4)}, false},
+		{[]testStruct{new2(8, 2), new2(1, 2), new1(6), new2(8, 1), new2(1, 1), new1(2)}, le,
+			[]testStruct{new2(1, 2), new2(1, 1), new1(2), new1(6), new2(8, 2), new2(8, 1)}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { SortG(tc.give, tc.giveLess) })
+		} else {
+			me := make([]testStruct, 0, len(tc.give))
+			for _, item := range tc.give {
+				me = append(me, item)
+			}
+			result := StableSortG(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, me)
+			xtesting.Equal(t, result, tc.want)
+			StableSortSelfG(tc.give, tc.giveLess)
+			xtesting.Equal(t, tc.give, tc.want)
+		}
+	}
+
+}
+
+type testStruct struct {
+	value int
+	now   time.Time
+}
+
+func (t testStruct) String() string {
+	return strconv.Itoa(t.value)
+}
+
+func newTestStruct(value int) testStruct {
+	time.Sleep(2 * time.Nanosecond)
+	return testStruct{value: value, now: time.Now()}
+}
+
+func newTestStructSlice1(s []interface{}) []interface{} {
+	newSlice := make([]interface{}, len(s))
+	for idx, item := range s {
+		newSlice[idx] = newTestStruct(item.(int))
+	}
+	return newSlice
+}
+
+func newTestStructSlice2(s []int) []testStruct {
+	newSlice := make([]testStruct, len(s))
+	for idx, item := range s {
+		newSlice[idx] = newTestStruct(item)
+	}
+	return newSlice
+}
+
+func toInterfaceSlice(s []interface{}) []interface{} {
+	out := make([]interface{}, len(s))
+	for idx, item := range s {
+		out[idx] = item.(testStruct).value
+	}
+	return out
+}
+
+func toIntSlice(s interface{}) []int {
+	out := make([]int, len(s.([]testStruct)))
+	for idx, item := range s.([]testStruct) {
+		out[idx] = item.value
+	}
+	return out
+}
+
 func TestIndexOf(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 2, 3}
 	s2 := []int{1, 5, 2, 1, 2, 3}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give      []interface{}
@@ -323,7 +556,8 @@ func TestIndexOf(t *testing.T) {
 		{s1, 6, -1},
 	} {
 		xtesting.Equal(t, IndexOf(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, IndexOfWith(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, IndexOfWith(give, giveValue, eq), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -342,14 +576,15 @@ func TestIndexOf(t *testing.T) {
 		{s2, 6, -1},
 	} {
 		xtesting.Equal(t, IndexOfG(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, IndexOfWithG(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, IndexOfWithG(give, giveValue, eq), tc.want)
 	}
 }
 
 func TestContains(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 2, 3}
 	s2 := []int{1, 5, 2, 1, 2, 3}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give      []interface{}
@@ -367,7 +602,8 @@ func TestContains(t *testing.T) {
 		{s1, 6, false},
 	} {
 		xtesting.Equal(t, Contains(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, ContainsWith(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, ContainsWith(give, giveValue, eq), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -386,14 +622,15 @@ func TestContains(t *testing.T) {
 		{s2, 6, false},
 	} {
 		xtesting.Equal(t, ContainsG(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, ContainsWithG(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, ContainsWithG(give, giveValue, eq), tc.want)
 	}
 }
 
 func TestCount(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give      []interface{}
@@ -412,7 +649,8 @@ func TestCount(t *testing.T) {
 		{s1, 7, 0},
 	} {
 		xtesting.Equal(t, Count(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, CountWith(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, CountWith(give, giveValue, eq), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -432,14 +670,15 @@ func TestCount(t *testing.T) {
 		{s2, 7, 0},
 	} {
 		xtesting.Equal(t, CountG(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, CountWithG(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, CountWithG(give, giveValue, eq), tc.want)
 	}
 }
 
 func TestDelete(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give      []interface{}
@@ -462,7 +701,8 @@ func TestDelete(t *testing.T) {
 		{s1, 7, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
-		xtesting.Equal(t, DeleteWith(tc.give, strconv.Itoa(tc.giveValue), tc.giveN, eq), tc.want)
+		give, giveValue := newTestStructSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, toInterfaceSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -486,14 +726,15 @@ func TestDelete(t *testing.T) {
 		{s2, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteG(tc.give, tc.giveValue, tc.giveN), tc.want)
-		xtesting.Equal(t, DeleteWithG(tc.give, strconv.Itoa(tc.giveValue), tc.giveN, eq), tc.want)
+		give, giveValue := newTestStructSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, toIntSlice(DeleteWithG(give, giveValue, tc.giveN, eq)), tc.want)
 	}
 }
 
 func TestDeleteAll(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give      []interface{}
@@ -512,7 +753,8 @@ func TestDeleteAll(t *testing.T) {
 		{s1, 7, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteAll(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, DeleteAllWith(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, toInterfaceSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -532,14 +774,15 @@ func TestDeleteAll(t *testing.T) {
 		{s2, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteAllG(tc.give, tc.giveValue), tc.want)
-		xtesting.Equal(t, DeleteAllWithG(tc.give, strconv.Itoa(tc.giveValue), eq), tc.want)
+		give, giveValue := newTestStructSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, toIntSlice(DeleteAllWithG(give, giveValue, eq)), tc.want)
 	}
 }
 
 func TestDiff(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give1 []interface{}
@@ -562,11 +805,8 @@ func TestDiff(t *testing.T) {
 		{s1, []interface{}{6, 5, 4, 3, 2, 1}, []interface{}{}},
 	} {
 		xtesting.Equal(t, Diff(tc.give1, tc.give2), tc.want)
-		newGive2 := make([]interface{}, 0, len(tc.give2))
-		for _, item := range tc.give2 {
-			newGive2 = append(newGive2, strconv.Itoa(item.(int)))
-		}
-		xtesting.Equal(t, DiffWith(tc.give1, newGive2, eq), tc.want)
+		give1, give2 := newTestStructSlice1(tc.give1), newTestStructSlice1(tc.give2)
+		xtesting.Equal(t, toInterfaceSlice(DiffWith(give1, give2, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -590,18 +830,15 @@ func TestDiff(t *testing.T) {
 		{s2, []int{6, 5, 4, 3, 2, 1}, []int{}},
 	} {
 		xtesting.Equal(t, DiffG(tc.give1, tc.give2), tc.want)
-		newGive2 := make([]string, 0, len(tc.give2))
-		for _, item := range tc.give2 {
-			newGive2 = append(newGive2, strconv.Itoa(item))
-		}
-		xtesting.Equal(t, DiffWithG(tc.give1, newGive2, eq), tc.want)
+		give1, give2 := newTestStructSlice2(tc.give1), newTestStructSlice2(tc.give2)
+		xtesting.Equal(t, toIntSlice(DiffWithG(give1, give2, eq)), tc.want)
 	}
 }
 
 func TestUnion(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := defaultEqualler
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give1 []interface{}
@@ -618,7 +855,8 @@ func TestUnion(t *testing.T) {
 		{s1, []interface{}{11, 2, 13, 14, 5, 16}, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2, 11, 13, 14, 16}},
 	} {
 		xtesting.Equal(t, Union(tc.give1, tc.give2), tc.want)
-		xtesting.Equal(t, UnionWith(tc.give1, tc.give2, eq), tc.want)
+		give1, give2 := newTestStructSlice1(tc.give1), newTestStructSlice1(tc.give2)
+		xtesting.Equal(t, toInterfaceSlice(UnionWith(give1, give2, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -636,14 +874,15 @@ func TestUnion(t *testing.T) {
 		{s2, []int{11, 2, 13, 14, 5, 16}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 11, 13, 14, 16}},
 	} {
 		xtesting.Equal(t, UnionG(tc.give1, tc.give2), tc.want)
-		xtesting.Equal(t, UnionWithG(tc.give1, tc.give2, eq), tc.want)
+		give1, give2 := newTestStructSlice2(tc.give1), newTestStructSlice2(tc.give2)
+		xtesting.Equal(t, toIntSlice(UnionWithG(give1, give2, eq)), tc.want)
 	}
 }
 
 func TestIntersection(t *testing.T) {
 	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	eq := func(i, j interface{}) bool { return strconv.Itoa(i.(int)) == j.(string) }
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give1 []interface{}
@@ -660,11 +899,8 @@ func TestIntersection(t *testing.T) {
 		{s1, []interface{}{1, 2, 3, 4, 5, 6}, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, Intersection(tc.give1, tc.give2), tc.want)
-		newGive2 := make([]interface{}, 0, len(tc.give2))
-		for _, item := range tc.give2 {
-			newGive2 = append(newGive2, strconv.Itoa(item.(int)))
-		}
-		xtesting.Equal(t, IntersectionWith(tc.give1, newGive2, eq), tc.want)
+		give1, give2 := newTestStructSlice1(tc.give1), newTestStructSlice1(tc.give2)
+		xtesting.Equal(t, toInterfaceSlice(IntersectionWith(give1, give2, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -682,16 +918,13 @@ func TestIntersection(t *testing.T) {
 		{s2, []int{1, 2, 3, 4, 5, 6}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, IntersectionG(tc.give1, tc.give2), tc.want)
-		newGive2 := make([]string, 0, len(tc.give2))
-		for _, item := range tc.give2 {
-			newGive2 = append(newGive2, strconv.Itoa(item))
-		}
-		xtesting.Equal(t, IntersectionWithG(tc.give1, newGive2, eq), tc.want)
+		give1, give2 := newTestStructSlice2(tc.give1), newTestStructSlice2(tc.give2)
+		xtesting.Equal(t, toIntSlice(IntersectionWithG(give1, give2, eq)), tc.want)
 	}
 }
 
 func TestToSet(t *testing.T) {
-	eq := defaultEqualler
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give []interface{}
@@ -704,7 +937,8 @@ func TestToSet(t *testing.T) {
 		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, []interface{}{1, 5, 2, 6, 3}},
 	} {
 		xtesting.Equal(t, ToSet(tc.give), tc.want)
-		xtesting.Equal(t, ToSetWith(tc.give, eq), tc.want)
+		give := newTestStructSlice1(tc.give)
+		xtesting.Equal(t, toInterfaceSlice(ToSetWith(give, eq)), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -718,12 +952,13 @@ func TestToSet(t *testing.T) {
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, []int{1, 5, 2, 6, 3}},
 	} {
 		xtesting.Equal(t, ToSetG(tc.give), tc.want)
-		xtesting.Equal(t, ToSetWithG(tc.give, eq), tc.want)
+		give := newTestStructSlice2(tc.give)
+		xtesting.Equal(t, toIntSlice(ToSetWithG(give, eq)), tc.want)
 	}
 }
 
 func TestElementMatch(t *testing.T) {
-	eq := defaultEqualler
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
 		give1 []interface{}
@@ -739,7 +974,8 @@ func TestElementMatch(t *testing.T) {
 		{[]interface{}{1, 2, 1}, []interface{}{1, 2, 2}, false},
 	} {
 		xtesting.Equal(t, ElementMatch(tc.give1, tc.give2), tc.want)
-		xtesting.Equal(t, ElementMatchWith(tc.give1, tc.give2, eq), tc.want)
+		give1, give2 := newTestStructSlice1(tc.give1), newTestStructSlice1(tc.give2)
+		xtesting.Equal(t, ElementMatchWith(give1, give2, eq), tc.want)
 	}
 
 	for _, tc := range []struct {
@@ -756,7 +992,8 @@ func TestElementMatch(t *testing.T) {
 		{[]int{1, 2, 1}, []int{1, 2, 2}, false},
 	} {
 		xtesting.Equal(t, ElementMatchG(tc.give1, tc.give2), tc.want)
-		xtesting.Equal(t, ElementMatchWithG(tc.give1, tc.give2, eq), tc.want)
+		give1, give2 := newTestStructSlice2(tc.give1), newTestStructSlice2(tc.give2)
+		xtesting.Equal(t, ElementMatchWithG(give1, give2, eq), tc.want)
 	}
 }
 

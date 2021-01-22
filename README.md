@@ -26,7 +26,7 @@
 + xreflect
 + xregexp
 + xruntime
-+ xslice (waiting for refactoring)
++ xslice
 + xstatus
 + xstring
 + xtesting
