@@ -9,8 +9,8 @@ import (
 type ModuleName string
 
 // String returns the string value of ModuleName.
-func (s ModuleName) String() string {
-	return string(s)
+func (m ModuleName) String() string {
+	return string(m)
 }
 
 // ModuleContainer represents a module container.
@@ -237,6 +237,7 @@ func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 		panic(injectIntoNilPanic)
 	}
 	ctrlTyp := reflect.TypeOf(ctrl)
+	ctrlTypName := ctrlTyp.String()
 	ctrlVal := reflect.ValueOf(ctrl)
 	if ctrlTyp.Kind() != reflect.Ptr {
 		panic(injectIntoNonStructPtrPanic)
@@ -249,6 +250,7 @@ func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 
 	// record is all injected
 	allInjected := true
+	injectCount := 0
 
 	// for each field
 	for idx := 0; idx < ctrlTyp.NumField(); idx++ {
@@ -288,9 +290,12 @@ func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
 		fieldVal := ctrlVal.Field(idx)
 		if fieldVal.IsValid() && fieldVal.CanSet() {
 			fieldVal.Set(reflect.ValueOf(module))
-			mc.logger.LogInject(reflect.TypeOf(ctrl).String(), field.Type.String(), field.Name)
+			mc.logger.LogInjectField(moduleTag, ctrlTypName, field.Name, field.Type.String())
 		}
+		injectCount++
 	}
+
+	mc.logger.LogInject(ctrlTypName, injectCount)
 
 	return allInjected
 }

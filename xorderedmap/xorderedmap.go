@@ -3,6 +3,8 @@ package xorderedmap
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"reflect"
 	"strings"
 	"sync"
@@ -94,13 +96,17 @@ func (l *OrderedMap) GetOr(key string, defaultValue interface{}) interface{} {
 	return value
 }
 
+const (
+	keyNotFoundPanic = "xorderedmap: key `%s` not found"
+)
+
 // MustGet returns the value by key, panics if the key not found.
 func (l *OrderedMap) MustGet(key string) interface{} {
 	l.mu.RLock()
 	value, exist := l.kv[key]
 	l.mu.RUnlock()
 	if !exist {
-		panic("xorderedmap: key `" + key + "` not found")
+		panic(fmt.Sprintf(keyNotFoundPanic, key))
 	}
 	return value
 }
@@ -189,30 +195,6 @@ func (l *OrderedMap) String() string {
 	return string(buf)
 }
 
-// isEmptyValue is almost the same as xreflect.IsEmptyValue, and is different from xtesting.IsObjectEmpty.
-// Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, ~~interface~~, pointer.
-func isEmptyValue(i interface{}) bool {
-	v := reflect.ValueOf(i)
-	switch v.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	case reflect.Complex64, reflect.Complex128:
-		return v.Complex() == 0
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
-		return v.Len() == 0
-	case reflect.Ptr:
-		return v.IsNil()
-	}
-	return false
-}
-
 const (
 	nilObjectPanic = "xorderedmap: nil object"
 	nonStructPanic = "xorderedmap: non-struct object"
@@ -249,7 +231,7 @@ func FromInterface(object interface{}) *OrderedMap {
 		value := val.Field(i).Interface()
 
 		if field != "-" {
-			if !omitempty || !isEmptyValue(value) {
+			if !omitempty || !xreflect.IsEmptyValue(value) {
 				om.Set(field, value)
 			}
 		}

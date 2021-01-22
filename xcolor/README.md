@@ -122,4 +122,3 @@
 + `func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
-

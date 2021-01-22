@@ -47,7 +47,7 @@
 
 ### Methods
 
-+ `func (s ModuleName) String() string`
++ `func (m ModuleName) String() string`
 + `func (m *ModuleContainer) SetLogger(logger Logger)`
 + `func (m *ModuleContainer) ProvideName(name ModuleName, module interface{})`
 + `func (m *ModuleContainer) ProvideType(module interface{})`
@@ -60,7 +60,3 @@
 + `func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{}`
 + `func (m *ModuleContainer) Inject(ctrl interface{}) (allInjected bool)`
 + `func (m *ModuleContainer) MustInject(ctrl interface{})`
-+ `func (d *defaultLogger) LogName(name, typ string)`
-+ `func (d *defaultLogger) LogType(typ string)`
-+ `func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string)`
-+ `func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string)`

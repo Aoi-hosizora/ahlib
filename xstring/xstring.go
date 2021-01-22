@@ -356,6 +356,10 @@ func GetRight(s string, length int) string {
 	return string(runes[l-length:])
 }
 
+const (
+	indexOutOfRangePanic = "xstring: index out of range"
+)
+
 // SplitAndGet returns the string item from the split result slices, this also supports minus index.
 func SplitAndGet(s string, sep string, index int) string {
 	sp := strings.Split(s, sep)
@@ -368,5 +372,5 @@ func SplitAndGet(s string, sep string, index int) string {
 		return sp[newIndex]
 	}
 
-	panic("xstring: index out of range")
+	panic(indexOutOfRangePanic)
 }

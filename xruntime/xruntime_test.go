@@ -2,12 +2,11 @@ package xruntime
 
 import (
 	"fmt"
-	"log"
 	"testing"
 )
 
 func TestTraceStack(t *testing.T) {
-	log.Println("### RuntimeTraceStack(0)")
+	fmt.Println("### RuntimeTraceStack(0)")
 	stack := RuntimeTraceStack(0)
 	fmt.Println(stack.String())
 
@@ -21,7 +20,7 @@ func TestTraceStack(t *testing.T) {
 	*/
 
 	fmt.Println()
-	log.Println("### RuntimeTraceStackWithInfo(0)")
+	fmt.Println("### RuntimeTraceStackWithInfo(0)")
 	s, filename, funcname, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 	fmt.Println("filename:", filename)
 	fmt.Println("funcname:", funcname)
@@ -48,7 +47,7 @@ func TestTraceStack(t *testing.T) {
 	*/
 
 	fmt.Println()
-	log.Println("### RuntimeTraceStackWithInfo(500)")
+	fmt.Println("### RuntimeTraceStackWithInfo(500)")
 	RuntimeTraceStackWithInfo(500)
 	fmt.Println()
 }

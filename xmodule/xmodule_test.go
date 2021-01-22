@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
-	"log"
 	"reflect"
 	"strings"
 	"testing"
@@ -366,14 +365,14 @@ func TestLogger(t *testing.T) {
 		{"LogAll", LogAll, false},
 		{"LogAll 2", LogAll, true},
 	} {
-		log.Println(tc.str)
+		fmt.Println(tc.str)
 		SetLogger(DefaultLogger(tc.giveLevel))
 		if tc.change {
 			LogLeftArrow = func(arg1, arg2, arg3 string) {
-				fmt.Printf("[XMODULE] %-8s %-20s <-- %s\n", arg1, arg2, arg3)
+				fmt.Printf("[XMODULE] %-4s %-15s <-- %s\n", arg1, arg2, arg3)
 			}
 			LogRightArrow = func(arg1, arg2, arg3 string) {
-				fmt.Printf("[XMODULE] %-8s %-20s --> %s\n", arg1, arg2, arg3)
+				fmt.Printf("[XMODULE] %-4s %-15s --> %s\n", arg1, arg2, arg3)
 			}
 		}
 

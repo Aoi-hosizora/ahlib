@@ -24,7 +24,6 @@
 + xorderedmap
 + xpointer
 + xreflect
-+ xregexp
 + xruntime
 + xslice
 + xstatus
@@ -32,6 +31,6 @@
 + xtesting
 + xtime
 
-### Dependency
+### Dependencies
 
-+ Nothing
++ None

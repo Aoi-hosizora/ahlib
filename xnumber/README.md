@@ -39,6 +39,8 @@
 
 ### Functions
 
+#### Common functions
+
 + `func NewAccuracy(eps float64) Accuracy`
 + `func EqualInAccuracy(a, b float64) bool`
 + `func NotEqualInAccuracy(a, b float64) bool`
@@ -49,6 +51,9 @@
 + `func RenderByte(bytes float64) string`
 + `func Bool(b bool) int`
 + `func IntSize() int`
+  
+#### Parse and format functions
+
 + `func ParseInt(s string, base int) (int, error)`
 + `func ParseInt8(s string, base int) (int8, error)`
 + `func ParseInt16(s string, base int) (int16, error)`

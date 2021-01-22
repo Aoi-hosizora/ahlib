@@ -31,16 +31,19 @@ const (
 // Logger represents ModuleContainer's logger.
 type Logger interface {
 	// LogName invoked by ModuleContainer.ProvideName.
-	LogName(name, typ string)
+	LogName(moduleName, moduleTyp string)
 
 	// LogType invoked by ModuleContainer.ProvideType.
-	LogType(typ string)
+	LogType(moduleTyp string)
 
 	// LogImpl invoked by ModuleContainer.ProvideImpl.
 	LogImpl(interfaceTyp, moduleTyp string)
 
+	// LogInjectField invoked by ModuleContainer.Inject.
+	LogInjectField(moduleName, structTyp, fieldName, fieldTyp string)
+
 	// LogInject invoked by ModuleContainer.Inject.
-	LogInject(parentTyp, fieldTyp, fieldName string)
+	LogInject(structTyp string, num int)
 }
 
 // defaultLogger represents a default Logger.
@@ -49,66 +52,89 @@ type defaultLogger struct {
 }
 
 // DefaultLogger creates a default Logger instance. Log style see LogName, LogType, LogImpl, LogInject.
-// Notice that red color represents the name, yellow represents the type, ~ represents no name.
+// Note that the red color represents the module and field name (~ represents no module name), and the yellow color represents the module and field type.
 func DefaultLogger(level LogLevel) Logger {
 	xcolor.ForceColor()
 	return &defaultLogger{level: level}
 }
 
 // LogName logs like:
-// 	[XMODULE] Name:    a <-- string
-// Here `a` (in red) is the name in ModuleName, `string` (in yellow) is the type of this module.
-func (d *defaultLogger) LogName(name, typ string) {
+// 	[XMODULE] Pro: a <-- string
+// 	              ---    ------
+// 	              red    yellow
+// Here `a` is the module name, `string` is the module type.
+func (d *defaultLogger) LogName(moduleName, moduleTyp string) {
 	if d.level&LogName != 0 {
-		name = xcolor.Red.Sprint(name)
-		typ = xcolor.Yellow.Sprint(typ)
-		LogLeftArrow("Name:", name, typ)
+		moduleName = xcolor.Red.Sprint(moduleName)
+		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
+		LogLeftArrow("Pro:", moduleName, moduleTyp)
 	}
 }
 
 // LogType logs like:
-// 	[XMODULE] Type:    ~ <-- string
-// Here `~` (in red) is the flag of no name, `string` (in yellow) is the type of this module.
-func (d *defaultLogger) LogType(typ string) {
+// 	[XMODULE] Pro: ~ <-- string
+// 	              ---    ------
+// 	              red    yellow
+// Here `~` is the flag of no name, `string` is the module type.
+func (d *defaultLogger) LogType(moduleTyp string) {
 	if d.level&LogType != 0 {
 		auto := xcolor.Red.Sprint("~")
-		typ = xcolor.Yellow.Sprint(typ)
-		LogLeftArrow("Type:", auto, typ)
+		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
+		LogLeftArrow("Pro:", auto, moduleTyp)
 	}
 }
 
 // LogImpl logs like:
-// 	[XMODULE] Impl:    ~ <-- IModule (*Module)
-// Here `~` (in red) is the flag of no name, `IModule` (in yellow) is the interface type of module, `Module` (in yellow) is the type of this module.
+// 	[XMODULE] Pro: ~ <-- IModule (*Module)
+// 	              ---    -------  -------
+// 	              red    yellow   yellow
+// Here `~` is the flag of no name, `IModule` is the interface type, `*Module` is the module type.
 func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string) {
 	if d.level&LogImpl != 0 {
 		auto := xcolor.Red.Sprint("~")
 		interfaceTyp = xcolor.Yellow.Sprint(interfaceTyp)
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		LogLeftArrow("Impl:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
+		LogLeftArrow("Pro:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
 	}
 }
 
-// Inject logs like:
-// 	[XMODULE] Inject:  int --> (*Module).I
-// Here `int` (in yellow) is the type of field, `Module` (in yellow) is the type of struct, `I` (in red) is the name of field.
-func (d *defaultLogger) LogInject(parentTyp, fieldTyp, fieldName string) {
+// LogInjectField logs like:
+// 	[XMODULE] Inj: a --> (*Struct).Str string
+// 	              ---     -------  --- ------
+// 	              red     yellow   red yellow
+// Here `a` is the module name, `*Struct` is the struct type, `Str` is the field name, `string` is the field type.
+func (d *defaultLogger) LogInjectField(moduleName, structTyp, fieldName, fieldTyp string) {
 	if d.level&LogInject != 0 {
-		parentTyp = xcolor.Yellow.Sprint(parentTyp)
-		fieldTyp = xcolor.Yellow.Sprint(fieldTyp)
+		moduleName = xcolor.Red.Sprint(moduleName)
+		structTyp = xcolor.Yellow.Sprint(structTyp)
 		fieldName = xcolor.Red.Sprint(fieldName)
-		LogRightArrow("Inject:", fieldTyp, fmt.Sprintf("(%s).%s", parentTyp, fieldName))
+		fieldTyp = xcolor.Yellow.Sprint(fieldTyp)
+		LogRightArrow("Inj:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
+	}
+}
+
+// LogInject logs like:
+// 	[XMODULE] Inj: ... --> (*Struct).(#3)
+// 	                        -------
+// 	                        yellow
+// Here `*Struct` is the struct type, `#0` is the injected field count.
+func (d *defaultLogger) LogInject(structTyp string, num int) {
+	if d.level&LogInject != 0 {
+		auto := xcolor.Default.Sprint("...")
+		numStr := xcolor.Default.Sprintf("#%d", num)
+		structTyp = xcolor.Yellow.Sprintf(structTyp)
+		LogRightArrow("Inj:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
 	}
 }
 
 // LogLeftArrow is the logger function with <-- (used in LogName, LogType, LogImpl).
 // You can overwrite this function.
 var LogLeftArrow = func(arg1, arg2, arg3 string) {
-	fmt.Printf("[XMODULE] %-8s %-30s <-- %s\n", arg1, arg2, arg3)
+	fmt.Printf("[XMODULE] %-4s %-30s <-- %s\n", arg1, arg2, arg3)
 }
 
-// LogRightArrow is the logger function with --> (used in LogInject).
+// LogRightArrow is the logger function with --> (used in LogInject, LogInjectField).
 // You can overwrite this function.
 var LogRightArrow = func(arg1, arg2, arg3 string) {
-	fmt.Printf("[XMODULE] %-8s %-30s --> %s\n", arg1, arg2, arg3)
+	fmt.Printf("[XMODULE] %-4s %-30s --> %s\n", arg1, arg2, arg3)
 }

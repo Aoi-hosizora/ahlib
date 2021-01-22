@@ -173,6 +173,9 @@ func TestPrint(t *testing.T) {
 	fmt.Print(Underline.Sprint("underline\n"))
 	fmt.Print(Reverse.Sprintf("%s\n", "reverse"))
 	fmt.Print(Strikethrough.Sprintln("strikethrough"))
+	_, _ = Bold.Fprint(os.Stdout, "bold\n")
+	_, _ = Faint.Fprintf(os.Stdout, "%s\n", "faint")
+	_, _ = Italic.Fprintln(os.Stdout, "italic")
 	fmt.Println()
 
 	// color
@@ -224,4 +227,7 @@ func TestPrint(t *testing.T) {
 	fmt.Print(BGWhite.WithStyle(Bold).Sprintln("bg_white;bold"))
 	BGWhite.WithColor(Red).Println("bg_white;red")
 	Bold.WithColor(Red).WithBackground(BGWhite).Println("bold;red;bg_white")
+	_, _ = Bold.WithStyle(Italic).Fprint(os.Stdout, "bold;italic\n")
+	_, _ = Bold.WithColor(Red).Fprintf(os.Stdout, "%s\n", "bold;red")
+	_, _ = Bold.WithBackground(BGWhite).Fprintln(os.Stdout, "bold;bg_white")
 }

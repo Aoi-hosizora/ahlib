@@ -169,24 +169,9 @@ func TestFromInterface(t *testing.T) {
 		Slice   []int                  `json:"slice,omitempty"`
 		Array   [0]int                 `json:"array,omitempty"`
 		Map     map[string]interface{} `json:"map,omitempty"`
-		Ptr     *int                   `json:"ptr,omitempty"`
-		Chan    chan int               `json:"chan,omitempty"`
 	}
-	ch := make(chan int)
-	test2 := &testStruct2{
-		Int:     0,
-		Uint:    0,
-		Float:   0,
-		Complex: 0,
-		Bool:    false,
-		String:  "",
-		Slice:   make([]int, 0),
-		Array:   [0]int{},
-		Map:     make(map[string]interface{}, 0),
-		Ptr:     nil,
-		Chan:    ch,
-	}
+	test2 := &testStruct2{}
 	om = FromInterface(test2)
-	xtesting.Equal(t, om.keys, []string{"chan"})
-	xtesting.Equal(t, om.Values(), []interface{}{ch})
+	xtesting.Equal(t, om.keys, []string{})
+	xtesting.Equal(t, om.Values(), []interface{}{})
 }

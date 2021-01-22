@@ -7,7 +7,7 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	tests := []struct {
+	for _, tc := range []struct {
 		name       string
 		giveLogger Level
 		giveLevel  Level
@@ -31,28 +31,28 @@ func TestLogger(t *testing.T) {
 		{"panic for panic level", Panic, Panic, "panic", "[PANIC] panic"},
 		{"panic for fatal level", Panic, Fatal, "fatal", ""},
 		{"fatal for fatal level", Fatal, Fatal, "fatal", "[FATAL] fatal"},
-	}
-	for _, tc := range tests {
-		out := &strings.Builder{}
-		logger := DefaultLogger(out, tc.giveLevel)
-		var f func(string)
-		switch tc.giveLogger {
-		case Debug:
-			f = logger.Debug
-		case Info:
-			f = logger.Info
-		case Warn:
-			f = logger.Warn
-		case Error:
-			f = logger.Error
-		case Panic:
-			f = logger.Panic
-		case Fatal:
-			f = logger.Fatal
-		default:
-			f = func(string) {}
-		}
+	} {
 		t.Run(tc.name, func(t *testing.T) {
+			out := &strings.Builder{}
+			logger := DefaultLogger(out, tc.giveLevel)
+			var f func(string)
+			switch tc.giveLogger {
+			case Debug:
+				f = logger.Debug
+			case Info:
+				f = logger.Info
+			case Warn:
+				f = logger.Warn
+			case Error:
+				f = logger.Error
+			case Panic:
+				f = logger.Panic
+			case Fatal:
+				f = logger.Fatal
+			default:
+				f = func(string) {}
+			}
+
 			if tc.giveLogger != Fatal {
 				if tc.giveLogger == Panic {
 					xtesting.Panic(t, func() { f(tc.giveString) })

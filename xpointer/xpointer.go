@@ -1,6 +1,8 @@
 package xpointer
 
+// ===
 // ptr
+// ===
 
 // BoolPtr returns a pointer pointed to the given bool value.
 func BoolPtr(v bool) *bool {
@@ -92,7 +94,9 @@ func RunePtr(v rune) *rune {
 	return &v
 }
 
+// ===
 // val
+// ===
 
 // BoolVal returns a bool value from the given pointer, returns the fallback value when nil.
 func BoolVal(p *bool, o bool) bool {
