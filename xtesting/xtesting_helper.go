@@ -124,7 +124,7 @@ func IsObjectEmpty(object interface{}) bool {
 	}
 }
 
-// validateEqualArgs checks whether provided arguments can be safely used in the Equal/NotEqual functions.
+// validateEqualArgs checks whether provided arguments can be safely used in the Equal and NotEqual functions.
 func validateEqualArgs(expected, actual interface{}) error {
 	if expected == nil || actual == nil {
 		return nil
@@ -133,7 +133,7 @@ func validateEqualArgs(expected, actual interface{}) error {
 	expectedKind := reflect.TypeOf(expected).Kind()
 	actualKind := reflect.TypeOf(actual).Kind()
 	if expectedKind == reflect.Func || actualKind == reflect.Func {
-		return errors.New("cannot take func type as argument")
+		return errors.New("xtesting: cannot take func type as argument")
 	}
 
 	return nil
@@ -145,10 +145,10 @@ func validateArgIsList(listA, listB interface{}) error {
 	kindB := reflect.TypeOf(listB).Kind()
 
 	if kindA != reflect.Array && kindA != reflect.Slice {
-		return errors.New("cannot take a non-list type as argument")
+		return errors.New("xtesting: cannot take a non-list type as argument")
 	}
 	if kindB != reflect.Array && kindB != reflect.Slice {
-		return errors.New("cannot take a non-list type as argument")
+		return errors.New("xtesting: cannot take a non-list type as argument")
 	}
 
 	return nil
@@ -288,11 +288,11 @@ func calcDeltaInEps(expected, actual interface{}, eps float64) (bool, float64, e
 	actualFloat, ok2 := toFloat(actual)
 
 	if !ok1 || !ok2 {
-		return false, 0, errors.New("parameters must be numerical")
+		return false, 0, errors.New("xtesting: parameters must be numerical")
 	}
 
 	if math.IsNaN(expectedFloat) || math.IsNaN(actualFloat) {
-		return false, 0, errors.New("number must not be NaN")
+		return false, 0, errors.New("xtesting: number must not be NaN")
 	}
 
 	actualEps := math.Abs(expectedFloat - actualFloat)

@@ -27,6 +27,10 @@
 + `func MaskToken(token string) string`
 + `func FastStob(s string) []byte`
 + `func FastBtos(bs []byte) string`
++ `func TrimUTF8Bom(s string) string`
++ `func TrimUTF8BomBytes(bs []byte) []byte`
++ `func TrimUTF8Replacement(s string) string`
++ `func TrimUTF8ReplacementBytes(bs []byte) []byte`
 + `func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string) string`
 + `func PadLeft(s string, paddingChar rune, totalLength int) string`
 + `func PadRight(s string, paddingChar rune, totalLength int) string`

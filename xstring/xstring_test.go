@@ -388,6 +388,40 @@ func BenchmarkFastBtos(b *testing.B) {
 	})
 }
 
+func TestTrimUTF8XXX(t *testing.T) {
+	// Bom
+	for _, tc := range []struct {
+		giveStr string
+		giveBs []byte
+		wantStr string
+		wantBs []byte
+	} {
+		{"", []byte{}, "", []byte{}},
+		{"test", []byte{'t', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
+		{"\xef\xbb\xbf", []byte{0xEF, 0xBB, 0xBF}, "", []byte{}},
+		{"\xef\xbb\xbftest", []byte{0xEF, 0xBB, 0xBF, 't', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
+	} {
+		xtesting.Equal(t, TrimUTF8Bom(tc.giveStr), tc.wantStr)
+		xtesting.Equal(t, TrimUTF8BomBytes(tc.giveBs), tc.wantBs)
+	}
+
+	// Rc
+	for _, tc := range []struct {
+		giveStr string
+		giveBs []byte
+		wantStr string
+		wantBs []byte
+	} {
+		{"", []byte{}, "", []byte{}},
+		{"test", []byte{'t', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
+		{"\xef\xbf\xbd", []byte{0xEF, 0xBF, 0xBD}, "", []byte{}},
+		{"\xef\xbf\xbdtest", []byte{0xEF, 0xBF, 0xBD, 't', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
+	} {
+		xtesting.Equal(t, TrimUTF8Replacement(tc.giveStr), tc.wantStr)
+		xtesting.Equal(t, TrimUTF8ReplacementBytes(tc.giveBs), tc.wantBs)
+	}
+}
+
 func TestEncodeUrlValues(t *testing.T) {
 	for _, tc := range []struct {
 		give           map[string][]string

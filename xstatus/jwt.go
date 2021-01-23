@@ -8,7 +8,7 @@ const (
 	JwtUnknown JwtStatus = 0    // Unknown
 	JwtSuccess JwtStatus = iota // Success
 	JwtBlank                    // Blank token
-	JwtInvalid                  // Could not be parsed (malformed, unverifiable, invalid signature)
+	JwtInvalid                  // Invalid token, could not be parsed (malformed, unverifiable, invalid signature)
 
 	JwtTokenNotFound // Token not found
 	JwtUserNotFound  // User not found
@@ -29,7 +29,7 @@ const (
 	JwtIssuer                               // ISS (Issuer)
 	JwtNotValidYet                          // NBF (Not before)
 	JwtSubject                              // SUB (Subject)
-	JwtClaimsInvalid                        // Generic
+	JwtClaimsInvalid                        // Invalid claims, generic claims error
 )
 
 func (j JwtStatus) String() string {

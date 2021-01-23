@@ -1,6 +1,7 @@
 package xstring
 
 import (
+	"bytes"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -270,6 +271,46 @@ func FastBtos(bs []byte) string {
 		return ""
 	}
 	return *(*string)(unsafe.Pointer(&bs))
+}
+
+const (
+	// utf8BomString is UTF8 BOM character in string, U+FEFF, 0xEF 0xBB 0xBF.
+	utf8BomString = "\xef\xbb\xbf"
+
+	// utf8ReplacementString is UTF8 replacement character in string, U+FFFD, 0xEF 0xBF 0xBD.
+	utf8ReplacementString = "\xef\xbf\xbd"
+)
+
+var (
+	// utf8BomBytes is UTF8 BOM character in bytes, U+FEFF, 0xEF 0xBB 0xBF.
+	utf8BomBytes = []byte{0xEF, 0xBB, 0xBF}
+
+	// utf8ReplacementString is UTF8 replacement character in bytes, U+FFFD, 0xEF 0xBF 0xBD.
+	utf8ReplacementBytes = []byte{0xEF, 0xBF, 0xBD}
+)
+
+// TrimUTF8Bom trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a string.
+// See https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
+func TrimUTF8Bom(s string) string {
+	return strings.TrimPrefix(s, utf8BomString)
+}
+
+// TrimUTF8BomBytes trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a bytes.
+// See https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
+func TrimUTF8BomBytes(bs []byte) []byte {
+	return bytes.TrimPrefix(bs, utf8BomBytes)
+}
+
+// TrimUTF8Replacement trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a string.
+// See https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
+func TrimUTF8Replacement(s string) string {
+	return strings.TrimPrefix(s, utf8ReplacementString)
+}
+
+// TrimUTF8ReplacementBytes trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a bytes.
+// See https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
+func TrimUTF8ReplacementBytes(bs []byte) []byte {
+	return bytes.TrimPrefix(bs, utf8ReplacementBytes)
 }
 
 // EncodeUrlValues encodes the values (see url.Values) into url encoded form ("bar=baz&foo=quux") sorted by key with escape.

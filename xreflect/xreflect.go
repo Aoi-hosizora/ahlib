@@ -1,7 +1,6 @@
 package xreflect
 
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -20,7 +19,7 @@ func SetUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
 }
 
-// GetInt returns the int64 value from int, int8, int32, int64 interface.
+// GetInt returns the int64 value from int, int8, int16, int32 and int64 interface.
 func GetInt(i interface{}) (int64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -30,7 +29,7 @@ func GetInt(i interface{}) (int64, bool) {
 	return 0, false
 }
 
-// GetUint returns the uint64 value from uint, uint8, uint16, uint32, uint64, uintptr interface.
+// GetUint returns the uint64 value from uint, uint8, uint16, uint32, uint64 and uintptr interface.
 func GetUint(i interface{}) (uint64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -40,7 +39,7 @@ func GetUint(i interface{}) (uint64, bool) {
 	return 0, false
 }
 
-// GetFloat returns the float64 value from float32, float64 interface.
+// GetFloat returns the float64 value from float32 and float64 interface.
 func GetFloat(i interface{}) (float64, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -50,7 +49,7 @@ func GetFloat(i interface{}) (float64, bool) {
 	return 0, false
 }
 
-// GetComplex returns the complex128 value from complex64, complex128 interface.
+// GetComplex returns the complex128 value from complex64 and complex128 interface.
 func GetComplex(i interface{}) (complex128, bool) {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
@@ -60,7 +59,7 @@ func GetComplex(i interface{}) (complex128, bool) {
 	return 0, false
 }
 
-// GetBool returns a bool value from bool interface.
+// GetBool returns the bool value from bool interface.
 func GetBool(i interface{}) (bool, bool) {
 	s, ok := i.(bool)
 	if ok {
@@ -69,7 +68,7 @@ func GetBool(i interface{}) (bool, bool) {
 	return false, false
 }
 
-// GetString returns a string value from string interface.
+// GetString returns the string value from string interface.
 func GetString(i interface{}) (string, bool) {
 	s, ok := i.(string)
 	if ok {
@@ -78,9 +77,13 @@ func GetString(i interface{}) (string, bool) {
 	return "", false
 }
 
-// IsEmptyValue checks if a value is an empty value, panics when using unsupported type.
-// Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map, interface, pointer.
+// IsEmptyValue checks if a value is an empty value, this function do never panic for all parameters.
+// Support types: (all types)
+// 	1. numeric:    int, intX, uint, uintX, uintptr, floatX, complexX, bool.
+// 	2. collection: string, array, slice, map, chan.
+// 	3. wrapper:    interface, ptr, unsafePtr.
+// 	4. composite:  struct.
+// 	5. function:   func.
 func IsEmptyValue(i interface{}) bool {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
@@ -94,10 +97,18 @@ func IsEmptyValue(i interface{}) bool {
 		return val.Complex() == 0
 	case reflect.Bool:
 		return !val.Bool()
-	case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+	case reflect.String, reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
 		return val.Len() == 0
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer, reflect.Func:
 		return val.IsNil()
+	case reflect.Struct:
+		for i := 0; i < val.NumField(); i++ {
+			if !IsEmptyValue(val.Field(i).Interface()) {
+				return false
+			}
+		}
+		return true
 	}
-	panic(fmt.Sprintf(panicBadType, val.Interface()))
+
+	return true // invalid, that is (interface{})(nil)
 }

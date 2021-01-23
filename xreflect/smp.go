@@ -1,24 +1,22 @@
 package xreflect
 
 import (
-	"fmt"
 	"reflect"
 )
 
-// Smpflag represents Smpval and Smplen flags.
-// Includes: Int, Uint, Float, Complex, Bool, String.
+// Smpflag represents Smpval and Smplen flag, including: Int, Uint, Float, Complex, Bool, String.
 type Smpflag int8
 
 const (
-	Int     Smpflag = iota + 1 // For int, int8 (byte), int16, int32 (rune), int64, or length of string, slice, map, array.
-	Uint                       // For uint, uint8, uint16, uint32, uint64, uintptr.
-	Float                      // For float32, float64.
-	Complex                    // For complex64, complex128.
-	Bool                       // For bool.
-	String                     // For string.
+	Int     Smpflag = iota + 1 // For the value of int, int8 (byte), int16, int32 (rune), int64. And for the length of string, array, slice, map, chan.
+	Uint                       // For the value of uint, uint8, uint16, uint32, uint64, uintptr.
+	Float                      // For the value of float32, float64.
+	Complex                    // For the value of complex64, complex128.
+	Bool                       // For the value of bool.
+	String                     // For the value of string.
 )
 
-// Smpval represents the actual value for some simple types.
+// Smpval represents the actual value for some simple types (numeric and string).
 // Includes:
 // 	1. Int: int, int8 (byte), int16, int32 (rune), int64.
 // 	2. Uint: uint, uint8, uint16, uint32, uint64, uintptr.
@@ -101,14 +99,14 @@ func (i *Smpval) Flag() Smpflag {
 	return i.flag
 }
 
-// Smplen represents the length for some simple types and collection types.
+// Smplen represents the length for some simple types (numeric and string) and collection types (array, slice, map and chan).
 // Includes:
 // 	1. Int (value): int, int8 (byte), int16, int32 (rune), int64.
-// 	2. Int (length): string, slice, map, array.
+// 	2. Int (length): string, array, slice, map, chan.
 // 	3. Uint (value): uint, uint8, uint16, uint32, uint64, uintptr.
 // 	4. Float (value): float32, float64.
 // 	5. Complex (value): complex64, complex128.
-// 	6. Bool (value): bool
+// 	6. Bool (value): bool.
 type Smplen struct {
 	i    int64
 	u    uint64
@@ -173,52 +171,77 @@ func (i *Smplen) Flag() Smpflag {
 	return i.flag
 }
 
-const (
-	panicBadType = "xreflect: bad type `%T`"
-)
-
-// SmpvalOf gets the Smpval from the given value, panics when using unsupported type.
-// Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string.
-func SmpvalOf(i interface{}) *Smpval {
+// SmpvalOf gets the Smpval from the given value, returns false when using nil or unsupported type.
+// Support types:
+// 	1. numeric:     int, intX, uint, uintX, uintptr, floatX, complexX, bool.
+// 	2. collection:  string.
+// Unsupported types:
+// 	1. collection:  array, slice, map, chan.
+// 	2. wrapper:     interface, ptr, unsafePtr.
+// 	3. composite:   struct.
+// 	4. function:    func.
+func SmpvalOf(i interface{}) (*Smpval, bool) {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return intSmpval(val.Int())
+		return intSmpval(val.Int()), true
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return uintSmpval(val.Uint())
+		return uintSmpval(val.Uint()), true
 	case reflect.Float32, reflect.Float64:
-		return floatSmpval(val.Float())
+		return floatSmpval(val.Float()), true
 	case reflect.Complex64, reflect.Complex128:
-		return complexSmpval(val.Complex())
+		return complexSmpval(val.Complex()), true
 	case reflect.Bool:
-		return boolSmpval(val.Bool())
+		return boolSmpval(val.Bool()), true
 	case reflect.String:
-		return stringSmpval(val.String())
+		return stringSmpval(val.String()), true
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
+		// unsupported collection
+	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
+		// unsupported wrapper
+	case reflect.Struct:
+		// unsupported composite
+	case reflect.Func:
+		// unsupported function
+	case reflect.Invalid:
+		// unsupported, that is (interface{})(nil)
 	}
-	panic(fmt.Sprintf(panicBadType, val.Interface()))
+	return nil, false
 }
 
-// SmplenOf gets the Smplen of given value, panics when using unsupported type.
-// Only supports:
-// 	int, intX, uint, uintX, uintptr, floatX, complexX, bool, string, slice, array, map.
-func SmplenOf(i interface{}) *Smplen {
+// SmplenOf gets the Smplen of given value, returns false when using nil or unsupported type.
+// Support types:
+// 	1. numeric:     int, intX, uint, uintX, uintptr, floatX, complexX, bool.
+// 	2. collection:  string, array, slice, map, chan..
+// Unsupported types:
+// 	1. wrapper:     interface, ptr, unsafePtr.
+// 	2. composite:   struct.
+// 	3. function:    func.
+func SmplenOf(i interface{}) (*Smplen, bool) {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return intSmplen(val.Int())
+		return intSmplen(val.Int()), true
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return uintSmplen(val.Uint())
+		return uintSmplen(val.Uint()), true
 	case reflect.Float32, reflect.Float64:
-		return floatSmplen(val.Float())
+		return floatSmplen(val.Float()), true
 	case reflect.Complex64, reflect.Complex128:
-		return complexSmplen(val.Complex())
+		return complexSmplen(val.Complex()), true
 	case reflect.Bool:
-		return boolSmplen(val.Bool())
+		return boolSmplen(val.Bool()), true
 	case reflect.String:
-		return intSmplen(int64(len([]rune(val.String()))))
-	case reflect.Slice, reflect.Array, reflect.Map:
-		return intSmplen(int64(val.Len()))
+		return intSmplen(int64(len([]rune(val.String())))), true // <<< len([]rune()) but not val.Len()
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
+		return intSmplen(int64(val.Len())), true
+	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
+		// unsupported wrapper
+	case reflect.Struct:
+		// unsupported composite
+	case reflect.Func:
+		// unsupported function
+	case reflect.Invalid:
+		// unsupported, that is (interface{})(nil)
 	}
-	panic(fmt.Sprintf(panicBadType, val.Interface()))
+	return nil, false
 }

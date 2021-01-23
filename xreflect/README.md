@@ -29,15 +29,15 @@
 
 + `func GetUnexportedField(field reflect.Value) interface{}`
 + `func SetUnexportedField(field reflect.Value, value interface{})`
-+ `func IsEmptyValue(i interface{}) bool`
 + `func GetInt(i interface{}) (int64, bool)`
 + `func GetUint(i interface{}) (uint64, bool)`
 + `func GetFloat(i interface{}) (float64, bool)`
 + `func GetComplex(i interface{}) (complex128, bool)`
 + `func GetBool(i interface{}) (bool, bool)`
 + `func GetString(i interface{}) (string, bool)`
-+ `func SmpvalOf(i interface{}) *Smpval`
-+ `func SmplenOf(i interface{}) *Smplen`
++ `func IsEmptyValue(i interface{}) bool`
++ `func SmpvalOf(i interface{}) (*Smpval, bool)`
++ `func SmplenOf(i interface{}) (*Smplen, bool)`
 
 ### Methods
 

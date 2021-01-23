@@ -1,8 +1,11 @@
 package xreflect
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"strings"
 	"testing"
+	"unsafe"
 )
 
 func TestSmpFlag(t *testing.T) {
@@ -39,46 +42,50 @@ func TestSmpvalOf(t *testing.T) {
 		give      interface{}
 		wantValue interface{}
 		wantFlag  Smpflag
-		wantPanic bool
+		wantOk    bool
 	}{
-		{9223372036854775807, int64(9223372036854775807), Int, false},
-		{int8(127), int64(127), Int, false},
-		{int16(32767), int64(32767), Int, false},
-		{int32(2147483647), int64(2147483647), Int, false},
-		{int64(9223372036854775807), int64(9223372036854775807), Int, false},
+		{9223372036854775807, int64(9223372036854775807), Int, true},
+		{int8(127), int64(127), Int, true},
+		{int16(32767), int64(32767), Int, true},
+		{int32(2147483647), int64(2147483647), Int, true},
+		{int64(9223372036854775807), int64(9223372036854775807), Int, true},
 
-		{uint(18446744073709551615), uint64(18446744073709551615), Uint, false},
-		{uint8(255), uint64(255), Uint, false},
-		{uint16(65535), uint64(65535), Uint, false},
-		{uint32(4294967295), uint64(4294967295), Uint, false},
-		{uint64(18446744073709551615), uint64(18446744073709551615), Uint, false},
-		{uintptr(18446744073709551615), uint64(18446744073709551615), Uint, false},
+		{uint(18446744073709551615), uint64(18446744073709551615), Uint, true},
+		{uint8(255), uint64(255), Uint, true},
+		{uint16(65535), uint64(65535), Uint, true},
+		{uint32(4294967295), uint64(4294967295), Uint, true},
+		{uint64(18446744073709551615), uint64(18446744073709551615), Uint, true},
+		{uintptr(18446744073709551615), uint64(18446744073709551615), Uint, true},
 
-		{float32(0.1), 0.1, Float, false},
-		{0.1, 0.1, Float, false},
+		{float32(0.1), 0.1, Float, true},
+		{0.1, 0.1, Float, true},
+		{complex64(0.1 + 0.1i), 0.1 + 0.1i, Complex, true},
+		{0.1 + 0.1i, 0.1 + 0.1i, Complex, true},
+		{true, true, Bool, true},
+		{false, false, Bool, true},
 
-		{complex64(0.1 + 0.1i), 0.1 + 0.1i, Complex, false},
-		{0.1 + 0.1i, 0.1 + 0.1i, Complex, false},
+		{"", "", String, true},
+		{"test", "test", String, true},
+		{"测试", "测试", String, true},
+		{"テス", "テス", String, true},
+		{"тест", "тест", String, true},
 
-		{"", "", String, false},
-		{"test", "test", String, false},
-		{"测试", "测试", String, false},
-		{"テス", "テス", String, false},
-		{"тест", "тест", String, false},
+		{[0]int{}, nil, 0, false},
+		{[]int{}, nil, 0, false},
+		{map[int]int{}, nil, 0, false},
+		{make(chan int), nil, 0, false},
 
-		{true, true, Bool, false},
-		{false, false, Bool, false},
-
-		{[]int{0, 1, 2}, nil, 0, true},
-		{[3]int{0, 1, 2}, nil, 0, true},
-		{map[int]int{0: 0, 1: 1, 2: 2}, nil, 0, true},
-		{struct{}{}, nil, 0, true},
-		{&struct{}{}, nil, 0, true},
+		{fmt.Stringer(nil), nil, 0, false},                     // invalid
+		{fmt.Stringer((*strings.Builder)(nil)), nil, 0, false}, // ptr
+		{unsafe.Pointer(nil), nil, 0, false},
+		{(func())(nil), nil, 0, false},
+		{nil, nil, 0, false},
+		{struct{}{}, nil, 0, false},
+		{&struct{}{}, nil, 0, false},
 	} {
-		if tc.wantPanic {
-			xtesting.Panic(t, func() { SmpvalOf(tc.give) })
-		} else {
-			i := SmpvalOf(tc.give)
+		i, ok := SmpvalOf(tc.give)
+		xtesting.Equal(t, ok, tc.wantOk)
+		if ok {
 			xtesting.Equal(t, i.Flag(), tc.wantFlag)
 			switch tc.wantFlag {
 			case Int:
@@ -100,51 +107,60 @@ func TestSmpvalOf(t *testing.T) {
 }
 
 func TestSmplenOf(t *testing.T) {
+	ch := make(chan int, 1)
+	ch <- 1
 	for _, tc := range []struct {
 		give      interface{}
 		wantValue interface{}
 		wantFlag  Smpflag
-		wantPanic bool
+		wantOk    bool
 	}{
-		{9223372036854775807, int64(9223372036854775807), Int, false},
-		{int8(127), int64(127), Int, false},
-		{int16(32767), int64(32767), Int, false},
-		{int32(2147483647), int64(2147483647), Int, false},
-		{int64(9223372036854775807), int64(9223372036854775807), Int, false},
+		{9223372036854775807, int64(9223372036854775807), Int, true},
+		{int8(127), int64(127), Int, true},
+		{int16(32767), int64(32767), Int, true},
+		{int32(2147483647), int64(2147483647), Int, true},
+		{int64(9223372036854775807), int64(9223372036854775807), Int, true},
 
-		{uint(18446744073709551615), uint64(18446744073709551615), Uint, false},
-		{uint8(255), uint64(255), Uint, false},
-		{uint16(65535), uint64(65535), Uint, false},
-		{uint32(4294967295), uint64(4294967295), Uint, false},
-		{uint64(18446744073709551615), uint64(18446744073709551615), Uint, false},
-		{uintptr(18446744073709551615), uint64(18446744073709551615), Uint, false},
+		{uint(18446744073709551615), uint64(18446744073709551615), Uint, true},
+		{uint8(255), uint64(255), Uint, true},
+		{uint16(65535), uint64(65535), Uint, true},
+		{uint32(4294967295), uint64(4294967295), Uint, true},
+		{uint64(18446744073709551615), uint64(18446744073709551615), Uint, true},
+		{uintptr(18446744073709551615), uint64(18446744073709551615), Uint, true},
 
-		{float32(0.1), 0.1, Float, false},
-		{0.1, 0.1, Float, false},
+		{float32(0.1), 0.1, Float, true},
+		{0.1, 0.1, Float, true},
+		{complex64(0.1 + 0.1i), 0.1 + 0.1i, Complex, true},
+		{0.1 + 0.1i, 0.1 + 0.1i, Complex, true},
+		{true, true, Bool, true},
+		{false, false, Bool, true},
 
-		{complex64(0.1 + 0.1i), 0.1 + 0.1i, Complex, false},
-		{0.1 + 0.1i, 0.1 + 0.1i, Complex, false},
+		{"", int64(0), Int, true},
+		{"test", int64(4), Int, true},
+		{"测试", int64(2), Int, true},
+		{"テス", int64(2), Int, true},
+		{"тест", int64(4), Int, true},
 
-		{"", int64(0), Int, false},
-		{"test", int64(4), Int, false},
-		{"测试", int64(2), Int, false},
-		{"テス", int64(2), Int, false},
-		{"тест", int64(4), Int, false},
+		{[0]int{}, int64(0), Int, true},
+		{[1]int{}, int64(1), Int, true},
+		{[]int{}, int64(0), Int, true},
+		{[]int{0}, int64(1), Int, true},
+		{map[int]int{}, int64(0), Int, true},
+		{map[int]int{0:0}, int64(1), Int, true},
+		{make(chan int), int64(0), Int, true},
+		{ch, int64(1), Int, true},
 
-		{true, true, Bool, false},
-		{false, false, Bool, false},
-
-		{[]int{0, 1, 2}, int64(3), Int, false},
-		{[3]int{0, 1, 2}, int64(3), Int, false},
-		{map[int]int{0: 0, 1: 1, 2: 2}, int64(3), Int, false},
-
-		{struct{}{}, nil, 0, true},
-		{&struct{}{}, nil, 0, true},
+		{fmt.Stringer(nil), nil, 0, false},                     // invalid
+		{fmt.Stringer((*strings.Builder)(nil)), nil, 0, false}, // ptr
+		{unsafe.Pointer(nil), nil, 0, false},
+		{(func())(nil), nil, 0, false},
+		{nil, nil, 0, false},
+		{struct{}{}, nil, 0, false},
+		{&struct{}{}, nil, 0, false},
 	} {
-		if tc.wantPanic {
-			xtesting.Panic(t, func() { SmplenOf(tc.give) })
-		} else {
-			i := SmplenOf(tc.give)
+		i, ok := SmplenOf(tc.give)
+		xtesting.Equal(t, ok, tc.wantOk)
+		if ok {
 			xtesting.Equal(t, i.Flag(), tc.wantFlag)
 			switch tc.wantFlag {
 			case Int:

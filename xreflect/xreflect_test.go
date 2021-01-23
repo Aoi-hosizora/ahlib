@@ -1,10 +1,13 @@
 package xreflect
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"math"
 	"reflect"
+	"strings"
 	"testing"
+	"unsafe"
 )
 
 func TestUnexportedField(t *testing.T) {
@@ -174,67 +177,74 @@ func TestGetXXX(t *testing.T) {
 }
 
 func TestIsEmptyValue(t *testing.T) {
+	ch := make(chan int, 1)
+	ch <- 1
 	for _, tc := range []struct {
 		give      interface{}
 		wantEmpty bool
-		wantPanic bool
 	}{
-		{0, true, false},
-		{int8(0), true, false},
-		{int16(0), true, false},
-		{int32(0), true, false},
-		{int64(0), true, false},
-		{1, false, false},
-		{int8(1), false, false},
-		{int16(1), false, false},
-		{int32(1), false, false},
-		{int64(1), false, false},
+		{0, true},
+		{int8(0), true},
+		{int16(0), true},
+		{int32(0), true},
+		{int64(0), true},
+		{1, false},
+		{int8(1), false},
+		{int16(1), false},
+		{int32(1), false},
+		{int64(1), false},
 
-		{uint(0), true, false},
-		{uint8(0), true, false},
-		{uint16(0), true, false},
-		{uint32(0), true, false},
-		{uint64(0), true, false},
-		{uintptr(0), true, false},
-		{uint(1), false, false},
-		{uint8(1), false, false},
-		{uint16(1), false, false},
-		{uint32(1), false, false},
-		{uint64(1), false, false},
-		{uintptr(1), false, false},
+		{uint(0), true},
+		{uint8(0), true},
+		{uint16(0), true},
+		{uint32(0), true},
+		{uint64(0), true},
+		{uintptr(0), true},
+		{uint(1), false},
+		{uint8(1), false},
+		{uint16(1), false},
+		{uint32(1), false},
+		{uint64(1), false},
+		{uintptr(1), false},
 
-		{float32(0.0), true, false},
-		{0.0, true, false},
-		{float32(0.1), false, false},
-		{0.1, false, false},
+		{float32(0.0), true},
+		{0.0, true},
+		{float32(0.1), false},
+		{0.1, false},
+		{complex64(0 + 0i), true},
+		{0 + 0i, true},
+		{complex64(0 + 1i), false},
+		{0 + 1i, false},
+		{false, true},
+		{true, false},
 
-		{complex64(0 + 0i), true, false},
-		{0 + 0i, true, false},
-		{complex64(0 + 1i), false, false},
-		{0 + 1i, false, false},
+		{"", true},
+		{".", false},
+		{[0]int{}, true},
+		{[1]int{}, false},
+		{[]int{}, true},
+		{[]int{0}, false},
+		{map[int]int{}, true},
+		{map[int]int{0: 0}, false},
+		{make(chan int), true},
+		{ch, false},
 
-		{false, true, false},
-		{true, false, false},
+		{fmt.Stringer(nil), true},                     // invalid
+		{fmt.Stringer((*strings.Builder)(nil)), true}, // ptr
+		{fmt.Stringer(&strings.Builder{}), false},     // ptr
+		{(*strings.Builder)(nil), true},
+		{&strings.Builder{}, false},
+		{unsafe.Pointer(nil), true},
+		{unsafe.Pointer(&strings.Builder{}), false},
+		{(func())(nil), true},
+		{func() {}, false},
+		{nil, true},              // invalid
+		{interface{}(nil), true}, // invalid
 
-		{"", true, false},
-		{[0]int{}, true, false},
-		{[]int{}, true, false},
-		{map[string]interface{}{}, true, false},
-		{".", false, false},
-		{[1]int{}, false, false},
-		{[]int{1}, false, false},
-		{map[string]interface{}{"": nil}, false, false},
-
-		{(*int)(nil), true, false},
-		{t, false, false},
-
-		{make(chan int), false, true},
-		{func() {}, false, true},
+		{struct{}{}, true},
+		{struct{ I int }{}, true},
+		{struct{ I int }{1}, false},
 	} {
-		if tc.wantPanic {
-			xtesting.Panic(t, func() { IsEmptyValue(tc.give) })
-		} else {
-			xtesting.Equal(t, IsEmptyValue(tc.give), tc.wantEmpty)
-		}
+		xtesting.Equal(t, IsEmptyValue(tc.give), tc.wantEmpty)
 	}
 }
