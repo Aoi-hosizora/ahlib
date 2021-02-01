@@ -23,8 +23,9 @@
 + `func RandNumberString(count int) string`
 + `func RandCapitalLetterNumberString(count int) string`
 + `func RandLowercaseLetterNumberString(count int) string`
-+ `func DefaultMaskToken(token string) string`
-+ `func MaskToken(token string) string`
++ `func DefaultMaskToken(s string) string`
++ `func MaskToken(s string, mask rune, indices ...int) string`
++ `func MaskTokenR(s string, mask rune, indices ...int) string`
 + `func FastStob(s string) []byte`
 + `func FastBtos(bs []byte) string`
 + `func TrimUTF8Bom(s string) string`

@@ -146,7 +146,7 @@ func TestSmplenOf(t *testing.T) {
 		{[]int{}, int64(0), Int, true},
 		{[]int{0}, int64(1), Int, true},
 		{map[int]int{}, int64(0), Int, true},
-		{map[int]int{0:0}, int64(1), Int, true},
+		{map[int]int{0: 0}, int64(1), Int, true},
 		{make(chan int), int64(0), Int, true},
 		{ch, int64(1), Int, true},
 

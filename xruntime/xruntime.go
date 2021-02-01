@@ -34,19 +34,29 @@ type TraceFrame struct {
 }
 
 // String returns the formatted TraceFrame.
+//
+// Format like:
+// 	.../xruntime/xruntime_test.go:10 xruntime.TestTraceStack
+// 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
-	return fmt.Sprintf("%s:%d (0x%x)\n\t%s: %s", t.Filename, t.LineIndex, t.PC, t.FuncName, t.LineText)
+	return fmt.Sprintf("%s:%d %s\n\t%s", t.Filename, t.LineIndex, t.FuncName, t.LineText)
 }
 
 // TraceStack represents the runtime trace stack, that is a slice of TraceFrame.
 type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.
-func (t *TraceStack) String() string {
-	l := len(*t)
-	sb := &strings.Builder{}
-	for i, frame := range *t {
-		sb.WriteString(fmt.Sprintf("%s:%d (0x%x)", frame.Filename, frame.LineIndex, frame.PC))
+//
+// Format like:
+// 	.../xruntime/xruntime_test.go:10 xruntime.TestTraceStack
+// 		stack := RuntimeTraceStack(0)
+// 	.../src/testing/testing.go:1127 testing.tRunner
+// 		fn(t)
+func (t TraceStack) String() string {
+	l := len(t)
+	sb := strings.Builder{}
+	for i, frame := range t {
+		sb.WriteString(fmt.Sprintf("%s:%d %s", frame.Filename, frame.LineIndex, frame.FuncName))
 		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf("\t%s", frame.LineText))
 		if i != l-1 {
@@ -56,9 +66,8 @@ func (t *TraceStack) String() string {
 	return sb.String()
 }
 
-// RuntimeTraceStack returns a slice of TraceFrame from runtime trace stacks using given skip.
+// RuntimeTraceStack returns a slice of TraceFrame from runtime trace stacks using given skip (start from 1).
 func RuntimeTraceStack(skip int) TraceStack {
-	skip++
 	frames := make([]*TraceFrame, 0)
 	for i := skip; ; i++ {
 		pc, filename, lineIndex, ok := runtime.Caller(i)
@@ -67,7 +76,8 @@ func RuntimeTraceStack(skip int) TraceStack {
 		}
 
 		// func
-		funcFullName := runtime.FuncForPC(pc).Name()
+		funcObj := runtime.FuncForPC(pc)
+		funcFullName := funcObj.Name()
 		_, funcName := filepath.Split(funcFullName)
 
 		// line
@@ -101,7 +111,7 @@ func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, fun
 	skip++
 	stack = RuntimeTraceStack(skip)
 	if len(stack) == 0 {
-		return []*TraceFrame{}, "", "", -1, ""
+		return []*TraceFrame{}, "", "", 0, ""
 	}
 	top := stack[0]
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText

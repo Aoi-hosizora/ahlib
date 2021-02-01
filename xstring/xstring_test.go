@@ -255,17 +255,21 @@ func TestDefaultMaskToken(t *testing.T) {
 		{"", ""},
 		{" ", "*"},
 
-		{"a", "*"},                     // 1
-		{"aa", "**"},                   // 2
-		{"aaa", "**a"},                 // 3
-		{"aaaa", "***a"},               // 4
-		{"aaaaa", "a***a"},             // 5
-		{"aaaaaa", "a****a"},           // 6
-		{"aaaaaaa", "a****aa"},         // 7
-		{"aaaaaaaa", "a*****aa"},       // 8
-		{"aaaaaaaaa", "aa*****aa"},     // 9 <<<
-		{"aaaaaaaaaa", "aa******aa"},   // 10
-		{"aaaaaaaaaaa", "aa*******aa"}, // 11
+		{"a", "*"},                             // 1
+		{"aa", "**"},                           // 2
+		{"aaa", "**a"},                         // 3
+		{"aaaa", "***a"},                       // 4
+		{"aaaaa", "a***a"},                     // 5
+		{"aaaaaa", "a****a"},                   // 6
+		{"aaaaaaa", "a****aa"},                 // 7
+		{"aaaaaaaa", "a*****aa"},               // 8
+		{"aaaaaaaaa", "aa*****aa"},             // 9
+		{"aaaaaaaaaa", "aa******aa"},           // 10
+		{"aaaaaaaaaaa", "aa******aaa"},         // 11
+		{"aaaaaaaaaaaa", "aa*******aaa"},       // 12
+		{"aaaaaaaaaaaaa", "aaa*******aaa"},     // 13 <<< default
+		{"aaaaaaaaaaaaaa", "aaa********aaa"},   // 14
+		{"aaaaaaaaaaaaaaa", "aaa*********aaa"}, // 15
 
 		{"テ", "*"},
 		{"テス", "**"},
@@ -277,7 +281,11 @@ func TestDefaultMaskToken(t *testing.T) {
 		{"テスaaaaaa", "テ*****aa"},
 		{"テスaaaaaaa", "テス*****aa"},
 		{"テスaaaaaaaa", "テス******aa"},
-		{"テスaaaaaaaaa", "テス*******aa"},
+		{"テスaaaaaaaaa", "テス******aaa"},
+		{"テスaaaaaaaaaa", "テス*******aaa"},
+		{"テスaaaaaaaaaaa", "テスa*******aaa"},
+		{"テスaaaaaaaaaaaa", "テスa********aaa"},
+		{"テスaaaaaaaaaaaaa", "テスa*********aaa"},
 	} {
 		xtesting.Equal(t, DefaultMaskToken(tc.give), tc.want)
 	}
@@ -287,40 +295,45 @@ func TestMaskToken(t *testing.T) {
 	for _, tc := range []struct {
 		giveString  string
 		giveIndices []int
-		want        string
+		want1       string
+		want2       string
 	}{
-		{"", []int{1}, ""},
+		{"", []int{1}, "", ""},
 
-		{"a", []int{}, "a"},
-		{"a", []int{0}, "*"}, // <<<
-		{"a", []int{1}, "a"},
-		{"a", []int{-1}, "*"}, // <<<
-		{"a", []int{-2}, "a"},
-		{"a", []int{0, 1}, "*"},
-		{"a", []int{0, -1}, "*"},
+		{"a", []int{}, "a", "*"},
+		{"a", []int{0}, "*", "a"},
+		{"a", []int{1}, "a", "*"},
+		{"a", []int{-1}, "*", "a"},
+		{"a", []int{-2}, "a", "*"},
+		{"a", []int{0, 1}, "*", "a"},
+		{"a", []int{0, -1}, "*", "a"},
 
-		{"aa", []int{}, "aa"},
-		{"aa", []int{0}, "*a"}, // <<<
-		{"aa", []int{1}, "a*"}, // <<<
-		{"aa", []int{2}, "aa"},
-		{"aa", []int{-1}, "a*"}, // <<<
-		{"aa", []int{-2}, "*a"}, // <<<
-		{"aa", []int{-3}, "aa"},
-		{"aa", []int{0, 1}, "**"},
-		{"aa", []int{-1, -2}, "**"},
+		{"aa", []int{}, "aa", "**"},
+		{"aa", []int{0}, "*a", "a*"},
+		{"aa", []int{1}, "a*", "*a"},
+		{"aa", []int{2}, "aa", "**"},
+		{"aa", []int{-1}, "a*", "*a"},
+		{"aa", []int{-2}, "*a", "a*"},
+		{"aa", []int{-3}, "aa", "**"},
+		{"aa", []int{0, 1}, "**", "aa"},
+		{"aa", []int{-1, -2}, "**", "aa"},
 
-		{"aaa", []int{}, "aaa"},
-		{"aaa", []int{0}, "*aa"},  // <<<
-		{"aaa", []int{1}, "a*a"},  // <<<
-		{"aaa", []int{2}, "aa*"},  // <<<
-		{"aaa", []int{-1}, "aa*"}, // <<<
-		{"aaa", []int{-2}, "a*a"}, // <<<
-		{"aaa", []int{-3}, "*aa"}, // <<<
-		{"aaa", []int{0, 1}, "**a"},
-		{"aaa", []int{-1, -3}, "*a*"},
-		{"aaa", []int{1, -1}, "a**"},
+		{"aaa", []int{}, "aaa", "***"},
+		{"aaa", []int{0}, "*aa", "a**"},
+		{"aaa", []int{1}, "a*a", "*a*"},
+		{"aaa", []int{2}, "aa*", "**a"},
+		{"aaa", []int{-1}, "aa*", "**a"},
+		{"aaa", []int{-2}, "a*a", "*a*"},
+		{"aaa", []int{-3}, "*aa", "a**"},
+		{"aaa", []int{0, 1}, "**a", "aa*"},
+		{"aaa", []int{-1, -3}, "*a*", "a*a"},
+		{"aaa", []int{1, -1}, "a**", "*aa"},
+
+		{"pwd123abcpwd", []int{3, 4, 5, 6, 7, 8}, "pwd******pwd", "***123abc***"},
+		{"pwd123abcpwd", []int{0, 1, 2, 9, 10, 11}, "***123abc***", "pwd******pwd"},
 	} {
-		xtesting.Equal(t, MaskToken(tc.giveString, '*', tc.giveIndices...), tc.want)
+		xtesting.Equal(t, MaskToken(tc.giveString, '*', tc.giveIndices...), tc.want1)
+		xtesting.Equal(t, MaskTokenR(tc.giveString, '*', tc.giveIndices...), tc.want2)
 	}
 }
 
@@ -392,10 +405,10 @@ func TestTrimUTF8XXX(t *testing.T) {
 	// Bom
 	for _, tc := range []struct {
 		giveStr string
-		giveBs []byte
+		giveBs  []byte
 		wantStr string
-		wantBs []byte
-	} {
+		wantBs  []byte
+	}{
 		{"", []byte{}, "", []byte{}},
 		{"test", []byte{'t', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
 		{"\xef\xbb\xbf", []byte{0xEF, 0xBB, 0xBF}, "", []byte{}},
@@ -408,10 +421,10 @@ func TestTrimUTF8XXX(t *testing.T) {
 	// Rc
 	for _, tc := range []struct {
 		giveStr string
-		giveBs []byte
+		giveBs  []byte
 		wantStr string
-		wantBs []byte
-	} {
+		wantBs  []byte
+	}{
 		{"", []byte{}, "", []byte{}},
 		{"test", []byte{'t', 'e', 's', 't'}, "test", []byte{'t', 'e', 's', 't'}},
 		{"\xef\xbf\xbd", []byte{0xEF, 0xBF, 0xBD}, "", []byte{}},

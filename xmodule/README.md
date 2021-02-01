@@ -16,8 +16,8 @@
 
 ### Variables
 
-+ `var LogLeftArrow func(arg1, arg2, arg3 string)`
-+ `var LogRightArrow func(arg1, arg2, arg3 string)`
++ `var LogLeftArrowFunc func(arg1, arg2, arg3 string)`
++ `var LogRightArrowFunc func(arg1, arg2, arg3 string)`
 
 ### Constants
 

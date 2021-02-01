@@ -67,7 +67,7 @@ func (d *defaultLogger) LogName(moduleName, moduleTyp string) {
 	if d.level&LogName != 0 {
 		moduleName = xcolor.Red.Sprint(moduleName)
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		LogLeftArrow("Pro:", moduleName, moduleTyp)
+		logLeftArrow("Pro:", moduleName, moduleTyp)
 	}
 }
 
@@ -80,7 +80,7 @@ func (d *defaultLogger) LogType(moduleTyp string) {
 	if d.level&LogType != 0 {
 		auto := xcolor.Red.Sprint("~")
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		LogLeftArrow("Pro:", auto, moduleTyp)
+		logLeftArrow("Pro:", auto, moduleTyp)
 	}
 }
 
@@ -94,7 +94,7 @@ func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string) {
 		auto := xcolor.Red.Sprint("~")
 		interfaceTyp = xcolor.Yellow.Sprint(interfaceTyp)
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		LogLeftArrow("Pro:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
+		logLeftArrow("Pro:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
 	}
 }
 
@@ -109,7 +109,7 @@ func (d *defaultLogger) LogInjectField(moduleName, structTyp, fieldName, fieldTy
 		structTyp = xcolor.Yellow.Sprint(structTyp)
 		fieldName = xcolor.Red.Sprint(fieldName)
 		fieldTyp = xcolor.Yellow.Sprint(fieldTyp)
-		LogRightArrow("Inj:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
+		logRightArrow("Inj:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
 	}
 }
 
@@ -123,18 +123,38 @@ func (d *defaultLogger) LogInject(structTyp string, num int) {
 		auto := xcolor.Default.Sprint("...")
 		numStr := xcolor.Default.Sprintf("#%d", num)
 		structTyp = xcolor.Yellow.Sprintf(structTyp)
-		LogRightArrow("Inj:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
+		logRightArrow("Inj:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
 	}
 }
 
-// LogLeftArrow is the logger function with <-- (used in LogName, LogType, LogImpl).
-// You can overwrite this function.
-var LogLeftArrow = func(arg1, arg2, arg3 string) {
+// LogLeftArrowFunc is a logger function with left arrow (<--), used in LogName, LogType, LogImpl.
+var LogLeftArrowFunc func(arg1, arg2, arg3 string)
+
+// LogRightArrowFunc is a logger function with right arrow (-->), used in LogInject, LogInjectField.
+var LogRightArrowFunc func(arg1, arg2, arg3 string)
+
+// logLeftArrow represents the inner logger function with left arrow.
+// Logs like:
+// 	[XMODULE] Pro: ~                     <-- error (*errors.errorString)
+// 	         |----|---------------------|   |---------------------------|
+// 	           4        30 (colored)                      ...
+func logLeftArrow(arg1, arg2, arg3 string) {
+	if LogLeftArrowFunc != nil {
+		LogLeftArrowFunc(arg1, arg2, arg3)
+		return
+	}
 	fmt.Printf("[XMODULE] %-4s %-30s <-- %s\n", arg1, arg2, arg3)
 }
 
-// LogRightArrow is the logger function with --> (used in LogInject, LogInjectField).
-// You can overwrite this function.
-var LogRightArrow = func(arg1, arg2, arg3 string) {
+// logLeftArrow represents the inner logger function with right arrow.
+// Logs like:
+// 	[XMODULE] Inj: ~                     --> (*xmodule.testStruct).Err error
+// 	         |----|---------------------|   |-------------------------------|
+// 	           4        30 (colored)                      ...
+func logRightArrow(arg1, arg2, arg3 string) {
+	if LogRightArrowFunc != nil {
+		LogRightArrowFunc(arg1, arg2, arg3)
+		return
+	}
 	fmt.Printf("[XMODULE] %-4s %-30s --> %s\n", arg1, arg2, arg3)
 }

@@ -16,9 +16,16 @@ func TestUnexportedField(t *testing.T) {
 		b int64
 		c uint64
 		d float64
+		m map[int]int
 	}
-	test := &testStruct{}
+	test := &testStruct{m: map[int]int{0: 0, 1: 1}}
 	val := reflect.ValueOf(test).Elem()
+
+	mapValue := GetUnexportedFieldValue(val.FieldByName("m"))
+	xtesting.Equal(t, mapValue.Len(), 2)
+	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(0)).Interface(), 0)
+	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(1)).Interface(), 1)
+	xtesting.Equal(t, mapValue.Interface(), map[int]int{0: 0, 1: 1})
 
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")), "")
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")), int64(0))

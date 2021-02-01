@@ -5,7 +5,14 @@ import (
 	"unsafe"
 )
 
-// GetUnexportedField gets the unexported struct field value.
+// GetUnexportedFieldValue gets the unexported struct field's reflect.Value.
+// Example:
+// 	GetUnexportedFieldValue(reflect.ValueOf(trans).Elem().FieldByName("translations")).MapIndex(reflect.ValueOf("required"))
+func GetUnexportedFieldValue(field reflect.Value) reflect.Value {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
+}
+
+// GetUnexportedField gets the unexported struct field's interface{} value.
 // Example:
 // 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).(gin.HandlersChain)
 func GetUnexportedField(field reflect.Value) interface{} {

@@ -368,10 +368,10 @@ func TestLogger(t *testing.T) {
 		fmt.Println(tc.str)
 		SetLogger(DefaultLogger(tc.giveLevel))
 		if tc.change {
-			LogLeftArrow = func(arg1, arg2, arg3 string) {
+			LogLeftArrowFunc = func(arg1, arg2, arg3 string) {
 				fmt.Printf("[XMODULE] %-4s %-15s <-- %s\n", arg1, arg2, arg3)
 			}
-			LogRightArrow = func(arg1, arg2, arg3 string) {
+			LogRightArrowFunc = func(arg1, arg2, arg3 string) {
 				fmt.Printf("[XMODULE] %-4s %-15s --> %s\n", arg1, arg2, arg3)
 			}
 		}

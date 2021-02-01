@@ -3,6 +3,7 @@ package xorderedmap
 import (
 	"encoding/json"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"sync"
 	"testing"
 )
 
@@ -132,6 +133,34 @@ func TestMarshal(t *testing.T) {
 	i, err := m.MarshalYAML()
 	xtesting.Equal(t, i, map[string]interface{}{"a": 1, "c": 3, "b": 2})
 	xtesting.Nil(t, err)
+}
+
+func TestMutex(t *testing.T) {
+	om := New()
+	wg := sync.WaitGroup{}
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			xtesting.NotPanic(t, func() {
+				om.Keys()
+				om.Values()
+				om.Len()
+				om.Set("", 0)
+				om.Has("")
+				om.Get("")
+				om.GetOr("", 0)
+				// om.MustGet("")
+				om.Remove("")
+				om.Clear()
+				_, _ = om.MarshalJSON()
+				_, _ = om.MarshalYAML()
+				_ = om.String()
+			})
+		}()
+	}
+	wg.Wait()
 }
 
 func TestFromInterface(t *testing.T) {

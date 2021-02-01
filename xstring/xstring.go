@@ -184,11 +184,10 @@ func RandLowercaseLetterNumberString(count int) string {
 	return RandString(count, lowercaseLetterNumberRunes)
 }
 
-// DefaultMaskToken masks and returns a token string. Here the masked result only shows the first and last two characters at most,
-// and the length of characters shown is restrict less than masked.
+// DefaultMaskToken masks and returns a token string. Here the masked result only shows the first and last three characters at most,
+// and the length of characters shown is restrict less than those masked.
 func DefaultMaskToken(s string) string {
-	switch {
-	case len(s) == 0:
+	if len(s) == 0 {
 		return ""
 	}
 
@@ -210,45 +209,78 @@ func DefaultMaskToken(s string) string {
 		return string(r[0]) + "****" + string(r[5:7]) // 1****67 -> 3:4
 	case 8:
 		return string(r[0]) + "*****" + string(r[6:8]) // 1*****78 -> 3:5
+	case 9:
+		return string(r[0:2]) + "*****" + string(r[7:9]) // 12*****89 -> 4:5
+	case 10:
+		return string(r[0:2]) + "******" + string(r[8:10]) // 12******90 -> 4:6
+	case 11:
+		return string(r[0:2]) + "******" + string(r[8:11]) // 12******901 -> 5:6
+	case 12:
+		return string(r[0:2]) + "*******" + string(r[9:12]) // 12*******012 -> 5:7
 	default:
-		return string(r[0:2]) + strings.Repeat("*", l-4) + string(r[l-2:l]) // 12*****89 -> 4:5
+		return string(r[0:3]) + strings.Repeat("*", l-6) + string(r[l-3:l]) // 123*******123 -> 6:7
 	}
 }
 
-// MaskToken masks and returns a token string with given mask run and indices array, which support minus index.
+// MaskToken masks a token string and returns the result, using given mask rune and indices for mask characters, which support minus index.
 func MaskToken(s string, mask rune, indices ...int) string {
+	return coreMaskToken(s, mask, true, indices...)
+}
+
+// MaskTokenR masks a token string and returns the result, using given mask rune and indices for non-mask characters, which support minus index,
+func MaskTokenR(s string, mask rune, indices ...int) string {
+	return coreMaskToken(s, mask, false, indices...)
+}
+
+// coreMaskToken is the core implementation of MaskToken and MaskTokenR.
+func coreMaskToken(s string, mask rune, usedToMask bool, indices ...int) string {
 	switch {
-	case len(s) == 0:
+	case len(s) == 0: // empty
 		return ""
-	case len(indices) == 0:
-		return s
+	case len(indices) == 0: // no change or full change
+		if usedToMask {
+			return s
+		}
+		return strings.Repeat(string(mask), len(s))
 	}
 
-	r := []rune(s)
-	l := len(r)
-	idxs := make([]int, 0, len(indices))
+	runes := []rune(s)
+	length := len(runes)
+	newIndices := make(map[int]bool) // idx-true map
+
+	idxs := make([]int, 0, len(indices)) // temp sorted indices
 	for _, index := range indices {
-		if 0 <= index && index < l {
+		if 0 <= index && index < length {
 			idxs = append(idxs, index)
-		} else if -l <= index && index < 0 {
-			idxs = append(idxs, l+index)
+		} else if -length <= index && index < 0 {
+			idxs = append(idxs, length+index)
 		}
 	}
 	sort.Ints(idxs)
-
-	idxKvs := make(map[int]bool)
 	for i, index := range idxs {
 		if i == 0 || idxs[i-1] != index {
-			idxKvs[index] = true
+			newIndices[index] = true // <<<
 		}
 	}
 
 	sb := strings.Builder{}
-	for i := range r {
-		if _, ok := idxKvs[i]; !ok {
-			sb.WriteRune(r[i])
-		} else {
-			sb.WriteRune(mask)
+	if usedToMask {
+		// use index to write mask
+		for i, ch := range runes {
+			if _, ok := newIndices[i]; !ok {
+				sb.WriteRune(ch)
+			} else {
+				sb.WriteRune(mask) // has index, write mask
+			}
+		}
+	} else {
+		// use index to write character
+		for i, ch := range runes {
+			if _, ok := newIndices[i]; !ok {
+				sb.WriteRune(mask)
+			} else {
+				sb.WriteRune(ch) // has index, write character
+			}
 		}
 	}
 	return sb.String()

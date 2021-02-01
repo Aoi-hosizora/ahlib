@@ -27,6 +27,7 @@
 
 ### Functions
 
++ `func GetUnexportedFieldValue(field reflect.Value) reflect.Value`
 + `func GetUnexportedField(field reflect.Value) interface{}`
 + `func SetUnexportedField(field reflect.Value, value interface{})`
 + `func GetInt(i interface{}) (int64, bool)`
