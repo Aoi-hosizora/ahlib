@@ -50,10 +50,11 @@ func TestCapitalizeAll(t *testing.T) {
 		want string
 	}{
 		{"", ""},
-		{" ", ""},
+		{" ", " "},
 		{"abc", "Abc"},
 		{"abc def", "Abc Def"},
-		{"abc Def ", "Abc Def"},
+		{"abc\tDef ", "Abc\tDef "},
+		{" abc\ndef\r\n　ghi\v", " Abc\nDef\r\n　Ghi\v"},
 		{"测试 测试", "测试 测试"},
 		{"テス テス", "テス テス"},
 		{"тест тест", "Тест Тест"},
@@ -68,15 +69,38 @@ func TestUncapitalizeAll(t *testing.T) {
 		want string
 	}{
 		{"", ""},
-		{" ", ""},
+		{" ", " "},
 		{"Abc", "abc"},
 		{"Abc Def", "abc def"},
-		{"abc Def ", "abc def"},
+		{"abc\tDef ", "abc\tdef "},
+		{" abc\nDef\r\n　Ghi\v", " abc\ndef\r\n　ghi\v"},
 		{"测试 测试", "测试 测试"},
 		{"テス テス", "テス テス"},
 		{"Тест Тест", "тест тест"},
 	} {
 		xtesting.Equal(t, UncapitalizeAll(tc.give), tc.want)
+	}
+}
+
+func TestIsBlank(t *testing.T) {
+	for _, tc := range []struct {
+		give rune
+		want bool
+	} {
+		{' ', true},
+		{'\t', true},
+		{'\n', true},
+		{'\r', true},
+		{'\v', true},
+		{'\f', true},
+		{'　', true},
+		{'\x85', true},
+		{'\xA0', true},
+		{'a', false},
+		{'0', false},
+		{'测', false},
+	} {
+		xtesting.Equal(t, IsBlank(tc.give), tc.want)
 	}
 }
 

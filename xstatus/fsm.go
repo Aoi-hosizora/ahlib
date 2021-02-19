@@ -4,14 +4,15 @@ package xstatus
 type FsmStatus uint64
 
 const (
-	FsmNone    FsmStatus = iota      // None
-	FsmInState                       // In state
-	FsmFinal                         // Final
-	FsmTagA    FsmStatus = iota + 98 // Tag a
-	FsmTagB                          // Tag b
-	FsmTagC                          // Tag c
-	FsmTagD                          // Tag d
-	FsmTagE                          // Tag e
+	FsmNone    FsmStatus = iota // None
+	FsmInState                  // In state
+	FsmFinal                    // Final
+
+	FsmTagA FsmStatus = iota + 98 // Tag a, start from 101
+	FsmTagB                       // Tag b
+	FsmTagC                       // Tag c
+	FsmTagD                       // Tag d
+	FsmTagE                       // Tag e
 )
 
 func (f FsmStatus) String() string {

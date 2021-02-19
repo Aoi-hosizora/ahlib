@@ -4,16 +4,17 @@ package xstatus
 type DbStatus uint64
 
 const (
-	DbUnknown  DbStatus = iota      // Unknown
-	DbSuccess                       // Success (CRUD)
-	DbNotFound                      // Not found (RUD)
-	DbExisted                       // Existed (CU)
-	DbFailed                        // Failed (CRUD)
-	DbTagA     DbStatus = iota + 96 // Tag a
-	DbTagB                          // Tag b
-	DbTagC                          // Tag c
-	DbTagD                          // Tag d
-	DbTagE                          // Tag e
+	DbUnknown  DbStatus = iota // Unknown (?)
+	DbSuccess                  // Success (CRUD)
+	DbNotFound                 // Not found (RUD)
+	DbExisted                  // Existed (CU)
+	DbFailed                   // Failed (CRUD)
+
+	DbTagA DbStatus = iota + 96 // Tag a, start from 101
+	DbTagB                      // Tag b
+	DbTagC                      // Tag c
+	DbTagD                      // Tag d
+	DbTagE                      // Tag e
 )
 
 func (d DbStatus) String() string {

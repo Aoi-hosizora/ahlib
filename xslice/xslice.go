@@ -135,7 +135,7 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 	return newSlice
 }
 
-// coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort.
+// coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort, and no used of sort.Slice and sort.SliceStable.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
 	if less == nil {
 		panic(panicNilLesser)

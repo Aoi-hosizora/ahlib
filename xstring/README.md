@@ -10,6 +10,7 @@
 + `func Uncapitalize(s string) string`
 + `func CapitalizeAll(s string) string`
 + `func UncapitalizeAll(s string) string`
++ `func IsBlank(r rune) bool`
 + `func RemoveBlanks(s string) string`
 + `func PascalCase(s string, seps ...string) string`
 + `func CamelCase(s string, seps ...string) string`

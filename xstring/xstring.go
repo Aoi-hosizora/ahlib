@@ -11,62 +11,67 @@ import (
 	"unsafe"
 )
 
-// Capitalize capitalizes the first letter of the whole string, this will ignore all trailing spaces.
+// Capitalize capitalizes the first letter of the whole string.
 func Capitalize(s string) string {
-	if len(s) == 0 {
-		return ""
+	for i, v := range s {
+		f := string(unicode.ToUpper(v))
+		return f + s[i+len(f):]
 	}
-
-	r := []rune(s)
-	first := string(unicode.ToUpper(r[0]))
-	if len(s) == 1 {
-		return first
-	}
-	return first + string(r[1:])
+	return ""
 }
 
-// Uncapitalize uncapitalizes the first letter of the whole string, this will ignore all trailing spaces.
+// Uncapitalize uncapitalizes the first letter of the whole string.
 func Uncapitalize(s string) string {
-	if len(s) == 0 {
-		return ""
+	for i, v := range s {
+		f := string(unicode.ToLower(v))
+		return f + s[i+len(f):]
 	}
-
-	r := []rune(s)
-	first := string(unicode.ToLower(r[0]))
-	if len(s) == 1 {
-		return first
-	}
-	return first + string(r[1:])
+	return ""
 }
 
-// CapitalizeAll capitalizes all the first letter in words of the whole string, this will trim the trailing space.
+// CapitalizeAll capitalizes all the first letter in words of the whole string, words are splited by blank character, see xstring.IsBlank.
 func CapitalizeAll(s string) string {
-	sp := strings.Split(s, " ")
-	out := make([]string, 0, len(sp))
-	for _, word := range sp {
-		if len(word) != 0 {
-			out = append(out, Capitalize(word))
+	newWord := true
+	sp := strings.Builder{}
+	for _, v := range s {
+		if newWord {
+			newWord = false
+			sp.WriteRune(unicode.ToUpper(v))
+		} else {
+			sp.WriteRune(v)
 		}
+		newWord = IsBlank(v)
 	}
-	return strings.Join(out, " ")
+	return sp.String()
 }
 
-// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, this will trim the trailing space.
+// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are splited by blank character, see xstring.IsBlank.
 func UncapitalizeAll(s string) string {
-	sp := strings.Split(s, " ")
-	out := make([]string, 0, len(sp))
-	for _, word := range sp {
-		if len(word) != 0 {
-			out = append(out, Uncapitalize(word))
+	newWord := true
+	sp := strings.Builder{}
+	for _, v := range s {
+		if newWord {
+			newWord = false
+			sp.WriteRune(unicode.ToLower(v))
+		} else {
+			sp.WriteRune(v)
 		}
+		newWord = IsBlank(v)
 	}
-	return strings.Join(out, " ")
+	return sp.String()
 }
 
-// RemoveBlanks replaces all blanks (\s and a wide space) to a single space. About blank, see unicode.IsSpace.
+// IsBlank checks if given rune is a space or a blank, that is [ \t\n\v\f\r\x85\xA0　], also see unicode.IsSpace.
+func IsBlank(r rune) bool {
+	return unicode.IsSpace(r) || r == '　'
+}
+
+// blankRe represents the blank regexp, that is [ \t\n\v\f\r\x85\xA0] (see unicode.IsSpace) and the wide space "　".
+var blankRe = regexp.MustCompile(`[ \t\n\v\f\r\x85\xA0　]+`) // != `\s　`
+
+// RemoveBlanks replaces all blanks to a single space " ", also see xstring.IsBlank and unicode.IsSpace.
 func RemoveBlanks(s string) string {
-	// [\t\n\v\f\r\x85\xA0 　]
-	s = regexp.MustCompile(`[\s　]+`).ReplaceAllString(s, " ")
+	s = blankRe.ReplaceAllString(s, " ")
 	return strings.TrimSpace(s)
 }
 
@@ -365,13 +370,12 @@ func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string)
 			if escapeFunc != nil {
 				val = escapeFunc(val)
 			}
-
 			if sb.Len() > 0 {
 				sb.WriteString("&")
 			}
-			sb.WriteString(key)
+			sb.WriteString(key) // escaped
 			sb.WriteString("=")
-			sb.WriteString(val)
+			sb.WriteString(val) // escaped
 		}
 	}
 
@@ -380,7 +384,10 @@ func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string)
 
 // PadLeft returns the string with length of totalLength, which is padded by char in left.
 func PadLeft(s string, char rune, totalLength int) string {
-	l := len([]rune(s))
+	l := 0 // length
+	for range s {
+		l++
+	}
 	sp := strings.Builder{}
 	for i := 0; i < totalLength-l; i++ {
 		sp.WriteRune(char)
@@ -391,7 +398,10 @@ func PadLeft(s string, char rune, totalLength int) string {
 
 // PadRight returns the string with length of totalLength, which is padded by char in right.
 func PadRight(s string, char rune, totalLength int) string {
-	l := len([]rune(s))
+	l := 0 // length
+	for range s {
+		l++
+	}
 	sp := strings.Builder{}
 	sp.WriteString(s)
 	for i := 0; i < totalLength-l; i++ {
@@ -402,30 +412,34 @@ func PadRight(s string, char rune, totalLength int) string {
 
 // GetLeft gets the left part of the string with length.
 func GetLeft(s string, length int) string {
-	if length <= 0 {
-		return ""
+	sp := strings.Builder{}
+	idx := 0
+	for _, v := range s {
+		if idx < length {
+			idx++
+			sp.WriteRune(v)
+		} else {
+			break
+		}
 	}
-
-	runes := []rune(s)
-	l := len(runes)
-	if l <= length {
-		return s
-	}
-	return string(runes[:length])
+	return sp.String()
 }
 
 // GetRight gets the right part of the string with length.
 func GetRight(s string, length int) string {
-	if length <= 0 {
-		return ""
+	l := 0 // length
+	for range s {
+		l++
 	}
-
-	runes := []rune(s)
-	l := len(runes)
-	if l <= length {
-		return s
+	sp := strings.Builder{}
+	idx := 0
+	for _, v := range s {
+		if idx >= l-length {
+			sp.WriteRune(v)
+		}
+		idx++
 	}
-	return string(runes[l-length:])
+	return sp.String()
 }
 
 const (

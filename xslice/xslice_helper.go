@@ -333,7 +333,7 @@ const (
 // sortSlice is a sort helper struct for innerSlice, implements sort.Interface.
 type sortSlice struct {
 	slice innerSlice
-	less  func(i, j interface{}) bool
+	less  func(i, j interface{}) bool // note that this field is different from sort.Slice's parameter
 }
 
 func (s sortSlice) Len() int {
