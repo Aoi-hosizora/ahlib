@@ -271,50 +271,6 @@ func TestRandXXXString(t *testing.T) {
 	}
 }
 
-func TestDefaultMaskToken(t *testing.T) {
-	for _, tc := range []struct {
-		give string
-		want string
-	}{
-		{"", ""},
-		{" ", "*"},
-
-		{"a", "*"},                             // 1
-		{"aa", "**"},                           // 2
-		{"aaa", "**a"},                         // 3
-		{"aaaa", "***a"},                       // 4
-		{"aaaaa", "a***a"},                     // 5
-		{"aaaaaa", "a****a"},                   // 6
-		{"aaaaaaa", "a****aa"},                 // 7
-		{"aaaaaaaa", "a*****aa"},               // 8
-		{"aaaaaaaaa", "aa*****aa"},             // 9
-		{"aaaaaaaaaa", "aa******aa"},           // 10
-		{"aaaaaaaaaaa", "aa******aaa"},         // 11
-		{"aaaaaaaaaaaa", "aa*******aaa"},       // 12
-		{"aaaaaaaaaaaaa", "aaa*******aaa"},     // 13 <<< default
-		{"aaaaaaaaaaaaaa", "aaa********aaa"},   // 14
-		{"aaaaaaaaaaaaaaa", "aaa*********aaa"}, // 15
-
-		{"テ", "*"},
-		{"テス", "**"},
-		{"テスa", "**a"},
-		{"テスaa", "***a"},
-		{"テスaaa", "テ***a"},
-		{"テスaaaa", "テ****a"},
-		{"テスaaaaa", "テ****aa"},
-		{"テスaaaaaa", "テ*****aa"},
-		{"テスaaaaaaa", "テス*****aa"},
-		{"テスaaaaaaaa", "テス******aa"},
-		{"テスaaaaaaaaa", "テス******aaa"},
-		{"テスaaaaaaaaaa", "テス*******aaa"},
-		{"テスaaaaaaaaaaa", "テスa*******aaa"},
-		{"テスaaaaaaaaaaaa", "テスa********aaa"},
-		{"テスaaaaaaaaaaaaa", "テスa*********aaa"},
-	} {
-		xtesting.Equal(t, DefaultMaskToken(tc.give), tc.want)
-	}
-}
-
 func TestMaskToken(t *testing.T) {
 	for _, tc := range []struct {
 		giveString  string

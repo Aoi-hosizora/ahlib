@@ -189,50 +189,12 @@ func RandLowercaseLetterNumberString(count int) string {
 	return RandString(count, lowercaseLetterNumberRunes)
 }
 
-// DefaultMaskToken masks and returns a token string. Here the masked result only shows the first and last three characters at most,
-// and the length of characters shown is restrict less than those masked.
-func DefaultMaskToken(s string) string {
-	if len(s) == 0 {
-		return ""
-	}
-
-	r := []rune(s)
-	switch l := len(r); l {
-	case 1:
-		return "*" // * -> 0:1
-	case 2:
-		return "**" // ** -> 0:2
-	case 3:
-		return "**" + string(r[2]) // **3 -> 1:2
-	case 4:
-		return "***" + string(r[3]) // ***4 -> 1:3
-	case 5:
-		return string(r[0]) + "***" + string(r[4]) // 1***5 -> 2:3
-	case 6:
-		return string(r[0]) + "****" + string(r[5]) // 1****6 -> 2:4
-	case 7:
-		return string(r[0]) + "****" + string(r[5:7]) // 1****67 -> 3:4
-	case 8:
-		return string(r[0]) + "*****" + string(r[6:8]) // 1*****78 -> 3:5
-	case 9:
-		return string(r[0:2]) + "*****" + string(r[7:9]) // 12*****89 -> 4:5
-	case 10:
-		return string(r[0:2]) + "******" + string(r[8:10]) // 12******90 -> 4:6
-	case 11:
-		return string(r[0:2]) + "******" + string(r[8:11]) // 12******901 -> 5:6
-	case 12:
-		return string(r[0:2]) + "*******" + string(r[9:12]) // 12*******012 -> 5:7
-	default:
-		return string(r[0:3]) + strings.Repeat("*", l-6) + string(r[l-3:l]) // 123*******123 -> 6:7
-	}
-}
-
-// MaskToken masks a token string and returns the result, using given mask rune and indices for mask characters, which support minus index.
+// MaskToken masks a token string and returns the result, using given mask rune and indices for mask characters, this function also supports minus index.
 func MaskToken(s string, mask rune, indices ...int) string {
 	return coreMaskToken(s, mask, true, indices...)
 }
 
-// MaskTokenR masks a token string and returns the result, using given mask rune and indices for non-mask characters, which support minus index,
+// MaskTokenR masks a token string and returns the result, using given mask rune and indices for non-mask characters, this function also supports minus index,
 func MaskTokenR(s string, mask rune, indices ...int) string {
 	return coreMaskToken(s, mask, false, indices...)
 }
