@@ -196,15 +196,15 @@ func SmpvalOf(i interface{}) (*Smpval, bool) {
 	case reflect.String:
 		return stringSmpval(val.String()), true
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
-		// unsupported collection
+		// collection is unsupported
 	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
-		// unsupported wrapper
-	case reflect.Struct:
-		// unsupported composite
+		// wrapper is unsupported
 	case reflect.Func:
-		// unsupported function
+		// function is unsupported
+	case reflect.Struct:
+		// composite is unsupported
 	case reflect.Invalid:
-		// unsupported, that is (interface{})(nil)
+		// invalid type, that is (interface{})(nil)
 	}
 	return nil, false
 }
@@ -235,13 +235,13 @@ func SmplenOf(i interface{}) (*Smplen, bool) {
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
 		return intSmplen(int64(val.Len())), true
 	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
-		// unsupported wrapper
-	case reflect.Struct:
-		// unsupported composite
+		// wrapper is unsupported
 	case reflect.Func:
-		// unsupported function
+		// function is unsupported
+	case reflect.Struct:
+		// composite is unsupported
 	case reflect.Invalid:
-		// unsupported, that is (interface{})(nil)
+		// invalid type, that is (interface{})(nil)
 	}
 	return nil, false
 }

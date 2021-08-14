@@ -5,25 +5,19 @@ import (
 	"unsafe"
 )
 
-// GetUnexportedFieldValue gets the unexported struct field's reflect.Value.
+// GetUnexportedField gets the unexported struct field's reflect.Value.
 // Example:
-// 	GetUnexportedFieldValue(reflect.ValueOf(trans).Elem().FieldByName("translations")).MapIndex(reflect.ValueOf("required"))
-func GetUnexportedFieldValue(field reflect.Value) reflect.Value {
+// 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).Interface().(gin.HandlersChain)
+// 	GetUnexportedField(reflect.ValueOf(trans).Elem().FieldByName("translations")).MapIndex(reflect.ValueOf("required"))
+func GetUnexportedField(field reflect.Value) reflect.Value {
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 }
 
-// GetUnexportedField gets the unexported struct field's interface{} value.
+// SetUnexportedField sets reflect.Value to the unexported struct field.
 // Example:
-// 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).(gin.HandlersChain)
-func GetUnexportedField(field reflect.Value) interface{} {
-	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
-}
-
-// SetUnexportedField sets value to unexported struct field.
-// Example:
-// 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), fullPath)
-func SetUnexportedField(field reflect.Value, value interface{}) {
-	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
+// 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), reflect.ValueOf(newFullPath))
+func SetUnexportedField(field reflect.Value, value reflect.Value) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(value)
 }
 
 // GetInt returns the int64 value from int, int8, int16, int32 and int64 interface.
@@ -117,5 +111,6 @@ func IsEmptyValue(i interface{}) bool {
 		return true
 	}
 
-	return true // invalid, that is (interface{})(nil)
+	// invalid, that is (interface{})(nil)
+	return true
 }

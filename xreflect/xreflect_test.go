@@ -21,31 +21,31 @@ func TestUnexportedField(t *testing.T) {
 	test := &testStruct{m: map[int]int{0: 0, 1: 1}}
 	val := reflect.ValueOf(test).Elem()
 
-	mapValue := GetUnexportedFieldValue(val.FieldByName("m"))
+	mapValue := GetUnexportedField(val.FieldByName("m"))
 	xtesting.Equal(t, mapValue.Len(), 2)
 	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(0)).Interface(), 0)
 	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(1)).Interface(), 1)
 	xtesting.Equal(t, mapValue.Interface(), map[int]int{0: 0, 1: 1})
 
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")), "")
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")), int64(0))
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")), uint64(0))
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")), 0.0)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")).Interface(), "")
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")).Interface(), int64(0))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")).Interface(), uint64(0))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")).Interface(), 0.0)
 
-	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("a"), "string") })
-	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("b"), int64(9223372036854775807)) })
-	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("c"), uint64(18446744073709551615)) })
-	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("d"), 0.333) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("a"), reflect.ValueOf("string")) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("b"), reflect.ValueOf(int64(9223372036854775807))) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("c"), reflect.ValueOf(uint64(18446744073709551615))) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("d"), reflect.ValueOf(0.333)) })
 
 	xtesting.Equal(t, test.a, "string")
 	xtesting.Equal(t, test.b, int64(9223372036854775807))
 	xtesting.Equal(t, test.c, uint64(18446744073709551615))
 	xtesting.Equal(t, test.d, 0.333)
 
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")), "string")
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")), int64(9223372036854775807))
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")), uint64(18446744073709551615))
-	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")), 0.333)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")).Interface(), "string")
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")).Interface(), int64(9223372036854775807))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")).Interface(), uint64(18446744073709551615))
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")).Interface(), 0.333)
 }
 
 func TestGetXXX(t *testing.T) {
