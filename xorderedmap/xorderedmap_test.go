@@ -7,6 +7,18 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	m := New()
+	xtesting.Equal(t, len(m.keys), 0)
+	xtesting.Equal(t, cap(m.keys), 0)
+	xtesting.Equal(t, len(m.kv), 0)
+
+	m = NewWithCap(5)
+	xtesting.Equal(t, len(m.keys), 0)
+	xtesting.Equal(t, cap(m.keys), 5)
+	xtesting.Equal(t, len(m.kv), 0)
+}
+
 func TestSet(t *testing.T) {
 	m := New()
 	m.Set("a", "1")
@@ -132,6 +144,25 @@ func TestMarshal(t *testing.T) {
 	m.Set("b", 2)
 	i, err := m.MarshalYAML()
 	xtesting.Equal(t, i, map[string]interface{}{"a": 1, "c": 3, "b": 2})
+	xtesting.Nil(t, err)
+
+	m.Clear()
+	m.Set("z", 1)
+	m.Set("2", 3)
+	m.Set("a", 2)
+	type mapItem struct { // yaml.MapItem
+		Key, Value interface{}
+	}
+	CreateYamlMapSliceFunc = func(kvPairs [][2]interface{}) (interface{}, error) {
+		slice := make([]mapItem, 0, len(kvPairs)) // yaml.MapSlice
+		for _, pair := range kvPairs {
+			slice = append(slice, mapItem{Key: pair[0], Value: pair[1]})
+		}
+		return slice, nil
+	}
+	defer func() { CreateYamlMapSliceFunc = nil }()
+	i, err = m.MarshalYAML()
+	xtesting.Equal(t, i, []mapItem{{"z", 1}, {"2", 3}, {"a", 2}})
 	xtesting.Nil(t, err)
 }
 

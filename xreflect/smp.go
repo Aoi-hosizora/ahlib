@@ -34,32 +34,32 @@ type Smpval struct {
 	flag Smpflag
 }
 
-// intSmpval returns an Smpval with Int flag.
+// intSmpval returns a Smpval with Int flag.
 func intSmpval(i int64) *Smpval {
 	return &Smpval{i: i, flag: Int}
 }
 
-// uintSmpval returns an Smpval with Uint flag.
+// uintSmpval returns a Smpval with Uint flag.
 func uintSmpval(u uint64) *Smpval {
 	return &Smpval{u: u, flag: Uint}
 }
 
-// floatSmpval returns an Smpval with Float flag.
+// floatSmpval returns a Smpval with Float flag.
 func floatSmpval(f float64) *Smpval {
 	return &Smpval{f: f, flag: Float}
 }
 
-// complexSmpval returns an Smpval with Complex flag.
+// complexSmpval returns a Smpval with Complex flag.
 func complexSmpval(c complex128) *Smpval {
 	return &Smpval{c: c, flag: Complex}
 }
 
-// boolSmpval returns an Smpval with Bool flag.
+// boolSmpval returns a Smpval with Bool flag.
 func boolSmpval(b bool) *Smpval {
 	return &Smpval{b: b, flag: Bool}
 }
 
-// stringSmpval returns an Smpval with String flag.
+// stringSmpval returns a Smpval with String flag.
 func stringSmpval(s string) *Smpval {
 	return &Smpval{s: s, flag: String}
 }
@@ -116,27 +116,27 @@ type Smplen struct {
 	flag Smpflag
 }
 
-// intSmplen returns an Smplen with Int flag.
+// intSmplen returns a Smplen with Int flag.
 func intSmplen(i int64) *Smplen {
 	return &Smplen{i: i, flag: Int}
 }
 
-// uintSmplen returns an Smplen with Uint flag.
+// uintSmplen returns a Smplen with Uint flag.
 func uintSmplen(u uint64) *Smplen {
 	return &Smplen{u: u, flag: Uint}
 }
 
-// floatSmplen returns an Smplen with Float flag.
+// floatSmplen returns a Smplen with Float flag.
 func floatSmplen(f float64) *Smplen {
 	return &Smplen{f: f, flag: Float}
 }
 
-// complexSmplen returns an Smplen with Complex flag.
+// complexSmplen returns a Smplen with Complex flag.
 func complexSmplen(c complex128) *Smplen {
 	return &Smplen{c: c, flag: Complex}
 }
 
-// boolSmplen returns an Smplen with Bool flag.
+// boolSmplen returns a Smplen with Bool flag.
 func boolSmplen(b bool) *Smplen {
 	return &Smplen{b: b, flag: Bool}
 }
@@ -212,7 +212,7 @@ func SmpvalOf(i interface{}) (*Smpval, bool) {
 // SmplenOf gets the Smplen of given value, returns false when using nil or unsupported type.
 // Support types:
 // 	1. numeric:     int, intX, uint, uintX, uintptr, floatX, complexX, bool.
-// 	2. collection:  string, array, slice, map, chan..
+// 	2. collection:  string, array, slice, map, chan.
 // Unsupported types:
 // 	1. wrapper:     interface, ptr, unsafePtr.
 // 	2. composite:   struct.

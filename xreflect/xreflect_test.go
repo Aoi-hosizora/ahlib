@@ -255,3 +255,24 @@ func TestIsEmptyValue(t *testing.T) {
 		xtesting.Equal(t, IsEmptyValue(tc.give), tc.wantEmpty)
 	}
 }
+
+func TestGetMapBuckets(t *testing.T) {
+	b := GetMapB(map[int]int{})
+	xtesting.Equal(t, b, uint8(0))
+
+	b, bt := GetMapBuckets(map[string]interface{}{})
+	xtesting.Equal(t, b, uint8(0))
+	xtesting.Equal(t, bt, uint64(1))
+
+	xtesting.Panic(t, func() { GetMapB(nil) })
+	xtesting.Panic(t, func() { GetMapB(0) })
+	xtesting.Panic(t, func() { GetMapBuckets(nil) })
+	xtesting.Panic(t, func() { GetMapBuckets(0) })
+
+	xtesting.NotPanic(t, func() {
+		for i := 0; i < 212; i++ {
+			b, bt = GetMapBuckets(make(map[string]int, i))
+			// log.Println(i, b, bt)
+		}
+	})
+}

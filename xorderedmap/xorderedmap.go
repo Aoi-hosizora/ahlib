@@ -8,9 +8,10 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	_ "unsafe"
 )
 
-// OrderedMap represents a map which is in ordered. This type is concurrent safe.
+// OrderedMap represents a map which is in ordered, which is implemented by slice and map. This type is concurrent safe.
 type OrderedMap struct {
 	// kv represents the inner dictionary.
 	kv map[string]interface{}
@@ -25,8 +26,16 @@ type OrderedMap struct {
 // New creates an empty OrderedMap.
 func New() *OrderedMap {
 	return &OrderedMap{
-		kv:   make(map[string]interface{}),
+		kv:   make(map[string]interface{}, 0),
 		keys: make([]string, 0),
+	}
+}
+
+// NewWithCap creates an empty OrderedMap with given capacity.
+func NewWithCap(c int) *OrderedMap {
+	return &OrderedMap{
+		kv:   make(map[string]interface{}, c),
+		keys: make([]string, 0, c),
 	}
 }
 
@@ -174,16 +183,39 @@ func (l *OrderedMap) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// MarshalYAML marshals OrderedMap to yaml supported object (in no ordered). Details see
-// https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go and https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
+// CreateYamlMapSliceFunc represents a function used to create a yaml.MapSlice from a slice of kv pair ([2]interface{}), used in OrderedMap.MarshalYAML. For more
+// details, please visit https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go and https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
+//
+// Example:
+// 	xorderedmap.CreateYamlMapSliceFunc = func(kvPairs [][2]interface{}) (interface{}, error) {
+// 		slice := yaml.MapSlice{}
+// 		for _, pair := range kvPairs {
+// 			slice = append(slice, yaml.MapItem{Key: pair[0], Value: pair[1]})
+// 		}
+// 		return slice, nil
+// 	}
+var CreateYamlMapSliceFunc func(kvPairs [][2]interface{}) (interface{}, error)
+
+// MarshalYAML marshals the current OrderedMap to yaml supported object, you have to set CreateYamlMapSliceFunc before use MarshalYAML, otherwise the yaml.Marshal
+// function will marshal to a map that is in no order. For more details, please visit xorderedmap.CreateYamlMapSliceFunc.
 func (l *OrderedMap) MarshalYAML() (interface{}, error) {
+	if CreateYamlMapSliceFunc == nil {
+		l.mu.RLock()
+		m := make(map[string]interface{}, len(l.kv))
+		for k, v := range l.kv {
+			m[k] = v
+		}
+		l.mu.RUnlock()
+		return m, nil
+	}
+
 	l.mu.RLock()
-	m := make(map[string]interface{}, len(l.kv))
-	for k, v := range l.kv {
-		m[k] = v
+	kvPairs := make([][2]interface{}, 0, len(l.kv))
+	for _, k := range l.keys {
+		kvPairs = append(kvPairs, [2]interface{}{k, l.kv[k]})
 	}
 	l.mu.RUnlock()
-	return m, nil
+	return CreateYamlMapSliceFunc(kvPairs)
 }
 
 // String returns the string in json format.
@@ -215,25 +247,21 @@ func FromInterface(object interface{}) *OrderedMap {
 		panic(panicNonStruct)
 	}
 
-	om := New()
+	om := NewWithCap(typ.NumField())
 	for i := 0; i < typ.NumField(); i++ {
-		// get tag
-		relField := typ.Field(i)
-		tag := relField.Tag.Get("json")
+		field := typ.Field(i)
+		tag := field.Tag.Get("json")
 		if tag == "" {
-			tag = relField.Name
+			tag = field.Name
 		}
-		sp := strings.Split(tag, ",")
+		sp := strings.SplitN(tag, ",", 2)
 		omitempty := len(sp) >= 2 && strings.TrimSpace(sp[1]) == "omitempty" // ignore null
 
-		// use json field as map key
-		field := strings.TrimSpace(sp[0])
+		// use json tag value as key name
+		key := strings.TrimSpace(sp[0])
 		value := val.Field(i).Interface()
-
-		if field != "-" {
-			if !omitempty || !xreflect.IsEmptyValue(value) {
-				om.Set(field, value)
-			}
+		if key != "-" && (!omitempty || !xreflect.IsEmptyValue(value)) {
+			om.Set(key, value)
 		}
 	}
 

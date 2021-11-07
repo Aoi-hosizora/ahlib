@@ -2,7 +2,9 @@ package xnumber
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"log"
 	"math"
+	"strconv"
 	"testing"
 )
 
@@ -128,6 +130,48 @@ func TestBool(t *testing.T) {
 
 func TestIntSize(t *testing.T) {
 	xtesting.Equal(t, IntSize(), 32<<(^uint(0)>>63))
+}
+
+func TestFastrand(t *testing.T) {
+	for i := 0; i < 5; i++ {
+		log.Println(FastrandUint32())
+	}
+	for i := 0; i < 5; i++ {
+		log.Println(FastrandUint64())
+	}
+	for i := 0; i < 5; i++ {
+		log.Println(FastrandInt32())
+	}
+	for i := 0; i < 5; i++ {
+		log.Println(FastrandInt64())
+	}
+}
+
+func TestIsPowerOfTwo(t *testing.T) {
+	for _, tc := range []struct {
+		give int
+		want bool
+	}{
+		{0, true},
+		{1, true},
+		{2, true},
+		{3, false},
+		{4, true},
+		{5, false},
+		{1023, false},
+		{1024, true},
+		{2047, false},
+		{2048, true},
+		{65535, false},
+		{65536, true},
+		{1073741823, false},
+		{1073741824, true},
+		{2147483647, false},
+	} {
+		t.Run(strconv.Itoa(tc.give), func(t *testing.T) {
+			xtesting.Equal(t, IsPowerOfTwo(tc.give), tc.want)
+		})
+	}
 }
 
 func TestMinMax(t *testing.T) {

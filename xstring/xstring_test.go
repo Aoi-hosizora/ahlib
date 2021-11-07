@@ -123,7 +123,7 @@ func TestRemoveBlanks(t *testing.T) {
 	}
 }
 
-func TestCaseHelper(t *testing.T) {
+func TestSplitToWords(t *testing.T) {
 	for _, tc := range []struct {
 		giveString string
 		giveSeps   []string
@@ -146,7 +146,7 @@ func TestCaseHelper(t *testing.T) {
 		{"测试 and テス and тест", []string{"and"}, []string{"测试", "テス", "тест"}},
 		{"mix-Mix_Mix.Mix?Mix", []string{"?"}, []string{"mix", "mix", "mix", "mix", "mix"}},
 	} {
-		words := caseHelper(tc.giveString, tc.giveSeps...)
+		words := SplitToWords(tc.giveString, tc.giveSeps...)
 		xtesting.Equal(t, words, tc.want)
 	}
 }
@@ -179,7 +179,7 @@ func TestXXXCase(t *testing.T) {
 }
 
 // showFn represents need to show shuffle and random result
-var showFn = func() bool { return true }
+var showFn = func() bool { return false }
 
 func TestTimeUUID(t *testing.T) {
 	zero := time.Time{}

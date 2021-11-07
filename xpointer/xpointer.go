@@ -114,7 +114,7 @@ func StringVal(p *string, o string) string {
 	return *p
 }
 
-// IntVal returns a int value from the given pointer, returns the fallback value when nil.
+// IntVal returns an int value from the given pointer, returns the fallback value when nil.
 func IntVal(p *int, o int) int {
 	if p == nil {
 		return o
@@ -122,7 +122,7 @@ func IntVal(p *int, o int) int {
 	return *p
 }
 
-// Int8Val returns a int8 value from the given pointer, returns the fallback value when nil.
+// Int8Val returns an int8 value from the given pointer, returns the fallback value when nil.
 func Int8Val(p *int8, o int8) int8 {
 	if p == nil {
 		return o
@@ -130,7 +130,7 @@ func Int8Val(p *int8, o int8) int8 {
 	return *p
 }
 
-// Int16Val returns a int16 value from the given pointer, returns the fallback value when nil.
+// Int16Val returns an int16 value from the given pointer, returns the fallback value when nil.
 func Int16Val(p *int16, o int16) int16 {
 	if p == nil {
 		return o
@@ -138,7 +138,7 @@ func Int16Val(p *int16, o int16) int16 {
 	return *p
 }
 
-// Int32Val returns a int32 value from the given pointer, returns the fallback value when nil.
+// Int32Val returns an int32 value from the given pointer, returns the fallback value when nil.
 func Int32Val(p *int32, o int32) int32 {
 	if p == nil {
 		return o
@@ -146,7 +146,7 @@ func Int32Val(p *int32, o int32) int32 {
 	return *p
 }
 
-// Int64Val returns a int64 value from the given pointer, returns the fallback value when nil.
+// Int64Val returns an int64 value from the given pointer, returns the fallback value when nil.
 func Int64Val(p *int64, o int64) int64 {
 	if p == nil {
 		return o
@@ -154,7 +154,7 @@ func Int64Val(p *int64, o int64) int64 {
 	return *p
 }
 
-// UintVal returns a uint value from the given pointer, returns the fallback value when nil.
+// UintVal returns an uint value from the given pointer, returns the fallback value when nil.
 func UintVal(p *uint, o uint) uint {
 	if p == nil {
 		return o
@@ -162,7 +162,7 @@ func UintVal(p *uint, o uint) uint {
 	return *p
 }
 
-// Uint8Val returns a uint8 value from the given pointer, returns the fallback value when nil.
+// Uint8Val returns an uint8 value from the given pointer, returns the fallback value when nil.
 func Uint8Val(p *uint8, o uint8) uint8 {
 	if p == nil {
 		return o
@@ -170,7 +170,7 @@ func Uint8Val(p *uint8, o uint8) uint8 {
 	return *p
 }
 
-// Uint16Val returns a uint16 value from the given pointer, returns the fallback value when nil.
+// Uint16Val returns an uint16 value from the given pointer, returns the fallback value when nil.
 func Uint16Val(p *uint16, o uint16) uint16 {
 	if p == nil {
 		return o
@@ -178,7 +178,7 @@ func Uint16Val(p *uint16, o uint16) uint16 {
 	return *p
 }
 
-// Uint32Val returns a uint32 value from the given pointer, returns the fallback value when nil.
+// Uint32Val returns an uint32 value from the given pointer, returns the fallback value when nil.
 func Uint32Val(p *uint32, o uint32) uint32 {
 	if p == nil {
 		return o
@@ -186,7 +186,7 @@ func Uint32Val(p *uint32, o uint32) uint32 {
 	return *p
 }
 
-// Uint64Val returns a uint64 value from the given pointer, returns the fallback value when nil.
+// Uint64Val returns an uint64 value from the given pointer, returns the fallback value when nil.
 func Uint64Val(p *uint64, o uint64) uint64 {
 	if p == nil {
 		return o

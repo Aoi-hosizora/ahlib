@@ -3,6 +3,8 @@ package xnumber
 import (
 	"fmt"
 	"math"
+	_ "runtime"
+	_ "unsafe"
 )
 
 // Accuracy represents an accuracy with some compare methods in accuracy.
@@ -137,6 +139,31 @@ func Bool(b bool) int {
 func IntSize() int {
 	const intSize = 32 << (^uint(0) >> 63)
 	return intSize
+}
+
+//go:linkname FastrandUint32 runtime.fastrand
+
+// FastrandUint32 returns a random uint32 value using runtime.fastrand.
+func FastrandUint32() uint32
+
+// FastrandUint64 returns a random uint64 value using runtime.fastrand.
+func FastrandUint64() uint64 {
+	return (uint64(FastrandUint32()) << 32) | uint64(FastrandUint32())
+}
+
+// FastrandInt32 returns a random int32 value using runtime.fastrand.
+func FastrandInt32() int32 {
+	return int32(FastrandUint32() & (1<<31 - 1))
+}
+
+// FastrandInt64 returns a random int64 value using runtime.fastrand.
+func FastrandInt64() int64 {
+	return int64(FastrandUint64() & (1<<63 - 1))
+}
+
+// IsPowerOfTwo checks whether the given integer is power of two.
+func IsPowerOfTwo(x int) bool {
+	return (x & (-x)) == x
 }
 
 const (

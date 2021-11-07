@@ -13,7 +13,7 @@
 
 ### Variables
 
-+ None
++ `var CreateYamlMapSliceFunc func`
 
 ### Constants
 
@@ -22,6 +22,7 @@
 ### Functions
 
 + `func New() *OrderedMap`
++ `func NewWithCap(c int) *OrderedMap`
 + `func FromInterface(object interface{}) *OrderedMap`
 
 ### Methods

@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-+ testing*
++ xtesting*
 
 ## Documents
 

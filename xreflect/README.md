@@ -37,6 +37,8 @@
 + `func GetBool(i interface{}) (bool, bool)`
 + `func GetString(i interface{}) (string, bool)`
 + `func IsEmptyValue(i interface{}) bool`
++ `func GetMapB(m interface{}) uint8`
++ `func GetMapBuckets(m interface{}) (uint8, uint64)`
 + `func SmpvalOf(i interface{}) (*Smpval, bool)`
 + `func SmplenOf(i interface{}) (*Smplen, bool)`
 

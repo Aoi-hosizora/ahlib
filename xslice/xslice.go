@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Equaller represents a equality function for two interface{}, is used in XXXWith methods.
+// Equaller represents an equality function for two interface{}, is used in XXXWith methods.
 type Equaller func(i, j interface{}) bool
 
 // Lesser represents a less function for sort, see sort.Interface.
@@ -135,7 +135,7 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 	return newSlice
 }
 
-// coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort, and no used of sort.Slice and sort.SliceStable.
+// coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort, using sort.Slice and sort.SliceStable.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
 	if less == nil {
 		panic(panicNilLesser)

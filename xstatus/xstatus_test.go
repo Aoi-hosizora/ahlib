@@ -24,7 +24,7 @@ func TestDbStatus(t *testing.T) {
 
 func TestFsmStatus(t *testing.T) {
 	xtesting.Equal(t, FsmNone.String(), "fsm-none")
-	xtesting.Equal(t, FsmInState.String(), "fsm-in-state")
+	xtesting.Equal(t, FsmState.String(), "fsm-state")
 	xtesting.Equal(t, FsmFinal.String(), "fsm-final")
 	xtesting.Equal(t, FsmTagA.String(), "fsm-tag-a")
 	xtesting.Equal(t, FsmTagB.String(), "fsm-tag-b")

@@ -71,8 +71,8 @@ func (dt JsonDateTime) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	errUnmarshalJsonDate     = errors.New("xtime: given bytes could not be unmarshaled to JsonDate")
-	errUnmarshalJsonDateTime = errors.New("xtime: given bytes could not be unmarshaled to JsonDateTime")
+	errUnmarshalJsonDate     = errors.New("xtime: given bytes could not be unmarshalled to JsonDate")
+	errUnmarshalJsonDateTime = errors.New("xtime: given bytes could not be unmarshalled to JsonDateTime")
 )
 
 // UnmarshalJSON unmarshals the time value from json bytes in RFC3339Date format.

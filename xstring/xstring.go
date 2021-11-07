@@ -29,7 +29,7 @@ func Uncapitalize(s string) string {
 	return ""
 }
 
-// CapitalizeAll capitalizes all the first letter in words of the whole string, words are splited by blank character, see xstring.IsBlank.
+// CapitalizeAll capitalizes all the first letter in words of the whole string, words are split by blank character, see xstring.IsBlank.
 func CapitalizeAll(s string) string {
 	newWord := true
 	sp := strings.Builder{}
@@ -45,7 +45,7 @@ func CapitalizeAll(s string) string {
 	return sp.String()
 }
 
-// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are splited by blank character, see xstring.IsBlank.
+// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are split by blank character, see xstring.IsBlank.
 func UncapitalizeAll(s string) string {
 	newWord := true
 	sp := strings.Builder{}
@@ -61,13 +61,14 @@ func UncapitalizeAll(s string) string {
 	return sp.String()
 }
 
-// IsBlank checks if given rune is a space or a blank, that is [ \t\n\v\f\r\x85\xA0　], also see unicode.IsSpace.
-func IsBlank(r rune) bool {
-	return unicode.IsSpace(r) || r == '　'
-}
+// blankRe represents the blank regexp, that is [ \t\n\v\f\r\x85\xA0\u3000] (including unicode.IsSpace and ideographic space \u3000).
+// Note that this regexp does not equal to /[\s　]/.
+var blankRe = regexp.MustCompile("[ \\t\\n\\v\\f\\r\\x85\\xA0\u3000]+")
 
-// blankRe represents the blank regexp, that is [ \t\n\v\f\r\x85\xA0] (see unicode.IsSpace) and the wide space "　".
-var blankRe = regexp.MustCompile(`[ \t\n\v\f\r\x85\xA0　]+`) // != `\s　`
+// IsBlank checks if given rune is a space or a blank, that is [ \t\n\v\f\r\x85\xA0\u3000], also see unicode.IsSpace.
+func IsBlank(r rune) bool {
+	return unicode.IsSpace(r) || r == '\u3000' // "　"
+}
 
 // RemoveBlanks replaces all blanks to a single space " ", also see xstring.IsBlank and unicode.IsSpace.
 func RemoveBlanks(s string) string {
@@ -75,9 +76,9 @@ func RemoveBlanks(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// caseHelper split a string to a word array using default and given word separator. Default separators are "_", "-". ".", " ", "　".
-func caseHelper(s string, seps ...string) []string {
-	seps = append(seps, "_", "-", ".", "　")
+// SplitToWords splits a single string to a word array using default and given word separator. Default separators are [ \t\n\v\f\r\x85\xA0\u3000] and [_-.].
+func SplitToWords(s string, seps ...string) []string { // caseHelper
+	seps = append(seps, "　", "_", "-", ".")
 	oldNews := make([]string, 0, len(seps)*2)
 	for _, rule := range seps {
 		if rule != "" {
@@ -95,18 +96,18 @@ func caseHelper(s string, seps ...string) []string {
 	return words
 }
 
-// PascalCase rewrites string in pascal case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+// PascalCase rewrites string in pascal case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
 func PascalCase(s string, seps ...string) string {
-	wordArray := caseHelper(s, seps...)
+	wordArray := SplitToWords(s, seps...)
 	for i, word := range wordArray {
 		wordArray[i] = Capitalize(word)
 	}
 	return strings.Join(wordArray, "")
 }
 
-// CamelCase rewrites string in camel case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+// CamelCase rewrites string in camel case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
 func CamelCase(s string, seps ...string) string {
-	wordArray := caseHelper(s, seps...)
+	wordArray := SplitToWords(s, seps...)
 	for i, word := range wordArray {
 		if i > 0 {
 			wordArray[i] = Capitalize(word)
@@ -115,15 +116,15 @@ func CamelCase(s string, seps ...string) string {
 	return strings.Join(wordArray, "")
 }
 
-// SnakeCase rewrites string in snake case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+// SnakeCase rewrites string in snake case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
 func SnakeCase(s string, seps ...string) string {
-	wordArray := caseHelper(s, seps...)
+	wordArray := SplitToWords(s, seps...)
 	return strings.Join(wordArray, "_")
 }
 
-// KebabCase rewrites string in kebab case using word separator. By default "_", "-". ".", " ", "　" are treated as word separator.
+// KebabCase rewrites string in kebab case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
 func KebabCase(s string, seps ...string) string {
-	wordArray := caseHelper(s, seps...)
+	wordArray := SplitToWords(s, seps...)
 	return strings.Join(wordArray, "-")
 }
 

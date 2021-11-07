@@ -51,7 +51,12 @@
 + `func RenderByte(bytes float64) string`
 + `func Bool(b bool) int`
 + `func IntSize() int`
-  
++ `func FastrandUint32() uint32`
++ `func FastrandUint64() uint64`
++ `func FastrandInt32() int32`
++ `func FastrandInt64() int64`
++ `func IsPowerOfTwo(x int) bool`
+
 #### Parse and format functions
 
 + `func ParseInt(s string, base int) (int, error)`

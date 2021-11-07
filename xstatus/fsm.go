@@ -4,9 +4,9 @@ package xstatus
 type FsmStatus uint64
 
 const (
-	FsmNone    FsmStatus = iota // None
-	FsmInState                  // In state
-	FsmFinal                    // Final
+	FsmNone  FsmStatus = iota // None
+	FsmState                  // State
+	FsmFinal                  // Final
 
 	FsmTagA FsmStatus = iota + 98 // Tag a, start from 101
 	FsmTagB                       // Tag b
@@ -19,8 +19,8 @@ func (f FsmStatus) String() string {
 	switch f {
 	case FsmNone:
 		return "fsm-none"
-	case FsmInState:
-		return "fsm-in-state"
+	case FsmState:
+		return "fsm-state"
 	case FsmFinal:
 		return "fsm-final"
 	case FsmTagA:
