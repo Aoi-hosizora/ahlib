@@ -17,6 +17,7 @@ func GetUnexportedField(field reflect.Value) reflect.Value {
 // SetUnexportedField sets reflect.Value to the unexported struct field, or you can also use GetUnexportedField's returned reflect.Value to set value.
 // Example:
 // 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), reflect.ValueOf(newFullPath))
+// 	SetUnexportedField(reflect.ValueOf(v).Elem().FieldByName("tagNameFunc"), reflect.ValueOf(nilFunc))
 func SetUnexportedField(field reflect.Value, value reflect.Value) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(value)
 }
@@ -121,7 +122,7 @@ const (
 	panicNonMap = "xreflect: not a map"
 )
 
-// GetMapB returns the B value from the inputted map value. Note that this is an unsafe function, and the returned value may change between different Go version.
+// GetMapB returns the B value from the inputted map value. Note that this is an unsafe function, and the returned value may change in different Go versions.
 func GetMapB(m interface{}) uint8 {
 	if m == nil {
 		panic(panicNilMap)
@@ -149,7 +150,7 @@ func GetMapB(m interface{}) uint8 {
 }
 
 // GetMapBuckets returns the B value and the buckets count from the inputted map value. Note that this is an unsafe function, and the returned B value may
-// change between different Go version, while the buckets count will always equal to 2^B.
+// change in different Go versions, while the buckets count will always equal to 2^B.
 func GetMapBuckets(m interface{}) (b uint8, buckets uint64) {
 	b = GetMapB(m)
 	buckets = uint64(math.Pow(2, float64(b)))

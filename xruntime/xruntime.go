@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"syscall"
 )
 
 // TraceFrame represents a line of the runtime trace stack.
@@ -115,4 +117,57 @@ func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, fun
 	}
 	top := stack[0]
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
+}
+
+var signalNames = [...]string{
+	1:  "SIGHUP",
+	2:  "SIGINT",
+	3:  "SIGQUIT",
+	4:  "SIGILL",
+	5:  "SIGTRAP",
+	6:  "SIGABRT",
+	7:  "SIGBUS",
+	8:  "SIGFPE",
+	9:  "SIGKILL",
+	10: "SIGUSR1",
+	11: "SIGSEGV",
+	12: "SIGUSR2",
+	13: "SIGPIPE",
+	14: "SIGALRM",
+	15: "SIGTERM",
+}
+
+var signalReadableNames = [...]string{
+	1:  "hangup",
+	2:  "interrupt",
+	3:  "quit",
+	4:  "illegal instruction",
+	5:  "trace/breakpoint trap",
+	6:  "aborted",
+	7:  "bus error",
+	8:  "floating point exception",
+	9:  "killed",
+	10: "user defined signal 1",
+	11: "segmentation fault",
+	12: "user defined signal 2",
+	13: "broken pipe",
+	14: "alarm clock",
+	15: "terminated",
+}
+
+// SignalName returns the SIGXXX string from given syscall.Signal. Note that syscall.Signal.String() and xruntime.SignalReadableName
+// will return the human-readable string value.
+func SignalName(sig syscall.Signal) string {
+	if sig >= 1 && int(sig) < len(signalNames) {
+		return signalNames[sig]
+	}
+	return "signal " + strconv.Itoa(int(sig))
+}
+
+// SignalReadableName returns the human-readable name from given syscall.Signal, this function has the same result with syscall.Signal.String().
+func SignalReadableName(sig syscall.Signal) string {
+	if sig >= 1 && int(sig) < len(signalReadableNames) {
+		return signalReadableNames[sig]
+	}
+	return "signal " + strconv.Itoa(int(sig))
 }

@@ -27,9 +27,8 @@
 
 ### Functions
 
-+ `func GetUnexportedFieldValue(field reflect.Value) reflect.Value`
-+ `func GetUnexportedField(field reflect.Value) interface{}`
-+ `func SetUnexportedField(field reflect.Value, value interface{})`
++ `func GetUnexportedField(field reflect.Value) reflect.Value`
++ `func SetUnexportedField(field reflect.Value, value reflect.Value)`
 + `func GetInt(i interface{}) (int64, bool)`
 + `func GetUint(i interface{}) (uint64, bool)`
 + `func GetFloat(i interface{}) (float64, bool)`

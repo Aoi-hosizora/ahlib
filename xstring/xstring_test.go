@@ -86,7 +86,7 @@ func TestIsBlank(t *testing.T) {
 	for _, tc := range []struct {
 		give rune
 		want bool
-	} {
+	}{
 		{' ', true},
 		{'\t', true},
 		{'\n', true},
@@ -130,24 +130,55 @@ func TestSplitToWords(t *testing.T) {
 		want       []string
 	}{
 		{"", []string{}, []string{}},
-		{" ", []string{}, []string{}},
-		{" a ", []string{}, []string{"a"}},
-		{"A", []string{}, []string{"a"}},
+		{"a", []string{}, []string{"a"}},
+		{"ABC", []string{}, []string{"ABC"}},
+
 		{"a", []string{"a"}, []string{}},
-		{"AaA", []string{"a"}, []string{"a", "a"}},
-		{"AaA", []string{"A"}, []string{"a"}},
-		{"ABcdEFghIJ", []string{}, []string{"abcd", "efgh", "ij"}},
-		{"abCDefGHij", []string{}, []string{"ab", "cdef", "ghij"}},
+		{"abc", []string{"a"}, []string{"bc"}},
+		{"abc", []string{"b"}, []string{"a", "c"}},
+		{"abc", []string{"c"}, []string{"ab"}},
+		{"abc", []string{"a", "b"}, []string{"c"}},
+		{"abc", []string{"a", "b", "c"}, []string{}},
+		{"abc#d", []string{"c", "#"}, []string{"ab", "d"}},
+
+		{" ", []string{}, []string{}},
+		{"a b", []string{}, []string{"a", "b"}},
+		{" a  b   c    ", []string{}, []string{"a", "b", "c"}},
+		{" a  b   c    ", []string{"="}, []string{"a", "b", "c"}},
+
+		{"Abc", []string{}, []string{"Abc"}},
+		{"aBc", []string{}, []string{"a", "Bc"}},
+		{"abC", []string{}, []string{"ab", "C"}},
+		{"aBC", []string{}, []string{"a", "BC"}},
+		{"Abc", []string{"="}, []string{"Abc"}},
+		{"aBc", []string{"="}, []string{"aBc"}},
+		{"abC", []string{"="}, []string{"abC"}},
+		{"aBC", []string{"="}, []string{"aBC"}},
+		{"Abc", []string{"=", CaseSplitter}, []string{"Abc"}},
+		{"aBc", []string{"=", CaseSplitter}, []string{"a", "Bc"}},
+		{"abC", []string{"=", CaseSplitter}, []string{"ab", "C"}},
+		{"aBC", []string{"=", CaseSplitter}, []string{"a", "BC"}},
+
+		{"ab cd_ef.ghIj-kl", []string{}, []string{"ab", "cd", "ef", "gh", "Ij", "kl"}},
+		{"ab cd_ef.ghIj-kl", []string{"="}, []string{"ab", "cd_ef.ghIj-kl"}},
+		{"ab cd_ef.ghIj-kl", []string{CaseSplitter}, []string{"ab", "cd_ef.gh", "Ij-kl"}},
+		{"ab cd_ef.ghIj-kl", []string{"_", "-"}, []string{"ab", "cd", "ef.ghIj", "kl"}},
+		{"ab cd_ef.ghIj-kl", []string{" ", ".", ".", CaseSplitter}, []string{"ab", "cd_ef", "gh", "Ij-kl"}},
+
 		{"!", []string{"!"}, []string{}},
 		{"!!a!!", []string{"!"}, []string{"a"}},
-		{"aB_c-d.e+f g　h?i", []string{"+", "?", "!"}, []string{"a", "b", "c", "d", "e", "f", "g", "h", "i"}},
-		{"тестТест", []string{}, []string{"тесттест"}},
-		{"测试andテスandтест", []string{}, []string{"测试andテスandтест"}},
-		{"测试 and テス and тест", []string{"and"}, []string{"测试", "テス", "тест"}},
-		{"mix-Mix_Mix.Mix?Mix", []string{"?"}, []string{"mix", "mix", "mix", "mix", "mix"}},
+		{"aB_c-d.e+f g　h?i", []string{CaseSplitter, "+", "?", "!"}, []string{"a", "B_c-d.e", "f", "g", "h", "i"}},
+		{"aB_c-d.e+f g　h?i", []string{CaseSplitter, "_", "-", ".", "+"}, []string{"a", "B", "c", "d", "e", "f", "g", "h?i"}},
+		{"тестТест-a", []string{}, []string{"тест", "Тест", "a"}},
+		{"тестТест-a", []string{"-"}, []string{"тестТест", "a"}},
+		{"测试andテスТестOr", []string{}, []string{"测试andテス", "Тест", "Or"}},
+		{"测试 and テス тест or", []string{"and"}, []string{"测试", "テス", "тест", "or"}},
+		{"mix-Mix_Mix.Mix?mix", []string{"-", "_", ".", "?"}, []string{"mix", "Mix", "Mix", "Mix", "mix"}},
 	} {
-		words := SplitToWords(tc.giveString, tc.giveSeps...)
-		xtesting.Equal(t, words, tc.want)
+		t.Run(tc.giveString, func(t *testing.T) {
+			words := SplitToWords(tc.giveString, tc.giveSeps...)
+			xtesting.Equal(t, words, tc.want)
+		})
 	}
 }
 
@@ -163,18 +194,22 @@ func TestXXXCase(t *testing.T) {
 		{"a", "A", "a", "a", "a"},
 		{"A", "A", "a", "a", "a"},
 		{"abc", "Abc", "abc", "abc", "abc"},
-		{"a b", "AB", "aB", "a_b", "a-b"},
-		{"ab cd", "AbCd", "abCd", "ab_cd", "ab-cd"},
+		{"abCdEF", "AbCdEF", "abCdEF", "ab_cd_ef", "ab-cd-ef"},
+		{"AAaaAA_bbBBbb", "AAaaAABbBBbb", "aaaaAABbBBbb", "aaaa_aa_bb_bbbb", "aaaa-aa-bb-bbbb"},
+		{"a1a b2B C3c D4D", "A1aB2BC3cD4D", "a1aB2BC3cD4D", "a1a_b2_b_c3c_d4_d", "a1a-b2-b-c3c-d4-d"},
+		{"IPv4Address-and-Port", "IPv4AddressAndPort", "ipv4AddressAndPort", "ipv4_address_and_port", "ipv4-address-and-port"},
 		{"TestPascalCase", "TestPascalCase", "testPascalCase", "test_pascal_case", "test-pascal-case"},
 		{"testCamelCase", "TestCamelCase", "testCamelCase", "test_camel_case", "test-camel-case"},
 		{"test_snake_case", "TestSnakeCase", "testSnakeCase", "test_snake_case", "test-snake-case"},
 		{"test-kebab-case", "TestKebabCase", "testKebabCase", "test_kebab_case", "test-kebab-case"},
 		{"testMixed_Case-Test.Test", "TestMixedCaseTestTest", "testMixedCaseTestTest", "test_mixed_case_test_test", "test-mixed-case-test-test"},
 	} {
-		xtesting.Equal(t, PascalCase(tc.give), tc.wantP)
-		xtesting.Equal(t, CamelCase(tc.give), tc.wantC)
-		xtesting.Equal(t, SnakeCase(tc.give), tc.wantS)
-		xtesting.Equal(t, KebabCase(tc.give), tc.wantK)
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, PascalCase(tc.give), tc.wantP)
+			xtesting.Equal(t, CamelCase(tc.give), tc.wantC)
+			xtesting.Equal(t, SnakeCase(tc.give), tc.wantS)
+			xtesting.Equal(t, KebabCase(tc.give), tc.wantK)
+		})
 	}
 }
 

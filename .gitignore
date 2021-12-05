@@ -7,5 +7,5 @@
 ### Project ###
 logs/
 build/
-coverage.txt
 _color.go
+_generate/

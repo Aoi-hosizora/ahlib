@@ -13,10 +13,10 @@
 + `func IsBlank(r rune) bool`
 + `func RemoveBlanks(s string) string`
 + `func SplitToWords(s string, seps ...string) []string`
-+ `func PascalCase(s string, seps ...string) string`
-+ `func CamelCase(s string, seps ...string) string`
-+ `func SnakeCase(s string, seps ...string) string`
-+ `func KebabCase(s string, seps ...string) string`
++ `func PascalCase(s string, extraSeps ...string) string`
++ `func CamelCase(s string, extraSeps ...string) string`
++ `func SnakeCase(s string, extraSeps ...string) string`
++ `func KebabCase(s string, extraSeps ...string) string`
 + `func TimeUUID(t time.Time, count int) string`
 + `func RandString(count int, runes []rune) string`
 + `func RandCapitalLetterString(count int) string`

@@ -76,29 +76,59 @@ func RemoveBlanks(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// SplitToWords splits a single string to a word array using default and given word separator. Default separators are [ \t\n\v\f\r\x85\xA0\u3000] and [_-.].
+// CaseSplitter is the special word splitter used in SplitToWords, and it means also to split the string by different cases, such as "helloWorld" to ["hello", "world"].
+const CaseSplitter = ""
+
+var defaultSplitters = []string{CaseSplitter, "_", "-", "."}
+
+// SplitToWords splits a single string to a word array using default and given word separator. Default separators are [ \t\n\v\f\r\x85\xA0\u3000] (blank) and
+// [_-.], you can set the seps parameter to use different word separators (but blank characters are just treated as word separator).
 func SplitToWords(s string, seps ...string) []string { // caseHelper
-	seps = append(seps, "　", "_", "-", ".")
-	oldNews := make([]string, 0, len(seps)*2)
-	for _, rule := range seps {
-		if rule != "" {
-			oldNews = append(oldNews, rule, " ")
+	// separators
+	if len(seps) == 0 {
+		seps = defaultSplitters
+	}
+	separators := make([]string, 0, len(seps))
+	splitCase := false
+	for _, sep := range seps {
+		if sep == CaseSplitter {
+			splitCase = true
+		} else if len(sep) > 0 {
+			separators = append(separators, sep)
 		}
+	}
+
+	// replacer
+	oldNews := make([]string, 0, len(separators)*2+2)
+	oldNews = append(oldNews, "　", " ") // "\u3000" => " "
+	for _, rule := range separators {
+		oldNews = append(oldNews, rule, " ")
 	}
 	replacer := strings.NewReplacer(oldNews...)
 
-	re := regexp.MustCompile(`([a-z])([A-Z])`)
-	s = re.ReplaceAllString(s, `$1 $2`)                         // split lowercase and capital
-	s = strings.Join(strings.Fields(strings.TrimSpace(s)), " ") // remove duplicate spaces
-	s = replacer.Replace(s)                                     // split by rules
-
-	words := strings.Fields(strings.ToLower(s))
+	// split
+	if splitCase {
+		sb := strings.Builder{}
+		lastLower := false
+		for i, r := range s {
+			currLower := !unicode.IsUpper(r)
+			if i > 0 && !currLower && lastLower {
+				sb.WriteRune(' ') // split by case
+			}
+			sb.WriteRune(r)
+			lastLower = currLower
+		}
+		s = sb.String()
+	}
+	s = replacer.Replace(s) // split by rules
+	// words := strings.Fields(strings.ToLower(s))
+	words := strings.Fields(s)
 	return words
 }
 
 // PascalCase rewrites string in pascal case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
-func PascalCase(s string, seps ...string) string {
-	wordArray := SplitToWords(s, seps...)
+func PascalCase(s string, extraSeps ...string) string {
+	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
 		wordArray[i] = Capitalize(word)
 	}
@@ -106,10 +136,12 @@ func PascalCase(s string, seps ...string) string {
 }
 
 // CamelCase rewrites string in camel case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
-func CamelCase(s string, seps ...string) string {
-	wordArray := SplitToWords(s, seps...)
+func CamelCase(s string, extraSeps ...string) string {
+	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
-		if i > 0 {
+		if i == 0 {
+			wordArray[i] = strings.ToLower(word)
+		} else {
 			wordArray[i] = Capitalize(word)
 		}
 	}
@@ -117,14 +149,20 @@ func CamelCase(s string, seps ...string) string {
 }
 
 // SnakeCase rewrites string in snake case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
-func SnakeCase(s string, seps ...string) string {
-	wordArray := SplitToWords(s, seps...)
+func SnakeCase(s string, extraSeps ...string) string {
+	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
+	for i, word := range wordArray {
+		wordArray[i] = strings.ToLower(word)
+	}
 	return strings.Join(wordArray, "_")
 }
 
 // KebabCase rewrites string in kebab case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
-func KebabCase(s string, seps ...string) string {
-	wordArray := SplitToWords(s, seps...)
+func KebabCase(s string, extraSeps ...string) string {
+	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
+	for i, word := range wordArray {
+		wordArray[i] = strings.ToLower(word)
+	}
 	return strings.Join(wordArray, "-")
 }
 

@@ -7,7 +7,7 @@
 [![Release](https://img.shields.io/github/v/release/Aoi-hosizora/ahlib)](https://github.com/Aoi-hosizora/ahlib/releases)
 [![Go Reference](https://pkg.go.dev/badge/github.com/Aoi-hosizora/ahlib.svg)](https://pkg.go.dev/github.com/Aoi-hosizora/ahlib)
 
-+ A personal golang library without any third-party library, inspired by [shomali11/util](https://github.com/shomali11/util).
++ A personal golang library without any third-party library, inspired by [shomali11/util](https://github.com/shomali11/util), require `Go >= 1.13`.
 
 ### Related libraries
 
@@ -31,6 +31,7 @@
 + xstring
 + xtesting
 + xtime
++ xtime/zones
 
 ### Dependencies
 

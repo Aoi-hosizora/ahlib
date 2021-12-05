@@ -3,6 +3,7 @@ package xruntime
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"syscall"
 	"testing"
 )
 
@@ -66,4 +67,62 @@ func TestTraceStack(t *testing.T) {
 	xtesting.Equal(t, funcname, "")
 	xtesting.Equal(t, lineIndex, 0)
 	xtesting.Equal(t, lineText, "")
+}
+
+func TestSignalName(t *testing.T) {
+	for _, tc := range []struct {
+		give syscall.Signal
+		want string
+	}{
+		{-1, "signal -1"},
+		{0, "signal 0"},
+		{syscall.SIGHUP, "SIGHUP"},
+		{syscall.SIGINT, "SIGINT"},
+		{syscall.SIGQUIT, "SIGQUIT"},
+		{syscall.SIGILL, "SIGILL"},
+		{syscall.SIGTRAP, "SIGTRAP"},
+		{syscall.SIGABRT, "SIGABRT"},
+		{syscall.SIGBUS, "SIGBUS"},
+		{syscall.SIGFPE, "SIGFPE"},
+		{syscall.SIGKILL, "SIGKILL"},
+		{10, "SIGUSR1"},
+		{syscall.SIGSEGV, "SIGSEGV"},
+		{12, "SIGUSR2"},
+		{syscall.SIGPIPE, "SIGPIPE"},
+		{syscall.SIGALRM, "SIGALRM"},
+		{syscall.SIGTERM, "SIGTERM"},
+		{16, "signal 16"},
+	} {
+		t.Run(tc.want, func(t *testing.T) {
+			xtesting.Equal(t, SignalName(tc.give), tc.want)
+		})
+	}
+
+	for _, tc := range []struct {
+		give syscall.Signal
+		want string
+	}{
+		{-1, "signal -1"},
+		{0, "signal 0"},
+		{syscall.SIGHUP, "hangup"},
+		{syscall.SIGINT, "interrupt"},
+		{syscall.SIGQUIT, "quit"},
+		{syscall.SIGILL, "illegal instruction"},
+		{syscall.SIGTRAP, "trace/breakpoint trap"},
+		{syscall.SIGABRT, "aborted"},
+		{syscall.SIGBUS, "bus error"},
+		{syscall.SIGFPE, "floating point exception"},
+		{syscall.SIGKILL, "killed"},
+		{10, "user defined signal 1"},
+		{syscall.SIGSEGV, "segmentation fault"},
+		{12, "user defined signal 2"},
+		{syscall.SIGPIPE, "broken pipe"},
+		{syscall.SIGALRM, "alarm clock"},
+		{syscall.SIGTERM, "terminated"},
+		{16, "signal 16"},
+	} {
+		t.Run(tc.want, func(t *testing.T) {
+			xtesting.Equal(t, SignalReadableName(tc.give), tc.want)
+		})
+	}
 }

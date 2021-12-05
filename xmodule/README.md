@@ -2,8 +2,8 @@
 
 ## Dependencies
 
-+ xcolor
 + xtesting*
++ xcolor
 
 ## Documents
 
