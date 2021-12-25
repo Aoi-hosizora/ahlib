@@ -205,7 +205,7 @@ func FillDefaultFields(s interface{}) (bool, error) {
 	filled := false
 	for i := 0; i < typ.NumField(); i++ {
 		sf := typ.Field(i)
-		if sf.IsExported() && sf.Type != nil {
+		if sf.PkgPath == "" && sf.Type != nil { // sf.IsExported()
 			filled = fillDefaultFieldInternal(sf.Type, val.Field(i), sf.Tag, sf.Name, nil) || filled
 		}
 	}
@@ -275,7 +275,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 		for i := 0; i < ftyp.NumField(); i++ {
 			i := i
 			sf := ftyp.Field(i)
-			if sf.IsExported() {
+			if sf.PkgPath == "" { // sf.IsExported()
 				filled = fillDefaultFieldInternal(sf.Type, fval.Field(i), sf.Tag, fmt.Sprintf("%s.%s", fieldName, sf.Name), func(v reflect.Value) { cached[i] = v }) || filled
 			}
 		}

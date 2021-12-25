@@ -8,6 +8,7 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xtime"
 	"go/format"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"
@@ -142,7 +143,7 @@ func getList() (varNameList []string, varSetList []string, err error) {
 	result := make([]string, 0)
 	var readDir func(path string) error
 	readDir = func(path string) error {
-		files, err := os.ReadDir(filepath.Join(tempDir, path))
+		files, err := ioutil.ReadDir(filepath.Join(tempDir, path))
 		if err != nil {
 			return err
 		}

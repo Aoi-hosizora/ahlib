@@ -87,7 +87,7 @@ func (g *GoPool) CtxGo(ctx context.Context, f func(context.Context)) {
 	g.enqueueTask(t) // numTasks++
 
 	g.workerMutex.Lock()
-	if g.numWorkers < g.WorkersCap() {
+	if g.NumWorkers() < g.WorkersCap() {
 		w := g.getWorker() // numWorkers++
 		go w.start(g)
 	}
@@ -129,7 +129,7 @@ func (g *GoPool) enqueueTask(t *task) {
 		g.taskTail.next = t
 		g.taskTail = t
 	}
-	g.numTasks++
+	atomic.AddInt32(&g.numTasks, 1)
 }
 
 // dequeueTask dequeues a task from the head of GoPool's task linked list, returns false if the task list is empty.
@@ -141,7 +141,7 @@ func (g *GoPool) dequeueTask() (*task, bool) {
 	}
 	t := g.taskHead
 	g.taskHead = g.taskHead.next
-	g.numTasks--
+	atomic.AddInt32(&g.numTasks, -1)
 	return t, true
 }
 
@@ -150,18 +150,18 @@ type worker struct{}
 
 // getWorker returns an empty worker structure from worker sync.Pool.
 func (g *GoPool) getWorker() *worker {
-	g.numWorkers++
+	atomic.AddInt32(&g.numWorkers, 1)
 	return g.workerPool.Get().(*worker)
 }
 
 // recycleWorker recycles to worker sync.Pool.
 func (g *GoPool) recycleWorker(w *worker) {
 	g.workerPool.Put(w)
-	g.numWorkers--
+	atomic.AddInt32(&g.numWorkers, -1)
 }
 
 // _testFlag is only used and set to true when testing the xgopool package.
-var _testFlag = false
+var _testFlag = int32(0)
 
 // start dequeues a task from the head of GoPool's task linked list, and invokes the given function with panic handler.
 func (w *worker) start(g *GoPool) {
@@ -176,11 +176,11 @@ func (w *worker) start(g *GoPool) {
 					if g.panicHandler != nil {
 						g.panicHandler(t.ctx, err)
 					} else {
-						if _testFlag {
-							// enter only when testing the xgopool package
+						if atomic.LoadInt32(&_testFlag) == 1 {
+							// enter only when testing the xgopool package, needn't worry about the performance
 							defer func() {
 								log.Println(recover())
-								_testFlag = false
+								atomic.StoreInt32(&_testFlag, 0)
 							}()
 						}
 						panic(err)
