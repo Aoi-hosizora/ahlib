@@ -34,7 +34,7 @@ func New(cap int32) *GoPool {
 	}
 	return &GoPool{
 		workersCap:   cap,
-		panicHandler: func(ctx context.Context, i interface{}) { log.Printf("Warning: Panicked with `%v`", i) },
+		panicHandler: func(ctx context.Context, i interface{}) { log.Printf("Warning: Panic with `%v`", i) },
 		workerPool:   &sync.Pool{New: func() interface{} { return &worker{} }},
 		workerMutex:  &sync.Mutex{},
 		taskPool:     &sync.Pool{New: func() interface{} { return &task{} }},

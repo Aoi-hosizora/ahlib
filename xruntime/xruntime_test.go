@@ -3,70 +3,155 @@ package xruntime
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"os"
+	"strings"
 	"syscall"
 	"testing"
 )
 
+func printSharp(s string) {
+	fmt.Printf("\n%s\n", strings.Repeat("#", len(s)+8))
+	fmt.Printf("### %s ###", s)
+	fmt.Printf("\n%s\n\n", strings.Repeat("#", len(s)+8))
+}
+
+func TestRawStack(t *testing.T) {
+	printSharp("RawStack(false)")
+	_, _ = os.Stdout.Write(RawStack(false))
+
+	/*
+		goroutine 19 [running]:
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x1)
+			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:20 +0x30
+		testing.tRunner(0xc0000851e0, 0x754230)
+			D:/Development/Go/src/testing/testing.go:1259 +0x102
+		created by testing.(*T).Run
+			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+	 */
+
+	printSharp("RawStack(true)")
+	_, _ = os.Stdout.Write(RawStack(true))
+
+	/*
+		goroutine 19 [running]:
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0xd7)
+			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:23 +0x65
+		testing.tRunner(0xc0000851e0, 0x754230)
+			D:/Development/Go/src/testing/testing.go:1259 +0x102
+		created by testing.(*T).Run
+			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+
+		goroutine 1 [chan receive]:
+		testing.(*T).Run(0xc000085040, {0x749c08, 0x6889d3}, 0x754230)
+			D:/Development/Go/src/testing/testing.go:1307 +0x375
+		testing.runTests.func1(0xc0000b8630)
+			D:/Development/Go/src/testing/testing.go:1598 +0x6e
+		testing.tRunner(0xc000085040, 0xc0000c3d18)
+			D:/Development/Go/src/testing/testing.go:1259 +0x102
+		testing.runTests(0xc0000d0080, {0x836c20, 0x3, 0x3}, {0x6a006d, 0x74a5a5, 0x0})
+			D:/Development/Go/src/testing/testing.go:1596 +0x43f
+		testing.(*M).Run(0xc0000d0080)
+			D:/Development/Go/src/testing/testing.go:1504 +0x51d
+		main.main()
+			_testmain.go:47 +0x14b
+	 */
+
+	printSharp("RawStack(false)_2")
+	var f func(a int)
+	f = func(a int) {
+		if a > 0 {
+			f(a - 1)
+		} else if a == 0 {
+			_, _ = os.Stdout.Write(RawStack(false))
+			return
+		}
+	}
+	f(100)
+
+	/*
+		goroutine 19 [running]:
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x0)
+			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:31 +0x26
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
+		......
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x71a51e)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x1)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
+		...additional frames elided...
+		created by testing.(*T).Run
+			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+	 */
+
+	printSharp("TestRawStack end")
+}
+
 func TestTraceStack(t *testing.T) {
-	fmt.Println("### RuntimeTraceStack(0)")
-	stack := RuntimeTraceStack(0)
-	fmt.Println(stack.String())
+	func() {
+		printSharp("RuntimeTraceStack(0)")
+		stack := RuntimeTraceStack(0)
+		fmt.Println(stack.String())
+	}()
 
 	/*
-		F:/Projects/ahlib/xruntime/xruntime.go:73 xruntime.RuntimeTraceStack
-			pc, filename, lineIndex, ok := runtime.Caller(i)
-		F:/Projects/ahlib/xruntime/xruntime_test.go:11 xruntime.TestTraceStack
+		E:/Projects/ahlib/xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 			stack := RuntimeTraceStack(0)
-		E:/Go/src/testing/testing.go:1127 testing.tRunner
+		E:/Projects/ahlib/xruntime/xruntime_test.go:31 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+			}()
+		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
 			fn(t)
-		E:/Go/src/runtime/asm_amd64.s:1374 runtime.goexit
+		D:/Development/Go/src/runtime/asm_amd64.s:1581 runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("### RuntimeTraceStack(1)")
-	stack = RuntimeTraceStack(1)
+	printSharp("RuntimeTraceStack(1)")
+	stack := RuntimeTraceStack(1)
 	fmt.Println(stack.String())
 
 	/*
-		F:/Projects/ahlib/xruntime/xruntime_test.go:28 xruntime.TestTraceStack
-			stack = RuntimeTraceStack(1)
-		E:/Go/src/testing/testing.go:1127 testing.tRunner
+		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
 			fn(t)
-		E:/Go/src/runtime/asm_amd64.s:1374 runtime.goexit
+		D:/Development/Go/src/runtime/asm_amd64.s:1581 runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("### RuntimeTraceStackWithInfo(1)")
-	s, filename, funcname, lineIndex, lineText := RuntimeTraceStackWithInfo(1)
+	printSharp("RuntimeTraceStackWithInfo(0)")
+	s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 	fmt.Println("filename:", filename)
-	fmt.Println("funcname:", funcname)
+	fmt.Println("funcName:", funcName)
 	fmt.Println("lineIndex:", lineIndex)
 	fmt.Println("lineText:", lineText)
-	fmt.Println()
+	fmt.Println("======")
 	fmt.Println(s[0].String())
 	fmt.Println(s[1].String())
 
 	/*
-		filename: F:/Projects/ahlib/xruntime/xruntime_test.go
-		funcname: xruntime.TestTraceStack
-		lineIndex: 43
-		lineText: s, filename, funcname, lineIndex, lineText := RuntimeTraceStackWithInfo(1)
-
-		F:/Projects/ahlib/xruntime/xruntime_test.go:43 xruntime.TestTraceStack
-			s, filename, funcname, lineIndex, lineText := RuntimeTraceStackWithInfo(1)
-		E:/Go/src/testing/testing.go:1127 testing.tRunner
+		filename: E:/Projects/ahlib/xruntime/xruntime_test.go
+		funcName: xruntime.TestTraceStack
+		lineIndex: 56
+		lineText: s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
+		======
+		E:/Projects/ahlib/xruntime/xruntime_test.go:56 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+			s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
+		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
 			fn(t)
 	*/
 
-	_, filename, funcname, lineIndex, lineText = RuntimeTraceStackWithInfo(5000)
+	s, filename, funcName, lineIndex, lineText = RuntimeTraceStackWithInfo(5000)
+	xtesting.Equal(t, len(s), 0)
 	xtesting.Equal(t, filename, "")
-	xtesting.Equal(t, funcname, "")
+	xtesting.Equal(t, funcName, "")
 	xtesting.Equal(t, lineIndex, 0)
 	xtesting.Equal(t, lineText, "")
+
+	printSharp("TestTraceStack end")
 }
 
 func TestSignalName(t *testing.T) {

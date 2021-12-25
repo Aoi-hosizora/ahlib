@@ -10,20 +10,59 @@ import (
 	"unsafe"
 )
 
-// GetUnexportedField gets the unexported struct field's reflect.Value.
+// GetUnexportedField gets the reflect.Value of unexported struct field's.
+//
 // Example:
-// 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).Interface().(gin.HandlersChain)
-// 	GetUnexportedField(reflect.ValueOf(trans).Elem().FieldByName("translations")).MapIndex(reflect.ValueOf("required"))
+// 	GetUnexportedField(reflect.ValueOf(app).Elem().FieldByName("noMethod")).Interface().(gin.HandlersChain)             // (*app).noMethod is a gin.HandlersChain
+// 	GetUnexportedField(FieldValueOf(app, "noMethod")).Interface().(gin.HandlersChain)                                   // <- or in this way
+// 	GetUnexportedField(reflect.ValueOf(trans).Elem().FieldByName("translations")).MapIndex(reflect.ValueOf("required")) // (*trans).translations is a map[string]xxx
+// 	GetUnexportedField(FieldValueOf(trans, "translations")).Interface().(gin.HandlersChain)                             // <- or in this way
 func GetUnexportedField(field reflect.Value) reflect.Value {
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 }
 
-// SetUnexportedField sets reflect.Value to the unexported struct field, or you can also use GetUnexportedField's returned reflect.Value to set value.
+// SetUnexportedField sets reflect.Value to unexported struct field, this can also be implemented by using the reflect.Value returned from GetUnexportedField.
+//
 // Example:
-// 	SetUnexportedField(reflect.ValueOf(c).Elem().FieldByName("fullPath"), reflect.ValueOf(newFullPath))
-// 	SetUnexportedField(reflect.ValueOf(v).Elem().FieldByName("tagNameFunc"), reflect.ValueOf(nilFunc))
+// 	SetUnexportedField(reflect.ValueOf(ctx).Elem().FieldByName("fullPath"), reflect.ValueOf(newFullPath)) // (*ctx).fullPath and newFullPath is a string
+// 	SetUnexportedField(FieldValueOf(ctx, "fullPath"), reflect.ValueOf(newFullPath))                       // <- or in this way
+// 	SetUnexportedField(reflect.ValueOf(val).Elem().FieldByName("tagNameFunc"), reflect.ValueOf(nilFunc))  // (*val).tagNameFunc and nilFunc is a func
+// 	SetUnexportedField(FieldValueOf(val, "tagNameFunc"), reflect.ValueOf(newFullPath))                    // <- or in this way
 func SetUnexportedField(field reflect.Value, value reflect.Value) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(value)
+}
+
+const (
+	panicNilInterface           = "xreflect: nil interface"
+	panicNilPtr                 = "xreflect: nil pointer"
+	panicNonStructOrPtrOfStruct = "xreflect: not a struct or pointers of struct"
+	panicNonexistentField       = "xreflect: nonexistent struct field"
+)
+
+// FieldValueOf returns the reflect.Value of struct field from given struct or pointers of struct.
+//
+// Example:
+// 	FieldValueOf(app, "noMethod")       // equals to reflect.ValueOf(app)[.Elem()*].FieldByName("noMethod")
+// 	FieldValueOf(trans, "translations") // equals to reflect.ValueOf(trans)[.Elem()*].FieldByName("translations")
+func FieldValueOf(i interface{}, name string) reflect.Value {
+	if i == nil {
+		panic(panicNilInterface)
+	}
+	val := reflect.ValueOf(i)
+	for val.Kind() == reflect.Ptr && !val.IsNil() {
+		val = val.Elem()
+	}
+
+	if val.Kind() == reflect.Ptr && val.IsNil() {
+		panic(panicNilPtr)
+	} else if val.Kind() != reflect.Struct {
+		panic(panicNonStructOrPtrOfStruct)
+	}
+	fval := val.FieldByName(name)
+	if !fval.IsValid() {
+		panic(panicNonexistentField)
+	}
+	return fval
 }
 
 // IsIntKind checks if the given reflect.Kind is int kinds or not.
@@ -95,10 +134,10 @@ func isEmptyValueInternal(val reflect.Value) bool {
 			}
 		}
 		return true
+	default:
+		// reflect.Invalid, that is (SomeInterface)(nil)
+		return true
 	}
-
-	// invalid, that is (some_interfaceS)(nil)
-	return true
 }
 
 const (
@@ -204,18 +243,19 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 					newArray.Index(i).Set(newVal)
 				}
 			}
-			setMapValue(newArray)
+			setMapValue(newArray) // <<<
 		}
 		return filled
-	case k == reflect.Ptr && !fval.IsNil():
-		return fillDefaultFieldInternal(ftyp.Elem(), fval.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
-	case k == reflect.Ptr && fval.IsNil():
+	case k == reflect.Ptr:
+		if !fval.IsNil() {
+			return fillDefaultFieldInternal(ftyp.Elem(), fval.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
+		}
 		newVal := reflect.New(ftyp.Elem())
 		filled := fillDefaultFieldInternal(ftyp.Elem(), newVal.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
 		if filled {
 			if fval.CanSet() {
 				fval.Set(newVal)
-			} else {
+			} else if !fval.CanSet() {
 				setMapValue(newVal) // <<<
 			}
 		}
@@ -225,7 +265,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 		for _, key := range fval.MapKeys() {
 			key := key
 			filled = fillDefaultFieldInternal(ftyp.Elem(), fval.MapIndex(key), fieldTag, fmt.Sprintf("(%s)[\"%s\"]", fieldName, key.String()), func(v reflect.Value) {
-				fval.SetMapIndex(key, v) // non-pointer values got from map by index directly can not be addressed
+				fval.SetMapIndex(key, v) // non-pointer values got from map by index directly can not be addressed !!!
 			}) || filled
 		}
 		return filled
@@ -247,10 +287,12 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 					newStruct.Field(i).Set(newVal)
 				}
 			}
-			setMapValue(newStruct)
+			setMapValue(newStruct) // <<<
 		}
 		return filled
+
 	default:
+		// =================
 		// set default value to int / uint / float / bool / complex / string kinds of values
 		defaul, ok := fieldTag.Lookup("default")
 		if !ok {

@@ -1,6 +1,7 @@
 package xreflect
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"math"
@@ -18,34 +19,96 @@ func TestUnexportedField(t *testing.T) {
 		d float64
 		m map[int]int
 	}
-	test := &testStruct{m: map[int]int{0: 0, 1: 1}}
-	val := reflect.ValueOf(test).Elem()
+	// test := &testStruct{m: map[int]int{0: 0, 1: 1}}
+	ts := &testStruct{}
+	val := reflect.ValueOf(ts).Elem()
 
-	mapValue := GetUnexportedField(val.FieldByName("m"))
-	xtesting.Equal(t, mapValue.Len(), 2)
-	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(0)).Interface(), 0)
-	xtesting.Equal(t, mapValue.MapIndex(reflect.ValueOf(1)).Interface(), 1)
-	xtesting.Equal(t, mapValue.Interface(), map[int]int{0: 0, 1: 1})
-
+	// get
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")).Interface(), "")
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")).Interface(), int64(0))
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")).Interface(), uint64(0))
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")).Interface(), 0.0)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("m")).Interface(), map[int]int(nil))
 
+	// set
 	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("a"), reflect.ValueOf("string")) })
 	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("b"), reflect.ValueOf(int64(9223372036854775807))) })
 	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("c"), reflect.ValueOf(uint64(18446744073709551615))) })
 	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("d"), reflect.ValueOf(0.333)) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(val.FieldByName("m"), reflect.ValueOf(map[int]int{0: 0, 1: 1})) })
 
-	xtesting.Equal(t, test.a, "string")
-	xtesting.Equal(t, test.b, int64(9223372036854775807))
-	xtesting.Equal(t, test.c, uint64(18446744073709551615))
-	xtesting.Equal(t, test.d, 0.333)
-
+	// get
+	xtesting.Equal(t, ts.a, "string")
+	xtesting.Equal(t, ts.b, int64(9223372036854775807))
+	xtesting.Equal(t, ts.c, uint64(18446744073709551615))
+	xtesting.Equal(t, ts.d, 0.333)
+	xtesting.Equal(t, ts.m, map[int]int{0: 0, 1: 1})
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("a")).Interface(), "string")
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("b")).Interface(), int64(9223372036854775807))
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("c")).Interface(), uint64(18446744073709551615))
 	xtesting.Equal(t, GetUnexportedField(val.FieldByName("d")).Interface(), 0.333)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("m")).Len(), 2)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("m")).MapIndex(reflect.ValueOf(1)).Interface(), 1)
+	xtesting.Equal(t, GetUnexportedField(val.FieldByName("m")).Interface(), map[int]int{0: 0, 1: 1})
+
+	// use FieldValueOf to set/get
+	xtesting.NotPanic(t, func() { SetUnexportedField(FieldValueOf(ts, "a"), reflect.ValueOf("sss")) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(FieldValueOf(ts, "b"), reflect.ValueOf(int64(-9223372036854775808))) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(FieldValueOf(ts, "c"), reflect.ValueOf(uint64(999))) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(FieldValueOf(ts, "d"), reflect.ValueOf(5.5)) })
+	xtesting.NotPanic(t, func() { SetUnexportedField(FieldValueOf(ts, "m"), reflect.ValueOf(map[int]int{0: -1, -3: 2})) })
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "a")).Interface(), "sss")
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "b")).Interface(), int64(-9223372036854775808))
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "c")).Interface(), uint64(999))
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "d")).Interface(), 5.5)
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "m")).Len(), 2)
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "m")).MapIndex(reflect.ValueOf(-3)).Interface(), 2)
+	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "m")).Interface(), map[int]int{0: -1, -3: 2})
+}
+
+func TestStructFieldValueOf(t *testing.T) {
+	type testStruct struct {
+		A string
+		B int64
+		C uint64
+		D float64
+		M map[int]int
+	}
+	for _, tc := range []struct {
+		give      interface{}
+		giveName  string
+		wantPanic bool
+		want      interface{}
+	}{
+		{nil, "", true, nil},
+		{1, "", true, nil},
+		{new(string), "", true, nil},
+		{new(*int), "", true, nil},
+		{new(**struct{}), "", true, nil},
+		{struct{}{}, "", true, nil},
+		// {struct{ i int }{}, "i", false, 0}, << unexported field
+		{struct{ I int }{1}, "I", false, 1},
+		{struct{ I uint32 }{333}, "I", false, uint32(333)},
+		{testStruct{A: "a"}, "A", false, "a"},
+		{&testStruct{B: -999}, "B", false, int64(-999)},
+		{func() **testStruct { s := &testStruct{B: -999}; return &s }, "B", false, int64(-999)},
+		{func() ***testStruct { s := &testStruct{C: 1999}; ss := &s; return &ss }, "C", false, uint64(1999)},
+		{func() ****testStruct { s := &testStruct{D: 3.0}; ss := &s; sss := &ss; return &sss }, "A", false, ""},
+		{testStruct{}, "M", false, map[int]int(nil)},
+	} {
+		if tc.give != nil && reflect.TypeOf(tc.give).Kind() == reflect.Func {
+			tc.give = reflect.ValueOf(tc.give).Call([]reflect.Value{})[0].Interface()
+		}
+		name, _ := json.Marshal(tc.give)
+		t.Run(string(name), func(t *testing.T) {
+			if tc.wantPanic {
+				xtesting.Panic(t, func() { FieldValueOf(tc.give, tc.giveName) })
+			} else {
+				val := FieldValueOf(tc.give, tc.giveName)
+				xtesting.Equal(t, val.Interface(), tc.want)
+			}
+		})
+	}
 }
 
 func TestIsXXXKind(t *testing.T) {

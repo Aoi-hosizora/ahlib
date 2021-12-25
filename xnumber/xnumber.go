@@ -7,6 +7,10 @@ import (
 	_ "unsafe"
 )
 
+// ================
+// accuracy related
+// ================
+
 // Accuracy represents an accuracy with some compare methods in accuracy.
 type Accuracy func() float64
 
@@ -80,6 +84,10 @@ func LessOrEqualInAccuracy(a, b float64) bool {
 	return _acc.LessOrEqual(a, b)
 }
 
+// ===
+// ...
+// ===
+
 // RenderByte renders a byte size to string (using %.2f), support `B` `KB` `MB` `GB` `TB`.
 func RenderByte(bytes float64) string {
 	divider := float64(1024)
@@ -135,10 +143,12 @@ func Bool(b bool) int {
 	return 0
 }
 
-// IntSize returns the int size (32 / 64).
-func IntSize() int {
-	const intSize = 32 << (^uint(0) >> 63)
-	return intSize
+// intBitLength represents the int or uint bit-length, usually it equals to 32 or 64.
+var intBitLength = 32 << (^uint(0) >> 63) // <<< it should be `const` but use `var` for testing coverage
+
+// IntBitLength returns the int or uint bit-length, usually it equals to 32 or 64.
+func IntBitLength() int {
+	return intBitLength
 }
 
 //go:linkname FastrandUint32 runtime.fastrand
@@ -165,6 +175,10 @@ func FastrandInt64() int64 {
 func IsPowerOfTwo(x int) bool {
 	return (x & (-x)) == x
 }
+
+// =====================
+// numeric range related
+// =====================
 
 const (
 	MinInt8   = int8(-128)                  // -1 << 7,  see math.MinInt8.

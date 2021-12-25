@@ -15,19 +15,12 @@ func (m ModuleName) String() string {
 
 // ModuleContainer represents a module container.
 type ModuleContainer struct {
-	// provByName saves the modules provided by name.
 	provByName map[ModuleName]interface{}
+	muByName   sync.RWMutex
 
-	// muByName locks the provByName.
-	muByName sync.RWMutex
-
-	// provByType saves the modules provided by type.
 	provByType map[reflect.Type]interface{}
+	muByType   sync.RWMutex
 
-	// muByType locks the provByType.
-	muByType sync.RWMutex
-
-	// logger represents the log for ModuleContainer.
 	logger Logger
 }
 

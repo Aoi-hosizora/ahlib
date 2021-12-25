@@ -29,6 +29,7 @@
 
 + `func GetUnexportedField(field reflect.Value) reflect.Value`
 + `func SetUnexportedField(field reflect.Value, value reflect.Value)`
++ `func FieldValueOf(i interface{}, name string) reflect.Value`
 + `func IsIntKind(kind reflect.Kind) bool`
 + `func IsUintKind(kind reflect.Kind) bool`
 + `func IsFloatKind(kind reflect.Kind) bool`

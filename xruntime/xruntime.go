@@ -11,56 +11,82 @@ import (
 	"syscall"
 )
 
-// TraceFrame represents a line of the runtime trace stack.
+// RawStack returns the raw debug trace stack of the calling goroutine from runtime.Stack, if all is true, it will also return other
+// goroutines' trace stack. Also see debug.Stack and runtime.Stack for more information.
+//
+// Format like:
+// 	goroutine 19 [running]:
+// 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x20)
+// 		.../ahlib/xruntime/xruntime.go:19 +0x6a
+// 	github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
+// 		.../ahlib/xruntime/xruntime_test.go:13 +0x46
+// 	testing.tRunner(0xc000084ea0, 0x1083268)
+// 		.../src/testing/testing.go:1259 +0x102
+// 	created by testing.(*T).Run
+// 		.../src/testing/testing.go:1306 +0x35a
+func RawStack(all bool) []byte {
+	buf := make([]byte, 1024)
+	for {
+		n := runtime.Stack(buf, all)
+		if n < len(buf) {
+			return buf[:n]
+		}
+		buf = make([]byte, 2*len(buf))
+	}
+}
+
+// TraceFrame represents a frame of the runtime trace stack, also see RuntimeTraceStack.
 type TraceFrame struct {
-	// Index represents the index of frame in stack.
+	// Index represents the index of the frame in stack, 0 identifying the caller of this xruntime package.
 	Index int
 
-	// PC represents the frame's program count.
-	PC uintptr
+	// FuncPC represents the function's program count.
+	FuncPC uintptr
 
-	// Filename represents the file full name.
-	Filename string
-
-	// FuncFullName represents the function fill name.
+	// FuncFullName represents the function's fill name, including the package full name and the function name.
 	FuncFullName string
 
-	// FuncName represents the function name.
+	// FuncName represents the function's name, including the package short name and the function name.
 	FuncName string
 
-	// LineIndex represents the line index in the file.
+	// Filename represents the file's full name.
+	Filename string
+
+	// LineIndex represents the line number in the file, starts from 1.
 	LineIndex int
 
-	// LineText represents the line text in the file.
+	// LineText represents the line text in the file，"?" if the text cannot be got.
 	LineText string
 }
 
 // String returns the formatted TraceFrame.
 //
 // Format like:
-// 	.../xruntime/xruntime_test.go:10 xruntime.TestTraceStack
+// 	.../xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
-	return fmt.Sprintf("%s:%d %s\n\t%s", t.Filename, t.LineIndex, t.FuncName, t.LineText)
+	return fmt.Sprintf("%s:%d %s\n\t%s", t.Filename, t.LineIndex, t.FuncFullName, t.LineText)
 }
 
-// TraceStack represents the runtime trace stack, that is a slice of TraceFrame.
+// TraceStack represents the runtime trace stack, consists of some TraceFrame, also see RuntimeTraceStack.
 type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.
 //
 // Format like:
-// 	.../xruntime/xruntime_test.go:10 xruntime.TestTraceStack
+// 	.../xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
-// 	.../src/testing/testing.go:1127 testing.tRunner
+// 	.../xruntime/xruntime_test.go:31 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+// 		}()
+// 	.../src/testing/testing.go:1259 testing.tRunner
 // 		fn(t)
+// .../src/runtime/asm_amd64.s:1581 runtime.goexit
+// 		BYTE	$0x90	// NOP
 func (t TraceStack) String() string {
 	l := len(t)
 	sb := strings.Builder{}
 	for i, frame := range t {
-		sb.WriteString(fmt.Sprintf("%s:%d %s", frame.Filename, frame.LineIndex, frame.FuncName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("\t%s", frame.LineText))
+		sb.WriteString(frame.String())
 		if i != l-1 {
 			sb.WriteString("\n")
 		}
@@ -68,21 +94,21 @@ func (t TraceStack) String() string {
 	return sb.String()
 }
 
-// RuntimeTraceStack returns a slice of TraceFrame from runtime trace stacks using given skip (start from 1).
-func RuntimeTraceStack(skip int) TraceStack {
+// RuntimeTraceStack returns TraceStack (a slice of TraceFrame) from runtime.Caller using the given skip (0 identifying the caller of RuntimeTraceStack).
+func RuntimeTraceStack(skip uint) TraceStack {
 	frames := make([]*TraceFrame, 0)
-	for i := skip; ; i++ {
-		pc, filename, lineIndex, ok := runtime.Caller(i)
+	for i := skip + 1; ; i++ {
+		funcPC, filename, lineIndex, ok := runtime.Caller(int(i))
 		if !ok {
 			break
 		}
 
 		// func
-		funcObj := runtime.FuncForPC(pc)
+		funcObj := runtime.FuncForPC(funcPC)
 		funcFullName := funcObj.Name()
 		_, funcName := filepath.Split(funcFullName)
 
-		// line
+		// file
 		lineText := "?"
 		if filename != "" {
 			if data, err := ioutil.ReadFile(filename); err == nil {
@@ -94,24 +120,16 @@ func RuntimeTraceStack(skip int) TraceStack {
 		}
 
 		// out
-		frames = append(frames, &TraceFrame{
-			Index:        i,
-			PC:           pc,
-			Filename:     filename,
-			FuncFullName: funcFullName,
-			FuncName:     funcName,
-			LineIndex:    lineIndex,
-			LineText:     lineText,
-		})
+		frame := &TraceFrame{Index: int(i), FuncPC: funcPC, FuncFullName: funcFullName, FuncName: funcName, Filename: filename, LineIndex: lineIndex, LineText: lineText}
+		frames = append(frames, frame)
 	}
 
 	return frames
 }
 
-// RuntimeTraceStackWithInfo get a slice of TraceFrame, with some information from the first trace stack line using given skip.
-func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string) {
-	skip++
-	stack = RuntimeTraceStack(skip)
+// RuntimeTraceStackWithInfo returns TraceStack (a slice of TraceFrame) from runtime.Caller using the given skip, with some information of the first TraceFrame's.
+func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string) {
+	stack = RuntimeTraceStack(skip + 1)
 	if len(stack) == 0 {
 		return []*TraceFrame{}, "", "", 0, ""
 	}
@@ -119,6 +137,7 @@ func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, fun
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
 }
 
+// signalNames is used by SignalName.
 var signalNames = [...]string{
 	1:  "SIGHUP",
 	2:  "SIGINT",
@@ -137,6 +156,7 @@ var signalNames = [...]string{
 	15: "SIGTERM",
 }
 
+// signalReadableNames is used by SignalReadableName.
 var signalReadableNames = [...]string{
 	1:  "hangup",
 	2:  "interrupt",

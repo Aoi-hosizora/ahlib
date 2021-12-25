@@ -247,8 +247,8 @@ func (s *Smplen) Flag() Smpflag {
 	return s.flag
 }
 
-// SmpvalOf the Smpval from the given value, returns false when using nil or unsupported type. Note that reflect.ValueOf can also
-// be used, but it will panic frequently if you use in a bed manner.
+// SmpvalOf gets the Smpval from the given value, returns false when using nil or unsupported type. Note that reflect.ValueOf can also
+// be used, but it will panic frequently if used in a bed manner.
 //
 // Support types:
 // 	1. numeric:     int, intX, uint, uintX, floatX, complexX, bool.
@@ -260,7 +260,7 @@ func (s *Smplen) Flag() Smpflag {
 // 	2. wrapper:     interface, ptr, unsafePtr.
 // 	3. composite:   struct.
 // 	4. function:    func.
-func SmpvalOf(i interface{}) (*Smpval, bool, reflect.Value) {
+func SmpvalOf(i interface{}) (sv *Smpval, supported bool, origin reflect.Value) {
 	originVal := reflect.ValueOf(i)
 	val := originVal
 	if val.Kind() == reflect.Ptr {
@@ -288,7 +288,7 @@ func SmpvalOf(i interface{}) (*Smpval, bool, reflect.Value) {
 	case reflect.Struct:
 		// composite is unsupported
 	case reflect.Invalid:
-		// invalid type, that is (interface{})(nil)
+		// reflect.Invalid, that is (SomeInterface)(nil)
 	}
 	return nil, false, originVal
 }
@@ -303,7 +303,7 @@ func SmpvalOf(i interface{}) (*Smpval, bool, reflect.Value) {
 // 	1. wrapper:     interface, ptr, unsafePtr.
 // 	2. composite:   struct.
 // 	3. function:    func.
-func SmplenOf(i interface{}) (*Smplen, bool, reflect.Value) {
+func SmplenOf(i interface{}) (sl *Smplen, supported bool, origin reflect.Value) {
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:

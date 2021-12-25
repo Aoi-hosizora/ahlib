@@ -1,8 +1,22 @@
 # xstring
 
-### References
+## Dependencies
 
 + xtesting*
+
+## Document
+
+### Types
+
++ None
+
+### Variables
+
++ None
+
+### Constants
+
++ `const CaseSplitter string`
 
 ### Functions
 
@@ -39,3 +53,7 @@
 + `func GetLeft(s string, length int) string`
 + `func GetRight(s string, length int) string`
 + `func SplitAndGet(s string, sep string, index int) string`
+
+### Methods
+
++ None

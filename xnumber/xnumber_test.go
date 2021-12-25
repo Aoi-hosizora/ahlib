@@ -128,8 +128,8 @@ func TestBool(t *testing.T) {
 	xtesting.Equal(t, Bool(false), 0)
 }
 
-func TestIntSize(t *testing.T) {
-	xtesting.Equal(t, IntSize(), 32<<(^uint(0)>>63))
+func TestIntBitLength(t *testing.T) {
+	xtesting.Equal(t, IntBitLength(), strconv.IntSize)
 }
 
 func TestFastrand(t *testing.T) {

@@ -133,7 +133,7 @@ func TestPanicGo(t *testing.T) {
 		})
 		defer SetPanicHandler(originHandler)
 		Go(func() { panic("panic") })
-		// Warning: Panicked with `panic`
+		// Warning: Panic with `panic`
 		wait()
 	})
 

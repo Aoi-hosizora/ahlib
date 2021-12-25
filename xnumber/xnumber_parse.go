@@ -4,7 +4,9 @@ import (
 	"strconv"
 )
 
+// =====
 // parse
+// =====
 
 // ParseInt parses a string to int using given base.
 func ParseInt(s string, base int) (int, error) {
@@ -78,7 +80,9 @@ func ParseFloat64(s string) (float64, error) {
 	return f, e
 }
 
+// =======
 // parseOr
+// =======
 
 // ParseIntOr parses a string to int using given base with a fallback value.
 func ParseIntOr(s string, base int, o int) int {
@@ -188,7 +192,9 @@ func ParseFloat64Or(s string, o float64) float64 {
 	return f
 }
 
+// ====
 // atoX
+// ====
 
 // Atoi parses a string to int in base 10.
 func Atoi(s string) (int, error) {
@@ -250,7 +256,9 @@ func Atof64(s string) (float64, error) {
 	return ParseFloat64(s)
 }
 
+// ======
 // atoXOr
+// ======
 
 // AtoiOr parses a string to int in base 10 with a fallback value.
 func AtoiOr(s string, o int) int {
@@ -360,54 +368,56 @@ func Atof64Or(s string, o float64) float64 {
 	return f
 }
 
+// ======
 // format
+// ======
 
-// FormatInt formats a int to string using given base.
+// FormatInt formats an int to string using given base.
 func FormatInt(i int, base int) string {
 	return strconv.FormatInt(int64(i), base)
 }
 
-// FormatInt8 formats a int8 to string using given base.
+// FormatInt8 formats an int8 to string using given base.
 func FormatInt8(i int8, base int) string {
 	return strconv.FormatInt(int64(i), base)
 }
 
-// FormatInt16 formats a int16 to string using given base.
+// FormatInt16 formats an int16 to string using given base.
 func FormatInt16(i int16, base int) string {
 	return strconv.FormatInt(int64(i), base)
 }
 
-// FormatInt32 formats a int32 to string using given base.
+// FormatInt32 formats an int32 to string using given base.
 func FormatInt32(i int32, base int) string {
 	return strconv.FormatInt(int64(i), base)
 }
 
-// FormatInt64 formats a int64 to string using given base.
+// FormatInt64 formats an int64 to string using given base.
 func FormatInt64(i int64, base int) string {
 	return strconv.FormatInt(i, base)
 }
 
-// FormatUint formats a uint to string using given base.
+// FormatUint formats an uint to string using given base.
 func FormatUint(u uint, base int) string {
 	return strconv.FormatUint(uint64(u), base)
 }
 
-// FormatUint8 formats a uint8 to string using given base.
+// FormatUint8 formats an uint8 to string using given base.
 func FormatUint8(u uint8, base int) string {
 	return strconv.FormatUint(uint64(u), base)
 }
 
-// FormatUint16 formats a uint16 to string using given base.
+// FormatUint16 formats an uint16 to string using given base.
 func FormatUint16(u uint16, base int) string {
 	return strconv.FormatUint(uint64(u), base)
 }
 
-// FormatUint32 formats a uint32 to string using given base.
+// FormatUint32 formats an uint32 to string using given base.
 func FormatUint32(u uint32, base int) string {
 	return strconv.FormatUint(uint64(u), base)
 }
 
-// FormatUint64 formats a uint64 to string using given base.
+// FormatUint64 formats an uint64 to string using given base.
 func FormatUint64(u uint64, base int) string {
 	return strconv.FormatUint(u, base)
 }
@@ -422,54 +432,56 @@ func FormatFloat64(f float64, fmt byte, prec int) string {
 	return strconv.FormatFloat(f, fmt, prec, 64)
 }
 
+// ====
 // Xtoa
+// ====
 
-// Itoa formats a int to string in base 10.
+// Itoa formats an int to string in base 10.
 func Itoa(i int) string {
 	return FormatInt(i, 10)
 }
 
-// I8toa formats a int8 to string in base 10.
+// I8toa formats an int8 to string in base 10.
 func I8toa(i int8) string {
 	return FormatInt8(i, 10)
 }
 
-// I16toa formats a int16 to string in base 10.
+// I16toa formats an int16 to string in base 10.
 func I16toa(i int16) string {
 	return FormatInt16(i, 10)
 }
 
-// I32toa formats a int32 to string in base 10.
+// I32toa formats an int32 to string in base 10.
 func I32toa(i int32) string {
 	return FormatInt32(i, 10)
 }
 
-// I64toa formats a int64 to string in base 10.
+// I64toa formats an int64 to string in base 10.
 func I64toa(i int64) string {
 	return FormatInt64(i, 10)
 }
 
-// Utoa formats a uint to string in base 10.
+// Utoa formats an uint to string in base 10.
 func Utoa(u uint) string {
 	return FormatUint(u, 10)
 }
 
-// U8toa formats a uint8 to string in base 10.
+// U8toa formats an uint8 to string in base 10.
 func U8toa(u uint8) string {
 	return FormatUint8(u, 10)
 }
 
-// U16toa formats a uint16 to string in base 10.
+// U16toa formats an uint16 to string in base 10.
 func U16toa(u uint16) string {
 	return FormatUint16(u, 10)
 }
 
-// U32toa formats a uint32 to string in base 10.
+// U32toa formats an uint32 to string in base 10.
 func U32toa(u uint32) string {
 	return FormatUint32(u, 10)
 }
 
-// U64toa formats a uint64 to string in base 10.
+// U64toa formats an uint64 to string in base 10.
 func U64toa(u uint64) string {
 	return FormatUint64(u, 10)
 }

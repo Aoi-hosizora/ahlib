@@ -536,6 +536,7 @@ const (
 )
 
 // Range generates a []int slice from min index to max index with step.
+// Deprecated: use xnumber.IntRange, xnumber.Int32Range, etc. instead.
 func Range(min, max, step int) []int {
 	if min > max {
 		panic(panicMinLargerThenMax)
@@ -551,6 +552,7 @@ func Range(min, max, step int) []int {
 }
 
 // ReverseRange generates a reverse []int slice from max index to min index with step.
+// Deprecated: use xnumber.IntRange, xnumber.Int32Range, etc. instead.
 func ReverseRange(min, max, step int) []int {
 	if min > max {
 		panic(panicMinLargerThenMax)

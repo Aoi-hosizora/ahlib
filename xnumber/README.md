@@ -50,12 +50,35 @@
 + `func LessOrEqualInAccuracy(a, b float64) bool`
 + `func RenderByte(bytes float64) string`
 + `func Bool(b bool) int`
-+ `func IntSize() int`
++ `func IntBitLength() int`
 + `func FastrandUint32() uint32`
 + `func FastrandUint64() uint64`
 + `func FastrandInt32() int32`
 + `func FastrandInt64() int64`
 + `func IsPowerOfTwo(x int) bool`
+
+### Overflow checker functions
+
++ `func OverflowWhenAddInt8(augend, addend int8) bool`
++ `func OverflowWhenAddInt16(augend, addend int16) bool`
++ `func OverflowWhenAddInt32(augend, addend int32) bool`
++ `func OverflowWhenAddInt64(augend, addend int64) bool`
++ `func OverflowWhenAddInt(augend, addend int) bool`
++ `func OverflowWhenSubtractInt8(minuend, subtrahend int8) bool`
++ `func OverflowWhenSubtractInt16(minuend, subtrahend int16) bool`
++ `func OverflowWhenSubtractInt32(minuend, subtrahend int32) bool`
++ `func OverflowWhenSubtractInt64(minuend, subtrahend int64) bool`
++ `func OverflowWhenSubtractInt(minuend, subtrahend int) bool`
++ `func OverflowWhenAddUint8(augend, addend uint8) bool`
++ `func OverflowWhenAddUint16(augend, addend uint16) bool`
++ `func OverflowWhenAddUint32(augend, addend uint32) bool`
++ `func OverflowWhenAddUint64(augend, addend uint64) bool`
++ `func OverflowWhenAddUint(augend, addend uint) bool`
++ `func OverflowWhenSubtractUint8(minuend, subtrahend uint8) bool`
++ `func OverflowWhenSubtractUint16(minuend, subtrahend uint16) bool`
++ `func OverflowWhenSubtractUint32(minuend, subtrahend uint32) bool`
++ `func OverflowWhenSubtractUint64(minuend, subtrahend uint64) bool`
++ `func OverflowWhenSubtractUint(minuend, subtrahend uint) bool`
 
 #### Parse and format functions
 
@@ -131,6 +154,29 @@
 + `func U64toa(u uint64) string`
 + `func F32toa(f float32) string`
 + `func F64toa(f float64) string`
+
+#### Range functions
+
++ `func IntRange(from, to, step int) []int`
++ `func Int8Range(from, to, step int8) []int8`
++ `func Int16Range(from, to, step int16) []int16`
++ `func Int32Range(from, to, step int32) []int32`
++ `func Int64Range(from, to, step int64) []int64`
++ `func UintRange(from, to, step uint, reverseFlag ...bool) []uint`
++ `func Uint8Range(from, to, step uint8, reverseFlag ...bool) []uint8`
++ `func Uint16Range(from, to, step uint16, reverseFlag ...bool) []uint16`
++ `func Uint32Range(from, to, step uint32, reverseFlag ...bool) []uint32`
++ `func Uint64Range(from, to, step uint64, reverseFlag ...bool) []uint64`
++ `func ReverseIntSlice(s []int)`
++ `func ReverseInt8Slice(s []int8)`
++ `func ReverseInt16Slice(s []int16)`
++ `func ReverseInt32Slice(s []int32)`
++ `func ReverseInt64Slice(s []int64)`
++ `func ReverseUintSlice(s []uint)`
++ `func ReverseUint8Slice(s []uint8)`
++ `func ReverseUint16Slice(s []uint16)`
++ `func ReverseUint32Slice(s []uint32)`
++ `func ReverseUint64Slice(s []uint64)`
 
 ### Methods
 
