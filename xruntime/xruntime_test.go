@@ -21,11 +21,11 @@ func TestRawStack(t *testing.T) {
 
 	/*
 		goroutine 19 [running]:
-		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x1)
-			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
+			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x9f
 		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
 			E:/Projects/ahlib/xruntime/xruntime_test.go:20 +0x30
-		testing.tRunner(0xc0000851e0, 0x754230)
+		testing.tRunner(0xc0000851e0, 0x224440)
 			D:/Development/Go/src/testing/testing.go:1259 +0x102
 		created by testing.(*T).Run
 			D:/Development/Go/src/testing/testing.go:1306 +0x35a
@@ -36,28 +36,28 @@ func TestRawStack(t *testing.T) {
 
 	/*
 		goroutine 19 [running]:
-		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0xd7)
-			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x1d)
+			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x9f
 		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:23 +0x65
-		testing.tRunner(0xc0000851e0, 0x754230)
+			E:/Projects/ahlib/xruntime/xruntime_test.go:35 +0x65
+		testing.tRunner(0xc0000851e0, 0x224440)
 			D:/Development/Go/src/testing/testing.go:1259 +0x102
 		created by testing.(*T).Run
 			D:/Development/Go/src/testing/testing.go:1306 +0x35a
 
 		goroutine 1 [chan receive]:
-		testing.(*T).Run(0xc000085040, {0x749c08, 0x6889d3}, 0x754230)
+		testing.(*T).Run(0xc000085040, {0x219d4e, 0x1589d3}, 0x224440)
 			D:/Development/Go/src/testing/testing.go:1307 +0x375
-		testing.runTests.func1(0xc0000b8630)
+		testing.runTests.func1(0xc0000b8600)
 			D:/Development/Go/src/testing/testing.go:1598 +0x6e
-		testing.tRunner(0xc000085040, 0xc0000c3d18)
+		testing.tRunner(0xc000085040, 0xc0000c3ce0)
 			D:/Development/Go/src/testing/testing.go:1259 +0x102
-		testing.runTests(0xc0000d0080, {0x836c20, 0x3, 0x3}, {0x6a006d, 0x74a5a5, 0x0})
+		testing.runTests(0xc0000d2080, {0x308ca0, 0x3, 0x3}, {0x17006d, 0x21a6eb, 0x0})
 			D:/Development/Go/src/testing/testing.go:1596 +0x43f
-		testing.(*M).Run(0xc0000d0080)
+		testing.(*M).Run(0xc0000d2080)
 			D:/Development/Go/src/testing/testing.go:1504 +0x51d
 		main.main()
-			_testmain.go:47 +0x14b
+			_testmain.go:103 +0x20a
 	 */
 
 	printSharp("RawStack(false)_2")
@@ -70,7 +70,7 @@ func TestRawStack(t *testing.T) {
 			return
 		}
 	}
-	f(100)
+	f(25)
 
 	/*
 		goroutine 19 [running]:
@@ -101,9 +101,9 @@ func TestTraceStack(t *testing.T) {
 	}()
 
 	/*
-		E:/Projects/ahlib/xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+		E:/Projects/ahlib/xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 			stack := RuntimeTraceStack(0)
-		E:/Projects/ahlib/xruntime/xruntime_test.go:31 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+		E:/Projects/ahlib/xruntime/xruntime_test.go:101 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			}()
 		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
 			fn(t)
@@ -135,10 +135,10 @@ func TestTraceStack(t *testing.T) {
 	/*
 		filename: E:/Projects/ahlib/xruntime/xruntime_test.go
 		funcName: xruntime.TestTraceStack
-		lineIndex: 56
+		lineIndex: 126
 		lineText: s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 		======
-		E:/Projects/ahlib/xruntime/xruntime_test.go:56 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+		E:/Projects/ahlib/xruntime/xruntime_test.go:126 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
 			fn(t)

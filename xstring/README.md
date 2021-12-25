@@ -53,6 +53,7 @@
 + `func GetLeft(s string, length int) string`
 + `func GetRight(s string, length int) string`
 + `func SplitAndGet(s string, sep string, index int) string`
++ `func SliceToStringMap(args ...interface{}) map[string]interface{}`
 
 ### Methods
 

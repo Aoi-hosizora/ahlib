@@ -588,3 +588,26 @@ func TestSplitAndGet(t *testing.T) {
 		}
 	}
 }
+
+func TestSliceToStringMap(t *testing.T) {
+	type Map = map[string]interface{}
+	for _, tc := range []struct {
+		give []interface{}
+		want Map
+	}{
+		{nil, Map{}},
+		{[]interface{}{}, Map{}},
+		{[]interface{}{1}, Map{}},
+		{[]interface{}{nil}, Map{}},
+		{[]interface{}{"1", 2}, Map{"1": 2}},
+		{[]interface{}{uint(1), 2.3}, Map{"1": 2.3}},
+		{[]interface{}{true, 2i}, Map{"true": 2i}},
+		{[]interface{}{nil, 2}, Map{}},
+		{[]interface{}{1, 2, 3}, Map{"1": 2}},
+		{[]interface{}{nil, 2, 3}, Map{"2": 3}},
+		{[]interface{}{1, "2", "3", 4.4}, Map{"1": "2", "3": 4.4}},
+		{[]interface{}{true, 2, 3.3, true}, Map{"true": 2, "3.3": true}},
+	} {
+		xtesting.Equal(t, SliceToStringMap(tc.give...), tc.want)
+	}
+}

@@ -151,12 +151,12 @@ func TestPanicGo(t *testing.T) {
 	t.Run("panic with no panic handler 2", func(t *testing.T) {
 		g := New(100)
 		g.SetPanicHandler(nil)
-		_testFlag = true
+		atomic.StoreInt32(&_testFlag, 1) // setup test flag
 		g.Go(func() {
 			panic("panic for testing ...")
 		})
 		// panic for testing ...
-		for _testFlag {
+		for atomic.LoadInt32(&_testFlag) == 1 { // wait for the panic handler to finish
 		}
 	})
 

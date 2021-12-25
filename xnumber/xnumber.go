@@ -204,3 +204,115 @@ const (
 	MaxFloat64             = float64(math.MaxFloat64)             // 2**1023 * (2**53 - 1) / 2**52, see math.MaxFloat64.
 	SmallestNonzeroFloat64 = float64(math.SmallestNonzeroFloat64) // 1 / 2**(1023 - 1 + 52), see math.SmallestNonzeroFloat64.
 )
+
+// OverflowWhenAddInt8 checks whether overflow will happen when add int8 addend to int8 augend.
+func OverflowWhenAddInt8(augend, addend int8) bool {
+	return (augend > 0 && addend > 0 && augend > MaxInt8-addend) || (augend < 0 && addend < 0 && augend < MinInt8-addend)
+}
+
+// OverflowWhenAddInt16 checks whether overflow will happen when add int16 addend to int16 augend.
+func OverflowWhenAddInt16(augend, addend int16) bool {
+	return (augend > 0 && addend > 0 && augend > MaxInt16-addend) || (augend < 0 && addend < 0 && augend < MinInt16-addend)
+}
+
+// OverflowWhenAddInt32 checks whether overflow will happen when add int32 addend to int32 augend.
+func OverflowWhenAddInt32(augend, addend int32) bool {
+	return (augend > 0 && addend > 0 && augend > MaxInt32-addend) || (augend < 0 && addend < 0 && augend < MinInt32-addend)
+}
+
+// OverflowWhenAddInt64 checks whether overflow will happen when add int64 addend to int64 augend.
+func OverflowWhenAddInt64(augend, addend int64) bool {
+	return (augend > 0 && addend > 0 && augend > MaxInt64-addend) || (augend < 0 && addend < 0 && augend < MinInt64-addend)
+}
+
+// OverflowWhenAddInt checks whether overflow will happen when add int addend to int augend.
+func OverflowWhenAddInt(augend, addend int) bool {
+	if intBitLength <= 32 {
+		return OverflowWhenAddInt32(int32(augend), int32(addend))
+	}
+	return OverflowWhenAddInt64(int64(augend), int64(addend))
+}
+
+// OverflowWhenSubtractInt8 checks whether overflow will happen when subtract int8 subtrahend from int8 minuend.
+func OverflowWhenSubtractInt8(minuend, subtrahend int8) bool {
+	return OverflowWhenAddInt8(minuend, -subtrahend)
+}
+
+// OverflowWhenSubtractInt16 checks whether overflow will happen when subtract int16 subtrahend from int16 minuend.
+func OverflowWhenSubtractInt16(minuend, subtrahend int16) bool {
+	return OverflowWhenAddInt16(minuend, -subtrahend)
+}
+
+// OverflowWhenSubtractInt32 checks whether overflow will happen when subtract int32 subtrahend from int32 minuend.
+func OverflowWhenSubtractInt32(minuend, subtrahend int32) bool {
+	return OverflowWhenAddInt32(minuend, -subtrahend)
+}
+
+// OverflowWhenSubtractInt64 checks whether overflow will happen when subtract int64 subtrahend from int64 minuend.
+func OverflowWhenSubtractInt64(minuend, subtrahend int64) bool {
+	return OverflowWhenAddInt64(minuend, -subtrahend)
+}
+
+// OverflowWhenSubtractInt checks whether overflow will happen when subtract int subtrahend from int minuend.
+func OverflowWhenSubtractInt(minuend, subtrahend int) bool {
+	if intBitLength <= 32 {
+		return OverflowWhenSubtractInt32(int32(minuend), int32(subtrahend))
+	}
+	return OverflowWhenSubtractInt64(int64(minuend), int64(subtrahend))
+}
+
+// OverflowWhenAddUint8 checks whether overflow will happen when add uint8 addend to uint8 augend.
+func OverflowWhenAddUint8(augend, addend uint8) bool {
+	return augend > 0 && addend > 0 && augend > MaxUint8-addend
+}
+
+// OverflowWhenAddUint16 checks whether overflow will happen when add uint16 addend to uint16 augend.
+func OverflowWhenAddUint16(augend, addend uint16) bool {
+	return augend > 0 && addend > 0 && augend > MaxUint16-addend
+}
+
+// OverflowWhenAddUint32 checks whether overflow will happen when add uint32 addend to uint32 augend.
+func OverflowWhenAddUint32(augend, addend uint32) bool {
+	return augend > 0 && addend > 0 && augend > MaxUint32-addend
+}
+
+// OverflowWhenAddUint64 checks whether overflow will happen when add uint64 addend to uint64 augend.
+func OverflowWhenAddUint64(augend, addend uint64) bool {
+	return augend > 0 && addend > 0 && augend > MaxUint64-addend
+}
+
+// OverflowWhenAddUint checks whether overflow will happen when add uint addend to uint augend.
+func OverflowWhenAddUint(augend, addend uint) bool {
+	if intBitLength <= 32 {
+		return OverflowWhenAddUint32(uint32(augend), uint32(addend))
+	}
+	return OverflowWhenAddUint64(uint64(augend), uint64(addend))
+}
+
+// OverflowWhenSubtractUint8 checks whether overflow will happen when subtract uint8 subtrahend from uint8 minuend.
+func OverflowWhenSubtractUint8(minuend, subtrahend uint8) bool {
+	return minuend > 0 && subtrahend > 0 && minuend < subtrahend
+}
+
+// OverflowWhenSubtractUint16 checks whether overflow will happen when subtract uint16 subtrahend from uint16 minuend.
+func OverflowWhenSubtractUint16(minuend, subtrahend uint16) bool {
+	return minuend > 0 && subtrahend > 0 && minuend < subtrahend
+}
+
+// OverflowWhenSubtractUint32 checks whether overflow will happen when subtract uint32 subtrahend from uint32 minuend.
+func OverflowWhenSubtractUint32(minuend, subtrahend uint32) bool {
+	return minuend > 0 && subtrahend > 0 && minuend < subtrahend
+}
+
+// OverflowWhenSubtractUint64 checks whether overflow will happen when subtract uint64 subtrahend from uint64 minuend.
+func OverflowWhenSubtractUint64(minuend, subtrahend uint64) bool {
+	return minuend > 0 && subtrahend > 0 && minuend < subtrahend
+}
+
+// OverflowWhenSubtractUint checks whether overflow will happen when subtract uint subtrahend from uint minuend.
+func OverflowWhenSubtractUint(minuend, subtrahend uint) bool {
+	if intBitLength <= 32 {
+		return OverflowWhenSubtractUint32(uint32(minuend), uint32(subtrahend))
+	}
+	return OverflowWhenSubtractUint64(uint64(minuend), uint64(subtrahend))
+}

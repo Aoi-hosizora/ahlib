@@ -2,6 +2,7 @@ package xstring
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -460,4 +461,30 @@ func SplitAndGet(s string, sep string, index int) string {
 	}
 
 	panic(panicIndexOutOfRange)
+}
+
+// SliceToStringMap returns a string-interface{} map from given interface{} slice.
+func SliceToStringMap(args ...interface{}) map[string]interface{} {
+	l := len(args)
+	out := make(map[string]interface{}, l/2)
+
+	for i := 0; i < l; i += 2 {
+		if i+1 >= l {
+			break // ignore the final arg
+		}
+		key := ""
+		keyItf, value := args[i], args[i+1]
+		if keyItf == nil {
+			i--
+			continue
+		}
+		if k, ok := keyItf.(string); ok {
+			key = k
+		} else {
+			key = fmt.Sprintf("%v", keyItf) // %v
+		}
+		out[key] = value
+	}
+
+	return out
 }

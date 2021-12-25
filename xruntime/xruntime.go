@@ -16,11 +16,11 @@ import (
 //
 // Format like:
 // 	goroutine 19 [running]:
-// 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x20)
-// 		.../ahlib/xruntime/xruntime.go:19 +0x6a
+// 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
+// 		.../xruntime/xruntime.go:30 +0x9f
 // 	github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
-// 		.../ahlib/xruntime/xruntime_test.go:13 +0x46
-// 	testing.tRunner(0xc000084ea0, 0x1083268)
+// 		.../xruntime/xruntime_test.go:20 +0x30
+// 	testing.tRunner(0xc0000851e0, 0x224440)
 // 		.../src/testing/testing.go:1259 +0x102
 // 	created by testing.(*T).Run
 // 		.../src/testing/testing.go:1306 +0x35a
@@ -62,7 +62,7 @@ type TraceFrame struct {
 // String returns the formatted TraceFrame.
 //
 // Format like:
-// 	.../xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+// 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
 	return fmt.Sprintf("%s:%d %s\n\t%s", t.Filename, t.LineIndex, t.FuncFullName, t.LineText)
@@ -74,9 +74,9 @@ type TraceStack []*TraceFrame
 // String returns the formatted TraceStack.
 //
 // Format like:
-// 	.../xruntime/xruntime_test.go:29 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+// 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
-// 	.../xruntime/xruntime_test.go:31 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+// 	.../xruntime/xruntime_test.go:101 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 // 		}()
 // 	.../src/testing/testing.go:1259 testing.tRunner
 // 		fn(t)
