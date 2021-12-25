@@ -20,6 +20,7 @@
 
 + xcolor
 + xcondition
++ xgopool
 + xmodule
 + xnumber
 + xorderedmap

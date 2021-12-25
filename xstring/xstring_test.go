@@ -390,11 +390,15 @@ func BenchmarkFastStob(b *testing.B) {
 	s := "hello world"
 
 	b.Run("FastStob", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = FastStob(s)
 		}
 	})
 	b.Run("ConvertToBytes", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = []byte(s)
 		}
@@ -405,11 +409,15 @@ func BenchmarkFastBtos(b *testing.B) {
 	bs := []byte{'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'}
 
 	b.Run("FastBtos", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = FastBtos(bs)
 		}
 	})
 	b.Run("ConvertToString", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = string(bs)
 		}
