@@ -103,16 +103,14 @@ func GetTimeLocation(t time.Time) *time.Location {
 // GetLocalLocation returns a time.Location with empty name for representing time.Local.
 func GetLocalLocation() *time.Location {
 	du := LocationDuration(time.Local)
-	return time.FixedZone("", int(du.Seconds())) // Local -> empty
+	return time.FixedZone("", int(du.Seconds())) // Local name -> empty
 }
 
-var (
-	// timezoneRegexp represents a UTC offset timezone format, such as `+0:0`, `-01`, `+08:00`, `-12:30`.
-	// For more details of time.RFC3339 offset, see https://tools.ietf.org/html/rfc3339#section-4.2.
-	timezoneRegexp = regexp.MustCompile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
+// timezoneRegexp represents a UTC offset timezone format, such as `+0:0`, `-01`, `+08:00`, `-12:30`.
+// For more details of time.RFC3339 offset, see https://tools.ietf.org/html/rfc3339#section-4.2.
+var timezoneRegexp = regexp.MustCompile(`^([+-])([0-9]{1,2})(?::([0-9]{1,2}))?$`)
 
-	errWrongFormat = errors.New("xtime: wrong format timezone string")
-)
+var errWrongFormat = errors.New("xtime: wrong format timezone string")
 
 // ParseTimezone parses a UTC offset timezone string to time.Location (with UTC+00:00 name), format: `[+-][0-9]{1,2}(:[0-9]{1,2})?`.
 func ParseTimezone(timezone string) (*time.Location, error) {

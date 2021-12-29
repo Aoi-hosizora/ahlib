@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -62,19 +61,30 @@ func UncapitalizeAll(s string) string {
 	return sp.String()
 }
 
-// blankRe represents the blank regexp, that is [ \t\n\v\f\r\x85\xA0\u3000] (including unicode.IsSpace and ideographic space \u3000).
-// Note that this regexp does not equal to /[\s　]/.
-var blankRe = regexp.MustCompile("[ \\t\\n\\v\\f\\r\\x85\\xA0\u3000]+")
-
-// IsBlank checks if given rune is a space or a blank, that is [ \t\n\v\f\r\x85\xA0\u3000], also see unicode.IsSpace.
+// IsBlank checks if given rune is a blank (including space, newline, tab, etc.), notes that a blank matches [ \t\n\v\f\r\x85\xA0\u3000]. Please
+// visit unicode.IsSpace for more details.
 func IsBlank(r rune) bool {
-	return unicode.IsSpace(r) || r == '\u3000' // "　"
+	return unicode.IsSpace(r) || r == '\u3000' // ideographic space "　"
 }
 
-// RemoveBlanks replaces all blanks to a single space " ", also see xstring.IsBlank and unicode.IsSpace.
+// RemoveBlanks replaces all blanks to a single space " ", please visit xstring.IsBlank and unicode.IsSpace for more details.
 func RemoveBlanks(s string) string {
-	s = blankRe.ReplaceAllString(s, " ")
-	return strings.TrimSpace(s)
+	// var blankRe = regexp.MustCompile("[ \\t\\n\\v\\f\\r\\x85\\xA0\u3000]+")
+	sb := strings.Builder{}
+	space := false
+	for _, r := range s {
+		switch {
+		case unicode.IsSpace(r), r == '\u3000':
+			space = true
+		default:
+			if space == true && sb.Len() > 0 {
+				sb.WriteRune(' ')
+				space = false
+			}
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
 }
 
 // CaseSplitter is the special word splitter used in SplitToWords, and it means also to split the string by different cases, such as "helloWorld" to ["hello", "world"].

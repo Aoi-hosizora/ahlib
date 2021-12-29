@@ -119,6 +119,7 @@ func TestParseTimezone(t *testing.T) {
 		{"", nil},
 		{"0", nil},
 		{"09", nil},
+		{"09:00", nil},
 		{"+", nil},
 		{"+0", time.FixedZone("UTC+00:00", 0)}, // +X
 		{"+09", time.FixedZone("UTC+09:00", 9*3600)}, // +XX
@@ -268,5 +269,17 @@ func TestDurationTotal(t *testing.T) {
 }
 
 func TestClock(t *testing.T) {
-	// TODO
+	xtesting.Equal(t, LocationDuration(UTC.Now().Location()), time.Duration(0))
+	xtesting.Equal(t, LocationDuration(Local.Now().Location()), LocationDuration(time.Local))
+	now := time.Date(2001, 1, 1, 0, 0, 0, 0, time.FixedZone("", 8*60*60))
+	pNow := &now
+	clock := CustomClock(pNow)
+	xtesting.Equal(t, clock.Now(), time.Date(2001, 1, 1, 0, 0, 0, 0, time.FixedZone("", 8*60*60)))
+	*pNow = SetLocation(now, time.FixedZone("", -9*60*60))
+	xtesting.Equal(t, clock.Now(), time.Date(2001, 1, 1, 0, 0, 0, 0, time.FixedZone("", -9*60*60)))
+	*pNow = SetYear(now, 2021)
+	*pNow = SetMonth(now, 12)
+	*pNow = SetDay(now, 30)
+	*pNow = SetLocation(now, time.UTC)
+	xtesting.Equal(t, clock.Now(), time.Date(2021, 12, 30, 0, 0, 0, 0, time.UTC))
 }

@@ -65,6 +65,9 @@
 + `func ParseJsonDateTime(s string) (JsonDateTime, error)`
 + `func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime`
 + `func CustomClock(t *time.Time) Clock`
++ `func StrftimeInBytes(pattern []byte, t time.Time) ([]byte, error)`
++ `func StrftimeInString(pattern string, t time.Time) (string, error)`
++ `func TestStrftimeToGlobPattern(t *testing.T)`
 
 ### Methods
 
