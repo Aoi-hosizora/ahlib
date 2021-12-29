@@ -5,6 +5,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"sync/atomic"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) boo
 	flag := ""
 
 	if skip >= 0 {
-		_, file, line, _ := runtime.Caller(skip + 1)
+		_, file, line, _ := runtime.Caller(skip + 1 + int(atomic.LoadInt32(&_skip)))
 		msg := fmt.Sprintf("%s%s:%d %s", flag, path.Base(file), line, msg)
 		additionMsg := messageFromMsgAndArgs(msgAndArgs...)
 		if len(additionMsg) > 0 {
@@ -24,6 +25,18 @@ func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) boo
 	t.Fail()
 
 	return false
+}
+
+var (
+	// _skip is the extra skip, defaults to zero.
+	_skip int32 = 0
+)
+
+// SetExtraSkip sets extra skip for test functions, and it will be used when printing the test failed message, defaults to zero.
+func SetExtraSkip(skip int32) {
+	if skip >= 0 {
+		atomic.StoreInt32(&_skip, skip)
+	}
 }
 
 // Equal asserts that two objects are equal.

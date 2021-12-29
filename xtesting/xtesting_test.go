@@ -760,10 +760,11 @@ func TestMsgAndArgs(t *testing.T) {
 	}
 
 	mockT := &testing.T{}
-	if failTest(mockT, 1, "a", "") != false {
+	SetExtraSkip(1)
+	if failTest(mockT, 0, "a", "") != false {
 		fail(t)
 	}
-	if failTest(mockT, 1, "a", "%%a%s", "b") != false {
+	if failTest(mockT, 0, "a", "%%a%s", "b") != false {
 		fail(t)
 	}
 }

@@ -17,6 +17,8 @@ func TestDbStatus(t *testing.T) {
 	xtesting.Equal(t, DbTagC.String(), "db-tag-c")
 	xtesting.Equal(t, DbTagD.String(), "db-tag-d")
 	xtesting.Equal(t, DbTagE.String(), "db-tag-e")
+	xtesting.Equal(t, DbTagF.String(), "db-tag-f")
+	xtesting.Equal(t, DbTagG.String(), "db-tag-g")
 
 	xtesting.Equal(t, fmt.Sprintf("%v", DbSuccess), "db-success")
 	xtesting.Equal(t, DbStatus(999).String(), "db-?")
@@ -31,6 +33,8 @@ func TestFsmStatus(t *testing.T) {
 	xtesting.Equal(t, FsmTagC.String(), "fsm-tag-c")
 	xtesting.Equal(t, FsmTagD.String(), "fsm-tag-d")
 	xtesting.Equal(t, FsmTagE.String(), "fsm-tag-e")
+	xtesting.Equal(t, FsmTagF.String(), "fsm-tag-f")
+	xtesting.Equal(t, FsmTagG.String(), "fsm-tag-g")
 
 	xtesting.Equal(t, fmt.Sprintf("%v", FsmNone), "fsm-none")
 	xtesting.Equal(t, FsmStatus(999).String(), "fsm-?")
@@ -49,6 +53,8 @@ func TestJwtStatus(t *testing.T) {
 	xtesting.Equal(t, JwtTagC.String(), "jwt-tag-c")
 	xtesting.Equal(t, JwtTagD.String(), "jwt-tag-d")
 	xtesting.Equal(t, JwtTagE.String(), "jwt-tag-e")
+	xtesting.Equal(t, JwtTagF.String(), "jwt-tag-f")
+	xtesting.Equal(t, JwtTagG.String(), "jwt-tag-g")
 
 	xtesting.Equal(t, JwtAudience.String(), "jwt-audience")
 	xtesting.Equal(t, JwtExpired.String(), "jwt-expired")

@@ -11,7 +11,7 @@ import (
 // accuracy related
 // ================
 
-// Accuracy represents an accuracy with some compare methods in accuracy.
+// Accuracy represents an accuracy with some compare methods in epsilon accuracy.
 type Accuracy func() float64
 
 // NewAccuracy creates an Accuracy, using eps as its accuracy.
@@ -21,65 +21,65 @@ func NewAccuracy(eps float64) Accuracy {
 	}
 }
 
-// Equal checks eq between two float64.
+// Equal checks equality (eq) between two float64.
 func (eps Accuracy) Equal(a, b float64) bool {
 	return math.Abs(a-b) < eps()
 }
 
-// NotEqual checks ne between two float64.
+// NotEqual checks not-equality (ne) between two float64.
 func (eps Accuracy) NotEqual(a, b float64) bool {
 	return math.Abs(a-b) >= eps()
 }
 
-// Greater checks gt between two float64.
+// Greater checks if float `a` is greater than (gt) `b`.
 func (eps Accuracy) Greater(a, b float64) bool {
 	return math.Max(a, b) == a && math.Abs(a-b) > eps()
 }
 
-// Less checks lt between two float64.
+// Less checks if float `a` is less than (lt) `b`.
 func (eps Accuracy) Less(a, b float64) bool {
 	return math.Max(a, b) == b && math.Abs(a-b) > eps()
 }
 
-// GreaterOrEqual checks gte between two float64.
+// GreaterOrEqual checks if float `a` is greater than or equals to (gte) `b`.
 func (eps Accuracy) GreaterOrEqual(a, b float64) bool {
 	return math.Max(a, b) == a || math.Abs(a-b) < eps()
 }
 
-// LessOrEqual checks lte between two float64.
+// LessOrEqual checks if float `a` is less than or equals to (lte) `b`.
 func (eps Accuracy) LessOrEqual(a, b float64) bool {
 	return math.Max(a, b) == b || math.Abs(a-b) < eps()
 }
 
-// _acc represents a default Accuracy with 1e-3 as default accuracy.
+// _acc is a default Accuracy with 1e-3 eps.
 var _acc = NewAccuracy(1e-3)
 
-// EqualInAccuracy checks eq between two float64 in default Accuracy: 1e-3.
+// EqualInAccuracy checks equality (eq) between two float64 with 1e-3 accuracy.
 func EqualInAccuracy(a, b float64) bool {
 	return _acc.Equal(a, b)
 }
 
-// NotEqualInAccuracy checks ne between two float64 in default Accuracy: 1e-3.
+// NotEqualInAccuracy checks not-equality (ne) between two float64 with 1e-3 accuracy.
 func NotEqualInAccuracy(a, b float64) bool {
 	return _acc.NotEqual(a, b)
 }
 
-// GreaterInAccuracy checks gt between two float64 in default Accuracy: 1e-3.
+// GreaterInAccuracy checks if float `a` is greater than (gt) `b` with 1e-3 accuracy.
 func GreaterInAccuracy(a, b float64) bool {
 	return _acc.Greater(a, b)
 }
 
-// LessInAccuracy checks lt between two float64 in default Accuracy: 1e-3.
+// LessInAccuracy checks if float `a` is less than (lt) `b` with 1e-3 accuracy.
 func LessInAccuracy(a, b float64) bool {
 	return _acc.Less(a, b)
 }
 
-// GreaterOrEqualInAccuracy checks gte between two float64 in default Accuracy: 1e-3.
+// GreaterOrEqualInAccuracy checks if float `a` is greater than or equals to (gte) `b` with 1e-3 accuracy.
 func GreaterOrEqualInAccuracy(a, b float64) bool {
 	return _acc.GreaterOrEqual(a, b)
 }
 
-// LessOrEqualInAccuracy checks lte between two float64 in default Accuracy: 1e-3.
+// LessOrEqualInAccuracy checks if float `a` is less than or equals to (lte) `b` with 1e-3 accuracy.
 func LessOrEqualInAccuracy(a, b float64) bool {
 	return _acc.LessOrEqual(a, b)
 }
@@ -88,54 +88,50 @@ func LessOrEqualInAccuracy(a, b float64) bool {
 // ...
 // ===
 
-// RenderByte renders a byte size to string (using %.2f), support `B` `KB` `MB` `GB` `TB`.
+// RenderByte renders a byte size to string (using %.2f), supports `B` `KB` `MB` `GB` `TB` units.
 func RenderByte(bytes float64) string {
-	divider := float64(1024)
-
+	divisor := float64(1024)
 	minus := false
-	if bytes < 0 {
+	switch {
+	case bytes == 0:
+		return "0B"
+	case bytes < 0:
 		bytes = -bytes
 		minus = true
-	} else if bytes == 0 {
-		return "0B"
 	}
 	ret := func(s string) string {
 		if minus {
-			return fmt.Sprintf("-%s", s)
+			return "-" + s
 		}
 		return s
 	}
 
 	// 1 - 1023B
 	b := bytes
-	if LessInAccuracy(b, divider) {
+	if LessInAccuracy(b, divisor) {
 		return ret(fmt.Sprintf("%dB", int(b)))
 	}
-
 	// 1 - 1023K
-	kb := bytes / divider
-	if LessInAccuracy(kb, divider) {
+	kb := b / divisor
+	if LessInAccuracy(kb, divisor) {
 		return ret(fmt.Sprintf("%.2fKB", kb))
 	}
-
 	// 1 - 1023M
-	mb := kb / divider
-	if LessInAccuracy(mb, divider) {
+	mb := kb / divisor
+	if LessInAccuracy(mb, divisor) {
 		return ret(fmt.Sprintf("%.2fMB", mb))
 	}
-
 	// 1 - 1023G
-	gb := mb / divider
-	if LessInAccuracy(gb, divider) {
+	gb := mb / divisor
+	if LessInAccuracy(gb, divisor) {
 		return ret(fmt.Sprintf("%.2fGB", gb))
 	}
-
 	// 1T -
-	tb := gb / divider
+	tb := gb / divisor
 	return ret(fmt.Sprintf("%.2fTB", tb))
 }
 
-// Bool returns 1 if value is true, otherwise returns 0.
+// Bool returns 1 if the given value is true, otherwise returns 0.
 func Bool(b bool) int {
 	if b {
 		return 1

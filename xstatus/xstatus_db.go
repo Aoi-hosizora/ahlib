@@ -1,6 +1,6 @@
 package xstatus
 
-// DbStatus represents a status value for database operator.
+// DbStatus represents a status value for the result of database operation.
 type DbStatus uint64
 
 const (
@@ -15,6 +15,8 @@ const (
 	DbTagC                      // Tag c
 	DbTagD                      // Tag d
 	DbTagE                      // Tag e
+	DbTagF                      // Tag f
+	DbTagG                      // Tag g
 )
 
 func (d DbStatus) String() string {
@@ -39,6 +41,10 @@ func (d DbStatus) String() string {
 		return "db-tag-d"
 	case DbTagE:
 		return "db-tag-e"
+	case DbTagF:
+		return "db-tag-f"
+	case DbTagG:
+		return "db-tag-g"
 	default:
 		return "db-?"
 	}

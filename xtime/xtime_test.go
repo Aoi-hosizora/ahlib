@@ -1,6 +1,7 @@
 package xtime
 
 import (
+	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"testing"
 	"time"
@@ -141,6 +142,65 @@ func TestParseTimezone(t *testing.T) {
 	}
 }
 
+func TestTruncateTime(t *testing.T) {
+	for _, loc := range []*time.Location{
+		time.UTC,
+		time.FixedZone("", 8*60*60),
+		time.FixedZone("", -9*60*60),
+		time.FixedZone("", -2*30*60),
+	} {
+		d1 := time.Date(2021, 12, 27, 23, 49, 57, 123456789, loc)
+		d2 := time.Date(2018, 5, 1, 3, 4, 6, 999000000, loc)
+		for _, tc := range []struct {
+			giveTime     time.Time
+			giveDuration time.Duration
+			want         time.Time
+		}{
+			{d1, time.Nanosecond, time.Date(2021, 12, 27, 23, 49, 57, 123456789, loc)},
+			{d1, time.Microsecond, time.Date(2021, 12, 27, 23, 49, 57, 123456000, loc)},
+			{d1, time.Millisecond, time.Date(2021, 12, 27, 23, 49, 57, 123000000, loc)},
+			{d1, time.Millisecond * 10, time.Date(2021, 12, 27, 23, 49, 57, 120000000, loc)},
+			{d1, time.Second, time.Date(2021, 12, 27, 23, 49, 57, 0, loc)},
+			{d1, time.Second * 2, time.Date(2021, 12, 27, 23, 49, 56, 0, loc)},
+			{d1, time.Second * 5, time.Date(2021, 12, 27, 23, 49, 55, 0, loc)},
+			{d1, time.Second * 10, time.Date(2021, 12, 27, 23, 49, 50, 0, loc)},
+			{d1, time.Second * 20, time.Date(2021, 12, 27, 23, 49, 40, 0, loc)},
+			{d1, time.Minute, time.Date(2021, 12, 27, 23, 49, 0, 0, loc)},
+			{d1, time.Minute * 2, time.Date(2021, 12, 27, 23, 48, 0, 0, loc)},
+			{d1, time.Minute * 5, time.Date(2021, 12, 27, 23, 45, 0, 0, loc)},
+			{d1, time.Minute * 10, time.Date(2021, 12, 27, 23, 40, 0, 0, loc)},
+			{d1, time.Minute * 20, time.Date(2021, 12, 27, 23, 40, 0, 0, loc)},
+			//
+			{d2, time.Millisecond, time.Date(2018, 5, 1, 3, 4, 6, 999000000, loc)},
+			{d2, time.Millisecond * 10, time.Date(2018, 5, 1, 3, 4, 6, 990000000, loc)},
+			{d2, time.Second, time.Date(2018, 5, 1, 3, 4, 6, 0, loc)},
+			{d2, time.Second * 2, time.Date(2018, 5, 1, 3, 4, 6, 0, loc)},
+			{d2, time.Second * 20, time.Date(2018, 5, 1, 3, 4, 0, 0, loc)},
+			{d2, time.Minute, time.Date(2018, 5, 1, 3, 4, 0, 0, loc)},
+			{d2, time.Minute * 2, time.Date(2018, 5, 1, 3, 4, 0, 0, loc)},
+			{d2, time.Minute * 20, time.Date(2018, 5, 1, 3, 0, 0, 0, loc)},
+			//
+			{d1, time.Hour, time.Date(2021, 12, 27, 23, 0, 0, 0, loc)},
+			{d1, time.Hour * 2, time.Date(2021, 12, 27, 22, 0, 0, 0, loc)},
+			{d1, time.Hour * 3, time.Date(2021, 12, 27, 21, 0, 0, 0, loc)},
+			{d1, time.Hour * 24, time.Date(2021, 12, 27, 0, 0, 0, 0, loc)},
+			{d1, time.Hour * 24 * 2, time.Date(2021, 12, 27, 0, 0, 0, 0, loc)},
+			{d1, time.Hour * 24 * 3, time.Date(2021, 12, 27, 0, 0, 0, 0, loc)},
+			//
+			{d2, time.Hour, time.Date(2018, 5, 1, 3, 0, 0, 0, loc)},
+			{d2, time.Hour * 2, time.Date(2018, 5, 1, 2, 0, 0, 0, loc)},
+			{d2, time.Hour * 3, time.Date(2018, 5, 1, 3, 0, 0, 0, loc)},
+			{d2, time.Hour * 24, time.Date(2018, 5, 1, 0, 0, 0, 0, loc)},
+			{d2, time.Hour * 24 * 2, time.Date(2018, 5, 1, 0, 0, 0, 0, loc)},
+			{d2, time.Hour * 24 * 3, time.Date(2018, 4, 29, 0, 0, 0, 0, loc)},
+		} {
+			t.Run(fmt.Sprintf("%s_%s_%s", tc.giveTime.Format("20060102"), tc.giveDuration, LocationDuration(loc)), func(t *testing.T) {
+				xtesting.Equal(t, TruncateTime(tc.giveTime, tc.giveDuration), tc.want)
+			})
+		}
+	}
+}
+
 func TestDurationComponent(t *testing.T) {
 	duration1 := 5*24*time.Hour + 5*time.Hour + 32*time.Minute + 24*time.Second + 123*time.Millisecond + 456*time.Microsecond + 789*time.Nanosecond
 	duration2 := 105 * 24 * time.Hour
@@ -205,5 +265,8 @@ func TestDurationTotal(t *testing.T) {
 		xtesting.InDelta(t, DurationTotalHours(tc.give), tc.wantHour, 1e-3)
 		xtesting.InDelta(t, DurationTotalDays(tc.give), tc.wantDay, 1e-3)
 	}
+}
 
+func TestClock(t *testing.T) {
+	// TODO
 }

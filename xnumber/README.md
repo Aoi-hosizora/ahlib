@@ -57,7 +57,7 @@
 + `func FastrandInt64() int64`
 + `func IsPowerOfTwo(x int) bool`
 
-### Overflow checker functions
+#### Overflow checker functions
 
 + `func OverflowWhenAddInt8(augend, addend int8) bool`
 + `func OverflowWhenAddInt16(augend, addend int16) bool`

@@ -138,6 +138,17 @@ func ParseTimezone(timezone string) (*time.Location, error) {
 	return time.FixedZone(name, offset), nil
 }
 
+// TruncateTime returns the result of rounding t down to a multiple of duration (since the zero time). Note that if the given time.Time is
+// not in time.UTC, time.Time.Truncate method will return a wrong result, so in this case please use xtime.TruncateTime.
+func TruncateTime(t time.Time, du time.Duration) time.Time {
+	if t.Location() == time.UTC {
+		return t.Truncate(du)
+	}
+	utcTime := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
+	r := utcTime.Truncate(du)
+	return time.Date(r.Year(), r.Month(), r.Day(), r.Hour(), r.Minute(), r.Second(), r.Nanosecond(), t.Location())
+}
+
 // ========
 // duration
 // ========
@@ -230,4 +241,36 @@ func DurationTotalDays(d time.Duration) float64 {
 	day := d / (time.Hour * 24)
 	nsec := d % (time.Hour * 24)
 	return float64(day) + float64(nsec)/(24*60*60*1e9)
+}
+
+// =====
+// clock
+// =====
+
+// Clock represents an interface used to determine the current time.
+type Clock interface {
+	Now() time.Time
+}
+
+// clockFn is an unexported type that implements Clock interface.
+type clockFn func() time.Time
+
+// Now implements the Clock interface.
+func (c clockFn) Now() time.Time {
+	return c()
+}
+
+var _ Clock = (*clockFn)(nil)
+
+var (
+	// UTC is an object satisfying the Clock interface, which returns the current time in UTC.
+	UTC Clock = clockFn(func() time.Time { return time.Now().UTC() })
+
+	// Local is an object satisfying the Clock interface, which returns the current time in the local timezone.
+	Local Clock = clockFn(time.Now)
+)
+
+// CustomClock returns a custom Clock with given time.Time pointer.
+func CustomClock(t *time.Time) Clock {
+	return clockFn(func() time.Time { return *t })
 }

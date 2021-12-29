@@ -1,9 +1,9 @@
 package xstatus
 
-// JwtStatus represents a status value for jwt and database operator.
+// JwtStatus represents a status value for the result of jwt and database operation.
 type JwtStatus uint64
 
-// 0 - 11
+// 0 - 13
 const (
 	JwtUnknown JwtStatus = 0    // Unknown
 	JwtSuccess JwtStatus = iota // Success
@@ -18,6 +18,8 @@ const (
 	JwtTagC          // Tag c
 	JwtTagD          // Tag d
 	JwtTagE          // Tag e
+	JwtTagF          // Tag f
+	JwtTagG          // Tag g
 )
 
 // 16 - 2048
@@ -59,6 +61,10 @@ func (j JwtStatus) String() string {
 		return "jwt-tag-d"
 	case JwtTagE:
 		return "jwt-tag-e"
+	case JwtTagF:
+		return "jwt-tag-f"
+	case JwtTagG:
+		return "jwt-tag-g"
 
 	case JwtAudience:
 		return "jwt-audience"

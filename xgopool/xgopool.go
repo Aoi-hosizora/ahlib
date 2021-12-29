@@ -160,8 +160,8 @@ func (g *GoPool) recycleWorker(w *worker) {
 	atomic.AddInt32(&g.numWorkers, -1)
 }
 
-// _testFlag is only used and set to true when testing the xgopool package.
-var _testFlag = int32(0)
+// _testFlag is only used when testing the xgopool package, `true` value represents that now is testing.
+var _testFlag atomic.Value
 
 // start dequeues a task from the head of GoPool's task linked list, and invokes the given function with panic handler.
 func (w *worker) start(g *GoPool) {
@@ -176,11 +176,11 @@ func (w *worker) start(g *GoPool) {
 					if g.panicHandler != nil {
 						g.panicHandler(t.ctx, err)
 					} else {
-						if atomic.LoadInt32(&_testFlag) == 1 {
+						if _testFlag.Load() == true {
 							// enter only when testing the xgopool package, needn't worry about the performance
 							defer func() {
-								log.Println(recover())
-								atomic.StoreInt32(&_testFlag, 0)
+								log.Printf("Panic when testing: `%v`", recover())
+								_testFlag.Store(false)
 							}()
 						}
 						panic(err)

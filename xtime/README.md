@@ -10,10 +10,12 @@
 
 + `type JsonDate time.Time`
 + `type JsonDateTime time.Time`
++ `type Clock interface`
 
 ### Variables
 
-+ None
++ `var UTC Clock`
++ `var Local Clock`
 
 ### Constants
 
@@ -41,6 +43,7 @@
 + `func GetTimeLocation(t time.Time) *time.Location`
 + `func GetLocalLocation() *time.Location`
 + `func ParseTimezone(timezone string) (*time.Location, error)`
++ `func TruncateTime(t time.Time, du time.Duration) time.Time`
 + `func DurationNanosecondComponent(d time.Duration) int`
 + `func DurationMicrosecondComponent(d time.Duration) int`
 + `func DurationMillisecondComponent(d time.Duration) int`
@@ -61,6 +64,7 @@
 + `func ParseJsonDateOr(s string, d JsonDate) JsonDate`
 + `func ParseJsonDateTime(s string) (JsonDateTime, error)`
 + `func ParseJsonDateTimeOr(s string, d JsonDateTime) JsonDateTime`
++ `func CustomClock(t *time.Time) Clock`
 
 ### Methods
 
