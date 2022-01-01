@@ -29,7 +29,7 @@ func TestRawStack(t *testing.T) {
 			D:/Development/Go/src/testing/testing.go:1259 +0x102
 		created by testing.(*T).Run
 			D:/Development/Go/src/testing/testing.go:1306 +0x35a
-	 */
+	*/
 
 	printSharp("RawStack(true)")
 	_, _ = os.Stdout.Write(RawStack(true))
@@ -58,7 +58,7 @@ func TestRawStack(t *testing.T) {
 			D:/Development/Go/src/testing/testing.go:1504 +0x51d
 		main.main()
 			_testmain.go:103 +0x20a
-	 */
+	*/
 
 	printSharp("RawStack(false)_2")
 	var f func(a int)
@@ -88,7 +88,7 @@ func TestRawStack(t *testing.T) {
 		...additional frames elided...
 		created by testing.(*T).Run
 			D:/Development/Go/src/testing/testing.go:1306 +0x35a
-	 */
+	*/
 
 	printSharp("TestRawStack end")
 }

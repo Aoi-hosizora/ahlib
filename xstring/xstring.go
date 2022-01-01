@@ -2,14 +2,16 @@ package xstring
 
 import (
 	"bytes"
-	"fmt"
 	"math/rand"
-	"sort"
 	"strings"
 	"time"
 	"unicode"
 	"unsafe"
 )
+
+// ==================
+// capitalize related
+// ==================
 
 // Capitalize capitalizes the first letter of the whole string.
 func Capitalize(s string) string {
@@ -29,57 +31,92 @@ func Uncapitalize(s string) string {
 	return ""
 }
 
-// CapitalizeAll capitalizes all the first letter in words of the whole string, words are split by blank character, see xstring.IsBlank.
+// CapitalizeAll capitalizes all the first letter in words of the whole string, words are split by blank character.
 func CapitalizeAll(s string) string {
-	newWord := true
+	wordStart := true
 	sp := strings.Builder{}
 	for _, v := range s {
-		if newWord {
-			newWord = false
+		if wordStart {
+			wordStart = false
 			sp.WriteRune(unicode.ToUpper(v))
 		} else {
 			sp.WriteRune(v)
 		}
-		newWord = IsBlank(v)
+		wordStart = IsBlank(v)
 	}
 	return sp.String()
 }
 
-// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are split by blank character, see xstring.IsBlank.
+// UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are split by blank character.
 func UncapitalizeAll(s string) string {
-	newWord := true
+	wordStart := true
 	sp := strings.Builder{}
 	for _, v := range s {
-		if newWord {
-			newWord = false
+		if wordStart {
+			wordStart = false
 			sp.WriteRune(unicode.ToLower(v))
 		} else {
 			sp.WriteRune(v)
 		}
-		newWord = IsBlank(v)
+		wordStart = IsBlank(v)
 	}
 	return sp.String()
 }
 
-// IsBlank checks if given rune is a blank (including space, newline, tab, etc.), notes that a blank matches [ \t\n\v\f\r\x85\xA0\u3000]. Please
-// visit unicode.IsSpace for more details.
-func IsBlank(r rune) bool {
-	return unicode.IsSpace(r) || r == '\u3000' // ideographic space "　"
+// ========================
+// number and blank related
+// ========================
+
+// IsArabicNumber returns true if given rune is an arabic number, that is only "0", "1", "2", "3", "4", "5", "6", "7", "8", "9". Note that it is different with
+// unicode.IsNumber.
+func IsArabicNumber(r rune) bool {
+	return r >= '0' && r <= '9'
 }
 
-// RemoveBlanks replaces all blanks to a single space " ", please visit xstring.IsBlank and unicode.IsSpace for more details.
+// IsBlank checks if given rune is a blank (including space, CR, LF, tabulation, ideographic space, etc.). In the Latin-1 space, a blank is [\t\n\v\f\r\x20\x85\xA0].
+// Note that this is the same as unicode.IsSpace, see IsBlank's source code for more details.
+func IsBlank(r rune) bool {
+	// https://compart.com/en/unicode/U+2000
+	// 0x09 => '\t' / Tabulation
+	// 0x0A => '\n' / Line Feed / LF
+	// 0x0B => '\v' / Line Tabulation
+	// 0x0C => '\f' / Form Feed
+	// 0x0D => '\r' / Carriage Return / CR
+	// 0x20 => ' ' / Space
+	// 0x85 => Next Line / NEL
+	// 0xA0 => No-Break Space / NBSP
+	// 0x2000 => En Quad
+	// 0x2001 => Em Quad
+	// 0x2002 => En Space / ENSP
+	// 0x2003 => Em Space / EMSP
+	// 0x2004 => Three-Per-Em Space
+	// 0x2005 => Four-Per-Em Space
+	// 0x2006 => Six-Per-Em Space
+	// 0x2007 => Figure Space
+	// 0x2008 => Punctuation Space
+	// 0x2009 => Thin Space
+	// 0x200A => Hair Space
+	// 0x2028 => Line Separator
+	// 0x2029 => Paragraph Separator
+	// 0x202F => Narrow No-Break Space / NNBSP
+	// 0x205F => Medium Mathematical Space / MMSP
+	// 0x3000 => '　' / Ideographic Space
+	return unicode.IsSpace(r)
+}
+
+// RemoveBlanks replaces all blanks (including space, CR, LF, tabulation, ideographic space, etc.) to a single space " ", please see xstring.IsBlank and unicode.IsSpace
+// for more details.
 func RemoveBlanks(s string) string {
-	// var blankRe = regexp.MustCompile("[ \\t\\n\\v\\f\\r\\x85\\xA0\u3000]+")
 	sb := strings.Builder{}
 	space := false
 	for _, r := range s {
 		switch {
-		case unicode.IsSpace(r), r == '\u3000':
+		case IsBlank(r):
 			space = true
 		default:
 			if space == true && sb.Len() > 0 {
-				sb.WriteRune(' ')
 				space = false
+				sb.WriteRune(' ')
 			}
 			sb.WriteRune(r)
 		}
@@ -87,32 +124,37 @@ func RemoveBlanks(s string) string {
 	return sb.String()
 }
 
-// CaseSplitter is the special word splitter used in SplitToWords, and it means also to split the string by different cases, such as "helloWorld" to ["hello", "world"].
+// =================
+// word case related
+// =================
+
+// CaseSplitter is the special word splitter used in SplitToWords, it means also to split the string by different cases, such as "helloWorld" to ["hello", "world"].
 const CaseSplitter = ""
 
+// defaultSplitters is the default splitter used in SplitToWords.
 var defaultSplitters = []string{CaseSplitter, "_", "-", "."}
 
-// SplitToWords splits a single string to a word array using default and given word separator. Default separators are [ \t\n\v\f\r\x85\xA0\u3000] (blank) and
-// [_-.], you can set the seps parameter to use different word separators (but blank characters are just treated as word separator).
-func SplitToWords(s string, seps ...string) []string { // caseHelper
-	// separators
+// SplitToWords splits given string to a word array using default or given word splitters. Here default splitters are blank characters (including space, CR, LF,
+// tabulation, ideographic space, etc.), "_", "-" and ".", you can set the `seps` argument to replace the default word separators (such as new characters or CaseSplitter,
+// but for blank characters).
+func SplitToWords(s string, seps ...string) []string {
+	// splitters
 	if len(seps) == 0 {
 		seps = defaultSplitters
 	}
-	separators := make([]string, 0, len(seps))
+	splitters := make([]string, 0, len(seps))
 	splitCase := false
 	for _, sep := range seps {
 		if sep == CaseSplitter {
 			splitCase = true
 		} else if len(sep) > 0 {
-			separators = append(separators, sep)
+			splitters = append(splitters, sep)
 		}
 	}
 
 	// replacer
-	oldNews := make([]string, 0, len(separators)*2+2)
-	oldNews = append(oldNews, "　", " ") // "\u3000" => " "
-	for _, rule := range separators {
+	oldNews := make([]string, 0, len(splitters)*2)
+	for _, rule := range splitters {
 		oldNews = append(oldNews, rule, " ")
 	}
 	replacer := strings.NewReplacer(oldNews...)
@@ -122,22 +164,21 @@ func SplitToWords(s string, seps ...string) []string { // caseHelper
 		sb := strings.Builder{}
 		lastLower := false
 		for i, r := range s {
-			currLower := !unicode.IsUpper(r)
-			if i > 0 && !currLower && lastLower {
+			lower := !unicode.IsUpper(r)
+			if i > 0 && !lower && lastLower {
 				sb.WriteRune(' ') // split by case
 			}
 			sb.WriteRune(r)
-			lastLower = currLower
+			lastLower = lower
 		}
 		s = sb.String()
 	}
-	s = replacer.Replace(s) // split by rules
-	// words := strings.Fields(strings.ToLower(s))
+	s = replacer.Replace(s) // split by splitters
 	words := strings.Fields(s)
 	return words
 }
 
-// PascalCase rewrites string in pascal case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
+// PascalCase rewrites string in pascal case, by default, word splitters are blank characters, "_", "-" and ".", see SplitToWords fore more details.
 func PascalCase(s string, extraSeps ...string) string {
 	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
@@ -146,7 +187,7 @@ func PascalCase(s string, extraSeps ...string) string {
 	return strings.Join(wordArray, "")
 }
 
-// CamelCase rewrites string in camel case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
+// CamelCase rewrites string in camel case, by default, word splitters are blank characters, "_", "-" and ".", see SplitToWords fore more details.
 func CamelCase(s string, extraSeps ...string) string {
 	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
@@ -159,7 +200,7 @@ func CamelCase(s string, extraSeps ...string) string {
 	return strings.Join(wordArray, "")
 }
 
-// SnakeCase rewrites string in snake case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
+// SnakeCase rewrites string in snake case, by default, word splitters are blank characters, "_", "-" and ".", see SplitToWords fore more details.
 func SnakeCase(s string, extraSeps ...string) string {
 	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
@@ -168,7 +209,7 @@ func SnakeCase(s string, extraSeps ...string) string {
 	return strings.Join(wordArray, "_")
 }
 
-// KebabCase rewrites string in kebab case using word separator. By default, [ \t\n\v\f\r\x85\xA0\u3000] and [_-.] are treated as word separator.
+// KebabCase rewrites string in kebab case, by default, word splitters are blank characters, "_", "-" and ".", see SplitToWords fore more details.
 func KebabCase(s string, extraSeps ...string) string {
 	wordArray := SplitToWords(s, append(defaultSplitters, extraSeps...)...)
 	for i, word := range wordArray {
@@ -176,6 +217,10 @@ func KebabCase(s string, extraSeps ...string) string {
 	}
 	return strings.Join(wordArray, "-")
 }
+
+// =====================
+// uuid and rand related
+// =====================
 
 // TimeUUID creates a uuid from given time. If the count is larger than 23, the remaining bits will be filled by rand numbers.
 func TimeUUID(t time.Time, count int) string {
@@ -239,69 +284,9 @@ func RandLowercaseLetterNumberString(count int) string {
 	return RandString(count, lowercaseLetterNumberRunes)
 }
 
-// MaskToken masks a token string and returns the result, using given mask rune and indices for mask characters, this function also supports minus index.
-func MaskToken(s string, mask rune, indices ...int) string {
-	return coreMaskToken(s, mask, true, indices...)
-}
-
-// MaskTokenR masks a token string and returns the result, using given mask rune and indices for non-mask characters, this function also supports minus index,
-func MaskTokenR(s string, mask rune, indices ...int) string {
-	return coreMaskToken(s, mask, false, indices...)
-}
-
-// coreMaskToken is the core implementation of MaskToken and MaskTokenR.
-func coreMaskToken(s string, mask rune, usedToMask bool, indices ...int) string {
-	switch {
-	case len(s) == 0: // empty
-		return ""
-	case len(indices) == 0: // no change or full change
-		if usedToMask {
-			return s
-		}
-		return strings.Repeat(string(mask), len(s))
-	}
-
-	runes := []rune(s)
-	length := len(runes)
-	newIndices := make(map[int]bool) // idx-true map
-
-	idxs := make([]int, 0, len(indices)) // temp sorted indices
-	for _, index := range indices {
-		if 0 <= index && index < length {
-			idxs = append(idxs, index)
-		} else if -length <= index && index < 0 {
-			idxs = append(idxs, length+index)
-		}
-	}
-	sort.Ints(idxs)
-	for i, index := range idxs {
-		if i == 0 || idxs[i-1] != index {
-			newIndices[index] = true // <<<
-		}
-	}
-
-	sb := strings.Builder{}
-	if usedToMask {
-		// use index to write mask
-		for i, ch := range runes {
-			if _, ok := newIndices[i]; !ok {
-				sb.WriteRune(ch)
-			} else {
-				sb.WriteRune(mask) // has index, write mask
-			}
-		}
-	} else {
-		// use index to write character
-		for i, ch := range runes {
-			if _, ok := newIndices[i]; !ok {
-				sb.WriteRune(mask)
-			} else {
-				sb.WriteRune(ch) // has index, write character
-			}
-		}
-	}
-	return sb.String()
-}
+// ============
+// fast related
+// ============
 
 // FastStob fast casts string to []byte in an unsafe ways.
 func FastStob(s string) []byte {
@@ -322,179 +307,154 @@ func FastBtos(bs []byte) string {
 	return *(*string)(unsafe.Pointer(&bs))
 }
 
+// ===========================
+// bom and replacement related
+// ===========================
+
 const (
-	// utf8BomString is UTF8 BOM character in string, U+FEFF, 0xEF 0xBB 0xBF.
+	// utf8BomString is UTF8 BOM character in string, that is U+FEFF, or 0xEF 0xBB 0xBF.
 	utf8BomString = "\xef\xbb\xbf"
 
-	// utf8ReplacementString is UTF8 replacement character in string, U+FFFD, 0xEF 0xBF 0xBD.
+	// utf8ReplacementString is UTF8 replacement character in string, that is U+FFFD, or 0xEF 0xBF 0xBD.
 	utf8ReplacementString = "\xef\xbf\xbd"
 )
 
 var (
-	// utf8BomBytes is UTF8 BOM character in bytes, U+FEFF, 0xEF 0xBB 0xBF.
+	// utf8BomString is UTF8 BOM character in string, that is U+FEFF, or 0xEF 0xBB 0xBF.
 	utf8BomBytes = []byte{0xEF, 0xBB, 0xBF}
 
-	// utf8ReplacementString is UTF8 replacement character in bytes, U+FFFD, 0xEF 0xBF 0xBD.
+	// utf8ReplacementString is UTF8 replacement character in string, that is U+FFFD, or 0xEF 0xBF 0xBD.
 	utf8ReplacementBytes = []byte{0xEF, 0xBF, 0xBD}
 )
 
 // TrimUTF8Bom trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a string.
-// See https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
+// Please visi https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and
+// https://www.compart.com/en/unicode/U+FEFF for details.
 func TrimUTF8Bom(s string) string {
 	return strings.TrimPrefix(s, utf8BomString)
 }
 
 // TrimUTF8BomBytes trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a bytes.
-// See https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
+// Please visit https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and
+// https://www.compart.com/en/unicode/U+FEFF for details.
 func TrimUTF8BomBytes(bs []byte) []byte {
 	return bytes.TrimPrefix(bs, utf8BomBytes)
 }
 
 // TrimUTF8Replacement trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a string.
-// See https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
+// Please visi https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and
+// https://www.compart.com/en/unicode/U+FFFD for details.
 func TrimUTF8Replacement(s string) string {
 	return strings.TrimPrefix(s, utf8ReplacementString)
 }
 
 // TrimUTF8ReplacementBytes trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a bytes.
-// See https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
+// Please visi https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and
+// https://www.compart.com/en/unicode/U+FFFD for details.
 func TrimUTF8ReplacementBytes(bs []byte) []byte {
 	return bytes.TrimPrefix(bs, utf8ReplacementBytes)
 }
 
-// EncodeUrlValues encodes the values (see url.Values) into url encoded form ("bar=baz&foo=quux") sorted by key with escape.
-// The escapeFunc can be url.QueryEscape, url.PathEscape or the functions you defined, use nil for no escape.
-func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string) string {
-	keys := make([]string, 0, len(values))
-	for k := range values {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+// ===================
+// pad and get related
+// ===================
 
+// PadLeft returns the string with length of totalLength, which is padded by given pad rune to left, if given `totalLength` doesn't exceed the length of
+// given string, this function does nothing.
+func PadLeft(s string, pad rune, totalLength int) string {
+	strLength := 0
+	for range s {
+		strLength++
+	}
+	if strLength >= totalLength {
+		return s
+	}
 	sb := strings.Builder{}
-	for _, k := range keys {
-		key := k
-		if escapeFunc != nil {
-			key = escapeFunc(key)
-		}
-		for _, v := range values[k] {
-			val := v
-			if escapeFunc != nil {
-				val = escapeFunc(val)
-			}
-			if sb.Len() > 0 {
-				sb.WriteString("&")
-			}
-			sb.WriteString(key) // escaped
-			sb.WriteString("=")
-			sb.WriteString(val) // escaped
-		}
+	for i := 0; i < totalLength-strLength; i++ {
+		sb.WriteRune(pad)
 	}
-
+	sb.WriteString(s)
 	return sb.String()
 }
 
-// PadLeft returns the string with length of totalLength, which is padded by char in left.
-func PadLeft(s string, char rune, totalLength int) string {
-	l := 0 // length
+// PadRight returns the string with length of totalLength, which is padded by given pad rune to right, if given `totalLength` doesn't exceed the length of
+// given string, this function does nothing.
+func PadRight(s string, pad rune, totalLength int) string {
+	currLength := 0
 	for range s {
-		l++
+		currLength++
 	}
-	sp := strings.Builder{}
-	for i := 0; i < totalLength-l; i++ {
-		sp.WriteRune(char)
+	if currLength >= totalLength {
+		return s
 	}
-	sp.WriteString(s)
-	return sp.String()
+	sb := strings.Builder{}
+	sb.WriteString(s)
+	for i := 0; i < totalLength-currLength; i++ {
+		sb.WriteRune(pad)
+	}
+	return sb.String()
 }
 
-// PadRight returns the string with length of totalLength, which is padded by char in right.
-func PadRight(s string, char rune, totalLength int) string {
-	l := 0 // length
-	for range s {
-		l++
-	}
-	sp := strings.Builder{}
-	sp.WriteString(s)
-	for i := 0; i < totalLength-l; i++ {
-		sp.WriteRune(char)
-	}
-	return sp.String()
-}
-
-// GetLeft gets the left part of the string with length.
+// GetLeft gets the left part of given string with length, if given `length` exceeds the length of given string, this function does nothing.
 func GetLeft(s string, length int) string {
-	sp := strings.Builder{}
+	sb := strings.Builder{}
 	idx := 0
 	for _, v := range s {
 		if idx < length {
 			idx++
-			sp.WriteRune(v)
+			sb.WriteRune(v)
 		} else {
 			break
 		}
 	}
-	return sp.String()
+	return sb.String()
 }
 
-// GetRight gets the right part of the string with length.
+// GetRight gets the right part of given string with length, if given `length` exceeds the length of given string, this function does nothing.
 func GetRight(s string, length int) string {
-	l := 0 // length
+	strLength := 0
 	for range s {
-		l++
+		strLength++
 	}
-	sp := strings.Builder{}
+	sb := strings.Builder{}
 	idx := 0
 	for _, v := range s {
-		if idx >= l-length {
-			sp.WriteRune(v)
+		if idx >= strLength-length {
+			sb.WriteRune(v)
 		}
 		idx++
 	}
-	return sp.String()
+	return sb.String()
 }
 
-const (
-	panicIndexOutOfRange = "xstring: index out of range"
-)
-
-// SplitAndGet returns the string item from the split result slices, this also supports minus index.
-func SplitAndGet(s string, sep string, index int) string {
-	sp := strings.Split(s, sep)
-	l := len(sp)
-
-	if index >= 0 && index < l {
-		return sp[index]
+// GetOrPadLeft gets the left part of given string, or pad the given string by given rune to left, if `length` exceeds the length of given string, this
+// function does pad, otherwise does get.
+func GetOrPadLeft(s string, length int, pad rune) string {
+	strLength := 0
+	for range s {
+		strLength++
 	}
-	if newIndex := l + index; newIndex >= 0 && newIndex < l {
-		return sp[newIndex]
+	if length == strLength {
+		return s
 	}
-
-	panic(panicIndexOutOfRange)
+	if length < strLength {
+		return GetLeft(s, length)
+	}
+	return PadLeft(s, pad, length)
 }
 
-// SliceToStringMap returns a string-interface{} map from given interface{} slice.
-func SliceToStringMap(args ...interface{}) map[string]interface{} {
-	l := len(args)
-	out := make(map[string]interface{}, l/2)
-
-	for i := 0; i < l; i += 2 {
-		if i+1 >= l {
-			break // ignore the final arg
-		}
-		key := ""
-		keyItf, value := args[i], args[i+1]
-		if keyItf == nil {
-			i--
-			continue
-		}
-		if k, ok := keyItf.(string); ok {
-			key = k
-		} else {
-			key = fmt.Sprintf("%v", keyItf) // %v
-		}
-		out[key] = value
+// GetOrPadRight gets the right part of the given string, or pad the given string by given rune to right, if `length` exceeds the length of given string, this
+// function does pad, otherwise does get.
+func GetOrPadRight(s string, length int, pad rune) string {
+	strLength := 0
+	for range s {
+		strLength++
 	}
-
-	return out
+	if length == strLength {
+		return s
+	}
+	if length < strLength {
+		return GetRight(s, length)
+	}
+	return PadRight(s, pad, length)
 }

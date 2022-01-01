@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 	"time"
+	"unicode"
 )
 
 func TestCapitalize(t *testing.T) {
@@ -82,6 +83,41 @@ func TestUncapitalizeAll(t *testing.T) {
 	}
 }
 
+func TestIsArabicNumber(t *testing.T) {
+	xtesting.True(t, unicode.IsNumber('０'), true)
+	xtesting.True(t, unicode.IsNumber('５'), true)
+	for _, tc := range []struct {
+		give rune
+		want bool
+	}{
+		{' ', false},
+		{'0', true},
+		{'1', true},
+		{'2', true},
+		{'3', true},
+		{'4', true},
+		{'5', true},
+		{'6', true},
+		{'7', true},
+		{'8', true},
+		{'9', true},
+		{'０', false}, // <- true for unicode.IsNumber
+		{'１', false},
+		{'２', false},
+		{'３', false},
+		{'４', false},
+		{'５', false},
+		{'６', false},
+		{'７', false},
+		{'８', false},
+		{'９', false},
+	} {
+		t.Run(string(tc.give), func(t *testing.T) {
+			xtesting.Equal(t, IsArabicNumber(tc.give), tc.want)
+		})
+	}
+}
+
 func TestIsBlank(t *testing.T) {
 	for _, tc := range []struct {
 		give rune
@@ -96,6 +132,23 @@ func TestIsBlank(t *testing.T) {
 		{'　', true},
 		{'\x85', true},
 		{'\xA0', true},
+		{0x2000, true},
+		{0x2001, true},
+		{0x2002, true},
+		{0x2003, true},
+		{0x2004, true},
+		{0x2005, true},
+		{0x2006, true},
+		{0x2007, true},
+		{0x2008, true},
+		{0x2009, true},
+		{0x200A, true},
+		{0x200B, false},
+		{0x200F, false},
+		{0x2028, true},
+		{0x2029, true},
+		{0x202F, true},
+		{0x205F, true},
 		{'a', false},
 		{'0', false},
 		{'测', false},
@@ -213,7 +266,7 @@ func TestXXXCase(t *testing.T) {
 	}
 }
 
-// showFn represents need to show shuffle and random result
+// showFn represents if tests need to show shuffle and random result.
 var showFn = func() bool { return false }
 
 func TestTimeUUID(t *testing.T) {
@@ -257,7 +310,7 @@ func TestTimeUUID(t *testing.T) {
 	}
 }
 
-func TestRandXXXString(t *testing.T) {
+func TestRandString(t *testing.T) {
 	for _, tc := range []struct {
 		giveFn    func(int) string
 		giveCount int
@@ -303,52 +356,6 @@ func TestRandXXXString(t *testing.T) {
 				}
 			}
 		}
-	}
-}
-
-func TestMaskToken(t *testing.T) {
-	for _, tc := range []struct {
-		giveString  string
-		giveIndices []int
-		want1       string
-		want2       string
-	}{
-		{"", []int{1}, "", ""},
-
-		{"a", []int{}, "a", "*"},
-		{"a", []int{0}, "*", "a"},
-		{"a", []int{1}, "a", "*"},
-		{"a", []int{-1}, "*", "a"},
-		{"a", []int{-2}, "a", "*"},
-		{"a", []int{0, 1}, "*", "a"},
-		{"a", []int{0, -1}, "*", "a"},
-
-		{"aa", []int{}, "aa", "**"},
-		{"aa", []int{0}, "*a", "a*"},
-		{"aa", []int{1}, "a*", "*a"},
-		{"aa", []int{2}, "aa", "**"},
-		{"aa", []int{-1}, "a*", "*a"},
-		{"aa", []int{-2}, "*a", "a*"},
-		{"aa", []int{-3}, "aa", "**"},
-		{"aa", []int{0, 1}, "**", "aa"},
-		{"aa", []int{-1, -2}, "**", "aa"},
-
-		{"aaa", []int{}, "aaa", "***"},
-		{"aaa", []int{0}, "*aa", "a**"},
-		{"aaa", []int{1}, "a*a", "*a*"},
-		{"aaa", []int{2}, "aa*", "**a"},
-		{"aaa", []int{-1}, "aa*", "**a"},
-		{"aaa", []int{-2}, "a*a", "*a*"},
-		{"aaa", []int{-3}, "*aa", "a**"},
-		{"aaa", []int{0, 1}, "**a", "aa*"},
-		{"aaa", []int{-1, -3}, "*a*", "a*a"},
-		{"aaa", []int{1, -1}, "a**", "*aa"},
-
-		{"pwd123abcpwd", []int{3, 4, 5, 6, 7, 8}, "pwd******pwd", "***123abc***"},
-		{"pwd123abcpwd", []int{0, 1, 2, 9, 10, 11}, "***123abc***", "pwd******pwd"},
-	} {
-		xtesting.Equal(t, MaskToken(tc.giveString, '*', tc.giveIndices...), tc.want1)
-		xtesting.Equal(t, MaskTokenR(tc.giveString, '*', tc.giveIndices...), tc.want2)
 	}
 }
 
@@ -458,6 +465,126 @@ func TestTrimUTF8XXX(t *testing.T) {
 	}
 }
 
+func TestPadGetLeftRight(t *testing.T) {
+	for _, tc := range []struct {
+		give       string
+		givePad    rune
+		giveLength int
+		wantPadL   string
+		wantPadR   string
+		wantGetL   string
+		wantGetR   string
+		wantL      string
+		wantR      string
+	}{
+		{"", '0', -2, "", "", "", "", "", ""},
+		{"", '0', -1, "", "", "", "", "", ""},
+		{"", '0', 0, "", "", "", "", "", ""},
+		{"", '0', 1, "0", "0", "", "", "0", "0"},
+		{"", '0', 2, "00", "00", "", "", "00", "00"},
+
+		{"1", '0', -2, "1", "1", "", "", "", ""},
+		{"1", '0', -1, "1", "1", "", "", "", ""},
+		{"1", '0', 0, "1", "1", "", "", "", ""},
+		{"1", '0', 1, "1", "1", "1", "1", "1", "1"},
+		{"1", '0', 2, "01", "10", "1", "1", "01", "10"},
+		{"1", '0', 3, "001", "100", "1", "1", "001", "100"},
+
+		{"123", '0', -1, "123", "123", "", "", "", ""},
+		{"123", '0', 0, "123", "123", "", "", "", ""},
+		{"123", '0', 1, "123", "123", "1", "3", "1", "3"},
+		{"123", '0', 2, "123", "123", "12", "23", "12", "23"},
+		{"123", '0', 3, "123", "123", "123", "123", "123", "123"},
+		{"123", '0', 4, "0123", "1230", "123", "123", "0123", "1230"},
+		{"123", '0', 5, "00123", "12300", "123", "123", "00123", "12300"},
+
+		{"test", ' ', -1, "test", "test", "", "", "", ""},
+		{"test", ' ', 3, "test", "test", "tes", "est", "tes", "est"},
+		{"test", ' ', 4, "test", "test", "test", "test", "test", "test"},
+		{"test", ' ', 5, " test", "test ", "test", "test", " test", "test "},
+		{"test", ' ', 8, "    test", "test    ", "test", "test", "    test", "test    "},
+
+		{"测试テスтест", '零', 1, "测试テスтест", "测试テスтест", "测", "т", "测", "т"},
+		{"测试テスтест", '零', 3, "测试テスтест", "测试テスтест", "测试テ", "ест", "测试テ", "ест"},
+		{"测试テスтест", '零', 6, "测试テスтест", "测试テスтест", "测试テスте", "テスтест", "测试テスте", "テスтест"},
+		{"测试テスтест", '零', 7, "测试テスтест", "测试テスтест", "测试テスтес", "试テスтест", "测试テスтес", "试テスтест"},
+		{"测试テスтест", '零', 8, "测试テスтест", "测试テスтест", "测试テスтест", "测试テスтест", "测试テスтест", "测试テスтест"},
+		{"测试テスтест", '零', 9, "零测试テスтест", "测试テスтест零", "测试テスтест", "测试テスтест", "零测试テスтест", "测试テスтест零"},
+		{"测试テスтест", '零', 11, "零零零测试テスтест", "测试テスтест零零零", "测试テスтест", "测试テスтест", "零零零测试テスтест", "测试テスтест零零零"},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, PadLeft(tc.give, tc.givePad, tc.giveLength), tc.wantPadL)
+			xtesting.Equal(t, PadRight(tc.give, tc.givePad, tc.giveLength), tc.wantPadR)
+			xtesting.Equal(t, GetLeft(tc.give, tc.giveLength), tc.wantGetL)
+			xtesting.Equal(t, GetRight(tc.give, tc.giveLength), tc.wantGetR)
+			xtesting.Equal(t, GetOrPadLeft(tc.give, tc.giveLength, tc.givePad), tc.wantL)
+			xtesting.Equal(t, GetOrPadRight(tc.give, tc.giveLength, tc.givePad), tc.wantR)
+		})
+	}
+}
+
+func TestMaskToken(t *testing.T) {
+	for _, tc := range []struct {
+		giveString  string
+		giveIndices []int
+		want        string
+		wantR       string
+	}{
+		{"", []int{}, "", ""},
+		{"", []int{-2}, "", ""},
+		{"", []int{-1}, "", ""},
+		{"", []int{0}, "", ""},
+		{"", []int{1}, "", ""},
+		{"", []int{2}, "", ""},
+
+		{"a", []int{}, "a", "*"},
+		{"a", []int{-3}, "a", "*"},
+		{"a", []int{-2}, "a", "*"},
+		{"a", []int{-1}, "*", "a"}, // <<<
+		{"a", []int{0}, "*", "a"},  // <<<
+		{"a", []int{1}, "a", "*"},
+		{"a", []int{2}, "a", "*"},
+		{"a", []int{3}, "a", "*"},
+		{"a", []int{0, 1}, "*", "a"},
+		{"a", []int{-1, -2}, "*", "a"},
+		{"a", []int{0, -1}, "*", "a"}, // <<<
+
+		{"aa", []int{}, "aa", "**"},
+		{"aa", []int{-3}, "aa", "**"},
+		{"aa", []int{-2}, "*a", "a*"}, // <<<
+		{"aa", []int{-1}, "a*", "*a"}, // <<<
+		{"aa", []int{0}, "*a", "a*"},  // <<<
+		{"aa", []int{1}, "a*", "*a"},  // <<<
+		{"aa", []int{2}, "aa", "**"},
+		{"aa", []int{3}, "aa", "**"},
+		{"aa", []int{-3, 0}, "*a", "a*"},
+		{"aa", []int{0, 1}, "**", "aa"}, // <<<
+		{"aa", []int{1, 2}, "a*", "*a"},
+		{"aa", []int{-1, -2}, "**", "aa"}, // <<<
+		{"aa", []int{-2, -3}, "*a", "a*"},
+		{"aa", []int{0, -1}, "**", "aa"}, // <<<
+
+		{"aaa", []int{}, "aaa", "***"},
+		{"aaa", []int{0}, "*aa", "a**"},
+		{"aaa", []int{1}, "a*a", "*a*"},
+		{"aaa", []int{2}, "aa*", "**a"},
+		{"aaa", []int{-1}, "aa*", "**a"},
+		{"aaa", []int{-2}, "a*a", "*a*"},
+		{"aaa", []int{-3}, "*aa", "a**"},
+		{"aaa", []int{0, 1}, "**a", "aa*"},
+		{"aaa", []int{-1, -3}, "*a*", "a*a"},
+		{"aaa", []int{1, -1}, "a**", "*aa"},
+
+		{"pwd123abcpwd", []int{3, 4, 5, 6, 7, 8, 20}, "pwd******pwd", "***123abc***"},
+		{"pwd123abcpwd", []int{0, 1, 2, 9, 10, 11, 20}, "***123abc***", "pwd******pwd"},
+		{"pwd123abcpwd", []int{-3, -4, -5, -6, -7, -8, -20}, "pwd1******wd", "****23abcp**"},
+		{"pwd123abcpwd", []int{0, -1, -2, -9, -10, -11, -20}, "****23abcp**", "pwd1******wd"},
+	} {
+		xtesting.Equal(t, MaskToken(tc.giveString, '*', tc.giveIndices...), tc.want)
+		xtesting.Equal(t, MaskTokenR(tc.giveString, '*', tc.giveIndices...), tc.wantR)
+	}
+}
+
 func TestEncodeUrlValues(t *testing.T) {
 	for _, tc := range []struct {
 		give           map[string][]string
@@ -482,72 +609,6 @@ func TestEncodeUrlValues(t *testing.T) {
 		{map[string][]string{"a": {"b"}, "c": {"d"}}, func(s string) string { return "?" }, "?=?&?=?"},
 	} {
 		xtesting.Equal(t, EncodeUrlValues(tc.give, tc.giveEscapeFunc), tc.want)
-	}
-}
-
-func TestPadLeftRight(t *testing.T) {
-	for _, tc := range []struct {
-		give       string
-		giveChar   rune
-		giveLength int
-		wantLeft   string
-		wantRight  string
-	}{
-		{"", '0', -1, "", ""},
-		{"", '0', 0, "", ""},
-		{"", '0', 1, "0", "0"},
-		{"", '0', 2, "00", "00"},
-		{"1", '0', -1, "1", "1"},
-		{"1", '0', 0, "1", "1"},
-		{"1", '0', 1, "1", "1"},
-		{"1", '0', 2, "01", "10"},
-		{"1", '0', 3, "001", "100"},
-
-		{"test", '0', -1, "test", "test"},
-		{"test", '0', 3, "test", "test"},
-		{"test", '0', 4, "test", "test"},
-		{"test", '0', 5, "0test", "test0"},
-		{"test", '0', 6, "00test", "test00"},
-
-		{"测试テスтест", '零', 7, "测试テスтест", "测试テスтест"},
-		{"测试テスтест", '零', 8, "测试テスтест", "测试テスтест"},
-		{"测试テスтест", '零', 9, "零测试テスтест", "测试テスтест零"},
-		{"测试テスтест", '零', 10, "零零测试テスтест", "测试テスтест零零"},
-	} {
-		xtesting.Equal(t, PadLeft(tc.give, tc.giveChar, tc.giveLength), tc.wantLeft)
-		xtesting.Equal(t, PadRight(tc.give, tc.giveChar, tc.giveLength), tc.wantRight)
-	}
-}
-
-func TestGetLeftRight(t *testing.T) {
-	for _, tc := range []struct {
-		give       string
-		giveLength int
-		wantLeft   string
-		wantRight  string
-	}{
-		{"", -1, "", ""},
-		{"", 0, "", ""},
-		{"", 3, "", ""},
-
-		{"123", -1, "", ""},
-		{"123", 0, "", ""},
-		{"123", 1, "1", "3"},
-		{"123", 2, "12", "23"},
-		{"123", 3, "123", "123"},
-		{"123", 4, "123", "123"},
-		{"1234", -1, "", ""},
-		{"1234", 3, "123", "234"},
-		{"1234", 4, "1234", "1234"},
-		{"1234", 5, "1234", "1234"},
-
-		{"测试テス", 3, "测试テ", "试テス"},
-		{"测试テス", 6, "测试テス", "测试テス"},
-		{"测试テスтест", 5, "测试テスт", "スтест"},
-		{"测试テスтест", 10, "测试テスтест", "测试テスтест"},
-	} {
-		xtesting.Equal(t, GetLeft(tc.give, tc.giveLength), tc.wantLeft)
-		xtesting.Equal(t, GetRight(tc.give, tc.giveLength), tc.wantRight)
 	}
 }
 
@@ -599,15 +660,60 @@ func TestSliceToStringMap(t *testing.T) {
 		{[]interface{}{}, Map{}},
 		{[]interface{}{1}, Map{}},
 		{[]interface{}{nil}, Map{}},
+
 		{[]interface{}{"1", 2}, Map{"1": 2}},
+		{[]interface{}{1, uint32(2)}, Map{"1": uint32(2)}},
 		{[]interface{}{uint(1), 2.3}, Map{"1": 2.3}},
 		{[]interface{}{true, 2i}, Map{"true": 2i}},
+		{[]interface{}{1 + 2i, false}, Map{"(1+2i)": false}},
+		{[]interface{}{[]byte("key"), []byte("value")}, Map{"key": []byte("value")}},
+
 		{[]interface{}{nil, 2}, Map{}},
 		{[]interface{}{1, 2, 3}, Map{"1": 2}},
 		{[]interface{}{nil, 2, 3}, Map{"2": 3}},
-		{[]interface{}{1, "2", "3", 4.4}, Map{"1": "2", "3": 4.4}},
+		{[]interface{}{1, 2, nil, 3, 4}, Map{"1": 2, "3": 4}},
+		{[]interface{}{1, "2", []byte("3"), 4.4}, Map{"1": "2", "3": 4.4}},
 		{[]interface{}{true, 2, 3.3, true}, Map{"true": 2, "3.3": true}},
 	} {
-		xtesting.Equal(t, SliceToStringMap(tc.give...), tc.want)
+		xtesting.Equal(t, SliceToStringMap(tc.give), tc.want)
+	}
+}
+
+func TestSemanticVersion(t *testing.T) {
+	for _, tc := range []struct {
+		give      string
+		wantP1    uint64
+		wantP2    uint64
+		wantP3    uint64
+		wantError bool
+	}{
+		{"", 0, 0, 0, true},
+		{".1", 0, 0, 0, true},
+		{"v", 0, 0, 0, true},
+		{"vw", 0, 0, 0, true},
+		{"w1", 0, 0, 0, true},
+		{"0v", 0, 0, 0, true},
+		{"0.v", 0, 0, 0, true},
+		{"0.0.v", 0, 0, 0, true},
+		{"0v", 0, 0, 0, true},
+		{"v0.v", 0, 0, 0, true},
+		{"v0.v.0", 0, 0, 0, true},
+
+		{"1", 1, 0, 0, false},
+		{"1.2", 1, 2, 0, false},
+		{"1.2.3", 1, 2, 3, false},
+		{"v1", 1, 0, 0, false},
+		{"v1.2", 1, 2, 0, false},
+		{"v1.2.3", 1, 3, 3, false},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			p1, p2, p3, err := SemanticVersion(tc.give)
+			xtesting.Equal(t, err != nil, tc.wantError)
+			if err != nil {
+				xtesting.Equal(t, p1, tc.wantP1)
+				xtesting.Equal(t, p2, tc.wantP2)
+				xtesting.Equal(t, p3, tc.wantP3)
+			}
+		})
 	}
 }
