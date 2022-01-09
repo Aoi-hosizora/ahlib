@@ -135,7 +135,7 @@ var LogRightArrowFunc func(arg1, arg2, arg3 string)
 
 // logLeftArrow represents the inner logger function with left arrow.
 //
-// Logs like:
+// The default format logs like:
 // 	[XMODULE] Pro: ~                     <-- error (*errors.errorString)
 // 	         |----|---------------------|   |---------------------------|
 // 	           4        30 (colored)                      ...
@@ -149,7 +149,7 @@ func logLeftArrow(arg1, arg2, arg3 string) {
 
 // logLeftArrow represents the inner logger function with right arrow.
 //
-// Logs like:
+// The default format logs like:
 // 	[XMODULE] Inj: ~                     --> (*xmodule.testStruct).Err error
 // 	         |----|---------------------|   |-------------------------------|
 // 	           4        30 (colored)                      ...

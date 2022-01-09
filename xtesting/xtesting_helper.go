@@ -18,32 +18,32 @@ func Assert(condition bool, format string, v ...interface{}) bool {
 }
 
 // IsObjectEqual determines if two objects are considered equal.
-func IsObjectEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
-		return expected == actual
+func IsObjectEqual(give, want interface{}) bool {
+	if give == nil || want == nil {
+		return give == want
 	}
 
-	return reflect.DeepEqual(expected, actual)
+	return reflect.DeepEqual(give, want)
 }
 
 // IsObjectValueEqual gets whether two objects are equal, or if their values are equal.
-func IsObjectValueEqual(expected, actual interface{}) bool {
-	if IsObjectEqual(expected, actual) {
+func IsObjectValueEqual(give, want interface{}) bool {
+	if IsObjectEqual(give, want) {
 		return true
 	}
 
-	actualType := reflect.TypeOf(actual)
-	if actualType == nil {
+	wantType := reflect.TypeOf(want)
+	if wantType == nil {
 		return false
 	}
 
-	expectedValue := reflect.ValueOf(expected)
-	if !expectedValue.IsValid() || !expectedValue.Type().ConvertibleTo(actualType) {
+	giveValue := reflect.ValueOf(give)
+	if !giveValue.IsValid() || !giveValue.Type().ConvertibleTo(wantType) {
 		return false
 	}
 
 	// Attempt comparison after type conversion
-	return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
+	return reflect.DeepEqual(giveValue.Convert(wantType).Interface(), want)
 }
 
 // IsPointerSame compares two generic interface objects and returns whether they point to the same object.
@@ -94,6 +94,7 @@ func IsObjectZero(object interface{}) bool {
 }
 
 // IsObjectEmpty gets whether the specified object is considered empty or not.
+//
 // Example:
 // 	1. Array, Chan, Map, Slice -> Len = 0
 // 	2. Ptr -> ptr == nil || ptr == nil
@@ -125,14 +126,14 @@ func IsObjectEmpty(object interface{}) bool {
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the Equal and NotEqual functions.
-func validateEqualArgs(expected, actual interface{}) error {
-	if expected == nil || actual == nil {
+func validateEqualArgs(give, want interface{}) error {
+	if give == nil || want == nil {
 		return nil
 	}
 
-	expectedKind := reflect.TypeOf(expected).Kind()
-	actualKind := reflect.TypeOf(actual).Kind()
-	if expectedKind == reflect.Func || actualKind == reflect.Func {
+	giveKind := reflect.TypeOf(give).Kind()
+	wantKind := reflect.TypeOf(want).Kind()
+	if giveKind == reflect.Func || wantKind == reflect.Func {
 		return errors.New("xtesting: cannot take func type as argument")
 	}
 
@@ -283,19 +284,19 @@ func toFloat(x interface{}) (float64, bool) {
 }
 
 // calcDeltaInEps calculates the different between given values
-func calcDeltaInEps(expected, actual interface{}, eps float64) (bool, float64, error) {
-	expectedFloat, ok1 := toFloat(expected)
-	actualFloat, ok2 := toFloat(actual)
+func calcDeltaInEps(give, want interface{}, eps float64) (bool, float64, error) {
+	giveFloat, ok1 := toFloat(give)
+	wantFloat, ok2 := toFloat(want)
 
 	if !ok1 || !ok2 {
 		return false, 0, errors.New("xtesting: parameters must be numerical")
 	}
 
-	if math.IsNaN(expectedFloat) || math.IsNaN(actualFloat) {
+	if math.IsNaN(giveFloat) || math.IsNaN(wantFloat) {
 		return false, 0, errors.New("xtesting: number must not be NaN")
 	}
 
-	actualEps := math.Abs(expectedFloat - actualFloat)
+	actualEps := math.Abs(giveFloat - wantFloat)
 	return actualEps <= eps, actualEps, nil
 }
 

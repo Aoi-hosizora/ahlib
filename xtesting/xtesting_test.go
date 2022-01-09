@@ -758,13 +758,41 @@ func TestMsgAndArgs(t *testing.T) {
 	if s != "abc" {
 		fail(t)
 	}
+}
 
+type mockFailNowTestingT struct {
+	testing.TB
+	finished bool
+}
+
+func (m *mockFailNowTestingT) FailNow() { m.finished = true }
+
+func TestOptions(t *testing.T) {
 	mockT := &testing.T{}
 	SetExtraSkip(1)
 	if failTest(mockT, 0, "a", "") != false {
 		fail(t)
 	}
 	if failTest(mockT, 0, "a", "%%a%s", "b") != false {
+		fail(t)
+	}
+	SetExtraSkip(0)
+
+	mockT2 := &mockFailNowTestingT{}
+	UseFailNow(true)
+	if failTest(mockT2, 1, "a", "") != false {
+		fail(t)
+	}
+	if !mockT2.finished {
+		fail(t)
+	}
+
+	mockT2 = &mockFailNowTestingT{}
+	UseFailNow(false)
+	if failTest(mockT, 1, "a", "") != false {
+		fail(t)
+	}
+	if mockT2.finished {
 		fail(t)
 	}
 }

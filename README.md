@@ -33,6 +33,7 @@
 + xtesting
 + xtime
 + xtime/zones
++ xtuple (separated package with go 1.18 required)
 
 ### Dependencies
 

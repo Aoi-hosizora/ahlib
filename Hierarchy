@@ -17,3 +17,6 @@ xslice          (xtesting)
 xstatus         (xtesting)
 xstring         (xtesting)
 xtime           (xtesting)
+
+$x -- seperated libraries
+xtuple

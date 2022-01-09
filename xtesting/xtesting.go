@@ -5,24 +5,31 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"testing"
 )
 
 // failTest outputs the error message and fails the test. Default skip is 1.
 func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) bool {
-	flag := ""
-
 	if skip >= 0 {
 		_, file, line, _ := runtime.Caller(skip + 1 + int(atomic.LoadInt32(&_skip)))
-		msg := fmt.Sprintf("%s%s:%d %s", flag, path.Base(file), line, msg)
+		m := fmt.Sprintf("%s:%d %s", path.Base(file), line, msg)
 		additionMsg := messageFromMsgAndArgs(msgAndArgs...)
 		if len(additionMsg) > 0 {
-			msg += additionMsg
+			m += additionMsg
 		}
-		fmt.Println(msg)
+		fmt.Println(m)
 	}
-	t.Fail()
+
+	_useFailNowMu.RLock()
+	useFailNow := _useFailNow
+	_useFailNowMu.RUnlock()
+	if !useFailNow {
+		t.Fail()
+	} else {
+		t.FailNow()
+	}
 
 	return false
 }
@@ -30,6 +37,10 @@ func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) boo
 var (
 	// _skip is the extra skip, defaults to zero.
 	_skip int32 = 0
+
+	// _useFailNow is a flag for using `t.Failed` rather `t.Fail`.
+	_useFailNow   = false
+	_useFailNowMu sync.RWMutex
 )
 
 // SetExtraSkip sets extra skip for test functions, and it will be used when printing the test failed message, defaults to zero.
@@ -39,63 +50,70 @@ func SetExtraSkip(skip int32) {
 	}
 }
 
+// UseFailNow makes test functions to fail now when test failed rather.
+func UseFailNow(failNow bool) {
+	_useFailNowMu.Lock()
+	_useFailNow = failNow
+	_useFailNowMu.Unlock()
+}
+
 // Equal asserts that two objects are equal.
-func Equal(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if err := validateEqualArgs(expected, actual); err != nil {
-		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%v)", expected, actual, err), msgAndArgs...)
+func Equal(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateEqualArgs(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if !IsObjectEqual(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", expected, actual), msgAndArgs...)
+	if !IsObjectEqual(give, want) {
+		return failTest(t, 1, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotEqual asserts that the specified values are Not equal.
-func NotEqual(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if err := validateEqualArgs(expected, actual); err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%v)", expected, actual, err), msgAndArgs...)
+func NotEqual(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateEqualArgs(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if IsObjectEqual(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("NotEqual: expected not to be `%#v`", actual), msgAndArgs...)
+	if IsObjectEqual(give, want) {
+		return failTest(t, 1, fmt.Sprintf("NotEqual: expected not to be `%#v`", want), msgAndArgs...)
 	}
 
 	return true
 }
 
 // EqualValue asserts that two objects are equal or convertible to the same types and equal.
-func EqualValue(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectValueEqual(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("EqualValue: expected `%#v`, actual `%#v`", expected, actual), msgAndArgs...)
+func EqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if !IsObjectValueEqual(give, want) {
+		return failTest(t, 1, fmt.Sprintf("EqualValue: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotEqualValue asserts that two objects are not equal even when converted to the same type.
-func NotEqualValue(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectValueEqual(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("NotEqualValue: expected not to be `%#v`", actual), msgAndArgs...)
+func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if IsObjectValueEqual(give, want) {
+		return failTest(t, 1, fmt.Sprintf("NotEqualValue: expected not to be `%#v`", want), msgAndArgs...)
 	}
 
 	return true
 }
 
 // SamePointer asserts that two pointers reference the same object.
-func SamePointer(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if !IsPointerSame(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("SamePointer: expected `%#v` (%p), actual `%#v` (%p)", expected, expected, actual, actual), msgAndArgs...)
+func SamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if !IsPointerSame(give, want) {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: expected `%#v` (%p), actual `%#v` (%p)", want, want, give, give), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotSamePointer asserts that two pointers do not reference the same object.
-func NotSamePointer(t testing.TB, expected, actual interface{}, msgAndArgs ...interface{}) bool {
-	if IsPointerSame(expected, actual) {
-		return failTest(t, 1, fmt.Sprintf("SamePointer: expected not be `%#v` (%p)", actual, actual), msgAndArgs...)
+func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if IsPointerSame(give, want) {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: expected not be `%#v` (%p)", want, want), msgAndArgs...)
 	}
 
 	return true
@@ -223,28 +241,28 @@ func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interfac
 }
 
 // InDelta asserts that the two numerals are within delta of each other.
-func InDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
+func InDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(give, want, eps)
 	if err != nil {
 		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
 	}
 
 	if !in {
-		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotInDelta asserts that the two numerals are not within delta of each other.
-func NotInDelta(t testing.TB, expected, actual interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(expected, actual, eps)
+func NotInDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(give, want, eps)
 	if err != nil {
 		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
 	}
 
 	if in {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", expected, actual, eps, actualEps), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
 	}
 
 	return true
@@ -265,12 +283,12 @@ func Implements(t testing.TB, interfaceObject interface{}, object interface{}, m
 }
 
 // IsType asserts that the specified objects are of the same type.
-func IsType(t testing.TB, expected interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+func IsType(t testing.TB, want interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 	objectType := reflect.TypeOf(object)
-	expectedType := reflect.TypeOf(expected)
+	wantType := reflect.TypeOf(want)
 
-	if objectType != expectedType {
-		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", expectedType.String(), objectType.String()), msgAndArgs...)
+	if objectType != wantType {
+		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", wantType.String(), objectType.String()), msgAndArgs...)
 	}
 
 	return true
@@ -297,14 +315,14 @@ func NotPanic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
 }
 
 // PanicWithValue asserts that the code inside the specified function panics, and the recovered value equals the expected value.
-func PanicWithValue(t testing.TB, expected interface{}, f func(), msgAndArgs ...interface{}) bool {
+func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...interface{}) bool {
 	isPanic, value := didPanic(f)
 	if !isPanic {
-		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual does not panic", f, expected), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual does not panic", f, want), msgAndArgs...)
 	}
 
-	if !IsObjectEqual(value, expected) {
-		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual with `%#v`", f, expected, value), msgAndArgs...)
+	if !IsObjectEqual(value, want) {
+		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual with `%#v`", f, want, value), msgAndArgs...)
 	}
 
 	return true

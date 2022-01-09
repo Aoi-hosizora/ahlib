@@ -34,33 +34,35 @@ func Uncapitalize(s string) string {
 // CapitalizeAll capitalizes all the first letter in words of the whole string, words are split by blank character.
 func CapitalizeAll(s string) string {
 	wordStart := true
-	sp := strings.Builder{}
+	sb := strings.Builder{}
+	sb.Grow(len(s))
 	for _, v := range s {
 		if wordStart {
 			wordStart = false
-			sp.WriteRune(unicode.ToUpper(v))
+			sb.WriteRune(unicode.ToUpper(v))
 		} else {
-			sp.WriteRune(v)
+			sb.WriteRune(v)
 		}
 		wordStart = IsBlank(v)
 	}
-	return sp.String()
+	return sb.String()
 }
 
 // UncapitalizeAll uncapitalizes all the first letter in words of the whole string, words are split by blank character.
 func UncapitalizeAll(s string) string {
 	wordStart := true
-	sp := strings.Builder{}
+	sb := strings.Builder{}
+	sb.Grow(len(s))
 	for _, v := range s {
 		if wordStart {
 			wordStart = false
-			sp.WriteRune(unicode.ToLower(v))
+			sb.WriteRune(unicode.ToLower(v))
 		} else {
-			sp.WriteRune(v)
+			sb.WriteRune(v)
 		}
 		wordStart = IsBlank(v)
 	}
-	return sp.String()
+	return sb.String()
 }
 
 // ========================
@@ -108,6 +110,7 @@ func IsBlank(r rune) bool {
 // for more details.
 func RemoveBlanks(s string) string {
 	sb := strings.Builder{}
+	sb.Grow(len(s) / 2)
 	space := false
 	for _, r := range s {
 		switch {
@@ -162,6 +165,7 @@ func SplitToWords(s string, seps ...string) []string {
 	// split
 	if splitCase {
 		sb := strings.Builder{}
+		sb.Grow(len(s))
 		lastLower := false
 		for i, r := range s {
 			lower := !unicode.IsUpper(r)
@@ -370,6 +374,7 @@ func PadLeft(s string, pad rune, totalLength int) string {
 		return s
 	}
 	sb := strings.Builder{}
+	sb.Grow(totalLength)
 	for i := 0; i < totalLength-strLength; i++ {
 		sb.WriteRune(pad)
 	}
@@ -388,6 +393,7 @@ func PadRight(s string, pad rune, totalLength int) string {
 		return s
 	}
 	sb := strings.Builder{}
+	sb.Grow(totalLength)
 	sb.WriteString(s)
 	for i := 0; i < totalLength-currLength; i++ {
 		sb.WriteRune(pad)
@@ -397,7 +403,11 @@ func PadRight(s string, pad rune, totalLength int) string {
 
 // GetLeft gets the left part of given string with length, if given `length` exceeds the length of given string, this function does nothing.
 func GetLeft(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
 	sb := strings.Builder{}
+	sb.Grow(length)
 	idx := 0
 	for _, v := range s {
 		if idx < length {
@@ -412,11 +422,15 @@ func GetLeft(s string, length int) string {
 
 // GetRight gets the right part of given string with length, if given `length` exceeds the length of given string, this function does nothing.
 func GetRight(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
 	strLength := 0
 	for range s {
 		strLength++
 	}
 	sb := strings.Builder{}
+	sb.Grow(length)
 	idx := 0
 	for _, v := range s {
 		if idx >= strLength-length {

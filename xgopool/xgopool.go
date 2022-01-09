@@ -196,7 +196,7 @@ func (w *worker) start(g *GoPool) {
 	g.workerMutex.Unlock()
 }
 
-// _defaultPool is a global GoPool.
+// _defaultPool is a global GoPool with capacity 10000.
 var _defaultPool = New(10000)
 
 // SetWorkersCap sets workers capacity dynamically.

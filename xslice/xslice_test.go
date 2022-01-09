@@ -491,7 +491,7 @@ func TestStableSort(t *testing.T) {
 
 type testStruct struct {
 	value int
-	now   time.Time
+	// now   time.Time
 }
 
 func (t testStruct) String() string {
@@ -499,8 +499,8 @@ func (t testStruct) String() string {
 }
 
 func newTestStruct(value int) testStruct {
-	time.Sleep(2 * time.Nanosecond)
-	return testStruct{value: value, now: time.Now()}
+	// time.Sleep(1 * time.Nanosecond)
+	return testStruct{value: value, /* now: time.Now() */}
 }
 
 func newTestStructSlice1(s []interface{}) []interface{} {

@@ -52,10 +52,12 @@
 + `func GetRight(s string, length int) string`
 + `func GetOrPadLeft(s string, length int, pad rune) string`
 + `func GetOrPadRight(s string, length int, pad rune) string`
++ `func Bool(b bool, t, f string) string`
 + `func MaskToken(s string, mask rune, indices ...int) string`
 + `func MaskTokenR(s string, mask rune, indices ...int) string`
 + `func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string) string`
 + `func SplitAndGet(s string, sep string, index int) string`
++ `func StringSliceToMap(args []string) map[string]string`
 + `func SliceToStringMap(args []interface{}) map[string]interface{}`
 + `func SemanticVersion(semver string) (uint64, uint64, uint64, error)`
 

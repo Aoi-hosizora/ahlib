@@ -523,6 +523,24 @@ func TestPadGetLeftRight(t *testing.T) {
 	}
 }
 
+func TestBool(t *testing.T) {
+	for _, tc := range []struct {
+		giveBool bool
+		giveT    string
+		giveF    string
+		want     string
+	}{
+		{true, "T", "F", "T"},
+		{true, "true", "false", "true"},
+		{true, "1", "0", "1"},
+		{false, "T", "F", "F"},
+		{false, "true", "false", "false"},
+		{false, "1", "0", "0"},
+	} {
+		xtesting.Equal(t, Bool(tc.giveBool, tc.giveT, tc.giveF), tc.want)
+	}
+}
+
 func TestMaskToken(t *testing.T) {
 	for _, tc := range []struct {
 		giveString  string
@@ -650,6 +668,27 @@ func TestSplitAndGet(t *testing.T) {
 	}
 }
 
+func TestStringSliceToStringMap(t *testing.T) {
+	type Map = map[string]string
+	for _, tc := range []struct {
+		give []string
+		want Map
+	}{
+		{nil, Map{}},
+		{[]string{}, Map{}},
+		{[]string{""}, Map{}},
+		{[]string{"xxx"}, Map{}},
+
+		{[]string{"a", "b"}, Map{"a": "b"}},
+		{[]string{"a", "b", "c"}, Map{"a": "b"}},
+		{[]string{"a", "", "b", "c", "d"}, Map{"a": "", "b": "c"}},
+		{[]string{"a", "", "a", "b", "c"}, Map{"a": "b"}},
+		{[]string{"", "", "", " ", " ", "", "x"}, Map{"": " ", " ": ""}},
+	} {
+		xtesting.Equal(t, StringSliceToMap(tc.give), tc.want)
+	}
+}
+
 func TestSliceToStringMap(t *testing.T) {
 	type Map = map[string]interface{}
 	for _, tc := range []struct {
@@ -672,6 +711,7 @@ func TestSliceToStringMap(t *testing.T) {
 		{[]interface{}{1, 2, 3}, Map{"1": 2}},
 		{[]interface{}{nil, 2, 3}, Map{"2": 3}},
 		{[]interface{}{1, 2, nil, 3, 4}, Map{"1": 2, "3": 4}},
+		{[]interface{}{1, 2, 1, 3, 1, 4, 2, 3}, Map{"1": 4, "2": 3}},
 		{[]interface{}{1, "2", []byte("3"), 4.4}, Map{"1": "2", "3": 4.4}},
 		{[]interface{}{true, 2, 3.3, true}, Map{"true": 2, "3.3": true}},
 	} {

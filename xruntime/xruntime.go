@@ -14,7 +14,7 @@ import (
 // RawStack returns the raw debug trace stack of the calling goroutine from runtime.Stack, if all is true, it will also return other
 // goroutines' trace stack. Also see debug.Stack and runtime.Stack for more information.
 //
-// Format like:
+// The returned value is just like:
 // 	goroutine 19 [running]:
 // 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
 // 		.../xruntime/xruntime.go:30 +0x9f
@@ -61,7 +61,7 @@ type TraceFrame struct {
 
 // String returns the formatted TraceFrame.
 //
-// Format like:
+// The returned value is just like:
 // 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
@@ -73,7 +73,7 @@ type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.
 //
-// Format like:
+// The returned value is just like:
 // 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 // 	.../xruntime/xruntime_test.go:101 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack

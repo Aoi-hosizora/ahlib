@@ -23,6 +23,7 @@
 #### Test Functions
 
 + `func SetExtraSkip(skip int32)`
++ `func UseFailNow(failNow bool)`
 + `func Equal(t testing.TB, expected, actual interface{}) bool`
 + `func NotEqual(t testing.TB, expected, actual interface{}) bool`
 + `func EqualValue(t testing.TB, expected, actual interface{}) bool`

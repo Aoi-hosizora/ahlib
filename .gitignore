@@ -4,8 +4,12 @@
 .history/
 .idea/
 
-### Project ###
-logs/
+### Build ###
 build/
-_color.go
+coverage.txt
+profile.out
+
+### Project ###
 _generate/
+logs/
+_color.go
