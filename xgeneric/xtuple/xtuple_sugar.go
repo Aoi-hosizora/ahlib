@@ -3,6 +3,10 @@
 
 package xtuple
 
+// ==============
+// mass functions
+// ==============
+
 // IfThen returns value if condition is true, otherwise returns the default value of type T.
 func IfThen[T any](condition bool, value T) (v T) {
 	if condition {
@@ -18,6 +22,23 @@ func IfThenElse[T any](condition bool, value1, value2 T) T {
 	}
 	return value2
 }
+
+// ValPtr returns a pointer pointed to the given value.
+func ValPtr[T any](t T) *T {
+	return &t
+}
+
+// PtrVal returns a value from the given pointer, returns the fallback value when pointer is nil.
+func PtrVal[T any](t *T, o T) T {
+	if t == nil {
+		return o
+	}
+	return *t
+}
+
+// ============
+// pair helpers
+// ============
 
 // TupleItem1 returns given item1 in given tuple.
 func TupleItem1[T1, T2 any](item1 T1, _ T2) T1 {

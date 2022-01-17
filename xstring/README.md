@@ -26,6 +26,7 @@
 + `func UncapitalizeAll(s string) string`
 + `func IsArabicNumber(r rune) bool`
 + `func IsBlank(r rune) bool`
++ `func TrimBlanks(s string) string`
 + `func RemoveBlanks(s string) string`
 + `func SplitToWords(s string, seps ...string) []string`
 + `func PascalCase(s string, extraSeps ...string) string`
@@ -52,6 +53,10 @@
 + `func GetRight(s string, length int) string`
 + `func GetOrPadLeft(s string, length int, pad rune) string`
 + `func GetOrPadRight(s string, length int, pad rune) string`
++ `func ExtraSpaceOnLeftIfNotEmpty(s string) string`
++ `func ExtraSpaceOnRightIfNotEmpty(s string) string`
++ `func ExtraSpaceOnLeftIfNotBlank(s string) string`
++ `func ExtraSpaceOnRightIfNotBlank(s string) string`
 + `func Bool(b bool, t, f string) string`
 + `func MaskToken(s string, mask rune, indices ...int) string`
 + `func MaskTokenR(s string, mask rune, indices ...int) string`

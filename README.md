@@ -33,7 +33,9 @@
 + xtesting
 + xtime
 + xtime/zones
-+ xtuple (separated package with go 1.18 required)
++ xgeneric (separated package with `go >= 1.18` required)
++ xgeneric/xslice
++ xgeneric/xtuple
 
 ### Dependencies
 

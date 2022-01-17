@@ -130,6 +130,46 @@ func TestSugarIfThen(t *testing.T) {
 	xtestingEqual(t, IfThenElse(false, 1+1i, 2+2i), 2+2i)
 }
 
+func TestSugarPtr(t *testing.T) {
+	i := 1
+	u := uint(1)
+	a := [2]float64{1, 2}
+	m := map[string]interface{}{"1": uint(1)}
+	s := []string{"1", "1"}
+
+	xtestingEqual(t, *ValPtr(i), i)
+	xtestingEqual(t, *ValPtr(u), u)
+	xtestingEqual(t, *ValPtr(a), a)
+	xtestingEqual(t, *ValPtr(m), m)
+	xtestingEqual(t, *ValPtr(s), s)
+	xtestingEqual(t, *ValPtr(&i), &i)
+	xtestingEqual(t, *ValPtr(&u), &u)
+	xtestingEqual(t, *ValPtr(&a), &a)
+	xtestingEqual(t, *ValPtr(&m), &m)
+	xtestingEqual(t, *ValPtr(&s), &s)
+	xtestingEqual(t, **ValPtr(ValPtr(&i)), &i)
+	xtestingEqual(t, **ValPtr(ValPtr(&u)), &u)
+	xtestingEqual(t, **ValPtr(ValPtr(&a)), &a)
+	xtestingEqual(t, **ValPtr(ValPtr(&m)), &m)
+	xtestingEqual(t, **ValPtr(ValPtr(&s)), &s)
+
+	xtestingEqual(t, PtrVal[int](nil, i), i)
+	xtestingEqual(t, PtrVal[uint](nil, u), u)
+	xtestingEqual(t, PtrVal[[2]float64](nil, a), a)
+	xtestingEqual(t, PtrVal[map[string]interface{}](nil, m), m)
+	xtestingEqual(t, PtrVal[[]string](nil, s), s)
+	xtestingEqual(t, PtrVal(&i, i), i)
+	xtestingEqual(t, PtrVal(&u, u), u)
+	xtestingEqual(t, PtrVal(&a, a), a)
+	xtestingEqual(t, PtrVal(&m, m), m)
+	xtestingEqual(t, PtrVal(&s, s), s)
+	xtestingEqual(t, PtrVal(ValPtr(&i), nil), &i)
+	xtestingEqual(t, PtrVal(ValPtr(&u), nil), &u)
+	xtestingEqual(t, PtrVal(ValPtr(&a), nil), &a)
+	xtestingEqual(t, PtrVal(ValPtr(&m), nil), &m)
+	xtestingEqual(t, PtrVal(ValPtr(&s), nil), &s)
+}
+
 func TestSugarPairs(t *testing.T) {
 	_a := func() (int, uint) { return 1, 2 }
 	_b := func() (int, uint, string) { return 1, 2, "3" }

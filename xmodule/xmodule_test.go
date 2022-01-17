@@ -365,14 +365,14 @@ func TestLogger(t *testing.T) {
 		{"LogAll", LogAll, false},
 		{"LogAll 2", LogAll, true},
 	} {
-		fmt.Println(tc.str)
+		fmt.Println("============= " + tc.str)
 		SetLogger(DefaultLogger(tc.giveLevel))
 		if tc.change {
 			LogLeftArrowFunc = func(arg1, arg2, arg3 string) {
-				fmt.Printf("[XMODULE] %-4s %-15s <-- %s\n", arg1, arg2, arg3)
+				fmt.Printf("[Xmodule] %-5s %-15s <-- %s\n", arg1, arg2, arg3)
 			}
 			LogRightArrowFunc = func(arg1, arg2, arg3 string) {
-				fmt.Printf("[XMODULE] %-4s %-15s --> %s\n", arg1, arg2, arg3)
+				fmt.Printf("[Xmodule] %-5s %-15s --> %s\n", arg1, arg2, arg3)
 			}
 		}
 

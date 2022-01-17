@@ -76,7 +76,7 @@ func IsArabicNumber(r rune) bool {
 }
 
 // IsBlank checks if given rune is a blank (including space, CR, LF, tabulation, ideographic space, etc.). In the Latin-1 space, a blank is [\t\n\v\f\r\x20\x85\xA0].
-// Note that this is the same as unicode.IsSpace, see IsBlank's source code for more details.
+// Note that this equals to unicode.IsSpace, see IsBlank's source code for more details.
 func IsBlank(r rune) bool {
 	// https://compart.com/en/unicode/U+2000
 	// 0x09 => '\t' / Tabulation
@@ -104,6 +104,11 @@ func IsBlank(r rune) bool {
 	// 0x205F => Medium Mathematical Space / MMSP
 	// 0x3000 => '　' / Ideographic Space
 	return unicode.IsSpace(r)
+}
+
+// TrimBlanks trims blanks left and right of the string, note that this equals to strings.TrimSpace.
+func TrimBlanks(s string) string {
+	return strings.TrimSpace(s)
 }
 
 // RemoveBlanks replaces all blanks (including space, CR, LF, tabulation, ideographic space, etc.) to a single space " ", please see xstring.IsBlank and unicode.IsSpace
@@ -471,4 +476,38 @@ func GetOrPadRight(s string, length int, pad rune) string {
 		return GetRight(s, length)
 	}
 	return PadRight(s, pad, length)
+}
+
+// ExtraSpaceOnLeftIfNotEmpty returns a string from give string with an extra space on left if given string is not empty.
+func ExtraSpaceOnLeftIfNotEmpty(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	return " " + s
+}
+
+// ExtraSpaceOnRightIfNotEmpty returns a string from give string with an extra space on right if given string is not empty.
+func ExtraSpaceOnRightIfNotEmpty(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	return s + " "
+}
+
+// ExtraSpaceOnLeftIfNotBlank returns a string from give string with an extra space on left if given string is not blank.
+func ExtraSpaceOnLeftIfNotBlank(s string) string {
+	s2 := TrimBlanks(s)
+	if len(s2) == 0 {
+		return s
+	}
+	return " " + s2
+}
+
+// ExtraSpaceOnRightIfNotBlank returns a string from give string with an extra space on right if given string is not blank.
+func ExtraSpaceOnRightIfNotBlank(s string) string {
+	s2 := TrimBlanks(s)
+	if len(s2) == 0 {
+		return s
+	}
+	return s2 + " "
 }

@@ -157,6 +157,24 @@ func TestIsBlank(t *testing.T) {
 	}
 }
 
+func TestTrimBlanks(t *testing.T) {
+	for _, tc := range []struct {
+		give string
+		want string
+	}{
+		{"", ""},
+		{" ", ""},
+		{"\t", ""},
+		{"\n|\r", "|"},
+		{"\t\t\r\r\n\n", ""},
+		{" a　b\tc\r\nd\v\f", "a　b\tc\r\nd"},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, TrimBlanks(tc.give), tc.want)
+		})
+	}
+}
+
 func TestRemoveBlanks(t *testing.T) {
 	for _, tc := range []struct {
 		give string
@@ -172,7 +190,9 @@ func TestRemoveBlanks(t *testing.T) {
 		{"ab cd　 ef\n\tgh\n", "ab cd ef gh"},
 		{"\t\t\r\r\n\n", ""},
 	} {
-		xtesting.Equal(t, RemoveBlanks(tc.give), tc.want)
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, RemoveBlanks(tc.give), tc.want)
+		})
 	}
 }
 
@@ -538,6 +558,31 @@ func TestBool(t *testing.T) {
 		{false, "1", "0", "0"},
 	} {
 		xtesting.Equal(t, Bool(tc.giveBool, tc.giveT, tc.giveF), tc.want)
+	}
+}
+
+func TestExtraSpace(t *testing.T) {
+	for _, tc := range []struct {
+		give       string
+		wantLeftS  string
+		wantRightS string
+		wantLeftB  string
+		wantRightB string
+	}{
+		{"", "", "", "", ""},
+		{" ", "  ", "  ", " ", " "},
+		{"\t", " \t", "\t ", "\t", "\t"},
+		{"\r\n", " \r\n", "\r\n ", "\r\n", "\r\n"},
+		{"a", " a", "a ", " a", "a "},
+		{"  a|\n\n\n ", "   a|\n\n\n ", "  a|\n\n\n  ", " a|", "a| "},
+		{"\r\ta|　", " \r\ta|　", "\r\ta|　 ", " a|", "a| "},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, ExtraSpaceOnLeftIfNotEmpty(tc.give), tc.wantLeftS)
+			xtesting.Equal(t, ExtraSpaceOnRightIfNotEmpty(tc.give), tc.wantRightS)
+			xtesting.Equal(t, ExtraSpaceOnLeftIfNotBlank(tc.give), tc.wantLeftB)
+			xtesting.Equal(t, ExtraSpaceOnRightIfNotBlank(tc.give), tc.wantRightB)
+		})
 	}
 }
 

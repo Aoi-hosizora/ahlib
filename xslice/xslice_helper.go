@@ -11,17 +11,18 @@ import (
 
 const (
 	panicIndexOutOfRange = "xslice: index out of range"
-	panicInvalidSlice    = "xslice: invalid slice type, set '%s' to '%s'" // used in replace
-	panicInvalidItem     = "xslice: invalid item type, set '%s' to '%s'"  // used in set & append
+	panicInvalidSlice    = "xslice: invalid slice type, set '%s' to '%s'" // used in replace for []interface{} and []T
+	panicInvalidItem     = "xslice: invalid item type, set '%s' to '%s'"  // used in set & append & insert for []T
 )
 
-// innerSlice represents a inner slice type.
+// innerSlice represents an inner slice interface, implemented by innerOfInterfaceSlice and innerInterfaceWrappedSlice.
 type innerSlice interface {
 	actual() interface{}
 	length() int
 	get(index int) interface{}
 	set(index int, item interface{})
 	slice(index1, index2 int) []interface{}
+	insert(value interface{}, index int)
 	remove(index int)
 	replace(newSlice interface{})
 	append(item interface{})
@@ -65,6 +66,18 @@ func (i *innerOfInterfaceSlice) slice(index1 int, index2 int) []interface{} {
 		panic(panicIndexOutOfRange)
 	}
 	return i.origin[index1:index2]
+}
+
+func (i *innerOfInterfaceSlice) insert(value interface{}, index int) {
+	if i.length() == 0 {
+		i.origin = []interface{}{value}
+	} else if index == 0 {
+		i.origin = append([]interface{}{value}, i.origin...)
+	} else if index == i.length() {
+		i.origin = append(i.origin, value)
+	} else {
+		i.origin = append(i.origin[:index], append([]interface{}{value}, i.origin[index:]...)...)
+	}
 }
 
 func (i *innerOfInterfaceSlice) remove(index int) {
@@ -144,6 +157,29 @@ func (i *innerInterfaceWrappedSlice) slice(index1 int, index2 int) []interface{}
 		slice[idx] = sliceVal.Index(idx).Interface()
 	}
 	return slice
+}
+
+func (i *innerInterfaceWrappedSlice) insert(value interface{}, index int) {
+	val := reflect.ValueOf(value)
+	if typ := val.Type(); typ != i.typ.Elem() {
+		panic(fmt.Sprintf(panicInvalidItem, typ.String(), i.typ.String()))
+	}
+	if i.length() == 0 {
+		newSlice := reflect.MakeSlice(i.typ, 1, 1)
+		newSlice.Index(0).Set(val)
+		i.origin = newSlice.Interface()
+	} else if index <= 0 {
+		newSlice := reflect.MakeSlice(i.typ, 1, 1)
+		newSlice.Index(0).Set(val)
+		i.origin = reflect.AppendSlice(newSlice, i.val).Interface()
+	} else if index >= i.length() {
+		i.origin = reflect.Append(i.val, val).Interface()
+	} else {
+		newSlice := reflect.MakeSlice(i.typ, 1, 1)
+		newSlice.Index(0).Set(val)
+		i.origin = reflect.AppendSlice(i.val.Slice(0, index), reflect.AppendSlice(newSlice, i.val.Slice(index, i.val.Len()))).Interface()
+	}
+	i.val = reflect.ValueOf(i.origin)
 }
 
 func (i *innerInterfaceWrappedSlice) remove(index int) {
@@ -325,10 +361,6 @@ func makeInnerSlice(slice innerSlice, length, capacity int) innerSlice {
 // =========
 // sortSlice
 // =========
-
-const (
-	panicNilLesser = "xslice: nil less function"
-)
 
 // sortSlice is a sort helper struct for innerSlice, implements sort.Interface.
 type sortSlice struct {

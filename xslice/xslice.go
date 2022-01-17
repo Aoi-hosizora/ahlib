@@ -137,9 +137,6 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 
 // coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort, using sort.Slice and sort.SliceStable.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
-	if less == nil {
-		panic(panicNilLesser)
-	}
 	ss := &sortSlice{slice: slice, less: less}
 	if stable {
 		sort.Stable(ss)
@@ -248,6 +245,29 @@ func coreCount(slice innerSlice, value interface{}, equaller Equaller) int {
 	return cnt
 }
 
+// Insert inserts value to the position of index in []interface{} slice.
+func Insert(slice []interface{}, value interface{}, index int) []interface{} {
+	newSlice := cloneInterfaceSlice(slice)
+	return coreInsert(checkInterfaceSliceParam(newSlice), value, index).actual().([]interface{})
+}
+
+// InsertG inserts value to the position of index in []interface{} slice, is the generic function of Delete.
+func InsertG(slice interface{}, value interface{}, index int) interface{} {
+	newSlice := cloneSliceInterface(slice)
+	return coreInsert(checkSliceInterfaceParam(newSlice), value, index).actual()
+}
+
+// coreInsert is the implementation for Insert and InsertG.
+func coreInsert(slice innerSlice, value interface{}, index int) innerSlice {
+	if index < 0 {
+		index = 0
+	} else if index > slice.length() {
+		index = slice.length()
+	}
+	slice.insert(value, index)
+	return slice
+}
+
 // Delete deletes value from []interface{} slice in n times.
 func Delete(slice []interface{}, value interface{}, n int) []interface{} {
 	newSlice := cloneInterfaceSlice(slice)
@@ -342,15 +362,7 @@ func coreDiff(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice1, 0, 0)
 	for i1 := 0; i1 < slice1.length(); i1++ {
 		item1 := slice1.get(i1)
-		exist := false
-		for i2 := 0; i2 < slice2.length(); i2++ {
-			item2 := slice2.get(i2)
-			if equaller(item1, item2) {
-				exist = true
-				break
-			}
-		}
-		if !exist {
+		if !coreContains(slice2, item1, equaller) {
 			result.append(item1)
 		}
 	}
@@ -388,85 +400,73 @@ func coreUnion(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	}
 	for i2 := 0; i2 < slice2.length(); i2++ {
 		item2 := slice2.get(i2)
-		exist := false
-		for i1 := 0; i1 < slice1.length(); i1++ {
-			item1 := slice1.get(i1)
-			if equaller(item1, item2) {
-				exist = true
-				break
-			}
-		}
-		if !exist {
+		if !coreContains(slice1, item2, equaller) {
 			result.append(item2)
 		}
 	}
 	return result
 }
 
-// Intersection returns the intersection of two []interface{} slices.
-func Intersection(slice1, slice2 []interface{}) []interface{} {
-	return coreIntersection(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler).actual().([]interface{})
+// Intersect returns the intersection of two []interface{} slices.
+func Intersect(slice1, slice2 []interface{}) []interface{} {
+	return coreIntersect(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler).actual().([]interface{})
 }
 
-// IntersectionWith returns the intersection of two []interface{} slices with Equaller.
-func IntersectionWith(slice1, slice2 []interface{}, equaller Equaller) []interface{} {
-	return coreIntersection(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller).actual().([]interface{})
+// IntersectWith returns the intersection of two []interface{} slices with Equaller.
+func IntersectWith(slice1, slice2 []interface{}, equaller Equaller) []interface{} {
+	return coreIntersect(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller).actual().([]interface{})
 }
 
-// IntersectionG returns the intersection of two []T slices, is the generic function of Intersection.
-func IntersectionG(slice1, slice2 interface{}) interface{} {
+// IntersectG returns the intersection of two []T slices, is the generic function of Intersect.
+func IntersectG(slice1, slice2 interface{}) interface{} {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
-	return coreIntersection(s1, s2, defaultEqualler).actual()
+	return coreIntersect(s1, s2, defaultEqualler).actual()
 }
 
-// IntersectionWithG returns the intersection of two []T slices with Equaller, is the generic function of IntersectionWith.
-func IntersectionWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
+// IntersectWithG returns the intersection of two []T slices with Equaller, is the generic function of IntersectWith.
+func IntersectWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
-	return coreIntersection(s1, s2, equaller).actual()
+	return coreIntersect(s1, s2, equaller).actual()
 }
 
-// coreIntersection is the implementation for Intersection and IntersectionWith.
-func coreIntersection(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
+// coreIntersect is the implementation for Intersect and IntersectWith.
+func coreIntersect(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice1, 0, 0)
 	for i1 := 0; i1 < slice1.length(); i1++ {
 		item1 := slice1.get(i1)
-		for i2 := 0; i2 < slice2.length(); i2++ {
-			item2 := slice2.get(i2)
-			if equaller(item1, item2) {
-				result.append(item1)
-				break
-			}
+		if coreContains(slice2, item1, equaller) {
+			result.append(item1)
 		}
 	}
 	return result
 }
 
-// ToSet removes the duplicate items from []interface{} slice as a set.
-func ToSet(slice []interface{}) []interface{} {
-	return coreToSet(checkInterfaceSliceParam(slice), defaultEqualler).actual().([]interface{})
+// Deduplicate removes the duplicate items from []interface{} slice as a set.
+func Deduplicate(slice []interface{}) []interface{} {
+	return coreDeduplicate(checkInterfaceSliceParam(slice), defaultEqualler).actual().([]interface{})
 }
 
-// ToSetWith removes the duplicate items from []interface{} slice as a set with Equaller.
-func ToSetWith(slice []interface{}, equaller Equaller) []interface{} {
-	return coreToSet(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
+// DeduplicateWith removes the duplicate items from []interface{} slice as a set with Equaller.
+func DeduplicateWith(slice []interface{}, equaller Equaller) []interface{} {
+	return coreDeduplicate(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
 }
 
-// ToSetG removes the duplicate items from []T slice as a set, is the generic function of ToSet.
-func ToSetG(slice interface{}) interface{} {
-	return coreToSet(checkSliceInterfaceParam(slice), defaultEqualler).actual()
+// DeduplicateG removes the duplicate items from []T slice as a set, is the generic function of Deduplicate.
+func DeduplicateG(slice interface{}) interface{} {
+	return coreDeduplicate(checkSliceInterfaceParam(slice), defaultEqualler).actual()
 }
 
-// ToSetWithG removes the duplicate items from []T slice as a set with Equaller, is the generic function of ToSetWith.
-func ToSetWithG(slice interface{}, equaller Equaller) interface{} {
-	return coreToSet(checkSliceInterfaceParam(slice), equaller).actual()
+// DeduplicateWithG removes the duplicate items from []T slice as a set with Equaller, is the generic function of DeduplicateWith.
+func DeduplicateWithG(slice interface{}, equaller Equaller) interface{} {
+	return coreDeduplicate(checkSliceInterfaceParam(slice), equaller).actual()
 }
 
-// coreToSet is the implementation for ToSet and ToSetWith.
-func coreToSet(slice innerSlice, equaller Equaller) innerSlice {
+// coreDeduplicate is the implementation for Deduplicate and DeduplicateWith.
+func coreDeduplicate(slice innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice, 0, 0)
 	for idx := 0; idx < slice.length(); idx++ {
 		item := slice.get(idx)
-		if coreCount(result, item, equaller) == 0 {
+		if !coreContains(result, item, equaller) {
 			result.append(item)
 		}
 	}
@@ -528,41 +528,4 @@ func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 	}
 
 	return extra1.length() == 0 && extra2.length() == 0
-}
-
-const (
-	panicMinLargerThenMax = "xslice: min is larger than max"
-	panicStepLessThenZero = "xslice: step is less then or equals to 0"
-)
-
-// Range generates a []int slice from min index to max index with step.
-// Deprecated: use xnumber.IntRange, xnumber.Int32Range, etc. instead.
-func Range(min, max, step int) []int {
-	if min > max {
-		panic(panicMinLargerThenMax)
-	} else if step <= 0 {
-		panic(panicStepLessThenZero)
-	}
-
-	out := make([]int, 0)
-	for idx := min; idx <= max; idx += step {
-		out = append(out, idx)
-	}
-	return out
-}
-
-// ReverseRange generates a reverse []int slice from max index to min index with step.
-// Deprecated: use xnumber.IntRange, xnumber.Int32Range, etc. instead.
-func ReverseRange(min, max, step int) []int {
-	if min > max {
-		panic(panicMinLargerThenMax)
-	} else if step <= 0 {
-		panic(panicStepLessThenZero)
-	}
-
-	out := make([]int, 0)
-	for idx := max; idx >= min; idx -= step {
-		out = append(out, idx)
-	}
-	return out
 }

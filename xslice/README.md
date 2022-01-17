@@ -49,6 +49,8 @@
 + `func CountWith(slice []interface{}, value interface{}, equaller Equaller) int`
 + `func CountG(slice interface{}, value interface{}) int`
 + `func CountWithG(slice interface{}, value interface{}, equaller Equaller) int`
++ `func Insert(slice []interface{}, value interface{}, index int) []interface{}`
++ `func InsertG(slice interface{}, value interface{}, index int) interface{}`
 + `func Delete(slice []interface{}, value interface{}, n int) []interface{}`
 + `func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
 + `func DeleteG(slice interface{}, value interface{}, n int) interface{}`
@@ -65,20 +67,18 @@
 + `func UnionWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
 + `func UnionG(slice1, slice2 interface{}) interface{}`
 + `func UnionWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
-+ `func Intersection(slice1, slice2 []interface{}) []interface{}`
-+ `func IntersectionWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
-+ `func IntersectionG(slice1, slice2 interface{}) interface{}`
-+ `func IntersectionWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
-+ `func ToSet(slice []interface{}) []interface{}`
-+ `func ToSetWith(slice []interface{}, equaller Equaller) []interface{}`
-+ `func ToSetG(slice interface{}) interface{}`
-+ `func ToSetWithG(slice interface{}, equaller Equaller) interface{}`
++ `func Intersect(slice1, slice2 []interface{}) []interface{}`
++ `func IntersectWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
++ `func IntersectG(slice1, slice2 interface{}) interface{}`
++ `func IntersectWithG(slice1, slice2 interface{}, equaller Equaller) interface{}`
++ `func Deduplicate(slice []interface{}) []interface{}`
++ `func DeduplicateWith(slice []interface{}, equaller Equaller) []interface{}`
++ `func DeduplicateG(slice interface{}) interface{}`
++ `func DeduplicateWithG(slice interface{}, equaller Equaller) interface{}`
 + `func ElementMatch(slice1, slice2 []interface{}) bool`
 + `func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool`
 + `func ElementMatchG(slice1, slice2 interface{}) bool`
 + `func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool`
-+ `func Range(min, max, step int) []int`
-+ `func ReverseRange(min, max, step int) []int`
 
 ### Methods
 

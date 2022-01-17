@@ -1,11 +1,11 @@
-$0 -- test library
-xtesting
+$0 -- testing package
+xtesting        (x)
 
-$1 -- basic libraries, base on libraries in $0 group
+$1 -- basic packages, base on libraries in $0 group
 xcolor          (xtesting)
 xreflect        (xtesting)
 
-$2 -- common libraries, base on libraries in $0 and $1 group
+$2 -- common packages, base on libraries in $0 and $1 group
 xcondition      (xtesting)
 xgopool         (xtesting)
 xmodule         (xtesting, xcolor)
@@ -18,5 +18,6 @@ xstatus         (xtesting)
 xstring         (xtesting)
 xtime           (xtesting)
 
-$x -- seperated libraries
-xtuple
+$$ -- seperated packages, does not dependent any package in $0, $1 and $2
+xgeneric/xslice
+xgeneric/xtuple

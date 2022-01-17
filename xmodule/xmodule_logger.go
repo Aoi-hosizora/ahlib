@@ -59,49 +59,49 @@ func DefaultLogger(level LogLevel) Logger {
 }
 
 // LogName logs like:
-// 	[XMODULE] Pro: a <-- string
-// 	              ---    ------
-// 	              red    yellow
+// 	[Xmodule] Prov: a <-- string
+// 	               ---    ------
+// 	               red    yellow
 // Here `a` is the module name, `string` is the module type.
 func (d *defaultLogger) LogName(moduleName, moduleTyp string) {
 	if d.level&LogName != 0 {
 		moduleName = xcolor.Red.Sprint(moduleName)
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Pro:", moduleName, moduleTyp)
+		logLeftArrow("Prov:", moduleName, moduleTyp)
 	}
 }
 
 // LogType logs like:
-// 	[XMODULE] Pro: ~ <-- string
-// 	              ---    ------
-// 	              red    yellow
+// 	[Xmodule] Prov: ~ <-- string
+// 	               ---    ------
+// 	               red    yellow
 // Here `~` is the flag of no name, `string` is the module type.
 func (d *defaultLogger) LogType(moduleTyp string) {
 	if d.level&LogType != 0 {
 		auto := xcolor.Red.Sprint("~")
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Pro:", auto, moduleTyp)
+		logLeftArrow("Prov:", auto, moduleTyp)
 	}
 }
 
 // LogImpl logs like:
-// 	[XMODULE] Pro: ~ <-- IModule (*Module)
-// 	              ---    -------  -------
-// 	              red    yellow   yellow
+// 	[Xmodule] Prov: ~ <-- IModule (*Module)
+// 	               ---    -------  -------
+// 	               red    yellow   yellow
 // Here `~` is the flag of no name, `IModule` is the interface type, `*Module` is the module type.
 func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string) {
 	if d.level&LogImpl != 0 {
 		auto := xcolor.Red.Sprint("~")
 		interfaceTyp = xcolor.Yellow.Sprint(interfaceTyp)
 		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Pro:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
+		logLeftArrow("Prov:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
 	}
 }
 
 // LogInjectField logs like:
-// 	[XMODULE] Inj: a --> (*Struct).Str string
-// 	              ---     -------  --- ------
-// 	              red     yellow   red yellow
+// 	[Xmodule] Inje: a --> (*Struct).Str string
+// 	               ---     -------  --- ------
+// 	               red     yellow   red yellow
 // Here `a` is the module name, `*Struct` is the struct type, `Str` is the field name, `string` is the field type.
 func (d *defaultLogger) LogInjectField(moduleName, structTyp, fieldName, fieldTyp string) {
 	if d.level&LogInject != 0 {
@@ -109,21 +109,21 @@ func (d *defaultLogger) LogInjectField(moduleName, structTyp, fieldName, fieldTy
 		structTyp = xcolor.Yellow.Sprint(structTyp)
 		fieldName = xcolor.Red.Sprint(fieldName)
 		fieldTyp = xcolor.Yellow.Sprint(fieldTyp)
-		logRightArrow("Inj:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
+		logRightArrow("Inje:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
 	}
 }
 
 // LogInject logs like:
-// 	[XMODULE] Inj: ... --> (*Struct).(#3)
-// 	                        -------
-// 	                        yellow
+// 	[Xmodule] Inje: ... --> (*Struct).(#3)
+// 	                         -------
+// 	                         yellow
 // Here `*Struct` is the struct type, `#0` is the injected field count.
 func (d *defaultLogger) LogInject(structTyp string, num int) {
 	if d.level&LogInject != 0 {
 		auto := xcolor.Default.Sprint("...")
 		numStr := xcolor.Default.Sprintf("#%d", num)
 		structTyp = xcolor.Yellow.Sprintf(structTyp)
-		logRightArrow("Inj:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
+		logRightArrow("Inje:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
 	}
 }
 
@@ -136,27 +136,27 @@ var LogRightArrowFunc func(arg1, arg2, arg3 string)
 // logLeftArrow represents the inner logger function with left arrow.
 //
 // The default format logs like:
-// 	[XMODULE] Pro: ~                     <-- error (*errors.errorString)
-// 	         |----|---------------------|   |---------------------------|
-// 	           4        30 (colored)                      ...
+// 	[Xmodule] Proj: ~                     <-- error (*errors.errorString)
+// 	         |-----|---------------------|   |---------------------------|
+// 	            5        30 (colored)                      ...
 func logLeftArrow(arg1, arg2, arg3 string) {
 	if LogLeftArrowFunc != nil {
 		LogLeftArrowFunc(arg1, arg2, arg3)
 		return
 	}
-	fmt.Printf("[XMODULE] %-4s %-30s <-- %s\n", arg1, arg2, arg3)
+	fmt.Printf("[Xmodule] %-5s %-30s <-- %s\n", arg1, arg2, arg3)
 }
 
 // logLeftArrow represents the inner logger function with right arrow.
 //
 // The default format logs like:
-// 	[XMODULE] Inj: ~                     --> (*xmodule.testStruct).Err error
-// 	         |----|---------------------|   |-------------------------------|
-// 	           4        30 (colored)                      ...
+// 	[Xmodule] Inje: ~                     --> (*xmodule.testStruct).Err error
+// 	         |-----|---------------------|   |-------------------------------|
+// 	            5        30 (colored)                      ...
 func logRightArrow(arg1, arg2, arg3 string) {
 	if LogRightArrowFunc != nil {
 		LogRightArrowFunc(arg1, arg2, arg3)
 		return
 	}
-	fmt.Printf("[XMODULE] %-4s %-30s --> %s\n", arg1, arg2, arg3)
+	fmt.Printf("[Xmodule] %-5s %-30s --> %s\n", arg1, arg2, arg3)
 }
