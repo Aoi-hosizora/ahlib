@@ -7,6 +7,7 @@ xreflect        (xtesting)
 
 $2 -- common packages, base on libraries in $0 and $1 group
 xcondition      (xtesting)
+xerror          (xtesting)
 xgopool         (xtesting)
 xmodule         (xtesting, xcolor)
 xnumber         (xtesting)

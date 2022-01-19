@@ -4,6 +4,7 @@
 package xtuple
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"reflect"
@@ -128,6 +129,11 @@ func TestSugarIfThen(t *testing.T) {
 	xtestingEqual(t, IfThen(false, 1.1), 0.0)
 	xtestingEqual(t, IfThenElse(true, uint(1), uint(2)), uint(1))
 	xtestingEqual(t, IfThenElse(false, 1+1i, 2+2i), 2+2i)
+
+	xtestingPanic(t, func() { xtestingEqual(t, PanicIfErr("a", nil), "a") }, false)
+	xtestingPanic(t, func() { xtestingEqual(t, PanicIfErr(1.1, nil), 1.1) }, false)
+	xtestingPanic(t, func() { PanicIfErr("a", errors.New("x")) }, true)
+	xtestingPanic(t, func() { PanicIfErr(1.1, errors.New("x")) }, true)
 }
 
 func TestSugarPtr(t *testing.T) {
@@ -220,6 +226,25 @@ func xtestingEqual(t testing.TB, give, want interface{}) bool {
 	}
 	if !reflect.DeepEqual(give, want) {
 		return failTest(t, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give))
+	}
+	return true
+}
+
+func xtestingPanic(t testing.TB, f func(), want bool) bool {
+	didPanic := false
+	var message interface{}
+	func() {
+		defer func() {
+			if message = recover(); message != nil {
+				didPanic = true
+			}
+		}()
+		f()
+	}()
+	if want && !didPanic {
+		return failTest(t, fmt.Sprintf("Panic: function (%p) is expected to panic, actual does not panic", f))
+	} else if !want && didPanic {
+		return failTest(t, fmt.Sprintf("NotPanic: function (%p) is expected not to panic, acutal panic with `%v`", f, message))
 	}
 	return true
 }

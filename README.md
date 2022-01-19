@@ -20,6 +20,7 @@
 
 + xcolor
 + xcondition
++ xerror
 + xgopool
 + xmodule
 + xnumber

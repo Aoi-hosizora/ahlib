@@ -1,4 +1,4 @@
-package ahlib
+package xgeneric
 
 const (
 	// NAME represents ahlib/xgeneric package's name.
