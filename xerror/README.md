@@ -16,7 +16,7 @@
 
 ### Variables
 
-+ None
++ `var DefaultExecutor func`
 
 ### Constants
 

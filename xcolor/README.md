@@ -59,7 +59,6 @@
 + `const BGBrightMagenta Background`
 + `const BGBrightCyan Background`
 + `const BGBrightWhite Background`
-+ `const FullTpl string`
 
 ### Functions
 
@@ -82,6 +81,15 @@
 + `func (s Style) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (s Style) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
 + `func (s Style) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (s Style) AlignedPrint(alignment int, a ...interface{})`
++ `func (s Style) AlignedPrintf(alignment int, format string, a ...interface{})`
++ `func (s Style) AlignedPrintln(alignment int, a ...interface{})`
++ `func (s Style) AlignedSprint(alignment int, a ...interface{}) string`
++ `func (s Style) AlignedSprintf(alignment int, format string, a ...interface{}) string`
++ `func (s Style) AlignedSprintln(alignment int, a ...interface{}) string`
++ `func (s Style) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (s Style) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (s Style) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
 + `func (c Color) String() string`
 + `func (c Color) Code() string`
 + `func (c Color) WithStyle(s Style) MixCode`
@@ -95,6 +103,15 @@
 + `func (c Color) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (c Color) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
 + `func (c Color) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (c Color) AlignedPrint(alignment int, a ...interface{})`
++ `func (c Color) AlignedPrintf(alignment int, format string, a ...interface{})`
++ `func (c Color) AlignedPrintln(alignment int, a ...interface{})`
++ `func (c Color) AlignedSprint(alignment int, a ...interface{}) string`
++ `func (c Color) AlignedSprintf(alignment int, format string, a ...interface{}) string`
++ `func (c Color) AlignedSprintln(alignment int, a ...interface{}) string`
++ `func (c Color) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (c Color) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (c Color) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
 + `func (b Background) String() string`
 + `func (b Background) Code() string`
 + `func (b Background) WithStyle(s Style) MixCode`
@@ -108,6 +125,15 @@
 + `func (b Background) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (b Background) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
 + `func (b Background) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (b Background) AlignedPrint(alignment int, a ...interface{})`
++ `func (b Background) AlignedPrintf(alignment int, format string, a ...interface{})`
++ `func (b Background) AlignedPrintln(alignment int, a ...interface{})`
++ `func (b Background) AlignedSprint(alignment int, a ...interface{}) string`
++ `func (b Background) AlignedSprintf(alignment int, format string, a ...interface{}) string`
++ `func (b Background) AlignedSprintln(alignment int, a ...interface{}) string`
++ `func (b Background) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (b Background) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (b Background) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
 + `func (m MixCode) String() string`
 + `func (m MixCode) Codes() []uint8`
 + `func (m MixCode) WithStyle(s Style) MixCode`
@@ -122,3 +148,12 @@
 + `func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
++ `func (m MixCode) AlignedPrint(alignment int, a ...interface{})`
++ `func (m MixCode) AlignedPrintf(alignment int, format string, a ...interface{})`
++ `func (m MixCode) AlignedPrintln(alignment int, a ...interface{})`
++ `func (m MixCode) AlignedSprint(alignment int, a ...interface{}) string`
++ `func (m MixCode) AlignedSprintf(alignment int, format string, a ...interface{}) string`
++ `func (m MixCode) AlignedSprintln(alignment int, a ...interface{}) string`
++ `func (m MixCode) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (m MixCode) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
++ `func (m MixCode) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`

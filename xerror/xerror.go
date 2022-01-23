@@ -157,20 +157,36 @@ type ErrorGroup struct {
 	goExecutor func(f func())
 }
 
-// WithCancel returns a new ErrorGroup with cancelable context derived from given context, and a default goroutine executor.
+// WithCancel returns a new ErrorGroup with cancelable context derived from given context, and a default goroutine executor DefaultExecutor.
 func WithCancel(ctx context.Context) *ErrorGroup {
 	ctx, cancel := context.WithCancel(ctx)
-	return &ErrorGroup{ctx: ctx, cancel: cancel, goExecutor: func(f func()) { go f() }}
+	return &ErrorGroup{ctx: ctx, cancel: cancel, goExecutor: DefaultExecutor}
+}
+
+// DefaultExecutor is the default goroutine executor for ErrorGroup, including create goroutine by `go` and panic recovery.
+var DefaultExecutor = func(f func()) {
+	go func() {
+		defer func() {
+			_ = recover()
+		}()
+		f()
+	}()
 }
 
 // SetGoExecutor sets goroutine executor, can be used to change the behavior of go keyword, or add recover behavior for goroutine.
 //
 // Example:
-// 	// add recover behavior
-// 	eg := WithCancel(context.Background)
+// 	// custom recover behavior
+// 	eg := WithCancel(context.Background())
 // 	eg.SetGoExecutor(func(f func()) {
-// 		defer func() { recover() }()
-// 		f()
+// 		go func() {
+// 			defer func() {
+// 				if i := recover(); i != nil {
+// 					log.Printf("Warning: Panic with %v", i)
+// 				}
+// 			}()
+// 			f()
+// 		}()
 // 	})
 //
 // 	// use goroutine pool
@@ -220,7 +236,7 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 	if executor == nil {
 		eg.mu.Lock()
 		if eg.goExecutor == nil {
-			eg.goExecutor = func(f func()) { go f() }
+			eg.goExecutor = DefaultExecutor
 		}
 		executor = eg.goExecutor
 		eg.mu.Unlock()

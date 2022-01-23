@@ -114,10 +114,7 @@ func TestSeparate(t *testing.T) {
 func TestErrorGroup(t *testing.T) {
 	t.Run("Zero ErrorGroup", func(t *testing.T) {
 		eg := &ErrorGroup{}
-		eg.SetGoExecutor(func(f func()) {
-			defer func() { recover() }()
-			f()
-		})
+		eg.SetGoExecutor(DefaultExecutor)
 		// 1. test context and panic
 		eg.Go(func(ctx context.Context) error {
 			xtesting.Equal(t, ctx, context.Background())
@@ -148,10 +145,7 @@ func TestErrorGroup(t *testing.T) {
 
 	t.Run("WithCancel", func(t *testing.T) {
 		eg := WithCancel(context.WithValue(context.Background(), "key", "value"))
-		eg.SetGoExecutor(func(f func()) {
-			defer func() { recover() }()
-			f()
-		})
+		eg.SetGoExecutor(DefaultExecutor)
 		// 1. test context and panic
 		xtesting.NotPanic(t, func() { eg.Go(nil) })
 		eg.Go(func(ctx context.Context) error {

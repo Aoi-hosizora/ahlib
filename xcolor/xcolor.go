@@ -1,13 +1,32 @@
 package xcolor
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
 
-// Style represents a style code. See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters for details.
+// ===================
+// types and constants
+// ===================
+
+// coder represents an interface type to abstract Style, Color, Background and MixCode types.
+type coder interface {
+	String() string
+	xxxCoder() // unexported method
+}
+
+var (
+	_ coder = (*Style)(nil)
+	_ coder = (*Color)(nil)
+	_ coder = (*Background)(nil)
+	_ coder = (*MixCode)(nil)
+)
+
+// Style represents a style code. Visit https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters for details.
 type Style uint8
 
 const (
@@ -24,27 +43,30 @@ func (s Style) String() string {
 	return strconv.Itoa(int(s))
 }
 
-// Code returns the number value of the code.
+// xxxCoder implements unexported coder interface.
+func (s Style) xxxCoder() {}
+
+// Code returns the numeric value of the code.
 func (s Style) Code() uint8 {
 	return uint8(s)
 }
 
-// WithStyle creates a MixCode with multiple Style.
+// WithStyle creates a MixCode with current Style and a new Style.
 func (s Style) WithStyle(s2 Style) MixCode {
 	return MixCode{s.Code(), s2.Code()}
 }
 
-// WithColor creates a MixCode with Style and Color.
+// WithColor creates a MixCode with current Style and a new Color.
 func (s Style) WithColor(c Color) MixCode {
 	return MixCode{s.Code(), c.Code()}
 }
 
-// WithBackground creates a MixCode with Style and Background.
+// WithBackground creates a MixCode with current Style and a new Background.
 func (s Style) WithBackground(b Background) MixCode {
 	return MixCode{s.Code(), b.Code()}
 }
 
-// Color represents a color code. See https://en.wikipedia.org/wiki/ANSI_escape_code#Colors for details.
+// Color represents a color code. Visit https://en.wikipedia.org/wiki/ANSI_escape_code#Colors for details.
 type Color uint8
 
 const (
@@ -75,22 +97,25 @@ func (c Color) String() string {
 	return strconv.Itoa(int(c))
 }
 
-// Code returns the number value of the code.
+// xxxCoder implements unexported coder interface.
+func (c Color) xxxCoder() {}
+
+// Code returns the numeric value of the code.
 func (c Color) Code() uint8 {
 	return uint8(c)
 }
 
-// WithStyle creates a MixCode with Color and Style.
+// WithStyle creates a MixCode with current Color and a new Style.
 func (c Color) WithStyle(s Style) MixCode {
 	return MixCode{c.Code(), s.Code()}
 }
 
-// WithBackground creates a MixCode with Color and Background.
+// WithBackground creates a MixCode with current Color and a new Background.
 func (c Color) WithBackground(b Background) MixCode {
 	return MixCode{c.Code(), b.Code()}
 }
 
-// Background represents a background color code. See https://en.wikipedia.org/wiki/ANSI_escape_code#Colors for details.
+// Background represents a background color code. Visit https://en.wikipedia.org/wiki/ANSI_escape_code#Colors for details.
 type Background uint8
 
 const (
@@ -121,23 +146,26 @@ func (b Background) String() string {
 	return strconv.Itoa(int(b))
 }
 
-// Code returns the number value of the code.
+// xxxCoder implements unexported coder interface.
+func (b Background) xxxCoder() {}
+
+// Code returns the numeric value of the code.
 func (b Background) Code() uint8 {
 	return uint8(b)
 }
 
-// WithStyle creates a MixCode with Background and Style.
+// WithStyle creates a MixCode with current Background and a new Style.
 func (b Background) WithStyle(s Style) MixCode {
 	return MixCode{b.Code(), s.Code()}
 }
 
-// WithColor creates a MixCode with Background and Color.
+// WithColor creates a MixCode with current Background and a new Color.
 func (b Background) WithColor(c Color) MixCode {
 	return MixCode{b.Code(), c.Code()}
 }
 
 // MixCode represents an ANSI escape code, has mix styles in Style, Color and Background.
-// See https://en.wikipedia.org/wiki/ANSI_escape_code and https://tforgione.fr/posts/ansi-escape-codes/ for details.
+// Visit https://en.wikipedia.org/wiki/ANSI_escape_code and https://tforgione.fr/posts/ansi-escape-codes/ for details.
 type MixCode []uint8
 
 // String returns the string value of the code.
@@ -145,7 +173,6 @@ func (m MixCode) String() string {
 	if len(m) == 0 {
 		return "0"
 	}
-
 	codes := make([]string, len(m))
 	for i, c := range m {
 		codes[i] = strconv.Itoa(int(c))
@@ -153,260 +180,538 @@ func (m MixCode) String() string {
 	return strings.Join(codes, ";")
 }
 
-// Codes returns the number value of the code.
+// xxxCoder implements unexported coder interface.
+func (m MixCode) xxxCoder() {}
+
+// Codes returns the numeric value of the code.
 func (m MixCode) Codes() []uint8 {
 	return m
 }
 
-// WithStyle creates a new MixCode with MixCode and Style.
+// WithStyle creates a new MixCode with current MixCode and a new Style.
 func (m MixCode) WithStyle(s Style) MixCode {
 	return append(m, s.Code())
 }
 
-// WithColor creates a new MixCode with MixCode and Color.
+// WithColor creates a new MixCode with current MixCode and a new Color.
 func (m MixCode) WithColor(c Color) MixCode {
 	return append(m, c.Code())
 }
 
-// WithBackground creates a new MixCode with MixCode and Background.
+// WithBackground creates a new MixCode with current MixCode and a new Background.
 func (m MixCode) WithBackground(b Background) MixCode {
 	return append(m, b.Code())
 }
 
-// ***********************************************************************************
+// =============
+// print helpers
+// =============
 
-// FullTpl represents the ANSI escape code template. That is ESC[X,Ym ... ESC[0m
-const FullTpl = "\x1b[%sm%s\x1b[0m"
+const (
+	// fullTpl is ANSI escape code template, that is `ESC[Xm...ESC[0m`.
+	fullTpl = "\x1b[%sm%s\x1b[0m"
 
-// doPrint prints the string, with the given code string and message.
-func doPrint(c string, message string) {
-	fmt.Printf(FullTpl, c, message)
+	// fullTplLn equals to fullTpl with a newline followed.
+	fullTplLn = fullTpl + "\n"
+)
+
+// prepareAlignment adds or subtracts the given alignment with ANSI escape code template, and returns the stringed one.
+func prepareAlignment(alignment int, code string) string {
+	// ESC [ $code m $sss ESC [ 0 m
+	// ¯¯¯ ¯ ¯¯¯¯¯ ¯ ¯¯¯¯ ¯¯¯ ¯ ¯ ¯ => 7 + #$code + #$sss
+	const fullTplLength = 7
+	switch {
+	case alignment > 0: // %10s
+		alignment += fullTplLength + len(code)
+	case alignment < 0: // %-10s
+		alignment -= fullTplLength + len(code)
+	}
+	return strconv.Itoa(alignment)
 }
 
-// doSprint returns the string, with the given code string and message.
-func doSprint(c string, message string) string {
-	return fmt.Sprintf(FullTpl, c, message)
+// doFprint writes the ANSI escaped message to io.Writer, with the given coder and alignment.
+func doFprint(c coder, w io.Writer, message string, alignment int) (n int, err error) {
+	code := c.String()
+	switch {
+	case alignment == 0:
+		return fmt.Fprintf(w, fullTpl, code, message)
+	default:
+		a := prepareAlignment(alignment, code)
+		return fmt.Fprintf(w, "%"+a+"s", fmt.Sprintf(fullTpl, code, message))
+	}
 }
 
-// doFprint writes the string to io.Writer, with the given code string and message.
-func doFprint(w io.Writer, c string, message string) (n int, err error) {
-	return fmt.Fprintf(w, FullTpl, c, message)
+// doFprintln writes the ANSI escaped message and a line feed to io.Writer, with the given coder and alignment.
+func doFprintln(c coder, w io.Writer, message string, alignment int) (n int, err error) {
+	code := c.String()
+	message = message[:len(message)-1]
+	switch {
+	case alignment == 0:
+		return fmt.Fprintf(w, fullTplLn, code, message)
+	default:
+		a := prepareAlignment(alignment, code)
+		return fmt.Fprintf(w, "%"+a+"s\n", fmt.Sprintf(fullTpl, code, message))
+	}
 }
 
-// ***********************************************************************************
+// doSprint returns the ANSI escaped message, with the given coder and alignment.
+func doSprint(c coder, message string, alignment int) string {
+	buf := &bytes.Buffer{}
+	_, _ = doFprint(c, buf, message, alignment)
+	return buf.String()
+}
 
-// Print prints the styled string, with the given Style.
+// doSprintln returns the ANSI escaped message and a line feed, with the given coder and alignment.
+func doSprintln(c coder, message string, alignment int) string {
+	buf := &bytes.Buffer{}
+	_, _ = doFprintln(c, buf, message, alignment)
+	return buf.String()
+}
+
+// ===================
+// style print methods
+// ===================
+
+// Print prints the ANSI styled string, with the given Style.
 func (s Style) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
-	doPrint(s.String(), message)
+	_, _ = doFprint(s, os.Stdout, message, 0)
 }
 
-// Printf formats and prints the styled string, with the given Style.
+// Printf prints the formatted ANSI styled string, with the given Style.
 func (s Style) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
-	doPrint(s.String(), message)
+	_, _ = doFprint(s, os.Stdout, message, 0)
 }
 
-// Println prints the styled string and a newline, with the given Style.
+// Println prints the ANSI styled string and a newline followed, with the given Style.
 func (s Style) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
-	doPrint(s.String(), message)
+	_, _ = doFprintln(s, os.Stdout, message, 0)
 }
 
-// Sprint returns the styled string, with the given Style.
+// Sprint returns the ANSI styled string, with the given Style.
 func (s Style) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
-	return doSprint(s.String(), message)
+	return doSprint(s, message, 0)
 }
 
-// Sprintf formats and returns the styled string, with the given Style.
+// Sprintf returns the formatted ANSI styled string, with the given Style.
 func (s Style) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	return doSprint(s.String(), message)
+	return doSprint(s, message, 0)
 }
 
-// Sprintln returns the styled string and a newline, with the given Style.
+// Sprintln returns the ANSI styled string and a newline followed, with the given Style.
 func (s Style) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
-	return doSprint(s.String(), message)
+	return doSprintln(s, message, 0)
 }
 
-// Fprint writes the styled string to io.Writer, with the given Style.
+// Fprint writes the ANSI styled string to io.Writer, with the given Style.
 func (s Style) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprint(a...)
-	return doFprint(w, s.String(), message)
+	return doFprint(s, w, message, 0)
 }
 
-// Fprintf formats and writes the styled string to io.Writer, with the given Style.
+// Fprintf writes the formats ANSI styled string to io.Writer, with the given Style.
 func (s Style) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintf(format, a...)
-	return doFprint(w, s.String(), message)
+	return doFprint(s, w, message, 0)
 }
 
-// Fprintln writes the styled string and a newline to io.Writer, with the given Style.
+// Fprintln writes the ANSI styled string and a newline followed to io.Writer, with the given Style.
 func (s Style) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintln(a...)
-	return doFprint(w, s.String(), message)
+	return doFprintln(s, w, message, 0)
 }
 
-// Print prints the colored string, with the given Color.
+// AlignedPrint prints the ANSI styled string, with the given Style and alignment.
+func (s Style) AlignedPrint(alignment int, a ...interface{}) {
+	message := fmt.Sprint(a...)
+	_, _ = doFprint(s, os.Stdout, message, alignment)
+}
+
+// AlignedPrintf prints the formatted ANSI styled string, with the given Style and alignment.
+func (s Style) AlignedPrintf(alignment int, format string, a ...interface{}) {
+	message := fmt.Sprintf(format, a...)
+	_, _ = doFprint(s, os.Stdout, message, alignment)
+}
+
+// AlignedPrintln prints the ANSI styled string and a newline followed, with the given Style and alignment.
+func (s Style) AlignedPrintln(alignment int, a ...interface{}) {
+	message := fmt.Sprintln(a...)
+	_, _ = doFprintln(s, os.Stdout, message, alignment)
+}
+
+// AlignedSprint returns the ANSI styled string, with the given Style and alignment.
+func (s Style) AlignedSprint(alignment int, a ...interface{}) string {
+	message := fmt.Sprint(a...)
+	return doSprint(s, message, alignment)
+}
+
+// AlignedSprintf returns the formatted ANSI styled string, with the given Style and alignment.
+func (s Style) AlignedSprintf(alignment int, format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	return doSprint(s, message, alignment)
+}
+
+// AlignedSprintln returns the ANSI styled string and a newline followed, with the given Style and alignment.
+func (s Style) AlignedSprintln(alignment int, a ...interface{}) string {
+	message := fmt.Sprintln(a...)
+	return doSprintln(s, message, alignment)
+}
+
+// AlignedFprint writes the ANSI styled string to io.Writer, with the given Style and alignment.
+func (s Style) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(s, w, message, alignment)
+}
+
+// AlignedFprintf writes the formats ANSI styled string to io.Writer, with the given Style and alignment.
+func (s Style) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(s, w, message, alignment)
+}
+
+// AlignedFprintln writes the ANSI styled string and a newline followed to io.Writer, with the given Style and alignment.
+func (s Style) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprintln(s, w, message, alignment)
+}
+
+// ===================
+// color print methods
+// ===================
+
+// Print prints the ANSI colored string, with the given Color.
 func (c Color) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
-	doPrint(c.String(), message)
+	_, _ = doFprint(c, os.Stdout, message, 0)
 }
 
-// Printf formats and prints the colored string, with the given Color.
+// Printf prints the formatted ANSI colored string, with the given Color.
 func (c Color) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
-	doPrint(c.String(), message)
+	_, _ = doFprint(c, os.Stdout, message, 0)
 }
 
-// Println prints the colored string and a newline, with the given Color.
+// Println prints the colored string and a newline followed, with the given Color.
 func (c Color) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
-	doPrint(c.String(), message)
+	_, _ = doFprintln(c, os.Stdout, message, 0)
 }
 
-// Sprint returns the colored string, with the given Color.
+// Sprint returns the ANSI colored string, with the given Color.
 func (c Color) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
-	return doSprint(c.String(), message)
+	return doSprint(c, message, 0)
 }
 
-// Sprintf formats and returns the colored string, with the given Color.
+// Sprintf returns the formatted ANSI colored string, with the given Color.
 func (c Color) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	return doSprint(c.String(), message)
+	return doSprint(c, message, 0)
 }
 
-// Sprintln returns the colored string and a newline, with the given Color.
+// Sprintln returns the ANSI colored string and a newline followed, with the given Color.
 func (c Color) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
-	return doSprint(c.String(), message)
+	return doSprintln(c, message, 0)
 }
 
-// Fprint writes the colored string to io.Writer, with the given Color.
+// Fprint writes the ANSI colored string to io.Writer, with the given Color.
 func (c Color) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprint(a...)
-	return doFprint(w, c.String(), message)
+	return doFprint(c, w, message, 0)
 }
 
-// Fprintf formats and writes the colored string to io.Writer, with the given Color.
+// Fprintf writes the formats ANSI colored string to io.Writer, with the given Color.
 func (c Color) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintf(format, a...)
-	return doFprint(w, c.String(), message)
+	return doFprint(c, w, message, 0)
 }
 
-// Fprintln writes the colored string and a newline to io.Writer, with the given Color.
+// Fprintln writes the ANSI colored string and a newline followed to io.Writer, with the given Color.
 func (c Color) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintln(a...)
-	return doFprint(w, c.String(), message)
+	return doFprintln(c, w, message, 0)
 }
 
-// Print prints the colored string, with the given Background.
+// AlignedPrint prints the ANSI colored string, with the given Color and alignment.
+func (c Color) AlignedPrint(alignment int, a ...interface{}) {
+	message := fmt.Sprint(a...)
+	_, _ = doFprint(c, os.Stdout, message, alignment)
+}
+
+// AlignedPrintf prints the formatted ANSI colored string, with the given Color and alignment.
+func (c Color) AlignedPrintf(alignment int, format string, a ...interface{}) {
+	message := fmt.Sprintf(format, a...)
+	_, _ = doFprint(c, os.Stdout, message, alignment)
+}
+
+// AlignedPrintln prints the colored string and a newline followed, with the given Color and alignment.
+func (c Color) AlignedPrintln(alignment int, a ...interface{}) {
+	message := fmt.Sprintln(a...)
+	_, _ = doFprintln(c, os.Stdout, message, alignment)
+}
+
+// AlignedSprint returns the ANSI colored string, with the given Color and alignment.
+func (c Color) AlignedSprint(alignment int, a ...interface{}) string {
+	message := fmt.Sprint(a...)
+	return doSprint(c, message, alignment)
+}
+
+// AlignedSprintf returns the formatted ANSI colored string, with the given Color and alignment.
+func (c Color) AlignedSprintf(alignment int, format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	return doSprint(c, message, alignment)
+}
+
+// AlignedSprintln returns the ANSI colored string and a newline followed, with the given Color and alignment.
+func (c Color) AlignedSprintln(alignment int, a ...interface{}) string {
+	message := fmt.Sprintln(a...)
+	return doSprintln(c, message, alignment)
+}
+
+// AlignedFprint writes the ANSI colored string to io.Writer, with the given Color and alignment.
+func (c Color) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(c, w, message, alignment)
+}
+
+// AlignedFprintf writes the formats ANSI colored string to io.Writer, with the given Color and alignment.
+func (c Color) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(c, w, message, alignment)
+}
+
+// AlignedFprintln writes the ANSI colored string and a newline followed to io.Writer, with the given Color and alignment.
+func (c Color) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprintln(c, w, message, alignment)
+}
+
+// ========================
+// background print methods
+// ========================
+
+// Print prints the ANSI colored string, with the given Background.
 func (b Background) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
-	doPrint(b.String(), message)
+	_, _ = doFprint(b, os.Stdout, message, 0)
 }
 
-// Printf formats and prints the colored string, with the given Background.
+// Printf prints the formatted ANSI colored string, with the given Background.
 func (b Background) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
-	doPrint(b.String(), message)
+	_, _ = doFprint(b, os.Stdout, message, 0)
 }
 
-// Println prints the colored string and a newline, with the given Background.
+// Println prints the ANSI colored string and a newline followed, with the given Background.
 func (b Background) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
-	doPrint(b.String(), message)
+	_, _ = doFprintln(b, os.Stdout, message, 0)
 }
 
-// Sprint returns the colored string, with the given Background.
+// Sprint returns the ANSI colored string, with the given Background.
 func (b Background) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
-	return doSprint(b.String(), message)
+	return doSprint(b, message, 0)
 }
 
-// Sprintf formats and returns the colored string, with the given Background.
+// Sprintf returns the formatted ANSI colored string, with the given Background.
 func (b Background) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	return doSprint(b.String(), message)
+	return doSprint(b, message, 0)
 }
 
-// Sprintln returns the colored string and a newline, with the given Background.
+// Sprintln returns the ANSI colored string and a newline followed, with the given Background.
 func (b Background) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
-	return doSprint(b.String(), message)
+	return doSprintln(b, message, 0)
 }
 
-// Fprint writes the colored string to io.Writer, with the given Background.
+// Fprint writes the ANSI colored string to io.Writer, with the given Background.
 func (b Background) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprint(a...)
-	return doFprint(w, b.String(), message)
+	return doFprint(b, w, message, 0)
 }
 
-// Fprintf formats and writes the colored string to io.Writer, with the given Background.
+// Fprintf writes the formats ANSI colored string to io.Writer, with the given Background.
 func (b Background) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintf(format, a...)
-	return doFprint(w, b.String(), message)
+	return doFprint(b, w, message, 0)
 }
 
-// Fprintln writes the colored string and a newline to io.Writer, with the given Background.
+// Fprintln writes the ANSI colored string and a newline followed to io.Writer, with the given Background.
 func (b Background) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintln(a...)
-	return doFprint(w, b.String(), message)
+	return doFprintln(b, w, message, 0)
 }
 
-// Print prints the styled and colored string, with the given MixCode.
+// AlignedPrint prints the ANSI colored string, with the given Background and alignment.
+func (b Background) AlignedPrint(alignment int, a ...interface{}) {
+	message := fmt.Sprint(a...)
+	_, _ = doFprint(b, os.Stdout, message, alignment)
+}
+
+// AlignedPrintf prints the formatted ANSI colored string, with the given Background and alignment.
+func (b Background) AlignedPrintf(alignment int, format string, a ...interface{}) {
+	message := fmt.Sprintf(format, a...)
+	_, _ = doFprint(b, os.Stdout, message, alignment)
+}
+
+// AlignedPrintln prints the ANSI colored string and a newline followed, with the given Background and alignment.
+func (b Background) AlignedPrintln(alignment int, a ...interface{}) {
+	message := fmt.Sprintln(a...)
+	_, _ = doFprintln(b, os.Stdout, message, alignment)
+}
+
+// AlignedSprint returns the ANSI colored string, with the given Background and alignment.
+func (b Background) AlignedSprint(alignment int, a ...interface{}) string {
+	message := fmt.Sprint(a...)
+	return doSprint(b, message, alignment)
+}
+
+// AlignedSprintf returns the formatted ANSI colored string, with the given Background and alignment.
+func (b Background) AlignedSprintf(alignment int, format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	return doSprint(b, message, alignment)
+}
+
+// AlignedSprintln returns the ANSI colored string and a newline followed, with the given Background and alignment.
+func (b Background) AlignedSprintln(alignment int, a ...interface{}) string {
+	message := fmt.Sprintln(a...)
+	return doSprintln(b, message, alignment)
+}
+
+// AlignedFprint writes the ANSI colored string to io.Writer, with the given Background and alignment.
+func (b Background) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(b, w, message, alignment)
+}
+
+// AlignedFprintf writes the formats ANSI colored string to io.Writer, with the given Background and alignment.
+func (b Background) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(b, w, message, alignment)
+}
+
+// AlignedFprintln writes the ANSI colored string and a newline followed to io.Writer, with the given Background and alignment.
+func (b Background) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprintln(b, w, message, alignment)
+}
+
+// ======================
+// mix code print methods
+// ======================
+
+// Print prints the ANSI styled and colored string, with the given MixCode.
 func (m MixCode) Print(a ...interface{}) {
 	message := fmt.Sprint(a...)
-	doPrint(m.String(), message)
+	_, _ = doFprint(m, os.Stdout, message, 0)
 }
 
-// Printf formats and prints the styled and colored string, with the given MixCode.
+// Printf prints the formatted ANSI styled and colored string, with the given MixCode.
 func (m MixCode) Printf(format string, a ...interface{}) {
 	message := fmt.Sprintf(format, a...)
-	doPrint(m.String(), message)
+	_, _ = doFprint(m, os.Stdout, message, 0)
 }
 
-// Println prints the styled and colored string and a newline, with the given MixCode.
+// Println prints the ANSI styled and colored string and a newline followed, with the given MixCode.
 func (m MixCode) Println(a ...interface{}) {
 	message := fmt.Sprintln(a...)
-	doPrint(m.String(), message)
+	_, _ = doFprintln(m, os.Stdout, message, 0)
 }
 
-// Sprint returns the styled and colored string, with the given MixCode.
+// Sprint returns the ANSI styled and colored string, with the given MixCode.
 func (m MixCode) Sprint(a ...interface{}) string {
 	message := fmt.Sprint(a...)
-	return doSprint(m.String(), message)
+	return doSprint(m, message, 0)
 }
 
-// Sprintf formats and returns the styled and colored string, with the given MixCode.
+// Sprintf returns the formatted ANSI styled and colored string, with the given MixCode.
 func (m MixCode) Sprintf(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	return doSprint(m.String(), message)
+	return doSprint(m, message, 0)
 }
 
-// Sprintln returns the styled and colored string and a newline, with the given MixCode.
+// Sprintln returns the ANSI styled and colored string and a newline followed, with the given MixCode.
 func (m MixCode) Sprintln(a ...interface{}) string {
 	message := fmt.Sprintln(a...)
-	return doSprint(m.String(), message)
+	return doSprintln(m, message, 0)
 }
 
-// Fprint writes the styled and colored string to io.Writer, with the given MixCode.
+// Fprint writes the ANSI styled and colored string to io.Writer, with the given MixCode.
 func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprint(a...)
-	return doFprint(w, m.String(), message)
+	return doFprint(m, w, message, 0)
 }
 
-// Fprintf formats and writes the styled and colored string to io.Writer, with the given MixCode.
+// Fprintf writes the formats ANSI styled and colored string to io.Writer, with the given MixCode.
 func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintf(format, a...)
-	return doFprint(w, m.String(), message)
+	return doFprint(m, w, message, 0)
 }
 
-// Fprintln writes the styled and colored string and a newline to io.Writer, with the given MixCode.
+// Fprintln writes the ANSI styled and colored string and a newline followed to io.Writer, with the given MixCode.
 func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
 	message := fmt.Sprintln(a...)
-	return doFprint(w, m.String(), message)
+	return doFprintln(m, w, message, 0)
+}
+
+// AlignedPrint prints the ANSI styled and colored string, with the given MixCode and aligned.
+func (m MixCode) AlignedPrint(alignment int, a ...interface{}) {
+	message := fmt.Sprint(a...)
+	_, _ = doFprint(m, os.Stdout, message, alignment)
+}
+
+// AlignedPrintf prints the formatted ANSI styled and colored string, with the given MixCode and aligned.
+func (m MixCode) AlignedPrintf(alignment int, format string, a ...interface{}) {
+	message := fmt.Sprintf(format, a...)
+	_, _ = doFprint(m, os.Stdout, message, alignment)
+}
+
+// AlignedPrintln prints the ANSI styled and colored string and a newline followed, with the given MixCode and aligned.
+func (m MixCode) AlignedPrintln(alignment int, a ...interface{}) {
+	message := fmt.Sprintln(a...)
+	_, _ = doFprintln(m, os.Stdout, message, alignment)
+}
+
+// AlignedSprint returns the ANSI styled and colored string, with the given MixCode and aligned.
+func (m MixCode) AlignedSprint(alignment int, a ...interface{}) string {
+	message := fmt.Sprint(a...)
+	return doSprint(m, message, alignment)
+}
+
+// AlignedSprintf returns the formatted ANSI styled and colored string, with the given MixCode and aligned.
+func (m MixCode) AlignedSprintf(alignment int, format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	return doSprint(m, message, alignment)
+}
+
+// AlignedSprintln returns the ANSI styled and colored string and a newline followed, with the given MixCode and aligned.
+func (m MixCode) AlignedSprintln(alignment int, a ...interface{}) string {
+	message := fmt.Sprintln(a...)
+	return doSprintln(m, message, alignment)
+}
+
+// AlignedFprint writes the ANSI styled and colored string to io.Writer, with the given MixCode and aligned.
+func (m MixCode) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprint(a...)
+	return doFprint(m, w, message, alignment)
+}
+
+// AlignedFprintf writes the formats ANSI styled and colored string to io.Writer, with the given MixCode and aligned.
+func (m MixCode) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintf(format, a...)
+	return doFprint(m, w, message, alignment)
+}
+
+// AlignedFprintln writes the ANSI styled and colored string and a newline followed to io.Writer, with the given MixCode and aligned.
+func (m MixCode) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error) {
+	message := fmt.Sprintln(a...)
+	return doFprintln(m, w, message, alignment)
 }
