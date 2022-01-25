@@ -258,6 +258,39 @@ func TestCloneAndMakeSlice(t *testing.T) {
 			xtesting.Equal(t, makeInnerSlice(tc.giveType, tc.giveLen, tc.giveCap).actual(), tc.want)
 		}
 	}
+
+	for _, tc := range []struct {
+		giveValue interface{}
+		giveG     bool
+		giveLen   int
+		giveCap   int
+		want      interface{}
+		wantPanic bool
+	}{
+		{nil, true, 0, 0, nil, true},
+		{0, false, -1, 0, nil, true},
+		{0, false, 0, 0, []interface{}{}, false},
+		{0, false, 1, 1, []interface{}{nil}, false},
+		{0, false, 3, 0, []interface{}{nil, nil, nil}, false},
+		{struct{}{}, false, -1, 0, nil, true},
+		{struct{}{}, false, 0, 0, []interface{}{}, false},
+		{struct{}{}, false, 1, 1, []interface{}{nil}, false},
+		{struct{}{}, false, 3, 0, []interface{}{nil, nil, nil}, false},
+		{0, true, -1, 0, nil, true},
+		{0, true, 0, 0, []int{}, false},
+		{0, true, 1, 1, []int{0}, false},
+		{0, true, 3, 0, []int{0, 0, 0}, false},
+		{struct{}{}, true, -1, 0, []struct{}{}, true},
+		{struct{}{}, true, 0, 0, []struct{}{}, false},
+		{struct{}{}, true, 1, 1, []struct{}{{}}, false},
+		{struct{}{}, true, 3, 1, []struct{}{{}, {}, {}}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { makeInnerSliceFromItem(tc.giveValue, tc.giveG, tc.giveLen, tc.giveCap) })
+		} else {
+			xtesting.Equal(t, makeInnerSliceFromItem(tc.giveValue, tc.giveG, tc.giveLen, tc.giveCap).actual(), tc.want)
+		}
+	}
 }
 
 func TestShuffle(t *testing.T) {
@@ -546,6 +579,52 @@ func TestIndexOf(t *testing.T) {
 		xtesting.Equal(t, IndexOfG(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice2(tc.give), newTestStruct(tc.giveValue)
 		xtesting.Equal(t, IndexOfWithG(give, giveValue, eq), tc.want)
+	}
+}
+
+func TestLastIndexOf(t *testing.T) {
+	s1 := []interface{}{1, 5, 2, 1, 2, 3}
+	s2 := []int{1, 5, 2, 1, 2, 3}
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
+
+	for _, tc := range []struct {
+		give      []interface{}
+		giveValue int
+		want      int
+	}{
+		{[]interface{}{}, 0, -1},
+		{s1, -1, -1},
+		{s1, 0, -1},
+		{s1, 1, 3},
+		{s1, 2, 4},
+		{s1, 3, 5},
+		{s1, 4, -1},
+		{s1, 5, 1},
+		{s1, 6, -1},
+	} {
+		xtesting.Equal(t, LastIndexOf(tc.give, tc.giveValue), tc.want)
+		give, giveValue := newTestSlice1(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, LastIndexOfWith(give, giveValue, eq), tc.want)
+	}
+
+	for _, tc := range []struct {
+		give      []int
+		giveValue int
+		want      int
+	}{
+		{[]int{}, 0, -1},
+		{s2, -1, -1},
+		{s2, 0, -1},
+		{s2, 1, 3},
+		{s2, 2, 4},
+		{s2, 3, 5},
+		{s2, 4, -1},
+		{s2, 5, 1},
+		{s2, 6, -1},
+	} {
+		xtesting.Equal(t, LastIndexOfG(tc.give, tc.giveValue), tc.want)
+		give, giveValue := newTestSlice2(tc.give), newTestStruct(tc.giveValue)
+		xtesting.Equal(t, LastIndexOfWithG(give, giveValue, eq), tc.want)
 	}
 }
 
@@ -1040,5 +1119,53 @@ func TestElementMatch(t *testing.T) {
 		xtesting.Equal(t, ElementMatchG(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice2(tc.give1), newTestSlice2(tc.give2)
 		xtesting.Equal(t, ElementMatchWithG(give1, give2, eq), tc.want)
+	}
+}
+
+type testError struct{ m string }
+
+func (t *testError) Error() string { return t.m }
+
+func TestRepeat(t *testing.T) {
+	for _, tc := range []struct {
+		giveValue interface{}
+		giveCount uint
+		want      []interface{}
+	}{
+		{nil, 0, []interface{}{}},
+		{nil, 2, []interface{}{nil, nil}},
+		{true, 0, []interface{}{}},
+		{true, 1, []interface{}{true}},
+		{5, 5, []interface{}{5, 5, 5, 5, 5}},
+		{"", 5, []interface{}{"", "", "", "", ""}},
+		{uint(0), 2, []interface{}{uint(0), uint(0)}},
+		{[]float64{1.1, 2.2}, 3, []interface{}{[]float64{1.1, 2.2}, []float64{1.1, 2.2}, []float64{1.1, 2.2}}},
+		{error(nil), 2, []interface{}{nil, nil}},                                           // <<<
+		{error((*testError)(nil)), 2, []interface{}{(*testError)(nil), (*testError)(nil)}}, // <<<
+		{(*testError)(nil), 2, []interface{}{(*testError)(nil), (*testError)(nil)}},
+		{&testError{"test"}, 2, []interface{}{&testError{"test"}, &testError{"test"}}},
+	} {
+		xtesting.Equal(t, Repeat(tc.giveValue, tc.giveCount), tc.want)
+	}
+
+	for _, tc := range []struct {
+		giveValue interface{}
+		giveCount uint
+		want      interface{}
+	}{
+		{nil, 0, []interface{}{}},
+		{nil, 2, []interface{}{nil, nil}},
+		{true, 0, []bool{}},
+		{true, 1, []bool{true}},
+		{5, 5, []int{5, 5, 5, 5, 5}},
+		{"", 5, []string{"", "", "", "", ""}},
+		{uint(0), 2, []uint{uint(0), uint(0)}},
+		{[]float64{1.1, 2.2}, 3, [][]float64{{1.1, 2.2}, {1.1, 2.2}, {1.1, 2.2}}},
+		{error(nil), 2, []interface{}{nil, nil}},                                          // <<<
+		{error((*testError)(nil)), 2, []*testError{(*testError)(nil), (*testError)(nil)}}, // <<<
+		{(*testError)(nil), 2, []*testError{(*testError)(nil), (*testError)(nil)}},
+		{&testError{"test"}, 2, []*testError{{"test"}, {"test"}}},
+	} {
+		xtesting.Equal(t, RepeatG(tc.giveValue, tc.giveCount), tc.want)
 	}
 }

@@ -41,6 +41,10 @@
 + `func IndexOfWith(slice []interface{}, value interface{}, equaller Equaller)`
 + `func IndexOfG(slice interface{}, value interface{})`
 + `func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller)`
++ `func LastIndexOf(slice []interface{}, value interface{}) int`
++ `func LastIndexOfWith(slice []interface{}, value interface{}, equaller Equaller)`
++ `func LastIndexOfG(slice interface{}, value interface{})`
++ `func LastIndexOfWithG(slice interface{}, value interface{}, equaller Equaller)`
 + `func Contains(slice []interface{}, value interface{}) bool`
 + `func ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool`
 + `func ContainsG(slice interface{}, value interface{}) bool`
@@ -79,6 +83,8 @@
 + `func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool`
 + `func ElementMatchG(slice1, slice2 interface{}) bool`
 + `func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool`
++ `func Repeat(value interface{}, count uint) []interface{}`
++ `func RepeatG(value interface{}, count uint) interface{}`
 
 ### Methods
 

@@ -164,36 +164,34 @@ func (g *GoPool) recycleWorker(w *worker) {
 var _testFlag atomic.Value
 
 // start dequeues a task from the head of GoPool's task linked list, and invokes the given function with panic handler.
-func (w *worker) start(g *GoPool) {
+func (w *worker) start(parent *GoPool) {
 	for {
-		t, ok := g.dequeueTask() // numTasks--
+		t, ok := parent.dequeueTask() // numTasks--
 		if !ok {
 			break
 		}
 		func() {
 			defer func() {
 				if err := recover(); err != nil {
-					if g.panicHandler != nil {
-						g.panicHandler(t.ctx, err)
-					} else {
-						if _testFlag.Load() == true {
-							// enter only when testing the xgopool package, needn't worry about the performance
-							defer func() {
-								log.Printf("Panic when testing: `%v`", recover())
-								_testFlag.Store(false)
-							}()
-						}
-						panic(err)
+					if parent.panicHandler != nil {
+						parent.panicHandler(t.ctx, err)
+					} else if _testFlag.Load() == true {
+						// enter only when testing the xgopool package, needn't worry about the performance
+						defer func() {
+							log.Printf("Panic when testing: `%v`", recover())
+							_testFlag.Store(false)
+						}()
 					}
+					panic(err)
 				}
 			}()
 			t.f(t.ctx)
 		}()
-		g.recycleTask(t)
+		parent.recycleTask(t)
 	}
-	g.workerMutex.Lock()
-	g.recycleWorker(w) // numWorkers--
-	g.workerMutex.Unlock()
+	parent.workerMutex.Lock()
+	parent.recycleWorker(w) // numWorkers--
+	parent.workerMutex.Unlock()
 }
 
 // _defaultPool is a global GoPool with capacity 10000.

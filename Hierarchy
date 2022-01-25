@@ -20,5 +20,7 @@ xstring         (xtesting)
 xtime           (xtesting)
 
 $$ -- seperated packages, does not dependent any package in $0, $1 and $2
-xgeneric/xslice
+xgeneric/xmap   (xtuple)
+xgeneric/xslice (xtuple)
+xgeneric/xsugar
 xgeneric/xtuple

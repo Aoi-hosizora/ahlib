@@ -5,10 +5,15 @@ package xslice
 
 import (
 	"constraints"
+	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
 	"math/rand"
 	"sort"
 	"time"
 )
+
+// =================
+// xslice compatible
+// =================
 
 // Equaller represents an equality function for two values, is used in XXXWith methods.
 type Equaller[T any] func(i, j T) bool
@@ -29,6 +34,8 @@ func defaultEqualler[T comparable]() Equaller[T] {
 		return i == j
 	}
 }
+
+// func ShuffleSelf[A ~[]T, T any](slice A)
 
 // ShuffleSelf shuffles the []T slice directly.
 func ShuffleSelf[T any](slice []T) {
@@ -127,6 +134,21 @@ func IndexOf[T comparable](slice []T, value T) int {
 func IndexOfWith[T any](slice []T, value T, equaller Equaller[T]) int {
 	for idx, val := range slice {
 		if equaller(val, value) {
+			return idx
+		}
+	}
+	return -1
+}
+
+// LastIndexOf returns the last index of value in the []T slice.
+func LastIndexOf[T comparable](slice []T, value T) int {
+	return LastIndexOfWith(slice, value, defaultEqualler[T]())
+}
+
+// LastIndexOfWith returns the last index of value in the []T slice with Equaller.
+func LastIndexOfWith[T any](slice []T, value T, equaller Equaller[T]) int {
+	for idx := len(slice) - 1; idx >= 0; idx-- {
+		if equaller(slice[idx], value) {
 			return idx
 		}
 	}
@@ -272,7 +294,7 @@ func DeduplicateWith[T any](slice []T, equaller Equaller[T]) []T {
 	result := make([]T, 0, 0)
 	for _, item := range slice {
 		if !ContainsWith(result, item, equaller) {
-			result = append(result, item)
+			result = append(result, item) // O(n^2)
 		}
 	}
 	return result
@@ -309,4 +331,166 @@ func ElementMatchWith[T any](slice1, slice2 []T, equaller Equaller[T]) bool {
 		}
 	}
 	return len(extra1) == 0 && len(extra2) == 0
+}
+
+// Repeat generates a []T with given value repeated given count.
+func Repeat[T any](value T, count uint) []T {
+	out := make([]T, 0, count)
+	for i := 0; i < int(count); i++ {
+		out = append(out, value)
+	}
+	return out
+}
+
+// ================
+// functional style
+// ================
+
+const (
+	panicNilEachFunc      = "xslice: nil each function"
+	panicNilMapFunc       = "xslice: nil map function"
+	panicNilExpandFunc    = "xslice: nil expand function"
+	panicNilReduceFunc    = "xslice: nil reduce function"
+	panicNilPredicateFunc = "xslice: nil predicate function"
+)
+
+// Foreach invokes given function for each item of given slice.
+func Foreach[T any](slice []T, f func(T)) {
+	if f == nil {
+		panic(panicNilEachFunc)
+	}
+	for _, item := range slice {
+		f(item)
+	}
+}
+
+// Map maps given slice to another slice using mapper function.
+func Map[T, K any](slice []T, f func(T) K) []K {
+	if f == nil {
+		panic(panicNilMapFunc)
+	}
+	out := make([]K, 0, len(slice))
+	for _, item := range slice {
+		out = append(out, f(item))
+	}
+	return out
+}
+
+// Expand maps and expands given slice to another slice using expand function.
+func Expand[T, K any](slice []T, f func(T) []K) []K {
+	if f == nil {
+		panic(panicNilExpandFunc)
+	}
+	out := make([]K, 0, len(slice))
+	for _, item := range slice {
+		out = append(out, f(item)...)
+	}
+	return out
+}
+
+// Reduce reduces given slice to a single value using initial value and left reducer function.
+func Reduce[T, K any](slice []T, initial K, f func(K, T) K) K {
+	if f == nil {
+		panic(panicNilReduceFunc)
+	}
+	for _, item := range slice {
+		initial = f(initial, item)
+	}
+	return initial
+}
+
+// Filter filters given slice and returns a new slice using given predicate function.
+func Filter[T any](slice []T, f func(T) bool) []T {
+	if f == nil {
+		panic(panicNilPredicateFunc)
+	}
+	out := make([]T, 0)
+	for _, item := range slice {
+		if f(item) {
+			out = append(out, item)
+		}
+	}
+	return out
+}
+
+// Any checks if given slice contains an item that satisfied given predicate function.
+func Any[T any](slice []T, f func(T) bool) bool {
+	if f == nil {
+		panic(panicNilPredicateFunc)
+	}
+	if len(slice) == 0 {
+		return true
+	}
+	for _, item := range slice {
+		if f(item) {
+			return true
+		}
+	}
+	return false
+}
+
+// All checks if items from given slice that all satisfied given predicate function.
+func All[T any](slice []T, f func(T) bool) bool {
+	if f == nil {
+		panic(panicNilPredicateFunc)
+	}
+	for _, item := range slice {
+		if !f(item) {
+			return false
+		}
+	}
+	return true
+}
+
+// Zip zips given two slices to a tuple slice, its length is the less one of two slices.
+func Zip[T, K any](slice1 []T, slice2 []K) []xtuple.Tuple[T, K] {
+	l := len(slice1)
+	if l2 := len(slice2); l2 < l {
+		l = l2
+	}
+	out := make([]xtuple.Tuple[T, K], 0, l)
+	for i := 0; i < l; i++ {
+		out = append(out, xtuple.NewTuple(slice1[i], slice2[i]))
+	}
+	return out
+}
+
+// Zip3 zips given three slices to a triple slice, its length is the less one of three slices.
+func Zip3[T, K, S any](slice1 []T, slice2 []K, slice3 []S) []xtuple.Triple[T, K, S] {
+	l := len(slice1)
+	if l2 := len(slice2); l2 < l {
+		l = l2
+	}
+	if l3 := len(slice3); l3 < l {
+		l = l3
+	}
+	out := make([]xtuple.Triple[T, K, S], 0, l)
+	for i := 0; i < l; i++ {
+		out = append(out, xtuple.NewTriple(slice1[i], slice2[i], slice3[i]))
+	}
+	return out
+}
+
+// Unzip unzips given tuple slice to two slices.
+func Unzip[T, K any](slice []xtuple.Tuple[T, K]) ([]T, []K) {
+	slice1 := make([]T, 0, len(slice))
+	slice2 := make([]K, 0, len(slice))
+	for _, item := range slice {
+		slice1 = append(slice1, item.Item1)
+		slice2 = append(slice2, item.Item2)
+	}
+	return slice1, slice2
+}
+
+// Unzip3 unzips given triple slice to three slices.
+func Unzip3[T, K, S any](slice []xtuple.Triple[T, K, S]) ([]T, []K, []S) {
+	slice1 := make([]T, 0, len(slice))
+	slice2 := make([]K, 0, len(slice))
+	slice3 := make([]S, 0, len(slice))
+	for _, item := range slice {
+		slice1 = append(slice1, item.Item1)
+		slice2 = append(slice2, item.Item2)
+		slice3 = append(slice3, item.Item3)
+	}
+	return slice1, slice2, slice3
 }

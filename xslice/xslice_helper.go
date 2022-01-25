@@ -117,7 +117,7 @@ type innerInterfaceWrappedSlice struct {
 	val    reflect.Value
 }
 
-var _ innerSlice = (*innerOfInterfaceSlice)(nil)
+var _ innerSlice = (*innerInterfaceWrappedSlice)(nil)
 
 func (i *innerInterfaceWrappedSlice) actual() interface{} {
 	return i.origin
@@ -352,6 +352,23 @@ func makeInnerSlice(slice innerSlice, length, capacity int) innerSlice {
 	}
 	if slice, ok := slice.(*innerInterfaceWrappedSlice); ok {
 		newSlice := reflect.MakeSlice(slice.typ, length, capacity).Interface()
+		return checkSliceInterfaceParam(newSlice)
+	}
+	newSlice := make([]interface{}, length, capacity)
+	return checkInterfaceSliceParam(newSlice)
+}
+
+func makeInnerSliceFromItem(value interface{}, g bool, length, capacity int) innerSlice {
+	if length < 0 {
+		panic(panicIndexOutOfRange)
+	}
+	if capacity < length {
+		capacity = length
+	}
+
+	typ := reflect.TypeOf(value)
+	if g {
+		newSlice := reflect.MakeSlice(reflect.SliceOf(typ), length, capacity).Interface()
 		return checkSliceInterfaceParam(newSlice)
 	}
 	newSlice := make([]interface{}, length, capacity)

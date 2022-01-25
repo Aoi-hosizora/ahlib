@@ -41,7 +41,7 @@ func ShuffleG(slice interface{}) interface{} {
 	return newSlice
 }
 
-// coreShuffle is the implementation for ShuffleSelf and Shuffle.
+// coreShuffle is the implementation for ShuffleSelf, Shuffle, ShuffleSelfG and ShuffleG.
 func coreShuffle(slice innerSlice) {
 	rand.Seed(time.Now().UnixNano())
 	for i := slice.length() - 1; i > 0; i-- {
@@ -77,7 +77,7 @@ func ReverseG(slice interface{}) interface{} {
 	return newSlice
 }
 
-// coreReverse is the implementation for ReverseSelf and Reverse.
+// coreReverse is the implementation for ReverseSelf Reverse, ReverseSelfG and ReverseG.
 func coreReverse(slice innerSlice) {
 	for i, j := 0, slice.length()-1; i < j; i, j = i+1, j-1 {
 		itemJ := slice.get(j)
@@ -135,7 +135,7 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 	return newSlice
 }
 
-// coreSort is the implementation for SortSelf, Sort, StableSortSelf and StableSort, using sort.Slice and sort.SliceStable.
+// coreSort is the implementation for SortSelf, Sort, StableSortSelf, StableSort, SortSelfG, SortG, StableSortSelfG and StableSortG, using sort.Slice and sort.SliceStable.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
 	ss := &sortSlice{slice: slice, less: less}
 	if stable {
@@ -167,9 +167,43 @@ func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller) int {
 	return coreIndexOf(s, v, equaller)
 }
 
-// coreIndexOf is the implementation for IndexOf and IndexOfWith.
+// coreIndexOf is the implementation for IndexOf, IndexOfWith, IndexOfG and IndexOfWithG.
 func coreIndexOf(slice innerSlice, value interface{}, equaller Equaller) int {
-	for idx := 0; idx < slice.length(); idx++ {
+	length := slice.length()
+	for idx := 0; idx < length; idx++ {
+		val := slice.get(idx)
+		if equaller(val, value) {
+			return idx
+		}
+	}
+	return -1
+}
+
+// LastIndexOf returns the last index of value in the []interface{} slice.
+func LastIndexOf(slice []interface{}, value interface{}) int {
+	return coreLastIndexOf(checkInterfaceSliceParam(slice), value, defaultEqualler)
+}
+
+// LastIndexOfWith returns the last index of value in the []interface{} slice with Equaller.
+func LastIndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int {
+	return coreLastIndexOf(checkInterfaceSliceParam(slice), value, equaller)
+}
+
+// LastIndexOfG returns the last index of value in the []T slice, is the generic function of IndexOf.
+func LastIndexOfG(slice interface{}, value interface{}) int {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreLastIndexOf(s, v, defaultEqualler)
+}
+
+// LastIndexOfWithG returns the last index of value in the []T slice with Equaller, is the generic function of IndexOfWith.
+func LastIndexOfWithG(slice interface{}, value interface{}, equaller Equaller) int {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreLastIndexOf(s, v, equaller)
+}
+
+// coreLastIndexOf is the implementation for LastIndexOf, LastIndexOfWith, LastIndexOfG and LastIndexOfWithG.
+func coreLastIndexOf(slice innerSlice, value interface{}, equaller Equaller) int {
+	for idx := slice.length() - 1; idx >= 0; idx-- {
 		val := slice.get(idx)
 		if equaller(val, value) {
 			return idx
@@ -200,9 +234,10 @@ func ContainsWithG(slice interface{}, value interface{}, equaller Equaller) bool
 	return coreContains(s, v, equaller)
 }
 
-// coreContains is the implementation for Contains and ContainsWith.
+// coreContains is the implementation for Contains, ContainsWith, ContainsG and ContainsWithG.
 func coreContains(slice innerSlice, value interface{}, equaller Equaller) bool {
-	for idx := 0; idx < slice.length(); idx++ {
+	length := slice.length()
+	for idx := 0; idx < length; idx++ {
 		val := slice.get(idx)
 		if equaller(val, value) {
 			return true
@@ -233,10 +268,11 @@ func CountWithG(slice interface{}, value interface{}, equaller Equaller) int {
 	return coreCount(s, v, equaller)
 }
 
-// coreCount is the implementation for Count and CountWith.
+// coreCount is the implementation for Count, CountWith, CountG and CountWithG.
 func coreCount(slice innerSlice, value interface{}, equaller Equaller) int {
 	cnt := 0
-	for idx := 0; idx < slice.length(); idx++ {
+	length := slice.length()
+	for idx := 0; idx < length; idx++ {
 		val := slice.get(idx)
 		if equaller(val, value) {
 			cnt++
@@ -320,7 +356,7 @@ func DeleteAllWithG(slice interface{}, value interface{}, equaller Equaller) int
 	return coreDelete(s, v, 0, equaller).actual()
 }
 
-// coreDelete is the implementation for Delete, DeleteWith, DeleteAll and DeleteAllWith.
+// coreDelete is the implementation for Delete, DeleteWith, DeleteAll, DeleteAllWith, DeleteG, DeleteWithG, DeleteAllG and DeleteAllWithG.
 func coreDelete(slice innerSlice, value interface{}, n int, equaller Equaller) innerSlice {
 	if n <= 0 {
 		n = slice.length()
@@ -357,10 +393,11 @@ func DiffWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 	return coreDiff(s1, s2, equaller).actual()
 }
 
-// coreDiff is the implementation for Diff and DiffWith.
+// coreDiff is the implementation for Diff, DiffWith, DiffG and DiffWithG.
 func coreDiff(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice1, 0, 0)
-	for i1 := 0; i1 < slice1.length(); i1++ {
+	length1 := slice1.length()
+	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
 		if !coreContains(slice2, item1, equaller) {
 			result.append(item1)
@@ -391,14 +428,16 @@ func UnionWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 	return coreUnion(s1, s2, equaller).actual()
 }
 
-// coreUnion is the implementation for Union and UnionWith.
+// coreUnion is the implementation for Union, UnionWith, UnionG and UnionWithG.
 func coreUnion(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice1, 0, slice1.length())
-	for i1 := 0; i1 < slice1.length(); i1++ {
+	length1 := slice1.length()
+	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
 		result.append(item1)
 	}
-	for i2 := 0; i2 < slice2.length(); i2++ {
+	length2 := slice2.length()
+	for i2 := 0; i2 < length2; i2++ {
 		item2 := slice2.get(i2)
 		if !coreContains(slice1, item2, equaller) {
 			result.append(item2)
@@ -429,10 +468,11 @@ func IntersectWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 	return coreIntersect(s1, s2, equaller).actual()
 }
 
-// coreIntersect is the implementation for Intersect and IntersectWith.
+// coreIntersect is the implementation for Intersect, IntersectWith, IntersectG and IntersectWithG.
 func coreIntersect(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice1, 0, 0)
-	for i1 := 0; i1 < slice1.length(); i1++ {
+	length1 := slice1.length()
+	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
 		if coreContains(slice2, item1, equaller) {
 			result.append(item1)
@@ -461,12 +501,13 @@ func DeduplicateWithG(slice interface{}, equaller Equaller) interface{} {
 	return coreDeduplicate(checkSliceInterfaceParam(slice), equaller).actual()
 }
 
-// coreDeduplicate is the implementation for Deduplicate and DeduplicateWith.
+// coreDeduplicate is the implementation for Deduplicate, DeduplicateWith, DeduplicateG and DeduplicateWithG.
 func coreDeduplicate(slice innerSlice, equaller Equaller) innerSlice {
 	result := makeInnerSlice(slice, 0, 0)
-	for idx := 0; idx < slice.length(); idx++ {
+	length := slice.length()
+	for idx := 0; idx < length; idx++ {
 		item := slice.get(idx)
-		if !coreContains(result, item, equaller) {
+		if !coreContains(result, item, equaller) { // O(n^2)
 			result.append(item)
 		}
 	}
@@ -495,16 +536,18 @@ func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 	return coreElementMatch(s1, s2, equaller)
 }
 
-// coreElementMatch is the implementation for ElementMatch and ElementMatchWith.
+// coreElementMatch is the implementation for ElementMatch, ElementMatchWith, ElementMatchG and ElementMatchWithG.
 func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 	extra1 := makeInnerSlice(slice1, 0, 0)
 	extra2 := makeInnerSlice(slice2, 0, 0)
 
-	visited := make([]bool, slice2.length())
-	for idx1 := 0; idx1 < slice1.length(); idx1++ {
+	length1 := slice1.length()
+	length2 := slice2.length()
+	visited := make([]bool, length2)
+	for idx1 := 0; idx1 < length1; idx1++ {
 		item1 := slice1.get(idx1)
 		exist := false
-		for idx2 := 0; idx2 < slice2.length(); idx2++ {
+		for idx2 := 0; idx2 < length2; idx2++ {
 			if visited[idx2] {
 				continue
 			}
@@ -520,7 +563,7 @@ func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 		}
 	}
 
-	for idx2 := 0; idx2 < slice2.length(); idx2++ {
+	for idx2 := 0; idx2 < length2; idx2++ {
 		item2 := slice2.get(idx2)
 		if !visited[idx2] {
 			extra2.append(item2)
@@ -528,4 +571,26 @@ func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 	}
 
 	return extra1.length() == 0 && extra2.length() == 0
+}
+
+// Repeat generates a []interface{} with given value repeated given count.
+func Repeat(value interface{}, count uint) []interface{} {
+	return coreRepeat(value, count, false).actual().([]interface{})
+}
+
+// RepeatG generates a []T with given value repeated given count, is the generic function of Repeat.
+func RepeatG(value interface{}, count uint) interface{} {
+	return coreRepeat(value, count, true).actual().(interface{})
+}
+
+// coreRepeat is the implementation for Repeat and RepeatG.
+func coreRepeat(value interface{}, count uint, g bool) innerSlice {
+	if value == nil {
+		g = false
+	}
+	s := makeInnerSliceFromItem(value, g, int(count), int(count))
+	for i := 0; i < int(count); i++ {
+		s.set(i, value)
+	}
+	return s
 }

@@ -37,11 +37,6 @@
 + `func NewSextuplePtr[T1, T2, T3, T4, T5, T6 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6) *Sextuple[T1, T2, T3, T4, T5, T6]`
 + `func NewSeptuple[T1, T2, T3, T4, T5, T6, T7 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6, item7 T7) Septuple[T1, T2, T3, T4, T5, T6, T7]`
 + `func NewSeptuplePtr[T1, T2, T3, T4, T5, T6, T7 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6, item7 T7) *Septuple[T1, T2, T3, T4, T5, T6, T7]`
-+ `func IfThen[T any](condition bool, value T) T`
-+ `func IfThenElse[T any](condition bool, value1, value2 T) T`
-+ `func PanicIfErr[T any](value T, err error) T`
-+ `func ValPtr[T any](t T) *T`
-+ `func PtrVal[T any](t *T, o T) T`
 + `func TupleItem1[T1, T2 any](item1 T1, _ T2) T1`
 + `func TupleItem2[T1, T2 any](_ T1, item2 T2) T2`
 + `func TripleItem1[T1, T2, T3 any](item1 T1, _ T2, _ T3) T1`

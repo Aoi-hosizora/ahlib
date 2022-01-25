@@ -16,6 +16,5 @@ function test {
 coverage=coverage.txt
 test
 
-coverage=../../coverage.txt
-cd xgeneric/xslice && test && cd ../..
-cd xgeneric/xtuple && test && cd ../..
+coverage=../coverage.txt
+cd xgeneric && test && cd ..
