@@ -9,154 +9,155 @@ import (
 type LogLevel uint8
 
 const (
-	// LogName logs only when ModuleContainer.ProvideName invoked.
-	LogName LogLevel = 1 << iota
+	// LogPrvName logs when ModuleContainer.ProvideName invoked.
+	LogPrvName LogLevel = 1 << iota
 
-	// LogType logs only when ModuleContainer.ProvideType invoked.
-	LogType
+	// LogPrvType logs when ModuleContainer.ProvideType invoked.
+	LogPrvType
 
-	// LogImpl logs only when ModuleContainer.ProvideImpl invoked.
-	LogImpl
+	// LogPrvImpl logs when ModuleContainer.ProvideImpl invoked.
+	LogPrvImpl
 
-	// LogInject logs only when ModuleContainer.Inject invoked.
-	LogInject
+	// LogInjField logs when ModuleContainer.Inject invoked and some fields are injected.
+	LogInjField
 
-	// LogAll logs when ModuleContainer.ProvideName, ModuleContainer.ProvideType, ModuleContainer.ProvideImpl, ModuleContainer.Inject invoked.
-	LogAll = LogName | LogType | LogImpl | LogInject
+	// LogInjFinish logs when ModuleContainer.Inject invoked and injecting is finished.
+	LogInjFinish
 
-	// LogSilent never logs, equals to disable the logger.
+	// LogAll logs when ModuleContainer.ProvideName, ModuleContainer.ProvideType, ModuleContainer.ProvideImpl and ModuleContainer.Inject invoked.
+	LogAll = LogPrvName | LogPrvType | LogPrvImpl | LogInjField | LogInjFinish
+
+	// LogSilent never logs, means disable the logger.
 	LogSilent = LogLevel(0)
 )
 
-// Logger represents ModuleContainer's logger.
+// Logger represents ModuleContainer's logger interface, a default logger can be created by DefaultLogger.
 type Logger interface {
-	// LogName invoked by ModuleContainer.ProvideName.
-	LogName(moduleName, moduleTyp string)
+	// PrvName logs when ModuleContainer.ProvideName invoked, can be enabled by LogPrvName flag.
+	PrvName(moduleName, moduleType string)
 
-	// LogType invoked by ModuleContainer.ProvideType.
-	LogType(moduleTyp string)
+	// PrvType logs when ModuleContainer.ProvideType invoked, can be enabled by LogPrvType flag.
+	PrvType(moduleType string)
 
-	// LogImpl invoked by ModuleContainer.ProvideImpl.
-	LogImpl(interfaceTyp, moduleTyp string)
+	// PrvImpl logs when ModuleContainer.ProvideImpl invoked, can be enabled by LogInjField flag.
+	PrvImpl(interfaceTyp, moduleType string)
 
-	// LogInjectField invoked by ModuleContainer.Inject.
-	LogInjectField(moduleName, structTyp, fieldName, fieldTyp string)
+	// InjField logs when ModuleContainer.Inject invoked and some fields are injected, can be enabled by LogInjField flag.
+	InjField(moduleName, structType, fieldName, fieldType string)
 
-	// LogInject invoked by ModuleContainer.Inject.
-	LogInject(structTyp string, num int)
+	// InjFinish logs when ModuleContainer.Inject invoked and injecting is finished, can be enabled by LogInjFinish flag.
+	InjFinish(structTyp string, count int, allInjected bool)
 }
 
 // defaultLogger represents a default Logger.
 type defaultLogger struct {
-	level LogLevel
+	level      LogLevel
+	logPrvFunc func(moduleName, moduleType string)
+	logInjFunc func(moduleName, structName, addition string)
 }
 
-// DefaultLogger creates a default Logger instance. Log style see LogName, LogType, LogImpl, LogInject.
-// Note that the red color represents the module and field name (~ represents no module name), and the yellow color represents the module and field type.
-func DefaultLogger(level LogLevel) Logger {
+var _ Logger = (*defaultLogger)(nil)
+
+// DefaultLogger creates a default Logger instance, with given LogLevel, nillable logPrjFunc and nillable logInjFunc.
+//
+// The default format for providing logs like:
+// 	[Xmodule] Prv: int                  <-- int
+// 	[Xmodule] Prv: ~                    <-- float64
+// 	[Xmodule] Prv: ~                    <-- error (*errors.errorString)
+// 	              |--------------------|   |---------------------------|
+// 	                        20                           ...
+//
+// The default format for injecting logs like:
+// 	[Xmodule] Inj: uint                 --> *xmodule.testStruct (Uint uint)
+// 	[Xmodule] Inj: ~                    --> *xmodule.testStruct (String string)
+// 	[Xmodule] Inj: ~                    --> *xmodule.testStruct (Error error)
+// 	[Xmodule] Inj: ...                  --> *xmodule.testStruct (#=6, all injected)
+// 	[Xmodule] Inj: ...                  --> *xmodule.testStruct (#=4, not all injected)
+// 	              |--------------------|   |-------------------|-----------------------|
+// 	                        20                      ...                   ...
+func DefaultLogger(level LogLevel, logPrvFunc func(moduleName, moduleType string), logInjFunc func(moduleName, structName, addition string)) Logger {
 	xcolor.ForceColor()
-	return &defaultLogger{level: level}
-}
-
-// LogName logs like:
-// 	[Xmodule] Prov: a <-- string
-// 	               ---    ------
-// 	               red    yellow
-// Here `a` is the module name, `string` is the module type.
-func (d *defaultLogger) LogName(moduleName, moduleTyp string) {
-	if d.level&LogName != 0 {
-		moduleName = xcolor.Red.Sprint(moduleName)
-		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Prov:", moduleName, moduleTyp)
+	if logPrvFunc == nil {
+		logPrvFunc = func(moduleName, moduleType string) {
+			fmt.Printf("[Xmodule] Prv: %s <-- %s\n", xcolor.Red.AlignedSprint(-20, moduleName), xcolor.Yellow.Sprint(moduleType))
+		}
 	}
-}
-
-// LogType logs like:
-// 	[Xmodule] Prov: ~ <-- string
-// 	               ---    ------
-// 	               red    yellow
-// Here `~` is the flag of no name, `string` is the module type.
-func (d *defaultLogger) LogType(moduleTyp string) {
-	if d.level&LogType != 0 {
-		auto := xcolor.Red.Sprint("~")
-		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Prov:", auto, moduleTyp)
+	if logInjFunc == nil {
+		logInjFunc = func(moduleName, structName, addition string) {
+			fmt.Printf("[Xmodule] Inj: %s --> %s %s\n", xcolor.Red.AlignedSprint(-20, moduleName), structName, xcolor.Yellow.Sprintf("(%s)", addition))
+		}
 	}
+	return &defaultLogger{level: level, logPrvFunc: logPrvFunc, logInjFunc: logInjFunc}
 }
 
-// LogImpl logs like:
-// 	[Xmodule] Prov: ~ <-- IModule (*Module)
-// 	               ---    -------  -------
-// 	               red    yellow   yellow
-// Here `~` is the flag of no name, `IModule` is the interface type, `*Module` is the module type.
-func (d *defaultLogger) LogImpl(interfaceTyp, moduleTyp string) {
-	if d.level&LogImpl != 0 {
-		auto := xcolor.Red.Sprint("~")
-		interfaceTyp = xcolor.Yellow.Sprint(interfaceTyp)
-		moduleTyp = xcolor.Yellow.Sprint(moduleTyp)
-		logLeftArrow("Prov:", auto, fmt.Sprintf("%s (%s)", interfaceTyp, moduleTyp))
-	}
-}
-
-// LogInjectField logs like:
-// 	[Xmodule] Inje: a --> (*Struct).Str string
-// 	               ---     -------  --- ------
-// 	               red     yellow   red yellow
-// Here `a` is the module name, `*Struct` is the struct type, `Str` is the field name, `string` is the field type.
-func (d *defaultLogger) LogInjectField(moduleName, structTyp, fieldName, fieldTyp string) {
-	if d.level&LogInject != 0 {
-		moduleName = xcolor.Red.Sprint(moduleName)
-		structTyp = xcolor.Yellow.Sprint(structTyp)
-		fieldName = xcolor.Red.Sprint(fieldName)
-		fieldTyp = xcolor.Yellow.Sprint(fieldTyp)
-		logRightArrow("Inje:", moduleName, fmt.Sprintf("(%s).%s %s", structTyp, fieldName, fieldTyp))
-	}
-}
-
-// LogInject logs like:
-// 	[Xmodule] Inje: ... --> (*Struct).(#3)
-// 	                         -------
-// 	                         yellow
-// Here `*Struct` is the struct type, `#0` is the injected field count.
-func (d *defaultLogger) LogInject(structTyp string, num int) {
-	if d.level&LogInject != 0 {
-		auto := xcolor.Default.Sprint("...")
-		numStr := xcolor.Default.Sprintf("#%d", num)
-		structTyp = xcolor.Yellow.Sprintf(structTyp)
-		logRightArrow("Inje:", auto, fmt.Sprintf("(%s).(%s)", structTyp, numStr))
-	}
-}
-
-// LogLeftArrowFunc is a logger function with left arrow (<--), used in LogName, LogType, LogImpl.
-var LogLeftArrowFunc func(arg1, arg2, arg3 string)
-
-// LogRightArrowFunc is a logger function with right arrow (-->), used in LogInject, LogInjectField.
-var LogRightArrowFunc func(arg1, arg2, arg3 string)
-
-// logLeftArrow represents the inner logger function with left arrow.
+// PrvName logs when ModuleContainer.ProvideName invoked, can be enabled by LogPrvName flag.
 //
 // The default format logs like:
-// 	[Xmodule] Proj: ~                     <-- error (*errors.errorString)
-// 	         |-----|---------------------|   |---------------------------|
-// 	            5        30 (colored)                      ...
-func logLeftArrow(arg1, arg2, arg3 string) {
-	if LogLeftArrowFunc != nil {
-		LogLeftArrowFunc(arg1, arg2, arg3)
-		return
+// 	[Xmodule] Prv: xxx-tag <-- *Module
+// 	              |-------|   |-------|
+// 	                 red       yellow
+// Here `xxx-tag` is module name, `*Module` is module type.
+func (d *defaultLogger) PrvName(moduleName, moduleType string) {
+	if d.level&LogPrvName != 0 {
+		d.logPrvFunc(moduleName, moduleType)
 	}
-	fmt.Printf("[Xmodule] %-5s %-30s <-- %s\n", arg1, arg2, arg3)
 }
 
-// logLeftArrow represents the inner logger function with right arrow.
+// PrvType logs when ModuleContainer.ProvideType invoked, can be enabled by LogPrvType flag.
 //
 // The default format logs like:
-// 	[Xmodule] Inje: ~                     --> (*xmodule.testStruct).Err error
-// 	         |-----|---------------------|   |-------------------------------|
-// 	            5        30 (colored)                      ...
-func logRightArrow(arg1, arg2, arg3 string) {
-	if LogRightArrowFunc != nil {
-		LogRightArrowFunc(arg1, arg2, arg3)
-		return
+// 	[Xmodule] Prv: ~ <-- *Module
+// 	              |-|   |-------|
+// 	              red    yellow
+// Here `~` is module name (means provide by type or impl), `*Module` is module type.
+func (d *defaultLogger) PrvType(moduleType string) {
+	if d.level&LogPrvType != 0 {
+		d.logPrvFunc("~", moduleType)
 	}
-	fmt.Printf("[Xmodule] %-5s %-30s --> %s\n", arg1, arg2, arg3)
+}
+
+// PrvImpl logs when ModuleContainer.ProvideImpl invoked, can be enabled by LogInjField flag.
+//
+// The default format logs like:
+// 	[Xmodule] Prv: ~ <-- IModule (*Module)
+// 	              |-|   |-----------------|
+// 	              red         yellow
+// Here `~` is module name (means provide by type or impl), `IModule` is interface type, `*Module` is module type.
+func (d *defaultLogger) PrvImpl(interfaceType, moduleType string) {
+	if d.level&LogPrvImpl != 0 {
+		d.logPrvFunc("~", fmt.Sprintf("%s (%s)", interfaceType, moduleType))
+	}
+}
+
+// InjField logs when ModuleContainer.Inject invoked and some fields are injected, can be enabled by LogInjField flag.
+//
+// The default format logs like:
+// 	[Xmodule] Inj: xxx-tag --> *Struct (Field string)
+// 	[Xmodule] Inj: ~       --> *Struct (Field string)
+// 	              |-------|   |-------|--------------|
+// 	                 red       default     yellow
+// Here `xxx-tag` or `~` is module name, `*Struct` is struct type, `Field` is field name, `string` is field type.
+func (d *defaultLogger) InjField(moduleName, structType, fieldName, fieldType string) {
+	if d.level&LogInjField != 0 {
+		d.logInjFunc(moduleName, structType, fmt.Sprintf("%s %s", fieldName, fieldType))
+	}
+}
+
+// InjFinish logs when ModuleContainer.Inject invoked and injecting is finished, can be enabled by LogInjFinish flag.
+//
+// The default format logs like:
+// 	[Xmodule] Inj: ... --> *Struct (#=3, all injected)
+// 	[Xmodule] Inj: ... --> *Struct (#=2, not all injected)
+// 	              |---|   |-------|-----------------------|
+// 	               red     default         yellow
+// Here `...` means injecting is finished, `*Struct` is struct type, `#=3` is injected fields count, `all injected` and
+// `not all injected` means whether all fields with `module` are injected or not.
+func (d *defaultLogger) InjFinish(structType string, count int, allInjected bool) {
+	if d.level&LogInjFinish != 0 {
+		flag := "all injected"
+		if !allInjected {
+			flag = "not all injected"
+		}
+		d.logInjFunc("...", structType, fmt.Sprintf("#=%d, %s", count, flag))
+	}
 }

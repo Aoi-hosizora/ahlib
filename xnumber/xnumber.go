@@ -84,12 +84,12 @@ func LessOrEqualInAccuracy(a, b float64) bool {
 	return _acc.LessOrEqual(a, b)
 }
 
-// ===
-// ...
-// ===
+// ==============
+// mass functions
+// ==============
 
-// RenderByte renders a byte size to string (using %.2f), supports `B` `KB` `MB` `GB` `TB` units.
-func RenderByte(bytes float64) string {
+// FormatByteSize formats a byte size to string (using %.2f), supports `B` `KB` `MB` `GB` `TB` units.
+func FormatByteSize(bytes float64) string {
 	divisor := float64(1024)
 	minus := false
 	switch {

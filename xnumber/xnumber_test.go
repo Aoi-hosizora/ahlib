@@ -101,7 +101,7 @@ func TestAccuracy(t *testing.T) {
 	}
 }
 
-func TestRenderByte(t *testing.T) {
+func TestFormatByteSize(t *testing.T) {
 	for _, tc := range []struct {
 		give float64
 		want string
@@ -121,7 +121,7 @@ func TestRenderByte(t *testing.T) {
 		{1024 * 1024 * 1024 * 1024, "1.00TB"},
 		{1.1 * 1024 * 1024 * 1024 * 1024, "1.10TB"},
 	} {
-		xtesting.Equal(t, RenderByte(tc.give), tc.want)
+		xtesting.Equal(t, FormatByteSize(tc.give), tc.want)
 	}
 }
 

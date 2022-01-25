@@ -48,7 +48,7 @@
 + `func LessInAccuracy(a, b float64) bool`
 + `func GreaterOrEqualInAccuracy(a, b float64) bool`
 + `func LessOrEqualInAccuracy(a, b float64) bool`
-+ `func RenderByte(bytes float64) string`
++ `func FormatByteSize(bytes float64) string`
 + `func Bool(b bool) int`
 + `func IntBitLength() int`
 + `func FastrandUint32() uint32`

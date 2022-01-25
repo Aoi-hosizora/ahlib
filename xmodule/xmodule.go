@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// ModuleName represents a global module name, and it could not be empty, - and ~.
+// ModuleName represents a global module name, and it could not be empty, '-' and '~'.
 type ModuleName string
 
 // String returns the string value of ModuleName.
@@ -15,118 +15,158 @@ func (m ModuleName) String() string {
 
 // ModuleContainer represents a module container.
 type ModuleContainer struct {
-	provByName map[ModuleName]interface{}
-	muByName   sync.RWMutex
-
-	provByType map[reflect.Type]interface{}
-	muByType   sync.RWMutex
-
+	byName map[ModuleName]interface{}
+	muName sync.RWMutex
+	byType map[reflect.Type]interface{}
+	muType sync.RWMutex
 	logger Logger
 }
 
-// NewModuleContainer creates an empty ModuleContainer with Logger with LogAll flag.
+// NewModuleContainer creates an empty ModuleContainer, using DefaultLogger with LogAll flag and default formats.
 func NewModuleContainer() *ModuleContainer {
 	return &ModuleContainer{
-		provByName: make(map[ModuleName]interface{}),
-		provByType: make(map[reflect.Type]interface{}),
-		logger:     DefaultLogger(LogAll),
+		byName: make(map[ModuleName]interface{}),
+		byType: make(map[reflect.Type]interface{}),
+		logger: DefaultLogger(LogAll, nil, nil),
 	}
 }
+
+// =======
+// methods
+// =======
 
 // SetLogger sets the Logger for ModuleContainer.
 //
 // Example:
-// 	SetLogger(DefaultLogger(LogAll))    // set to default logger
-// 	SetLogger(DefaultLogger(LogSilent)) // disable logger
+// 	SetLogger(DefaultLogger(LogAll))    // logs all messages (default)
+// 	SetLogger(DefaultLogger(LogSilent)) // disable all logger
 func (m *ModuleContainer) SetLogger(logger Logger) {
 	m.logger = logger
 }
 
 const (
-	panicInvalidModuleName     = "xmodule: using invalid module name (empty, '-' and '~')"
-	panicNilModule             = "xmodule: using nil module"
-	panicNilInterfacePtr       = "xmodule: using nil interface pointer"
-	panicNonInterfacePtr       = "xmodule: using non-interface pointer"
-	panicNotImplementInterface = "xmodule: module do not implement the interface"
-	panicModuleNotFound        = "xmodule: module not found"
+	panicInvalidModuleName   = "xmodule: invalid module name (empty, '-' and '~')"
+	panicNilModule           = "xmodule: nil module"
+	panicInvalidInterfacePtr = "xmodule: invalid interface pointer"
+	panicNotImplemented      = "xmodule: module does not implement the interface"
+	panicModuleNotFound      = "xmodule: module not found"
 
-	panicInjectIntoNil          = "xmodule: inject into nil struct"
+	panicInjectIntoNilValue     = "xmodule: inject into nil value"
 	panicInjectIntoNonStructPtr = "xmodule: inject into non-struct pointer"
-	panicNotAllFieldsInjected   = "xmodule: not all fields with module tag are injected"
+	panicNotInjectedAllFields   = "xmodule: not all fields with module tag are injected"
 )
 
-// ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
-func (m *ModuleContainer) ProvideName(name ModuleName, module interface{}) {
+// assertModuleName checks given ModuleName, panics if using invalid name, that is empty, '-' and '~'.
+func assertModuleName(name ModuleName) {
 	if name == "" || name == "-" || name == "~" {
 		panic(panicInvalidModuleName)
 	}
+}
+
+// assertModuleType checks whether given module is nil, panics if not, and returns the reflect.Type.
+func assertModuleType(module interface{}) reflect.Type {
 	if module == nil {
 		panic(panicNilModule)
 	}
+	return reflect.TypeOf(module)
+}
 
-	m.muByName.Lock()
-	m.provByName[name] = module
-	m.muByName.Unlock()
+// assertInterfacePtr checks whether given value is an interface pointer, panics if not, and returns the interface reflect.Type.
+func assertInterfacePtr(interfacePtr interface{}) reflect.Type {
+	if interfacePtr == nil {
+		panic(panicInvalidInterfacePtr)
+	}
+	itfType := reflect.TypeOf(interfacePtr)
+	if itfType.Kind() != reflect.Ptr {
+		panic(panicInvalidInterfacePtr)
+	}
+	itfType = itfType.Elem() // interface type
+	if itfType.Kind() != reflect.Interface {
+		panic(panicInvalidInterfacePtr)
+	}
+	return itfType
+}
 
-	m.logger.LogName(name.String(), reflect.TypeOf(module).String())
+// ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
+//
+// Example:
+// 	ProvideName(ModuleName("module"), &Module{})
+// 	RemoveByName(ModuleName("module"))
+// 	GetByName(ModuleName("module"))
+// 	MustGetByName(ModuleName("module"))
+func (m *ModuleContainer) ProvideName(name ModuleName, module interface{}) {
+	assertModuleName(name)
+	typ := assertModuleType(module)
+	m.muName.Lock()
+	m.byName[name] = module
+	m.muName.Unlock()
+	m.logger.PrvName(name.String(), typ.String())
 }
 
 // ProvideType provides a module using its type, panics when using nil module.
+//
+// Example:
+// 	ProvideType(&Module{})
+// 	RemoveByType(&Module{})
+// 	GetByType(&Module{})
+// 	MustGetByType(&Module{})
 func (m *ModuleContainer) ProvideType(module interface{}) {
-	if module == nil {
-		panic(panicNilModule)
-	}
-	typ := reflect.TypeOf(module)
-
-	m.muByType.Lock()
-	m.provByType[typ] = module
-	m.muByType.Unlock()
-
-	m.logger.LogType(typ.String())
+	typ := assertModuleType(module)
+	m.muType.Lock()
+	m.byType[typ] = module
+	m.muType.Unlock()
+	m.logger.PrvType(typ.String())
 }
 
 // ProvideImpl provides a module using the interface type, panics when using invalid interface pointer or nil module.
 //
 // Example:
 // 	ProvideImpl((*Interface)(nil), &Module{})
+// 	RemoveByImpl((*Interface)(nil))
 // 	GetByImpl((*Interface)(nil))
+// 	MustGetByImpl((*Interface)(nil))
 func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl interface{}) {
-	if interfacePtr == nil {
-		panic(panicNilInterfacePtr)
+	itfType := assertInterfacePtr(interfacePtr) // interface type
+	innerType := assertModuleType(moduleImpl)   // inner type
+	if !innerType.Implements(itfType) {
+		panic(panicNotImplemented)
 	}
-	if moduleImpl == nil {
-		panic(panicNilModule)
-	}
+	m.muType.Lock()
+	m.byType[itfType] = moduleImpl
+	m.muType.Unlock()
+	m.logger.PrvImpl(itfType.String(), innerType.String())
+}
 
-	itfTyp := reflect.TypeOf(interfacePtr)
-	if itfTyp.Kind() != reflect.Ptr {
-		panic(panicNonInterfacePtr)
-	}
-	itfTyp = itfTyp.Elem()
-	if itfTyp.Kind() != reflect.Interface {
-		panic(panicNonInterfacePtr)
-	}
-	modTyp := reflect.TypeOf(moduleImpl)
-	if !modTyp.Implements(itfTyp) {
-		panic(panicNotImplementInterface)
-	}
+// RemoveByName remove a module with a ModuleName from container, panics when using invalid module name.
+func (m *ModuleContainer) RemoveByName(name ModuleName) {
+	assertModuleName(name)
+	m.muName.Lock()
+	delete(m.byName, name)
+	m.muName.Unlock()
+}
 
-	m.muByType.Lock()
-	m.provByType[itfTyp] = moduleImpl // interface type
-	m.muByType.Unlock()
+// RemoveByType remove given module with its type from container, panics when using nil module.
+func (m *ModuleContainer) RemoveByType(moduleType interface{}) {
+	typ := assertModuleType(moduleType)
+	m.muType.Lock()
+	delete(m.byType, typ)
+	m.muType.Unlock()
+}
 
-	m.logger.LogImpl(itfTyp.String(), modTyp.String())
+// RemoveByImpl remove a module with given interface pointer's type from container, panics when using invalid interface pointer.
+func (m *ModuleContainer) RemoveByImpl(interfacePtr interface{}) {
+	itfType := assertInterfacePtr(interfacePtr) // interface type
+	m.muType.Lock()
+	delete(m.byType, itfType)
+	m.muType.Unlock()
 }
 
 // GetByName returns the module provided by name, panics when using invalid module name.
 func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist bool) {
-	if name == "" || name == "~" || name == "-" {
-		panic(panicInvalidModuleName)
-	}
-
-	m.muByName.RLock()
-	module, exist = m.provByName[name]
-	m.muByName.RUnlock()
+	assertModuleName(name)
+	m.muName.RLock()
+	module, exist = m.byName[name]
+	m.muName.RUnlock()
 	return
 }
 
@@ -141,14 +181,10 @@ func (m *ModuleContainer) MustGetByName(name ModuleName) interface{} {
 
 // GetByType returns a module provided by type, panics when using nil type.
 func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{}, exist bool) {
-	if moduleType == nil {
-		panic(panicNilModule)
-	}
-
-	typ := reflect.TypeOf(moduleType)
-	m.muByType.RLock()
-	module, exist = m.provByType[typ]
-	m.muByType.RUnlock()
+	typ := assertModuleType(moduleType)
+	m.muType.RLock()
+	module, exist = m.byType[typ]
+	m.muType.RUnlock()
 	return
 }
 
@@ -163,21 +199,10 @@ func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{} {
 
 // GetByImpl returns a module by interface pointer, panics when using invalid interface pointer.
 func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{}, exist bool) {
-	if interfacePtr == nil {
-		panic(panicNilInterfacePtr)
-	}
-	itfTyp := reflect.TypeOf(interfacePtr)
-	if itfTyp.Kind() != reflect.Ptr {
-		panic(panicNonInterfacePtr)
-	}
-	itfTyp = itfTyp.Elem()
-	if itfTyp.Kind() != reflect.Interface {
-		panic(panicNonInterfacePtr)
-	}
-
-	m.muByType.RLock()
-	module, exist = m.provByType[itfTyp] // interface type
-	m.muByType.RUnlock()
+	itfType := assertInterfacePtr(interfacePtr) // interface type
+	m.muType.RLock()
+	module, exist = m.byType[itfType]
+	m.muType.RUnlock()
 	return
 }
 
@@ -190,14 +215,10 @@ func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{} {
 	return module
 }
 
-// ====
-// core
-// ====
-
-// Inject injects into struct fields using its module tag, returns true if all fields with `module` tag has been injected.
+// Inject injects into injectee fields using module tag, returns true if all fields with `module` tag are injected, that means found and assignable.
 //
 // Example:
-// 	type AStruct struct {
+// 	type Struct struct {
 // 		unexportedField string                 // -> ignore
 // 		ExportedField1  string                 // -> ignore
 // 		ExportedField2  string `module:""`     // -> ignore
@@ -205,14 +226,14 @@ func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{} {
 // 		ExportedField4  string `module:"name"` // -> inject by name
 // 		ExportedField5  string `module:"~"`    // -> inject by type or impl
 // 	}
-func (m *ModuleContainer) Inject(ctrl interface{}) (allInjected bool) {
-	return coreInject(m, ctrl, false)
+func (m *ModuleContainer) Inject(injectee interface{}) (allInjected bool) {
+	return coreInject(m, injectee, false)
 }
 
-// MustInject injects into struct fields using its module tag, panics when not all fields with `module` tag are injected.
+// MustInject injects into injectee fields using module tag, panics when some fields with `module` tag are not injected, that means not found or un-assignable.
 //
 // Example:
-// 	type AStruct struct {
+// 	type Struct struct {
 // 		unexportedField string                 // -> ignore
 // 		ExportedField1  string                 // -> ignore
 // 		ExportedField2  string `module:""`     // -> ignore
@@ -220,78 +241,88 @@ func (m *ModuleContainer) Inject(ctrl interface{}) (allInjected bool) {
 // 		ExportedField4  string `module:"name"` // -> inject by name
 // 		ExportedField5  string `module:"~"`    // -> inject by type or impl
 // 	}
-func (m *ModuleContainer) MustInject(ctrl interface{}) {
-	coreInject(m, ctrl, true)
+func (m *ModuleContainer) MustInject(v interface{}) {
+	coreInject(m, v, true)
 }
 
 // coreInject is the core implementation for Inject and MustInject.
-func coreInject(mc *ModuleContainer, ctrl interface{}, force bool) bool {
-	if ctrl == nil {
-		panic(panicInjectIntoNil)
+func coreInject(mc *ModuleContainer, injectee interface{}, force bool) (allInjected bool) {
+	if injectee == nil {
+		panic(panicInjectIntoNilValue)
 	}
-	ctrlTyp := reflect.TypeOf(ctrl)
-	ctrlTypName := ctrlTyp.String()
-	ctrlVal := reflect.ValueOf(ctrl)
-	if ctrlTyp.Kind() != reflect.Ptr {
+	val := reflect.ValueOf(injectee)
+	typ := val.Type()
+	if typ.Kind() != reflect.Ptr {
 		panic(panicInjectIntoNonStructPtr)
 	}
-	ctrlTyp = ctrlTyp.Elem()
-	ctrlVal = ctrlVal.Elem()
-	if ctrlTyp.Kind() != reflect.Struct {
+	typName := typ.String()
+	typ = typ.Elem()
+	val = val.Elem()
+	if typ.Kind() != reflect.Struct {
 		panic(panicInjectIntoNonStructPtr)
 	}
 
-	// record is all injected
-	allInjected := true
-	injectCount := 0
+	allInjected = true // record is all injected
+	injectedCount := 0 // injected fields count
 
 	// for each field
-	for idx := 0; idx < ctrlTyp.NumField(); idx++ {
-		// check
-		field := ctrlTyp.Field(idx)
+	for idx := 0; idx < typ.NumField(); idx++ {
+		// check tag
+		field := typ.Field(idx)
 		moduleTag := field.Tag.Get("module")
-		if moduleTag == "-" || moduleTag == "" {
+		if moduleTag == "" || moduleTag == "-" {
 			continue
 		}
 
-		// find
+		// check existence
 		var module interface{}
 		var exist bool
 		if moduleTag != "~" {
 			// inject by name
-			mc.muByName.RLock()
-			module, exist = mc.provByName[ModuleName(moduleTag)]
-			mc.muByName.RUnlock()
+			mc.muName.RLock()
+			module, exist = mc.byName[ModuleName(moduleTag)]
+			mc.muName.RUnlock()
 		} else {
 			// inject by type or impl
-			mc.muByType.RLock()
-			module, exist = mc.provByType[field.Type]
-			mc.muByType.RUnlock()
+			mc.muType.RLock()
+			module, exist = mc.byType[field.Type]
+			mc.muType.RUnlock()
 		}
-
-		// exist
 		if !exist {
 			if force {
-				// if force inject and module not found, panic
-				panic(panicNotAllFieldsInjected)
+				// specific module not found -> panic
+				panic(panicNotInjectedAllFields)
 			}
 			allInjected = false
 			continue
 		}
 
-		// inject value
-		fieldVal := ctrlVal.Field(idx)
-		if fieldVal.IsValid() && fieldVal.CanSet() {
-			fieldVal.Set(reflect.ValueOf(module))
-			mc.logger.LogInjectField(moduleTag, ctrlTypName, field.Name, field.Type.String())
+		// check injectable
+		fieldVal := val.Field(idx)
+		moduleVal := reflect.ValueOf(module)
+		settable := fieldVal.CanSet() && moduleVal.Type().AssignableTo(field.Type)
+		if !settable {
+			if force {
+				// cannot assign module to field -> panic
+				panic(panicNotInjectedAllFields)
+			}
+			allInjected = false
+			continue
 		}
-		injectCount++
+
+		// inject field
+		fieldVal.Set(moduleVal)
+		mc.logger.InjField(moduleTag, typName, field.Name, field.Type.String())
+		injectedCount++
 	}
 
-	mc.logger.LogInject(ctrlTypName, injectCount)
-
+	mc.logger.InjFinish(typName, injectedCount, allInjected)
 	return allInjected
 }
+
+// ======
+// global
+// ======
 
 // _mc is a global ModuleContainer.
 var _mc = NewModuleContainer()
@@ -299,18 +330,30 @@ var _mc = NewModuleContainer()
 // SetLogger sets the Logger for ModuleContainer.
 //
 // Example:
-// 	SetLogger(DefaultLogger(LogAll))    // set to default logger
-// 	SetLogger(DefaultLogger(LogSilent)) // disable logger
+// 	SetLogger(DefaultLogger(LogAll))    // logs all messages (default)
+// 	SetLogger(DefaultLogger(LogSilent)) // disable all logger
 func SetLogger(logger Logger) {
 	_mc.SetLogger(logger)
 }
 
 // ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
+//
+// Example:
+// 	ProvideName(ModuleName("module"), &Module{})
+// 	RemoveByName(ModuleName("module"))
+// 	GetByName(ModuleName("module"))
+// 	MustGetByName(ModuleName("module"))
 func ProvideName(name ModuleName, module interface{}) {
 	_mc.ProvideName(name, module)
 }
 
 // ProvideType provides a module using its type, panics when using nil module.
+//
+// Example:
+// 	ProvideType(&Module{})
+// 	RemoveByType(&Module{})
+// 	GetByType(&Module{})
+// 	MustGetByType(&Module{})
 func ProvideType(module interface{}) {
 	_mc.ProvideType(module)
 }
@@ -319,9 +362,26 @@ func ProvideType(module interface{}) {
 //
 // Example:
 // 	ProvideImpl((*Interface)(nil), &Module{})
+// 	RemoveByImpl((*Interface)(nil))
 // 	GetByImpl((*Interface)(nil))
+// 	MustGetByImpl((*Interface)(nil))
 func ProvideImpl(interfacePtr interface{}, moduleImpl interface{}) {
 	_mc.ProvideImpl(interfacePtr, moduleImpl)
+}
+
+// RemoveByName remove a module with a ModuleName from container, panics when using invalid module name.
+func RemoveByName(name ModuleName) {
+	_mc.RemoveByName(name)
+}
+
+// RemoveByType remove given module with its type from container, panics when using nil module.
+func RemoveByType(module interface{}) {
+	_mc.RemoveByType(module)
+}
+
+// RemoveByImpl remove a module with given interface pointer's type from container, panics when using invalid interface pointer.
+func RemoveByImpl(interfacePtr interface{}) {
+	_mc.RemoveByImpl(interfacePtr)
 }
 
 // GetByName returns the module provided by name, panics when using invalid module name.
@@ -354,10 +414,10 @@ func MustGetByImpl(interfacePtr interface{}) interface{} {
 	return _mc.MustGetByImpl(interfacePtr)
 }
 
-// Inject injects into struct fields using its module tag, returns true if all fields with `module` tag has been injected.
+// Inject injects into injectee fields using module tag, returns true if all fields with `module` tag are injected, that means found and assignable.
 //
 // Example:
-// 	type AStruct struct {
+// 	type Struct struct {
 // 		unexportedField string                 // -> ignore
 // 		ExportedField1  string                 // -> ignore
 // 		ExportedField2  string `module:""`     // -> ignore
@@ -365,14 +425,14 @@ func MustGetByImpl(interfacePtr interface{}) interface{} {
 // 		ExportedField4  string `module:"name"` // -> inject by name
 // 		ExportedField5  string `module:"~"`    // -> inject by type or impl
 // 	}
-func Inject(ctrl interface{}) (allInjected bool) {
-	return _mc.Inject(ctrl)
+func Inject(injectee interface{}) (allInjected bool) {
+	return _mc.Inject(injectee)
 }
 
-// MustInject injects into struct fields using its module tag, panics when not all fields with `module` tag are injected.
+// MustInject injects into injectee fields using module tag, panics when some fields with `module` tag are not injected, that means not found or un-assignable.
 //
 // Example:
-// 	type AStruct struct {
+// 	type Struct struct {
 // 		unexportedField string                 // -> ignore
 // 		ExportedField1  string                 // -> ignore
 // 		ExportedField2  string `module:""`     // -> ignore
@@ -380,6 +440,6 @@ func Inject(ctrl interface{}) (allInjected bool) {
 // 		ExportedField4  string `module:"name"` // -> inject by name
 // 		ExportedField5  string `module:"~"`    // -> inject by type or impl
 // 	}
-func MustInject(ctrl interface{}) {
-	_mc.MustInject(ctrl)
+func MustInject(injectee interface{}) {
+	_mc.MustInject(injectee)
 }
