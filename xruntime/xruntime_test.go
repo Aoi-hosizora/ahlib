@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"os"
+	"runtime/pprof"
 	"strings"
 	"syscall"
 	"testing"
@@ -152,6 +153,28 @@ func TestTraceStack(t *testing.T) {
 	xtesting.Equal(t, lineText, "")
 
 	printSharp("TestTraceStack end")
+}
+
+func TestPprofProfile(t *testing.T) {
+	for _, tc := range []struct {
+		give string
+		want bool
+	}{
+		{"", false},
+		{PprofAllocsProfile, true},
+		{PprofBlockProfle, true},
+		{PprofGoroutineProfile, true},
+		{PprofHeapProfile, true},
+		{PprofMutexProfile, true},
+		{PprofThreadcreateProfile, true},
+		{"index", false},
+		{"cmdline", false},
+		{"profile", false},
+		{"symbol", false},
+		{"trace", false},
+	} {
+		xtesting.Equal(t, pprof.Lookup(tc.give) != nil, tc.want)
+	}
 }
 
 func TestSignalName(t *testing.T) {

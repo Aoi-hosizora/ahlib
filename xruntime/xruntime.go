@@ -11,6 +11,10 @@ import (
 	"syscall"
 )
 
+// ===================
+// trace stack related
+// ===================
+
 // RawStack returns the raw debug trace stack of the calling goroutine from runtime.Stack, if all is true, it will also return other
 // goroutines' trace stack. Also see debug.Stack and runtime.Stack for more information.
 //
@@ -136,6 +140,24 @@ func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, fu
 	top := stack[0]
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
 }
+
+// =============
+// pprof related
+// =============
+
+// Pprof profile names, see pprof.Lookup (runtime/pprof) and pprof.Handler (net/http/pprof) for more details.
+const (
+	PprofGoroutineProfile    = "goroutine"
+	PprofThreadcreateProfile = "threadcreate"
+	PprofHeapProfile         = "heap"
+	PprofAllocsProfile       = "allocs"
+	PprofBlockProfle         = "block"
+	PprofMutexProfile        = "mutex"
+)
+
+// ==============
+// signal related
+// ==============
 
 // signalNames is used by SignalName.
 var signalNames = [...]string{

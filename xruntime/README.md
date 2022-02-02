@@ -17,7 +17,12 @@
 
 ### Constants
 
-+ None
++ `const PprofGoroutineProfile string`
++ `const PprofThreadcreateProfile string`
++ `const PprofHeapProfile string`
++ `const PprofAllocsProfile string`
++ `const PprofBlockProfle string`
++ `const PprofMutexProfile string`
 
 ### Functions
 

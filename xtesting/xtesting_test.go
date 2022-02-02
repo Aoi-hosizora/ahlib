@@ -1,12 +1,12 @@
 package xtesting
 
 import (
-	"errors"
 	"fmt"
 	"math"
-	"os"
 	"path"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -30,44 +30,44 @@ func TestAssert(t *testing.T) {
 	}()
 }
 
-func TestIsObjectEqual(t *testing.T) {
-	if !IsObjectEqual("Hello World", "Hello World") {
+func TestIsObjectDeepEqual(t *testing.T) {
+	if !IsObjectDeepEqual("Hello World", "Hello World") {
 		fail(t)
 	}
-	if !IsObjectEqual(123, 123) {
+	if !IsObjectDeepEqual(123, 123) {
 		fail(t)
 	}
-	if !IsObjectEqual(123.5, 123.5) {
+	if !IsObjectDeepEqual(123.5, 123.5) {
 		fail(t)
 	}
-	if !IsObjectEqual([]byte("Hello World"), []byte("Hello World")) {
+	if !IsObjectDeepEqual([]byte("Hello World"), []byte("Hello World")) {
 		fail(t)
 	}
-	if !IsObjectEqual(nil, nil) {
+	if !IsObjectDeepEqual(nil, nil) {
 		fail(t)
 	}
-	if IsObjectEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
+	if IsObjectDeepEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
 		fail(t)
 	}
-	if IsObjectEqual('x', "x") {
+	if IsObjectDeepEqual('x', "x") {
 		fail(t)
 	}
-	if IsObjectEqual("x", 'x') {
+	if IsObjectDeepEqual("x", 'x') {
 		fail(t)
 	}
-	if IsObjectEqual(0, 0.1) {
+	if IsObjectDeepEqual(0, 0.1) {
 		fail(t)
 	}
-	if IsObjectEqual(0.1, 0) {
+	if IsObjectDeepEqual(0.1, 0) {
 		fail(t)
 	}
-	if IsObjectEqual(time.Now, time.Now) {
+	if IsObjectDeepEqual(time.Now, time.Now) {
 		fail(t)
 	}
-	if IsObjectEqual(func() {}, func() {}) {
+	if IsObjectDeepEqual(func() {}, func() {}) {
 		fail(t)
 	}
-	if IsObjectEqual(uint32(10), int32(10)) {
+	if IsObjectDeepEqual(uint32(10), int32(10)) {
 		fail(t)
 	}
 
@@ -300,6 +300,26 @@ func TestSamePointer(t *testing.T) {
 	}
 }
 
+func TestTrueFalse(t *testing.T) {
+	mockT := &testing.T{}
+
+	// True
+	if !True(mockT, true) {
+		fail(t)
+	}
+	if True(mockT, false) {
+		fail(t)
+	}
+
+	// False
+	if !False(mockT, false) {
+		fail(t)
+	}
+	if False(mockT, true) {
+		fail(t)
+	}
+}
+
 func TestNil(t *testing.T) {
 	mockT := &testing.T{}
 
@@ -350,26 +370,6 @@ func TestNil(t *testing.T) {
 	}
 }
 
-func TestTrueFalse(t *testing.T) {
-	mockT := &testing.T{}
-
-	// True
-	if !True(mockT, true) {
-		fail(t)
-	}
-	if True(mockT, false) {
-		fail(t)
-	}
-
-	// False
-	if !False(mockT, false) {
-		fail(t)
-	}
-	if False(mockT, true) {
-		fail(t)
-	}
-}
-
 func TestZero(t *testing.T) {
 	mockT := &testing.T{}
 
@@ -415,49 +415,42 @@ func TestZero(t *testing.T) {
 	}
 }
 
-func TestEmpty(t *testing.T) {
+func TestZeroLen(t *testing.T) {
 	mockT := &testing.T{}
 
-	chWithValue := make(chan struct{}, 1)
-	chWithValue <- struct{}{}
-	var tiP *time.Time
-	var tiNP time.Time
-	var s *string
-	var f *os.File
-	sP := &s
-	x := 1
-	xP := &x
-	type TString string
-	type TStruct struct {
-		x int
-	}
-	empty := []interface{}{
-		"", nil, []string{}, 0, false, make(chan struct{}), s, f, tiP, tiNP, TStruct{}, TString(""), sP,
-	}
-	nonEmpty := []interface{}{
-		"something", errors.New("something"), []string{"something"}, 1, true, chWithValue, TStruct{x: 1}, TString("abc"), xP,
+	lenZeros := []interface{}{
+		nil, "", [0]interface{}{}, []interface{}(nil), []interface{}{}, map[interface{}]interface{}(nil),
+		map[interface{}]interface{}{}, (chan interface{})(nil), (<-chan interface{})(nil), (chan<- interface{})(nil),
 	}
 
-	// Empty
-	for _, zero := range empty {
-		if !Empty(mockT, zero) {
+	nonLenZeros := []interface{}{
+		"1", false, complex64(0), complex128(0), float32(0), float64(0),
+		0, int8(0), int16(0), int32(0), int64(0), byte(0), rune(0),
+		uint(0), uint8(0), uint16(0), uint32(0), uint64(0), uintptr(0),
+		[1]interface{}{1}, []interface{}{1}, map[interface{}]interface{}{1: 1},
+		struct{ x int }{}, (*interface{})(nil), (func())(nil),
+	}
+
+	// ZeroLen
+	for _, zero := range lenZeros {
+		if !ZeroLen(mockT, zero) {
 			fail(t)
 		}
 	}
-	for _, nonZero := range nonEmpty {
-		if Empty(mockT, nonZero) {
+	for _, nonZero := range nonLenZeros {
+		if ZeroLen(mockT, nonZero) {
 			fail(t)
 		}
 	}
 
-	// NotEmpty
-	for _, zero := range empty {
-		if NotEmpty(mockT, zero) {
+	// NotZeroLen
+	for _, zero := range lenZeros {
+		if NotZeroLen(mockT, zero) {
 			fail(t)
 		}
 	}
-	for _, nonZero := range nonEmpty {
-		if !NotEmpty(mockT, nonZero) {
+	for _, nonZero := range nonLenZeros {
+		if !NotZeroLen(mockT, nonZero) {
 			fail(t)
 		}
 	}
@@ -659,6 +652,17 @@ func TestInDelta(t *testing.T) {
 	}
 }
 
+func TestIsType(t *testing.T) {
+	mockT := &testing.T{}
+
+	if !IsType(mockT, &TypeStruct{}, &TypeStruct{}) {
+		fail(t)
+	}
+	if IsType(mockT, &TypeStruct{}, &TypeStruct2{}) {
+		fail(t)
+	}
+}
+
 type TypeInterface interface {
 	TestMethod()
 }
@@ -672,24 +676,13 @@ type TypeStruct2 struct{}
 func TestImplements(t *testing.T) {
 	mockT := &testing.T{}
 
-	if !Implements(mockT, (*TypeInterface)(nil), &TypeStruct{}) {
+	if !Implements(mockT, &TypeStruct{}, (*TypeInterface)(nil)) {
 		fail(t)
 	}
-	if Implements(mockT, (*TypeInterface)(nil), &TypeStruct2{}) {
+	if Implements(mockT, &TypeStruct2{}, (*TypeInterface)(nil)) {
 		fail(t)
 	}
-	if Implements(mockT, (*TypeInterface)(nil), nil) {
-		fail(t)
-	}
-}
-
-func TestIsType(t *testing.T) {
-	mockT := &testing.T{}
-
-	if !IsType(mockT, &TypeStruct{}, &TypeStruct{}) {
-		fail(t)
-	}
-	if IsType(mockT, &TypeStruct{}, &TypeStruct2{}) {
+	if Implements(mockT, nil, (*TypeInterface)(nil)) {
 		fail(t)
 	}
 }
@@ -734,38 +727,39 @@ func TestPanics(t *testing.T) {
 }
 
 func TestMsgAndArgs(t *testing.T) {
-	s := messageFromMsgAndArgs()
+	s := combineMsgAndArgs()
 	if s != "" {
 		fail(t)
 	}
 
-	s = messageFromMsgAndArgs("0")
+	s = combineMsgAndArgs("0")
 	if s != "0" {
 		fail(t)
 	}
 
-	s = messageFromMsgAndArgs([]int{1, 2})
+	s = combineMsgAndArgs([]int{1, 2})
 	if s != "[1 2]" {
 		fail(t)
 	}
 
-	s = messageFromMsgAndArgs(nil)
+	s = combineMsgAndArgs(nil)
 	if s != "<nil>" {
 		fail(t)
 	}
 
-	s = messageFromMsgAndArgs("a%sc", "b")
+	s = combineMsgAndArgs("a%sc", "b")
 	if s != "abc" {
 		fail(t)
 	}
 }
 
-type mockFailNowTestingT struct {
+type mockFinishFlagTestingT struct {
 	testing.TB
 	finished bool
 }
 
-func (m *mockFailNowTestingT) FailNow() { m.finished = true }
+func (m *mockFinishFlagTestingT) FailNow()             { m.finished = true }
+func (m *mockFinishFlagTestingT) Fatal(...interface{}) { m.finished = true }
 
 func TestOptions(t *testing.T) {
 	mockT := &testing.T{}
@@ -773,12 +767,12 @@ func TestOptions(t *testing.T) {
 	if failTest(mockT, 0, "a", "") != false {
 		fail(t)
 	}
-	if failTest(mockT, 0, "a", "%%a%s", "b") != false {
+	if failTest(mockT, -1, "a", "%%a%s", "b") != false {
 		fail(t)
 	}
 	SetExtraSkip(0)
 
-	mockT2 := &mockFailNowTestingT{}
+	mockT2 := &mockFinishFlagTestingT{}
 	UseFailNow(true)
 	if failTest(mockT2, 1, "a", "") != false {
 		fail(t)
@@ -787,12 +781,54 @@ func TestOptions(t *testing.T) {
 		fail(t)
 	}
 
-	mockT2 = &mockFailNowTestingT{}
+	mockT2 = &mockFinishFlagTestingT{}
 	UseFailNow(false)
 	if failTest(mockT, 1, "a", "") != false {
 		fail(t)
 	}
 	if mockT2.finished {
+		fail(t)
+	}
+}
+
+func TestGoTool(t *testing.T) {
+	defer _testGoToolFlag.Store(false)
+
+	_testGoToolFlag.Store(false)
+	p, err := GoTool()
+	if err != nil {
+		fail(t)
+	}
+	if !strings.HasPrefix(p, filepath.Join(runtime.GOROOT(), "bin")) {
+		fail(t)
+	}
+
+	_testGoToolFlag.Store(true)
+	p, err = GoTool()
+	if err == nil {
+		fail(t)
+	}
+	if p != "" {
+		fail(t)
+	}
+
+	mockT := &mockFinishFlagTestingT{}
+
+	_testGoToolFlag.Store(false)
+	p = GoToolPath(mockT)
+	if mockT.finished {
+		fail(t)
+	}
+	if !strings.HasPrefix(p, filepath.Join(runtime.GOROOT(), "bin")) {
+		fail(t)
+	}
+
+	_testGoToolFlag.Store(true)
+	p = GoToolPath(mockT)
+	if !mockT.finished {
+		fail(t)
+	}
+	if p != "" {
 		fail(t)
 	}
 }

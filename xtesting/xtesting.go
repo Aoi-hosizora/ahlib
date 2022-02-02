@@ -5,78 +5,84 @@ import (
 	"path"
 	"reflect"
 	"runtime"
-	"sync"
 	"sync/atomic"
 	"testing"
 )
 
-// failTest outputs the error message and fails the test. Default skip is 1.
-func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) bool {
-	if skip >= 0 {
-		_, file, line, _ := runtime.Caller(skip + 1 + int(atomic.LoadInt32(&_skip)))
-		m := fmt.Sprintf("%s:%d %s", path.Base(file), line, msg)
-		additionMsg := messageFromMsgAndArgs(msgAndArgs...)
-		if len(additionMsg) > 0 {
-			m += additionMsg
-		}
-		fmt.Println(m)
-	}
+// =========
+// fail test
+// =========
 
-	_useFailNowMu.RLock()
-	useFailNow := _useFailNow
-	_useFailNowMu.RUnlock()
-	if !useFailNow {
+// failTest outputs the error message and fails the test.
+func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) bool {
+	if skip < 0 {
+		skip = 0
+	}
+	exSkip := int(atomic.LoadInt32(&_extraSkip))
+
+	_, file, line, _ := runtime.Caller(skip + 1 + exSkip)
+	m := fmt.Sprintf("%s:%d %s", path.Base(file), line, msg)
+	if exMsg := combineMsgAndArgs(msgAndArgs...); len(exMsg) > 0 {
+		m += exMsg
+	}
+	fmt.Println(m)
+
+	if failNow := atomic.LoadInt32(&_useFailNow) == 1; !failNow {
 		t.Fail()
 	} else {
 		t.FailNow()
 	}
-
 	return false
 }
 
 var (
-	// _skip is the extra skip, defaults to zero.
-	_skip int32 = 0
+	// _extraSkip is the extra skip, and this value cannot be less than zero, defaults to zero.
+	_extraSkip int32 = 0
 
-	// _useFailNow is a flag for using `t.Failed` rather `t.Fail`.
-	_useFailNow   = false
-	_useFailNowMu sync.RWMutex
+	// _useFailNow is a flag for using `FailNow` (if set to 1) rather than `Fail` (if set to 0), defaults to 0.
+	_useFailNow int32 = 0
 )
 
 // SetExtraSkip sets extra skip for test functions, and it will be used when printing the test failed message, defaults to zero.
 func SetExtraSkip(skip int32) {
 	if skip >= 0 {
-		atomic.StoreInt32(&_skip, skip)
+		atomic.StoreInt32(&_extraSkip, skip)
 	}
 }
 
-// UseFailNow makes test functions to fail now when test failed rather.
+// UseFailNow makes test functions to fail now when test failed, defaults to false, that means to use `Fail` rather than `FailNow`.
 func UseFailNow(failNow bool) {
-	_useFailNowMu.Lock()
-	_useFailNow = failNow
-	_useFailNowMu.Unlock()
+	if failNow {
+		atomic.StoreInt32(&_useFailNow, 1)
+	} else {
+		atomic.StoreInt32(&_useFailNow, 0)
+	}
 }
 
-// Equal asserts that two objects are equal.
+// =================
+// testing functions
+// =================
+
+// Equal asserts that two objects are deep equal.
 func Equal(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
 	if err := validateEqualArgs(give, want); err != nil {
 		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if !IsObjectEqual(give, want) {
+	if !IsObjectDeepEqual(give, want) {
 		return failTest(t, 1, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
 }
 
-// NotEqual asserts that the specified values are Not equal.
+// NotEqual asserts that the specified values are not deep equal.
 func NotEqual(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
 	if err := validateEqualArgs(give, want); err != nil {
 		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if IsObjectEqual(give, want) {
+	if IsObjectDeepEqual(give, want) {
 		return failTest(t, 1, fmt.Sprintf("NotEqual: expected not to be `%#v`", want), msgAndArgs...)
 	}
 
@@ -119,24 +125,6 @@ func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interfac
 	return true
 }
 
-// Nil asserts that the specified object is nil.
-func Nil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectNil(object) {
-		return failTest(t, 1, fmt.Sprintf("Nil: expected `nil`, actual `%#v`", object), msgAndArgs...)
-	}
-
-	return true
-}
-
-// NotNil asserts that the specified object is not nil.
-func NotNil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectNil(object) {
-		return failTest(t, 1, fmt.Sprintf("NotNil, expected not to be `nil`, actual `%#v`", object), msgAndArgs...)
-	}
-
-	return true
-}
-
 // True asserts that the specified value is true.
 func True(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 	if !value {
@@ -150,6 +138,24 @@ func True(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 func False(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 	if value {
 		return failTest(t, 1, fmt.Sprintf("False: expected to be `false`, actual `%#v`", value), msgAndArgs...)
+	}
+
+	return true
+}
+
+// Nil asserts that the specified object is nil.
+func Nil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
+	if !IsObjectNil(object) {
+		return failTest(t, 1, fmt.Sprintf("Nil: expected `nil`, actual `%#v`", object), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotNil asserts that the specified object is not nil.
+func NotNil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
+	if IsObjectNil(object) {
+		return failTest(t, 1, fmt.Sprintf("NotNil, expected not to be `nil`, actual `%#v`", object), msgAndArgs...)
 	}
 
 	return true
@@ -173,19 +179,47 @@ func NotZero(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// Empty asserts that the specified object is empty.
-func Empty(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectEmpty(object) {
-		return failTest(t, 1, fmt.Sprintf("Empty: expected to be empty value, actual `%#v`", object), msgAndArgs...)
+// ZeroLen asserts that the length of specified object is zero.
+func ZeroLen(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
+	if !IsObjectZeroLen(object) {
+		return failTest(t, 1, fmt.Sprintf("ZeroLen: expected to be zero length, actual `%#v`", object), msgAndArgs...)
 	}
 
 	return true
 }
 
-// NotEmpty asserts that the specified object is not empty.
-func NotEmpty(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectEmpty(object) {
-		return failTest(t, 1, fmt.Sprintf("NotEmpty: expected not to be empty value, actual `%#v`", object), msgAndArgs...)
+// NotZeroLen asserts that the length of specified object is not zero.
+func NotZeroLen(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
+	if IsObjectZeroLen(object) {
+		return failTest(t, 1, fmt.Sprintf("NotZeroLen: expected not to be zero length, actual `%#v`", object), msgAndArgs...)
+	}
+
+	return true
+}
+
+// InDelta asserts that the two numerals are within delta of each other.
+func InDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(give, want, eps)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
+	}
+
+	if !in {
+		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotInDelta asserts that the two numerals are not within delta of each other.
+func NotInDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
+	in, actualEps, err := calcDeltaInEps(give, want, eps)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
+	}
+
+	if in {
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
 	}
 
 	return true
@@ -224,7 +258,7 @@ func NotContain(t testing.TB, container, object interface{}, msgAndArgs ...inter
 // ElementMatch asserts that the specified listA is equal to specified listB ignoring the order of the elements.
 // If there are duplicate elements, the number of appearances of each of them in both lists should match.
 func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectEmpty(listA) && IsObjectEmpty(listB) {
+	if IsObjectZeroLen(listA) && IsObjectZeroLen(listB) {
 		return true
 	}
 
@@ -240,55 +274,27 @@ func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interfac
 	return true
 }
 
-// InDelta asserts that the two numerals are within delta of each other.
-func InDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(give, want, eps)
-	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
-	}
+// IsType asserts that the specified objects are of the same type.
+func IsType(t testing.TB, object, want interface{}, msgAndArgs ...interface{}) bool {
+	objectType := reflect.TypeOf(object)
+	wantType := reflect.TypeOf(want)
 
-	if !in {
-		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
-	}
-
-	return true
-}
-
-// NotInDelta asserts that the two numerals are not within delta of each other.
-func NotInDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(give, want, eps)
-	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
-	}
-
-	if in {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
+	if objectType != wantType {
+		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", wantType.String(), objectType.String()), msgAndArgs...)
 	}
 
 	return true
 }
 
 // Implements asserts that an object is implemented by the specified interface.
-func Implements(t testing.TB, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
-	interfaceType := reflect.TypeOf(interfaceObject).Elem()
+func Implements(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
+	interfaceType := reflect.TypeOf(interfacePtr).Elem()
 
 	if object == nil {
 		return failTest(t, 1, fmt.Sprintf("Implements: invalid operation for `nil`"), msgAndArgs...)
 	}
 	if !reflect.TypeOf(object).Implements(interfaceType) {
-		return failTest(t, 1, fmt.Sprintf("Implements: %T expected to implement `%v`, actual not implment.", object, interfaceObject), msgAndArgs...)
-	}
-
-	return true
-}
-
-// IsType asserts that the specified objects are of the same type.
-func IsType(t testing.TB, want interface{}, object interface{}, msgAndArgs ...interface{}) bool {
-	objectType := reflect.TypeOf(object)
-	wantType := reflect.TypeOf(want)
-
-	if objectType != wantType {
-		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", wantType.String(), objectType.String()), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("Implements: %T expected to implement `%v`, actual not implment.", object, interfacePtr), msgAndArgs...)
 	}
 
 	return true
@@ -321,7 +327,7 @@ func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...inte
 		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual does not panic", f, want), msgAndArgs...)
 	}
 
-	if !IsObjectEqual(value, want) {
+	if !IsObjectDeepEqual(value, want) {
 		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual with `%#v`", f, want, value), msgAndArgs...)
 	}
 
