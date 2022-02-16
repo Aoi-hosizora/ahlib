@@ -102,13 +102,17 @@ func TestTraceStack(t *testing.T) {
 	}()
 
 	/*
-		E:/Projects/ahlib/xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+		File: E:/Projects/ahlib/xruntime/xruntime_test.go:100
+		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 			stack := RuntimeTraceStack(0)
-		E:/Projects/ahlib/xruntime/xruntime_test.go:101 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+		File: E:/Projects/ahlib/xruntime/xruntime_test.go:102
+		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			}()
-		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
+		File: D:/Development/Go/src/testing/testing.go:1439
+		Func: testing.tRunner
 			fn(t)
-		D:/Development/Go/src/runtime/asm_amd64.s:1581 runtime.goexit
+		File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+		Func: runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
 
@@ -117,9 +121,11 @@ func TestTraceStack(t *testing.T) {
 	fmt.Println(stack.String())
 
 	/*
-		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
+		File: D:/Development/Go/src/testing/testing.go:1439
+		Func: testing.tRunner
 			fn(t)
-		D:/Development/Go/src/runtime/asm_amd64.s:1581 runtime.goexit
+		File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+		Func: runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
 
@@ -136,12 +142,14 @@ func TestTraceStack(t *testing.T) {
 	/*
 		filename: E:/Projects/ahlib/xruntime/xruntime_test.go
 		funcName: xruntime.TestTraceStack
-		lineIndex: 126
+		lineIndex: 133
 		lineText: s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 		======
-		E:/Projects/ahlib/xruntime/xruntime_test.go:126 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+		File: E:/Projects/ahlib/xruntime/xruntime_test.go:133
+		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
-		D:/Development/Go/src/testing/testing.go:1259 testing.tRunner
+		File: D:/Development/Go/src/testing/testing.go:1439
+		Func: testing.tRunner
 			fn(t)
 	*/
 

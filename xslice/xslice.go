@@ -41,9 +41,13 @@ func ShuffleG(slice interface{}) interface{} {
 	return newSlice
 }
 
+func init() {
+	// for coreShuffle
+	rand.Seed(time.Now().UnixNano())
+}
+
 // coreShuffle is the implementation for ShuffleSelf, Shuffle, ShuffleSelfG and ShuffleG.
 func coreShuffle(slice innerSlice) {
-	rand.Seed(time.Now().UnixNano())
 	for i := slice.length() - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		itemJ := slice.get(j)

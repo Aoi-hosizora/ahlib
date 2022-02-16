@@ -10,6 +10,10 @@ import (
 	"unsafe"
 )
 
+// ==================
+// unexported related
+// ==================
+
 // GetUnexportedField gets the reflect.Value of unexported struct field's.
 //
 // Example:
@@ -39,7 +43,7 @@ const (
 	panicNonexistentField       = "xreflect: nonexistent struct field"
 )
 
-// FieldValueOf returns the reflect.Value of struct field from given struct or pointers of struct.
+// FieldValueOf returns the reflect.Value of specific struct field from given struct or pointers of struct.
 //
 // Example:
 // 	FieldValueOf(app, "noMethod")       // equals to reflect.ValueOf(app)[.Elem()*].FieldByName("noMethod")
@@ -55,46 +59,58 @@ func FieldValueOf(i interface{}, name string) reflect.Value {
 
 	if val.Kind() == reflect.Ptr && val.IsNil() {
 		panic(panicNilPtr)
-	} else if val.Kind() != reflect.Struct {
+	}
+	if val.Kind() != reflect.Struct {
 		panic(panicNonStructOrPtrOfStruct)
 	}
 	fval := val.FieldByName(name)
-	if !fval.IsValid() {
+	if !fval.IsValid() { // not existed
 		panic(panicNonexistentField)
 	}
 	return fval
 }
 
-// IsIntKind checks if the given reflect.Kind is int kinds or not.
+// For calling unexported global functions, visit https://github.com/alangpierce/go-forceexport/blob/master/forceexport.go#L31-L51.
+// For calling unexported struct methods, visit https://github.com/spance/go-callprivate/blob/master/examples.go#L20-L22.
+
+// =================
+// IsXXXKind related
+// =================
+
+// IsIntKind checks if given reflect.Kind is int kinds or not.
 func IsIntKind(kind reflect.Kind) bool {
 	return kind == reflect.Int || kind == reflect.Int8 || kind == reflect.Int16 || kind == reflect.Int32 || kind == reflect.Int64
 }
 
-// IsUintKind checks if the given reflect.Kind is uint kinds or not.
+// IsUintKind checks if given reflect.Kind is uint kinds or not.
 func IsUintKind(kind reflect.Kind) bool {
 	return kind == reflect.Uint || kind == reflect.Uint8 || kind == reflect.Uint16 || kind == reflect.Uint32 || kind == reflect.Uint64 || kind == reflect.Uintptr
 }
 
-// IsFloatKind checks if the given reflect.Kind is float kinds or not.
+// IsFloatKind checks if given reflect.Kind is float kinds or not.
 func IsFloatKind(kind reflect.Kind) bool {
 	return kind == reflect.Float32 || kind == reflect.Float64
 }
 
-// IsComplexKind checks if the given reflect.Kind is complex kinds or not.
+// IsComplexKind checks if given reflect.Kind is complex kinds or not.
 func IsComplexKind(kind reflect.Kind) bool {
 	return kind == reflect.Complex64 || kind == reflect.Complex128
 }
 
-// IsLenGettableKind checks if the given reflect.Kind's related reflect.Value can use Len() method or not.
+// IsLenGettableKind checks if given reflect.Kind's related reflect.Value can use Len() method or not.
 func IsLenGettableKind(kind reflect.Kind) bool {
 	return kind == reflect.String || kind == reflect.Array || kind == reflect.Slice || kind == reflect.Map || kind == reflect.Chan
 }
 
-// IsNillableKind checks if the given reflect.Kind's related reflect.Value can use IsNil() method or not.
+// IsNillableKind checks if given reflect.Kind's related reflect.Value can use IsNil() method or not.
 func IsNillableKind(kind reflect.Kind) bool {
 	return kind == reflect.Ptr || kind == reflect.Func || kind == reflect.Interface || kind == reflect.UnsafePointer ||
 		kind == reflect.Slice || kind == reflect.Map || kind == reflect.Chan
 }
+
+// ==============
+// mass functions
+// ==============
 
 // IsEmptyValue checks if a value is an empty value, this function do never panic for all parameters.
 // Support types: (all types)
@@ -180,25 +196,38 @@ func GetMapBuckets(m interface{}) (b uint8, buckets uint64) {
 	return b, buckets
 }
 
+// =========================
+// FillDefaultFields related
+// =========================
+
 var (
-	errNilValue     = errors.New("xreflect: nil value")
-	errNonPtrStruct = errors.New("xreflect: not a pointer of a structure")
+	errNotStructPtr = errors.New("xreflect: using not a pointer of a structure type")
 )
 
 const (
 	panicInvalidDefaultType = "xreflect: parsing '%s' as the default value of field '%s' failed: %v"
 )
 
-// FillDefaultFields fills struct fields with "default" tag recursively, returns true if any value is set or filled, returns error if given parameter
+// FillDefaultFields fills struct fields with "default" tag recursively, returns true if any value is set or filled, returns error only when given parameter
 // is not a pointer of struct, panics when using mismatched default value type and field type.
-func FillDefaultFields(s interface{}) (bool, error) {
+//
+// Example:
+// 	type Config struct {
+// 		Host string `yaml:"host" default:"127.0.0.1"`
+// 		Port int32  `yaml:"port" default:"3306"`
+// 		// ...
+// 	}
+// 	cfg := &Config{}
+// 	// unmarshal cfg...
+// 	_, err = FillDefaultFields(cfg)
+func FillDefaultFields(s interface{}) (allFilled bool, err error) {
 	val := reflect.ValueOf(s)
 	if val.Kind() != reflect.Ptr {
-		return false, errNilValue
+		return false, errNotStructPtr
 	}
 	val = val.Elem()
 	if val.Kind() != reflect.Struct {
-		return false, errNonPtrStruct
+		return false, errNotStructPtr
 	}
 	typ := val.Type()
 
@@ -213,8 +242,18 @@ func FillDefaultFields(s interface{}) (bool, error) {
 	return filled, nil
 }
 
-// fillDefaultFieldInternal is the internal implementation of FillDefaultFields, this sets the default value from given reflect.StructTag to given reflect.Value.
-func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag reflect.StructTag, fieldName string, setMapValue func(v reflect.Value)) bool {
+// _defaultTag is the tag "default" used in FillDefaultFields.
+var _defaultTag = "default"
+
+// SetDefaultTagName sets the default tag name that is used in FillDefaultFields, defaults to "default".
+func SetDefaultTagName(tag string) {
+	if tag != "" {
+		_defaultTag = tag
+	}
+}
+
+// fillDefaultFieldInternal is the internal implementation of FillDefaultFields, this sets the default value using given reflect.StructTag to given reflect.Value.
+func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag reflect.StructTag, fieldName string, setMapItem func(v reflect.Value)) bool {
 	k := ftyp.Kind()
 	switch {
 	case k == reflect.Struct && ftyp.NumField() == 0,
@@ -224,16 +263,19 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 		return false
 	case k == reflect.Slice:
 		filled := false
+		etyp := ftyp.Elem()
 		for i := 0; i < fval.Len(); i++ {
-			filled = fillDefaultFieldInternal(ftyp.Elem(), fval.Index(i), fieldTag, fmt.Sprintf("(%s)[%d]", fieldName, i), nil) || filled
+			filled = fillDefaultFieldInternal(etyp, fval.Index(i), fieldTag, fmt.Sprintf("(%s)[%d]", fieldName, i), nil) || filled
 		}
+		// <<< no need to setMapItem, for slice stores items in heap
 		return filled
 	case k == reflect.Array:
 		filled := false
 		cached := make(map[int]reflect.Value)
+		etyp := ftyp.Elem()
 		for i := 0; i < ftyp.Len(); i++ {
 			i := i
-			filled = fillDefaultFieldInternal(ftyp.Elem(), fval.Index(i), fieldTag, fmt.Sprintf("(%s)[%d]", fieldName, i), func(v reflect.Value) { cached[i] = v }) || filled
+			filled = fillDefaultFieldInternal(etyp, fval.Index(i), fieldTag, fmt.Sprintf("(%s)[%d]", fieldName, i), func(v reflect.Value) { cached[i] = v }) || filled
 		}
 		if len(cached) > 0 {
 			newArray := reflect.New(ftyp).Elem()
@@ -243,29 +285,32 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 					newArray.Index(i).Set(newVal)
 				}
 			}
-			setMapValue(newArray) // <<<
+			setMapItem(newArray) // <<< replace the whole array to map item
 		}
 		return filled
 	case k == reflect.Ptr:
+		etyp := ftyp.Elem()
 		if !fval.IsNil() {
-			return fillDefaultFieldInternal(ftyp.Elem(), fval.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
+			return fillDefaultFieldInternal(etyp, fval.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
 		}
-		newVal := reflect.New(ftyp.Elem())
-		filled := fillDefaultFieldInternal(ftyp.Elem(), newVal.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
+		newVal := reflect.New(etyp)
+		filled := fillDefaultFieldInternal(etyp, newVal.Elem(), fieldTag, fmt.Sprintf("*(%s)", fieldName), nil)
 		if filled {
 			if fval.CanSet() {
 				fval.Set(newVal)
-			} else if !fval.CanSet() {
-				setMapValue(newVal) // <<<
+			} else {
+				setMapItem(newVal) // <<< replace the whole pointer to map item for values those cannot be set directly
 			}
 		}
 		return filled
 	case k == reflect.Map:
 		filled := false
+		etyp := ftyp.Elem()
 		for _, key := range fval.MapKeys() {
 			key := key
-			filled = fillDefaultFieldInternal(ftyp.Elem(), fval.MapIndex(key), fieldTag, fmt.Sprintf("(%s)[\"%s\"]", fieldName, key.String()), func(v reflect.Value) {
-				fval.SetMapIndex(key, v) // non-pointer values got from map by index directly can not be addressed !!!
+			filled = fillDefaultFieldInternal(etyp, fval.MapIndex(key), fieldTag, fmt.Sprintf("(%s)[\"%s\"]", fieldName, key.String()), func(v reflect.Value) {
+				fval.SetMapIndex(key, v)
+				// non-reference values (or items) got from map by index directly can not be addressed (or be written) !!!
 			}) || filled
 		}
 		return filled
@@ -287,14 +332,14 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 					newStruct.Field(i).Set(newVal)
 				}
 			}
-			setMapValue(newStruct) // <<<
+			setMapItem(newStruct) // <<< replace the while struct to map item
 		}
 		return filled
 
 	default:
 		// =================
 		// set default value to int / uint / float / bool / complex / string kinds of values
-		defaul, ok := fieldTag.Lookup("default")
+		defaul, ok := fieldTag.Lookup(_defaultTag)
 		if !ok {
 			return false
 		}
@@ -309,7 +354,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else { // must be in a map
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetInt(i)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		case IsUintKind(k) && fval.Uint() == 0:
@@ -322,7 +367,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else {
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetUint(u)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		case IsFloatKind(k) && math.Float64bits(fval.Float()) == 0:
@@ -335,7 +380,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else {
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetFloat(f)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		case IsComplexKind(k) && math.Float64bits(real(fval.Complex())) == 0 && math.Float64bits(imag(fval.Complex())) == 0:
@@ -348,7 +393,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else {
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetComplex(c)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		case k == reflect.Bool && fval.Bool() == false:
@@ -358,7 +403,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else {
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetBool(b)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		case k == reflect.String && len(fval.String()) == 0:
@@ -367,7 +412,7 @@ func fillDefaultFieldInternal(ftyp reflect.Type, fval reflect.Value, fieldTag re
 			} else {
 				newVal := reflect.New(ftyp).Elem()
 				newVal.SetString(defaul)
-				setMapValue(newVal)
+				setMapItem(newVal)
 			}
 			return true
 		default:

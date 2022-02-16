@@ -40,6 +40,7 @@
 + `func GetMapB(m interface{}) uint8`
 + `func GetMapBuckets(m interface{}) (uint8, uint64)`
 + `func FillDefaultFields(s interface{}) (bool, error)`
++ `func SetDefaultTagName(tag string)`
 + `func SmpvalOf(i interface{}) (*Smpval, bool, reflect.Value)`
 + `func SmplenOf(i interface{}) (*Smplen, bool, reflect.Value)`
 

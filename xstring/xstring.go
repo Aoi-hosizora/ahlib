@@ -231,10 +231,10 @@ func KebabCase(s string, extraSeps ...string) string {
 // uuid and rand related
 // =====================
 
-// TimeUUID creates a uuid from given time. If the count is larger than 23, the remaining bits will be filled by rand numbers.
-func TimeUUID(t time.Time, count int) string {
-	layoutWithNanosecond := "20060102150405.000000000"
-	uuid := t.Format(layoutWithNanosecond)
+// TimeID creates an id from given time. If the count is larger than 23, the remaining bits will be filled by rand numbers.
+func TimeID(t time.Time, count int) string {
+	layoutWithNano := "20060102150405.000000000"
+	uuid := t.Format(layoutWithNano)
 	uuid = uuid[:14] + uuid[15:]
 	l := len(uuid) // 23
 
@@ -244,9 +244,13 @@ func TimeUUID(t time.Time, count int) string {
 	return uuid + RandNumberString(count-l)
 }
 
+func init() {
+	// for RandString
+	rand.Seed(time.Now().UnixNano())
+}
+
 // RandString generates a string by given rune slice in random order.
 func RandString(count int, runes []rune) string {
-	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, count)
 	for i := range b {
 		b[i] = runes[rand.Intn(len(runes))]
@@ -336,30 +340,26 @@ var (
 	utf8ReplacementBytes = []byte{0xEF, 0xBF, 0xBD}
 )
 
-// TrimUTF8Bom trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a string.
-// Please visi https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and
-// https://www.compart.com/en/unicode/U+FEFF for details.
+// TrimUTF8Bom trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a string. Please visit
+// https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
 func TrimUTF8Bom(s string) string {
 	return strings.TrimPrefix(s, utf8BomString)
 }
 
-// TrimUTF8BomBytes trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a bytes.
-// Please visit https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and
-// https://www.compart.com/en/unicode/U+FEFF for details.
+// TrimUTF8BomBytes trims BOM (byte order mark, U+FEFF, that is 0xEF 0xBB 0xBF in UTF-8) from a bytes. Please visit
+// https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding and https://www.compart.com/en/unicode/U+FEFF for details.
 func TrimUTF8BomBytes(bs []byte) []byte {
 	return bytes.TrimPrefix(bs, utf8BomBytes)
 }
 
-// TrimUTF8Replacement trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a string.
-// Please visi https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and
-// https://www.compart.com/en/unicode/U+FFFD for details.
+// TrimUTF8Replacement trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a string. Please visit
+// https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
 func TrimUTF8Replacement(s string) string {
 	return strings.TrimPrefix(s, utf8ReplacementString)
 }
 
-// TrimUTF8ReplacementBytes trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a bytes.
-// Please visi https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and
-// https://www.compart.com/en/unicode/U+FFFD for details.
+// TrimUTF8ReplacementBytes trims replacement character (�, U+FFFD, that is 0xEF 0xBF 0xBD in UTF-8) from a bytes. Please visit
+// https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character and https://www.compart.com/en/unicode/U+FFFD for details.
 func TrimUTF8ReplacementBytes(bs []byte) []byte {
 	return bytes.TrimPrefix(bs, utf8ReplacementBytes)
 }
@@ -446,7 +446,7 @@ func GetRight(s string, length int) string {
 	return sb.String()
 }
 
-// GetOrPadLeft gets the left part of given string, or pad the given string by given rune to left, if `length` exceeds the length of given string, this
+// GetOrPadLeft gets the left part of given string, or pad given string by given rune to left, if `length` exceeds the length of given string, this
 // function does pad, otherwise does get.
 func GetOrPadLeft(s string, length int, pad rune) string {
 	strLength := 0
@@ -462,7 +462,7 @@ func GetOrPadLeft(s string, length int, pad rune) string {
 	return PadLeft(s, pad, length)
 }
 
-// GetOrPadRight gets the right part of the given string, or pad the given string by given rune to right, if `length` exceeds the length of given string, this
+// GetOrPadRight gets the right part of given string, or pad given string by given rune to right, if `length` exceeds the length of given string, this
 // function does pad, otherwise does get.
 func GetOrPadRight(s string, length int, pad rune) string {
 	strLength := 0

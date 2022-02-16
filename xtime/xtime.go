@@ -85,7 +85,7 @@ func ToDateTimeNS(t time.Time) time.Time {
 // location & timezone
 // ===================
 
-// LocationDuration returns a time.Duration that equals to the duration for the given time.Location.
+// LocationDuration returns a time.Duration that equals to the duration for given time.Location.
 func LocationDuration(loc *time.Location) time.Duration {
 	t := time.Date(2020, time.Month(10), 1, 0, 0, 0, 0, loc)
 	tUtc := t.In(time.UTC)
@@ -136,8 +136,8 @@ func ParseTimezone(timezone string) (*time.Location, error) {
 	return time.FixedZone(name, offset), nil
 }
 
-// TruncateTime returns the result of rounding t down to a multiple of duration (since the zero time). Note that if the given time.Time is
-// not in time.UTC, time.Time.Truncate method will return a wrong result, so in this case please use xtime.TruncateTime.
+// TruncateTime returns the result of rounding t down to a multiple of duration (since the zero time). Note that if given time.Time is not in
+// time.UTC, time.Time.Truncate method will return a wrong result, so in this case please use xtime.TruncateTime.
 func TruncateTime(t time.Time, du time.Duration) time.Time {
 	if t.Location() == time.UTC {
 		return t.Truncate(du)
@@ -250,7 +250,7 @@ type Clock interface {
 	Now() time.Time
 }
 
-// clockFn is an unexported type that implements Clock interface.
+// clockFn is an unexported type that implements Clock interface, see UTC and Local.
 type clockFn func() time.Time
 
 // Now implements the Clock interface.
@@ -261,10 +261,10 @@ func (c clockFn) Now() time.Time {
 var _ Clock = (*clockFn)(nil)
 
 var (
-	// UTC is an object satisfying the Clock interface, which returns the current time in UTC.
+	// UTC is a function that satisfies the Clock interface, which returns the current time in UTC timezone.
 	UTC Clock = clockFn(func() time.Time { return time.Now().UTC() })
 
-	// Local is an object satisfying the Clock interface, which returns the current time in the local timezone.
+	// Local is a function that satisfies the Clock interface, which returns the current time in local timezone.
 	Local Clock = clockFn(time.Now)
 )
 

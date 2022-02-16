@@ -35,11 +35,15 @@ func defaultEqualler[T comparable]() Equaller[T] {
 	}
 }
 
+func init() {
+	// fore ShuffleSelf
+	rand.Seed(time.Now().UnixNano())
+}
+
 // func ShuffleSelf[A ~[]T, T any](slice A)
 
 // ShuffleSelf shuffles the []T slice directly.
 func ShuffleSelf[T any](slice []T) {
-	rand.Seed(time.Now().UnixNano())
 	for i := len(slice) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		slice[i], slice[j] = slice[j], slice[i]

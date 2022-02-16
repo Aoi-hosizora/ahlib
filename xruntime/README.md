@@ -28,7 +28,7 @@
 
 + `func RawStack(all bool) []byte`
 + `func RuntimeTraceStack(skip int) TraceStack`
-+ `func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string)`
++ `func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcName string, lineIndex int, lineText string)`
 + `func SignalName(sig syscall.Signal) string`
 + `func SignalReadableName(sig syscall.Signal) string`
 

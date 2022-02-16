@@ -247,8 +247,8 @@ func (s *Smplen) Flag() Smpflag {
 	return s.flag
 }
 
-// SmpvalOf gets the Smpval from the given value, returns false when using nil or unsupported type. Note that reflect.ValueOf can also
-// be used, but it will panic frequently if used in a bed manner.
+// SmpvalOf gets the Smpval from given value, returns false when using nil or unsupported type. Note that reflect.ValueOf can also be
+// used, but it will panic frequently if used in a bed manner.
 //
 // Support types:
 // 	1. numeric:     int, intX, uint, uintX, floatX, complexX, bool.

@@ -1,8 +1,11 @@
+//go:build go1.18
+// +build go1.18
+
 package xmap
 
 import (
-	"constraints"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xgeneric/xsugar"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
 	"path"
 	"reflect"
@@ -15,25 +18,35 @@ import (
 func TestKeysValues(t *testing.T) {
 	xtestingEqual(t, Keys(map[int]uint{}), []int{})
 	xtestingEqual(t, Values(map[int]uint{}), []uint{})
+	xtestingEqual(t, KeyValues(map[int]uint{}), []xtuple.Tuple[int, uint]{})
 	xtestingEqual(t, Keys(map[int]uint{1: 0}), []int{1})
 	xtestingEqual(t, Values(map[int]uint{0: 1}), []uint{1})
+	xtestingEqual(t, KeyValues(map[int]uint{0: 1}), []xtuple.Tuple[int, uint]{{0, 1}})
 	xtestingEqual(t, sorted(Keys(map[string]int{"a": 1, "b": 2, "c": 3})), []string{"a", "b", "c"})
 	xtestingEqual(t, sorted(Values(map[string]int{"a": 1, "b": 2, "c": 3})), []int{1, 2, 3})
+	xtestingEqual(t, sorted2[string, int, xtuple.Tuple[string, int]](KeyValues(map[string]int{"a": 1, "b": 2, "c": 3})), []xtuple.Tuple[string, int]{{"a", 1}, {"b", 2}, {"c", 3}})
 	xtestingEqual(t, sorted(Keys(map[string][]string{"Authorization": {"Token"}, "X": {"!", "@"}})), []string{"Authorization", "X"})
-	xtestingEqual(t, Values(map[string][]string{"Authorization": {"Token"}, "X": {"!", "@"}}), [][]string{{"Token"}, {"!", "@"}})
+	xtestingEqual(t, sorted2[string, []string, []string](Values(map[string][]string{"Authorization": {"Token"}, "X": {"!", "@"}})), [][]string{{"!", "@"}, {"Token"}})
+	xtestingEqual(t, sorted2[string, []string, xtuple.Tuple[string, []string]](KeyValues(map[string][]string{"Authorization": {"Token"}, "X": {"!", "@"}})), []xtuple.Tuple[string, []string]{{"Authorization", []string{"Token"}}, {"X", []string{"!", "@"}}})
 	xtestingEqual(t, sorted(Keys(map[uint32]float64{1: 0.1, 2: 0.2, 3: 0.3, 4: 0.4})), []uint32{1, 2, 3, 4})
 	xtestingEqual(t, sorted(Values(map[uint32]float64{1: 0.1, 2: 0.2, 3: 0.3, 4: 0.4})), []float64{0.1, 0.2, 0.3, 0.4})
+	xtestingEqual(t, sorted2[uint32, float64, xtuple.Tuple[uint32, float64]](KeyValues(map[uint32]float64{1: 0.1, 2: 0.2, 3: 0.3, 4: 0.4})), []xtuple.Tuple[uint32, float64]{{1, 0.1}, {2, 0.2}, {3, 0.3}, {4, 0.4}})
 
 	xtestingPanic(t, func() { FromKeys[bool, bool]([]bool{}, nil) }, true)
 	xtestingPanic(t, func() { FromValues[bool, bool]([]bool{}, nil) }, true)
+	xtestingPanic(t, func() { FromKeyValues([]xtuple.Tuple[bool, bool]{}) }, false)
 	xtestingEqual(t, FromKeys([]int{}, func(i int, t int) uint { return uint(i) }), map[int]uint{})
 	xtestingEqual(t, FromValues([]uint{}, func(i int, t uint) int { return i }), map[int]uint{})
+	xtestingEqual(t, FromKeyValues([]xtuple.Tuple[int, uint]{}), map[int]uint{})
 	xtestingEqual(t, FromKeys([]int{1}, func(i int, t int) uint { return uint(i) }), map[int]uint{1: 0})
 	xtestingEqual(t, FromValues([]uint{1}, func(i int, t uint) int { return i }), map[int]uint{0: 1})
+	xtestingEqual(t, FromKeyValues([]xtuple.Tuple[int, uint]{{0, 1}}), map[int]uint{0: 1})
 	xtestingEqual(t, FromKeys([]string{"a", "b", "c"}, func(i int, t string) int { return i + 1 }), map[string]int{"a": 1, "b": 2, "c": 3})
 	xtestingEqual(t, FromValues([]int{1, 2, 3}, func(i int, t int) byte { return byte(i) + 'a' }), map[byte]int{'a': 1, 'b': 2, 'c': 3})
+	xtestingEqual(t, FromKeyValues([]xtuple.Tuple[byte, int]{{'a', 1}, {'b', 2}, {'c', 3}}), map[byte]int{'a': 1, 'b': 2, 'c': 3})
 	xtestingEqual(t, FromKeys([]string{"!", "@", "#", "$", "%"}, func(i int, k string) bool { return false }), map[string]bool{"!": false, "@": false, "#": false, "$": false, "%": false})
 	xtestingEqual(t, FromValues([]string{"!", "@", "#", "$", "%"}, func(i int, k string) int { return i }), map[int]string{0: "!", 1: "@", 2: "#", 3: "$", 4: "%"})
+	xtestingEqual(t, FromKeyValues([]xtuple.Tuple[int, string]{{0, "!"}, {1, "@"}, {2, "#"}, {3, "$"}, {4, "%"}}), map[int]string{0: "!", 1: "@", 2: "#", 3: "$", 4: "%"})
 }
 
 func TestForeach(t *testing.T) {
@@ -127,8 +140,22 @@ func TestFilterAnyAll(t *testing.T) {
 	xtestingEqual(t, All(map[uint]string{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return t == 2 || len(t2) >= 2 }), true)
 }
 
-func sorted[T constraints.Ordered](slice []T) []T {
+func sorted[T xsugar.Ordered](slice []T) []T {
 	sort.Slice(slice, func(i, j int) bool { return slice[i] < slice[j] })
+	return slice
+}
+
+func sorted2[K xsugar.Ordered, V any, T []string | xtuple.Tuple[K, V]](slice []T) []T {
+	sort.Slice(slice, func(i, j int) bool {
+		var t T
+		switch (interface{})(t).(type) {
+		case []string:
+			return (interface{})(slice[i]).([]string)[0] < (interface{})(slice[j]).([]string)[0]
+		case xtuple.Tuple[K, V]:
+			return (interface{})(slice[i]).(xtuple.Tuple[K, V]).Item1 < (interface{})(slice[j]).(xtuple.Tuple[K, V]).Item1
+		}
+		return false
+	})
 	return slice
 }
 

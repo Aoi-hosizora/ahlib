@@ -33,7 +33,7 @@
 + `func CamelCase(s string, extraSeps ...string) string`
 + `func SnakeCase(s string, extraSeps ...string) string`
 + `func KebabCase(s string, extraSeps ...string) string`
-+ `func TimeUUID(t time.Time, count int) string`
++ `func TimeID(t time.Time, count int) string`
 + `func RandString(count int, runes []rune) string`
 + `func RandCapitalLetterString(count int) string`
 + `func RandLowercaseLetterString(count int) string`
@@ -60,6 +60,8 @@
 + `func Bool(b bool, t, f string) string`
 + `func MaskToken(s string, mask rune, indices ...int) string`
 + `func MaskTokenR(s string, mask rune, indices ...int) string`
++ `func StringMaskToken(s string, mask string, indices ...int) string`
++ `func StringMaskTokenR(s string, mask string, indices ...int) string`
 + `func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string) string`
 + `func SplitAndGet(s string, sep string, index int) string`
 + `func StringSliceToMap(args []string) map[string]string`

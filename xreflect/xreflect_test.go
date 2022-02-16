@@ -12,6 +12,31 @@ import (
 )
 
 func TestUnexportedField(t *testing.T) {
+	t.Run("trying", func(t *testing.T) {
+		type testStruct struct {
+			unexportedField int
+		}
+		aaa := &testStruct{unexportedField: 2}
+
+		// get or set on field's reflect.Value directly
+		fieldValue := reflect.ValueOf(aaa).Elem().FieldByName("unexportedField")
+		xtesting.Panic(t, func() {
+			// reflect.Value.Interface: cannot return value obtained from unexported field or method
+			_ = fieldValue.Interface()
+		})
+		xtesting.Panic(t, func() {
+			// reflect: reflect.Value.Set using value obtained using unexported field
+			fieldValue.Set(reflect.ValueOf(3))
+		})
+		xtesting.Equal(t, aaa.unexportedField, 2)
+
+		// get or set on field's new reflect.Value (use NewAt and Elem to get the right reflect.Value)
+		newFieldValue := reflect.NewAt(fieldValue.Type(), unsafe.Pointer(fieldValue.UnsafeAddr())).Elem()
+		xtesting.NotPanic(t, func() { _ = newFieldValue.Interface() })
+		xtesting.NotPanic(t, func() { newFieldValue.Set(reflect.ValueOf(3)) })
+		xtesting.Equal(t, aaa.unexportedField, 3)
+	})
+
 	type testStruct struct {
 		a string
 		b int64
@@ -300,6 +325,13 @@ func TestFillDefaultFields(t *testing.T) {
 	})
 
 	// 2. types
+	xtesting.Equal(t, _defaultTag, "default")
+	SetDefaultTagName("") // dummy
+	xtesting.Equal(t, _defaultTag, "default")
+	SetDefaultTagName("x")
+	xtesting.Equal(t, _defaultTag, "x")
+	SetDefaultTagName("default")
+	xtesting.Equal(t, _defaultTag, "default")
 	type struct1 struct {
 		i1 int
 		i2 int `default:"1"`

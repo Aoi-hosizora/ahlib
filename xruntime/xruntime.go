@@ -66,10 +66,11 @@ type TraceFrame struct {
 // String returns the formatted TraceFrame.
 //
 // The returned value is just like:
-// 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+// 	File: .../xruntime/xruntime_test.go:100
+// 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
-	return fmt.Sprintf("%s:%d %s\n\t%s", t.Filename, t.LineIndex, t.FuncFullName, t.LineText)
+	return fmt.Sprintf("File: %s:%d\nFunc: %s\n\t%s", t.Filename, t.LineIndex, t.FuncFullName, t.LineText)
 }
 
 // TraceStack represents the runtime trace stack, consists of some TraceFrame, also see RuntimeTraceStack.
@@ -78,13 +79,17 @@ type TraceStack []*TraceFrame
 // String returns the formatted TraceStack.
 //
 // The returned value is just like:
-// 	.../xruntime/xruntime_test.go:99 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
+// 	File: .../xruntime/xruntime_test.go:100
+// 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
-// 	.../xruntime/xruntime_test.go:101 github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
+// 	File: .../xruntime/xruntime_test.go:102
+// 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 // 		}()
-// 	.../src/testing/testing.go:1259 testing.tRunner
+// 	File: D:/Development/Go/src/testing/testing.go:1439
+// 	Func: testing.tRunner
 // 		fn(t)
-// .../src/runtime/asm_amd64.s:1581 runtime.goexit
+// 	File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+// 	Func: runtime.goexit
 // 		BYTE	$0x90	// NOP
 func (t TraceStack) String() string {
 	l := len(t)
@@ -98,7 +103,7 @@ func (t TraceStack) String() string {
 	return sb.String()
 }
 
-// RuntimeTraceStack returns TraceStack (a slice of TraceFrame) from runtime.Caller using the given skip (0 identifying the caller of RuntimeTraceStack).
+// RuntimeTraceStack returns TraceStack (a slice of TraceFrame) from runtime.Caller using given skip (0 identifying the caller of RuntimeTraceStack).
 func RuntimeTraceStack(skip uint) TraceStack {
 	frames := make([]*TraceFrame, 0)
 	for i := skip + 1; ; i++ {
@@ -131,8 +136,8 @@ func RuntimeTraceStack(skip uint) TraceStack {
 	return frames
 }
 
-// RuntimeTraceStackWithInfo returns TraceStack (a slice of TraceFrame) from runtime.Caller using the given skip, with some information of the first TraceFrame's.
-func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, funcname string, lineIndex int, lineText string) {
+// RuntimeTraceStackWithInfo returns TraceStack (a slice of TraceFrame) from runtime.Caller using given skip, with some information of the first TraceFrame's.
+func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, funcName string, lineIndex int, lineText string) {
 	stack = RuntimeTraceStack(skip + 1)
 	if len(stack) == 0 {
 		return []*TraceFrame{}, "", "", 0, ""

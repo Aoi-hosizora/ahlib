@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 	"unicode"
@@ -289,7 +290,7 @@ func TestXXXCase(t *testing.T) {
 // showFn represents if tests need to show shuffle and random result.
 var showFn = func() bool { return false }
 
-func TestTimeUUID(t *testing.T) {
+func TestTimeID(t *testing.T) {
 	zero := time.Time{}
 	now := time.Date(2021, time.Month(1), 18, 15, 07, 25, 123456789, time.UTC)
 	for _, tc := range []struct {
@@ -309,7 +310,7 @@ func TestTimeUUID(t *testing.T) {
 		{now, 30, "20210118150725123456789"}, // 25
 		{now, 38, "20210118150725123456789"},
 	} {
-		uuid := TimeUUID(tc.giveTime, tc.giveCount)
+		uuid := TimeID(tc.giveTime, tc.giveCount)
 		if tc.giveCount <= 23 {
 			xtesting.Equal(t, uuid, tc.want)
 		} else {
@@ -318,9 +319,9 @@ func TestTimeUUID(t *testing.T) {
 
 			for i := 0; i < 4; i++ {
 				time.Sleep(2 * time.Nanosecond)
-				uuid1 := TimeUUID(tc.giveTime, tc.giveCount)
+				uuid1 := TimeID(tc.giveTime, tc.giveCount)
 				time.Sleep(2 * time.Nanosecond)
-				uuid2 := TimeUUID(tc.giveTime, tc.giveCount)
+				uuid2 := TimeID(tc.giveTime, tc.giveCount)
 				xtesting.NotEqual(t, uuid1, uuid2)
 				if showFn() {
 					fmt.Println(uuid1, uuid2)
@@ -645,6 +646,8 @@ func TestMaskToken(t *testing.T) {
 	} {
 		xtesting.Equal(t, MaskToken(tc.giveString, '*', tc.giveIndices...), tc.want)
 		xtesting.Equal(t, MaskTokenR(tc.giveString, '*', tc.giveIndices...), tc.wantR)
+		xtesting.Equal(t, StringMaskToken(tc.giveString, "#$%", tc.giveIndices...), strings.ReplaceAll(tc.want, "*", "#$%"))
+		xtesting.Equal(t, StringMaskTokenR(tc.giveString, "#$%", tc.giveIndices...), strings.ReplaceAll(tc.wantR, "*", "#$%"))
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Bool returns given t if the given value is true, otherwise returns given f.
+// Bool returns given t if given value is true, otherwise returns given f.
 func Bool(b bool, t, f string) string {
 	if b {
 		return t
@@ -18,16 +18,26 @@ func Bool(b bool, t, f string) string {
 
 // MaskToken masks a token string and returns the result, using given mask rune and indices for mask characters, this function also supports minus index.
 func MaskToken(s string, mask rune, indices ...int) string {
-	return coreMaskToken(s, mask, true, indices...)
+	return coreMaskToken(s, string(mask), true, indices...)
 }
 
 // MaskTokenR masks a token string and returns the result, using given mask rune and indices for non-mask characters, this function also supports minus index,
 func MaskTokenR(s string, mask rune, indices ...int) string {
+	return coreMaskToken(s, string(mask), false, indices...)
+}
+
+// StringMaskToken masks a token string and returns the result, using given mask string and indices for mask characters, this function also supports minus index.
+func StringMaskToken(s string, mask string, indices ...int) string {
+	return coreMaskToken(s, mask, true, indices...)
+}
+
+// StringMaskTokenR masks a token string and returns the result, using given mask string and indices for non-mask characters, this function also supports minus index,
+func StringMaskTokenR(s string, mask string, indices ...int) string {
 	return coreMaskToken(s, mask, false, indices...)
 }
 
 // coreMaskToken is the core implementation of MaskToken and MaskTokenR.
-func coreMaskToken(s string, mask rune, toMask bool, indices ...int) string {
+func coreMaskToken(s string, mask string, toMask bool, indices ...int) string {
 	switch {
 	case len(s) == 0: // empty
 		return ""
@@ -35,14 +45,14 @@ func coreMaskToken(s string, mask rune, toMask bool, indices ...int) string {
 		if toMask {
 			return s
 		}
-		return strings.Repeat(string(mask), len(s))
+		return strings.Repeat(mask, len(s))
 	}
 
 	length := 0
 	for range s {
 		length++
 	}
-	newIndices := make(map[int]bool) // idx-true map
+	newIndices := make(map[int]struct{}) // idx map
 	idxs := make([]int, 0, len(indices))
 	for _, i := range indices {
 		if 0 <= i && i < length {
@@ -53,7 +63,7 @@ func coreMaskToken(s string, mask rune, toMask bool, indices ...int) string {
 	}
 	sort.Ints(idxs)
 	for _, index := range idxs {
-		newIndices[index] = true
+		newIndices[index] = struct{}{}
 	}
 
 	sb := strings.Builder{}
@@ -62,7 +72,7 @@ func coreMaskToken(s string, mask rune, toMask bool, indices ...int) string {
 	for i, ch := range s {
 		_, contains := newIndices[i]
 		if (toMask && contains) || (!toMask && !contains) {
-			sb.WriteRune(mask)
+			sb.WriteString(mask)
 		} else {
 			sb.WriteRune(ch)
 		}
@@ -80,6 +90,7 @@ func EncodeUrlValues(values map[string][]string, escapeFunc func(string) string)
 	sort.Strings(keys)
 
 	sb := strings.Builder{}
+	sb.Grow(len(values) * 4)
 	for _, k := range keys {
 		key := k
 		if escapeFunc != nil {
