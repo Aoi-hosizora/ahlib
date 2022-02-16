@@ -31,7 +31,7 @@ type Assigner interface {
 // ===========
 
 // MultiError is an interface representing error groups, types implement this interface can be returned by xerror.Combine or
-// github.com/uber-go/multierr.
+// several methods in github.com/uber-go/multierr package.
 type MultiError interface {
 	Errors() []error
 }
@@ -46,13 +46,13 @@ var (
 )
 
 // Errors implements MultiError interface.
-func (mer *multiError) Errors() []error {
-	return mer.errs // items are all non-nillable, if used in a safe manner
+func (m *multiError) Errors() []error {
+	return m.errs // items are all non-nillable, if used in a safe manner
 }
 
 // Is implements Matcher interface.
-func (mer *multiError) Is(target error) bool {
-	for _, err := range mer.errs {
+func (m *multiError) Is(target error) bool {
+	for _, err := range m.errs {
 		if errors.Is(err, target) {
 			return true
 		}
@@ -61,8 +61,8 @@ func (mer *multiError) Is(target error) bool {
 }
 
 // As implements Assigner interface.
-func (mer *multiError) As(target interface{}) bool {
-	for _, err := range mer.errs {
+func (m *multiError) As(target interface{}) bool {
+	for _, err := range m.errs {
 		if errors.As(err, target) {
 			return true
 		}
@@ -71,15 +71,15 @@ func (mer *multiError) As(target interface{}) bool {
 }
 
 // Error implements error interface.
-func (mer *multiError) Error() string {
-	switch len(mer.errs) {
+func (m *multiError) Error() string {
+	switch len(m.errs) {
 	case 0:
 		return ""
 	case 1:
-		return mer.errs[0].Error() // non-nillable
+		return m.errs[0].Error() // non-nillable
 	}
 	sb := strings.Builder{}
-	for _, err := range mer.errs {
+	for _, err := range m.errs {
 		if sb.Len() > 0 {
 			sb.WriteString("; ")
 		}
@@ -89,7 +89,7 @@ func (mer *multiError) Error() string {
 }
 
 // Combine combines given errors to a single error, there are some situations:
-// 1. If pass empty error, or all errors passed are nil, it will return a nil error.
+// 1. If pass empty errors, or all errors passed are nil, it will return a nil error.
 // 2. If pass a single non-nil error, it will return this single error directly.
 // 3. If more than one error passed are non-nil, it returns a MultiError containing all these non-nil errors.
 // 4. If some errors are MultiError, the internal errors contained will be flatted.
@@ -121,8 +121,8 @@ func Combine(errs ...error) error {
 	}
 }
 
-// Separate separates given error to multiple errors that the given error is composed of (that is MultiError). If the given
-// error is nil, a nil slice is returned.
+// Separate separates given error to multiple errors that given error is composed of (that is MultiError). If given error is nil,
+// a nil slice is returned.
 func Separate(err error) []error {
 	if err == nil {
 		return nil
@@ -157,13 +157,13 @@ type ErrorGroup struct {
 	goExecutor func(f func())
 }
 
-// WithCancel returns a new ErrorGroup with cancelable context derived from given context, and a default goroutine executor DefaultExecutor.
-func WithCancel(ctx context.Context) *ErrorGroup {
+// NewErrorGroup returns a new ErrorGroup with cancelable context derived from given context, and a default goroutine executor DefaultExecutor.
+func NewErrorGroup(ctx context.Context) *ErrorGroup {
 	ctx, cancel := context.WithCancel(ctx)
 	return &ErrorGroup{ctx: ctx, cancel: cancel, goExecutor: DefaultExecutor}
 }
 
-// DefaultExecutor is the default goroutine executor for ErrorGroup, including create goroutine by `go` and panic recovery.
+// DefaultExecutor is the default goroutine executor for ErrorGroup, including create goroutine by `go` keyword and panic recovery with no logging.
 var DefaultExecutor = func(f func()) {
 	go func() {
 		defer func() {
@@ -173,11 +173,11 @@ var DefaultExecutor = func(f func()) {
 	}()
 }
 
-// SetGoExecutor sets goroutine executor, can be used to change the behavior of go keyword, or add recover behavior for goroutine.
+// SetGoExecutor sets goroutine executor, can be used to change the behavior of `go` keyword, you can use this executor to add recover behavior for goroutine.
 //
 // Example:
 // 	// custom recover behavior
-// 	eg := WithCancel(context.Background())
+// 	eg := NewErrorGroup(context.Background())
 // 	eg.SetGoExecutor(func(f func()) {
 // 		go func() {
 // 			defer func() {
@@ -190,7 +190,7 @@ var DefaultExecutor = func(f func()) {
 // 	})
 //
 // 	// use goroutine pool
-// 	eg := WithCancel(context.Background)
+// 	eg := NewErrorGroup(context.Background())
 // 	gp := xgopool.New(runtime.NumCPU() * 10)
 // 	eg.SetGoExecutor(func(f func()) { gp.Go(f) })
 func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
@@ -201,13 +201,13 @@ func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
 	}
 }
 
-// Go calls the given function in a new goroutine (using GoExecutor). The first call to return a non-nil error cancels the group,
-// its error will be returned by Wait.
+// Go calls given function in a new goroutine using specific executor. The first call to return a non-nil error cancels the group, its
+// error will be returned by Wait.
 //
-// If using a zero ErrorGroup, ctx will be Background, otherwise it will be the context derived from given context passed to WithCancel.
+// If using a zero ErrorGroup, ctx will be Background, otherwise it will be the context derived from given context passed to NewErrorGroup.
 //
 // Example:
-// 	eg := WithCancel(context.Background())
+// 	eg := NewErrorGroup(context.Background())
 //
 // 	// use in cancelable http requesting
 // 	eg.Go(func(ctx context.Context) error {
@@ -242,7 +242,7 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 		eg.mu.Unlock()
 	}
 
-	// execute goroutine
+	// execute with goroutine
 	eg.wg.Add(1)
 	executor(func() {
 		defer eg.wg.Done()
@@ -254,7 +254,7 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 		err := f(ctx) // <<<
 		if err != nil {
 			eg.errOnce.Do(func() {
-				eg.err = err
+				eg.err = err // <<<
 				if eg.cancel != nil {
 					eg.cancel()
 				}

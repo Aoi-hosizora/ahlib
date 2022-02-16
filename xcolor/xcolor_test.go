@@ -124,10 +124,10 @@ func TestString(t *testing.T) {
 		xtesting.Equal(t, tc.give, tc.want)
 	}
 
-	Style.xxxCoder(0)
-	Color.xxxCoder(0)
-	Background.xxxCoder(0)
-	MixCode.xxxCoder(nil)
+	Style.unexportedXXX(0)
+	Color.unexportedXXX(0)
+	Background.unexportedXXX(0)
+	MixCode.unexportedXXX(nil)
 }
 
 func TestMixCode(t *testing.T) {

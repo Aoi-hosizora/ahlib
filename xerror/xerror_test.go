@@ -143,8 +143,8 @@ func TestErrorGroup(t *testing.T) {
 		xtesting.NotNil(t, eg.goExecutor)
 	})
 
-	t.Run("WithCancel", func(t *testing.T) {
-		eg := WithCancel(context.WithValue(context.Background(), "key", "value"))
+	t.Run("NewErrorGroup", func(t *testing.T) {
+		eg := NewErrorGroup(context.WithValue(context.Background(), "key", "value"))
 		eg.SetGoExecutor(DefaultExecutor)
 		// 1. test context and panic
 		xtesting.NotPanic(t, func() { eg.Go(nil) })
@@ -181,12 +181,12 @@ func TestErrorGroup(t *testing.T) {
 		}
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Millisecond*100)
 		defer cancel1()
-		eg = WithCancel(ctx1)
+		eg = NewErrorGroup(ctx1)
 		eg.Go(f)
 		xtesting.Equal(t, eg.Wait().Error(), "context deadline exceeded") // ctx.Done
 		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Millisecond*300)
 		defer cancel2()
-		eg = WithCancel(ctx2)
+		eg = NewErrorGroup(ctx2)
 		eg.Go(f)
 		xtesting.Nil(t, eg.Wait()) // time.After
 	})

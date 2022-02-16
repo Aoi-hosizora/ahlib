@@ -26,7 +26,7 @@
 
 + `func Combine(errs ...error) error`
 + `func Separate(err error) []error`
-+ `func WithCancel(ctx context.Context) *ErrorGroup`
++ `func NewErrorGroup(ctx context.Context) *ErrorGroup`
 
 ### Methods
 

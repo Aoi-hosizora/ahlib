@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-// checkSignedRange checks if the given signed integer from, to and step arguments is legal to represent a range, and also calculates the range slice capacity.
+// checkSignedRange checks if given signed integer from, to and step arguments is legal to represent a range, and also calculates the range slice capacity.
 func checkSignedRange(from, to, step int64) (capacity int, isLegal bool) {
 	if step > 0 && from < to {
 		return int(math.Ceil(float64(to-from) / float64(step))), true
@@ -14,7 +14,7 @@ func checkSignedRange(from, to, step int64) (capacity int, isLegal bool) {
 	return 0, false
 }
 
-// checkUnsignedRange checks if the given unsigned integer from, to and step arguments is legal to represent a range, and also calculates the range slice capacity.
+// checkUnsignedRange checks if given unsigned integer from, to and step arguments is legal to represent a range, and also calculates the range slice capacity.
 func checkUnsignedRange(from, to, step uint64, reversedStep bool) (capacity int, isLegal bool) {
 	if step != 0 && !reversedStep && from < to {
 		return int(math.Ceil(float64(to-from) / float64(step))), true
@@ -291,70 +291,70 @@ func Uint64Range(from, to, step uint64, reverseFlag ...bool) []uint64 {
 // reverse slice
 // =============
 
-// ReverseIntSlice reverses the given int slice directly.
+// ReverseIntSlice reverses given int slice directly.
 func ReverseIntSlice(s []int) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseInt8Slice reverses the given int8 slice directly.
+// ReverseInt8Slice reverses given int8 slice directly.
 func ReverseInt8Slice(s []int8) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseInt16Slice reverses the given int16 slice directly.
+// ReverseInt16Slice reverses given int16 slice directly.
 func ReverseInt16Slice(s []int16) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseInt32Slice reverses the given int32 slice directly.
+// ReverseInt32Slice reverses given int32 slice directly.
 func ReverseInt32Slice(s []int32) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseInt64Slice reverses the given int64 slice directly.
+// ReverseInt64Slice reverses given int64 slice directly.
 func ReverseInt64Slice(s []int64) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseUintSlice reverses the given uint slice directly.
+// ReverseUintSlice reverses given uint slice directly.
 func ReverseUintSlice(s []uint) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseUint8Slice reverses the given uint8 slice directly.
+// ReverseUint8Slice reverses given uint8 slice directly.
 func ReverseUint8Slice(s []uint8) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseUint16Slice reverses the given uint16 slice directly.
+// ReverseUint16Slice reverses given uint16 slice directly.
 func ReverseUint16Slice(s []uint16) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseUint32Slice reverses the given uint32 slice directly.
+// ReverseUint32Slice reverses given uint32 slice directly.
 func ReverseUint32Slice(s []uint32) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
 }
 
-// ReverseUint64Slice reverses the given uint64 slice directly.
+// ReverseUint64Slice reverses given uint64 slice directly.
 func ReverseUint64Slice(s []uint64) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]

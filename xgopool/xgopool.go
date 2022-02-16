@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 )
 
-// GoPool represents a simple goroutine pool with workers capacity, panic handler, worker pool, task pool and related fields.
+// GoPool represents a simple goroutine pool with workers capacity, panic handler, worker pool, task pool and task queue.
 type GoPool struct {
 	workersCap   int32
 	panicHandler func(context.Context, interface{})
@@ -33,12 +33,14 @@ func New(cap int32) *GoPool {
 		panic(panicNonPositiveCap)
 	}
 	return &GoPool{
-		workersCap:   cap,
-		panicHandler: func(ctx context.Context, i interface{}) { log.Printf("Warning: Panic with `%v`", i) },
-		workerPool:   &sync.Pool{New: func() interface{} { return &worker{} }},
-		workerMutex:  &sync.Mutex{},
-		taskPool:     &sync.Pool{New: func() interface{} { return &task{} }},
-		taskMutex:    &sync.Mutex{},
+		workersCap: cap,
+		panicHandler: func(ctx context.Context, i interface{}) {
+			log.Printf("xgopool warning: Goroutine panicked with `%v`", i)
+		},
+		workerPool:  &sync.Pool{New: func() interface{} { return &worker{} }},
+		workerMutex: &sync.Mutex{},
+		taskPool:    &sync.Pool{New: func() interface{} { return &task{} }},
+		taskMutex:   &sync.Mutex{},
 	}
 }
 
@@ -101,7 +103,7 @@ type task struct {
 	next *task
 }
 
-// getTask returns an empty task structure from task sync.Pool and sets the given parameters.
+// getTask returns an empty task structure from task sync.Pool and sets given parameters.
 func (g *GoPool) getTask(ctx context.Context, f func(context.Context)) *task {
 	t := g.taskPool.Get().(*task)
 	t.ctx = ctx
@@ -110,7 +112,7 @@ func (g *GoPool) getTask(ctx context.Context, f func(context.Context)) *task {
 	return t
 }
 
-// recycleTask empties the given task structure and recycles to task sync.Pool.
+// recycleTask empties given task structure and recycles to task sync.Pool.
 func (g *GoPool) recycleTask(t *task) {
 	t.ctx = nil
 	t.f = nil
@@ -118,7 +120,7 @@ func (g *GoPool) recycleTask(t *task) {
 	g.taskPool.Put(t)
 }
 
-// enqueueTask enqueues the given task to GoPool's task linked list.
+// enqueueTask enqueues given task to GoPool's task linked list.
 func (g *GoPool) enqueueTask(t *task) {
 	g.taskMutex.Lock()
 	defer g.taskMutex.Unlock()
@@ -163,7 +165,7 @@ func (g *GoPool) recycleWorker(w *worker) {
 // _testFlag is only used when testing the xgopool package, `true` value represents that now is testing.
 var _testFlag atomic.Value
 
-// start dequeues a task from the head of GoPool's task linked list, and invokes the given function with panic handler.
+// start dequeues a task from the head of GoPool's task linked list, and invokes given function with panic handler.
 func (w *worker) start(parent *GoPool) {
 	for {
 		t, ok := parent.dequeueTask() // numTasks--
@@ -172,17 +174,18 @@ func (w *worker) start(parent *GoPool) {
 		}
 		func() {
 			defer func() {
-				if err := recover(); err != nil {
-					if parent.panicHandler != nil {
-						parent.panicHandler(t.ctx, err)
-					} else if _testFlag.Load() == true {
-						// enter only when testing the xgopool package, needn't worry about the performance
+				if hdl := parent.panicHandler; hdl != nil {
+					if i := recover(); i != nil {
+						hdl(t.ctx, i)
+					}
+				} else if _testFlag.Load() == true {
+					// enter only when testing the xgopool package, needn't worry about the performance
+					if i := recover(); i != nil {
 						defer func() {
-							log.Printf("Panic when testing: `%v`", recover())
+							log.Printf("Panic when testing: `%v`", i)
 							_testFlag.Store(false)
 						}()
 					}
-					panic(err)
 				}
 			}()
 			t.f(t.ctx)

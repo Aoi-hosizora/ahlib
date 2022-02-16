@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// Tuple represents a tuple, or 2-pair data structure.
+// Tuple represents a tuple, or 2 items pair.
 type Tuple[T1, T2 any] struct {
 	Item1 T1
 	Item2 T2
@@ -28,7 +28,7 @@ func (t Tuple[T1, T2]) String() string {
 	return fmt.Sprintf("[%v, %v]", t.Item1, t.Item2)
 }
 
-// Triple represents a triple, or 3-pair data structure.
+// Triple represents a triple, or 3 items pair.
 type Triple[T1, T2, T3 any] struct {
 	Item1 T1
 	Item2 T2
@@ -50,7 +50,7 @@ func (t Triple[T1, T2, T3]) String() string {
 	return fmt.Sprintf("[%v, %v, %v]", t.Item1, t.Item2, t.Item3)
 }
 
-// Quadruple represents a quadruple, or 4-pair data structure.
+// Quadruple represents a quadruple, or 4 items pair.
 type Quadruple[T1, T2, T3, T4 any] struct {
 	Item1 T1
 	Item2 T2
@@ -73,7 +73,7 @@ func (t Quadruple[T1, T2, T3, T4]) String() string {
 	return fmt.Sprintf("[%v, %v, %v, %v]", t.Item1, t.Item2, t.Item3, t.Item4)
 }
 
-// Quintuple represents a quintuple, or 5-pair data structure.
+// Quintuple represents a quintuple, or 5 items pair.
 type Quintuple[T1, T2, T3, T4, T5 any] struct {
 	Item1 T1
 	Item2 T2
@@ -97,7 +97,7 @@ func (t Quintuple[T1, T2, T3, T4, T5]) String() string {
 	return fmt.Sprintf("[%v, %v, %v, %v, %v]", t.Item1, t.Item2, t.Item3, t.Item4, t.Item5)
 }
 
-// Sextuple represents a sextuple, or 6-pair data structure.
+// Sextuple represents a sextuple, or 6 items pair.
 type Sextuple[T1, T2, T3, T4, T5, T6 any] struct {
 	Item1 T1
 	Item2 T2
@@ -122,7 +122,7 @@ func (t Sextuple[T1, T2, T3, T4, T5, T6]) String() string {
 	return fmt.Sprintf("[%v, %v, %v, %v, %v, %v]", t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6)
 }
 
-// Septuple represents a septuple, or 7-pair data structure.
+// Septuple represents a septuple, or 7 items pair.
 type Septuple[T1, T2, T3, T4, T5, T6, T7 any] struct {
 	Item1 T1
 	Item2 T2

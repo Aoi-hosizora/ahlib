@@ -2,7 +2,8 @@
 
 ## Dependencies
 
-+ xtuple
++ xgeneric/xsugar
++ xgeneric/xtuple
 
 ## Documents
 

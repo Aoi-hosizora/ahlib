@@ -4,7 +4,7 @@
 package xslice
 
 import (
-	"constraints"
+	"github.com/Aoi-hosizora/ahlib/xgeneric/xsugar"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
 	"math/rand"
 	"sort"
@@ -22,7 +22,7 @@ type Equaller[T any] func(i, j T) bool
 type Lesser[T any] func(i, j T) bool
 
 // defaultLesser represents a default Equaller, it just checks order by `<` with constraints.Ordered.
-func defaultLesser[T constraints.Ordered]() Lesser[T] {
+func defaultLesser[T xsugar.Ordered]() Lesser[T] {
 	return func(i, j T) bool {
 		return i < j
 	}
@@ -70,12 +70,12 @@ func Reverse[T any](slice []T) []T {
 }
 
 // SortSelf sorts the []T slice directly.
-func SortSelf[T constraints.Ordered](slice []T) {
+func SortSelf[T xsugar.Ordered](slice []T) {
 	SortSelfWith(slice, defaultLesser[T]())
 }
 
 // Sort sorts the []T slice directly and returns the result.
-func Sort[T constraints.Ordered](slice []T) []T {
+func Sort[T xsugar.Ordered](slice []T) []T {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	SortSelf(out)
@@ -98,12 +98,12 @@ func SortWith[T any](slice []T, less Lesser[T]) []T {
 }
 
 // StableSortSelf sorts the []T slice in stable directly.
-func StableSortSelf[T constraints.Ordered](slice []T) {
+func StableSortSelf[T xsugar.Ordered](slice []T) {
 	StableSortSelfWith(slice, defaultLesser[T]())
 }
 
 // StableSort sorts the []T slice in stable directly and returns the result.
-func StableSort[T constraints.Ordered](slice []T) []T {
+func StableSort[T xsugar.Ordered](slice []T) []T {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	StableSortSelf(out)
@@ -342,9 +342,9 @@ func Repeat[T any](value T, count uint) []T {
 	return out
 }
 
-// ================
-// functional style
-// ================
+// ==================
+// fp-style functions
+// ==================
 
 const (
 	panicNilEachFunc      = "xslice: nil each function"

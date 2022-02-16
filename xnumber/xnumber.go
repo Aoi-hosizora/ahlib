@@ -3,7 +3,6 @@ package xnumber
 import (
 	"fmt"
 	"math"
-	_ "runtime"
 	_ "unsafe"
 )
 
@@ -106,32 +105,32 @@ func FormatByteSize(bytes float64) string {
 		return s
 	}
 
-	// 1 - 1023B
+	// [1B, 1024B)
 	b := bytes
 	if LessInAccuracy(b, divisor) {
 		return ret(fmt.Sprintf("%dB", int(b)))
 	}
-	// 1 - 1023K
+	// [1M, 1024K)
 	kb := b / divisor
 	if LessInAccuracy(kb, divisor) {
 		return ret(fmt.Sprintf("%.2fKB", kb))
 	}
-	// 1 - 1023M
+	// [1M, 1024M)
 	mb := kb / divisor
 	if LessInAccuracy(mb, divisor) {
 		return ret(fmt.Sprintf("%.2fMB", mb))
 	}
-	// 1 - 1023G
+	// [1G, 1024G)
 	gb := mb / divisor
 	if LessInAccuracy(gb, divisor) {
 		return ret(fmt.Sprintf("%.2fGB", gb))
 	}
-	// 1T -
+	// [1T, \inf)
 	tb := gb / divisor
 	return ret(fmt.Sprintf("%.2fTB", tb))
 }
 
-// Bool returns 1 if the given value is true, otherwise returns 0.
+// Bool returns 1 if given value is true, otherwise returns 0.
 func Bool(b bool) int {
 	if b {
 		return 1
@@ -167,7 +166,7 @@ func FastrandInt64() int64 {
 	return int64(FastrandUint64() & (1<<63 - 1))
 }
 
-// IsPowerOfTwo checks whether the given integer is power of two.
+// IsPowerOfTwo checks whether given integer is power of two.
 func IsPowerOfTwo(x int) bool {
 	return (x & (-x)) == x
 }

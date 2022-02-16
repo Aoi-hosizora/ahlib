@@ -6,7 +6,8 @@ import (
 	"sync"
 )
 
-// InitTerminal initializes the given io.Writer to support ANSI escape code. Notice that io.Writer must be an os.File.
+// InitTerminal initializes given io.Writer in order to support ANSI escape code. Note that this function does something only when
+// given io.Writer is os.File and the current operating system is Windows.
 func InitTerminal(out io.Writer) bool {
 	return checkTerminal(out)
 }
