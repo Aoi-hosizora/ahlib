@@ -5,18 +5,29 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
 
-func TestModuleName(t *testing.T) {
+func TestSimpleTypes(t *testing.T) {
 	xtesting.Equal(t, ModuleName("").String(), "")
 	xtesting.Equal(t, ModuleName("-").String(), "-")
 	xtesting.Equal(t, ModuleName("~").String(), "~")
 	xtesting.Equal(t, ModuleName("test").String(), "test")
+
+	xtesting.Equal(t, nameKey("").String(), "<invalid>")
+	xtesting.Equal(t, nameKey("-").String(), "-")
+	xtesting.Equal(t, nameKey("~").String(), "~")
+	xtesting.Equal(t, nameKey("name").String(), "name")
+
+	xtesting.Equal(t, typeKey(nil).String(), "<invalid>")
+	xtesting.Equal(t, typeKey(reflect.TypeOf("s")).String(), "string")
+	xtesting.Equal(t, typeKey(reflect.TypeOf(&strconv.NumError{})).String(), "*strconv.NumError")
+	xtesting.Equal(t, typeKey(reflect.TypeOf(new(fmt.Stringer)).Elem()).String(), "fmt.Stringer")
 }
 
-func TestProvideName(t *testing.T) {
+func TestProvideByName(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
 	for _, tc := range []struct {
@@ -40,22 +51,23 @@ func TestProvideName(t *testing.T) {
 		{ModuleName("struct"), struct{ int }{1}, false, false},   // struct
 	} {
 		if tc.wantPanicP {
-			xtesting.Panic(t, func() { ProvideName(tc.giveName, tc.giveModule) })
+			xtesting.Panic(t, func() { ProvideByName(tc.giveName, tc.giveModule) })
 		}
 		if tc.wantPanicR {
 			xtesting.Panic(t, func() { RemoveByName(tc.giveName) })
 		}
 		if !tc.wantPanicP && !tc.wantPanicR {
-			ProvideName(tc.giveName, tc.giveModule)
-			xtesting.Equal(t, _mc.byName[tc.giveName], tc.giveModule)
-			RemoveByName(tc.giveName)
-			_, ok := _mc.byName[tc.giveName]
+			ProvideByName(tc.giveName, tc.giveModule)
+			xtesting.Equal(t, _mc.modules[nameKey(tc.giveName)], tc.giveModule)
+			xtesting.True(t, RemoveByName(tc.giveName))
+			_, ok := _mc.modules[nameKey(tc.giveName)]
 			xtesting.False(t, ok)
+			xtesting.False(t, RemoveByName(tc.giveName))
 		}
 	}
 }
 
-func TestProvideType(t *testing.T) {
+func TestProvideByType(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
 	for _, tc := range []struct {
@@ -75,22 +87,23 @@ func TestProvideType(t *testing.T) {
 		{struct{ int }{1}, false, false},    // struct
 	} {
 		if tc.wantPanicP {
-			xtesting.Panic(t, func() { ProvideType(tc.giveModule) })
+			xtesting.Panic(t, func() { ProvideByType(tc.giveModule) })
 		}
 		if tc.wantPanicR {
 			xtesting.Panic(t, func() { RemoveByType(tc.giveModule) })
 		}
 		if !tc.wantPanicP && !tc.wantPanicR {
-			ProvideType(tc.giveModule)
-			xtesting.Equal(t, _mc.byType[reflect.TypeOf(tc.giveModule)], tc.giveModule)
-			RemoveByType(tc.giveModule)
-			_, ok := _mc.byType[reflect.TypeOf(tc.giveModule)]
+			ProvideByType(tc.giveModule)
+			xtesting.Equal(t, _mc.modules[typeKey(reflect.TypeOf(tc.giveModule))], tc.giveModule)
+			xtesting.True(t, RemoveByType(tc.giveModule))
+			_, ok := _mc.modules[typeKey(reflect.TypeOf(tc.giveModule))]
 			xtesting.False(t, ok)
+			xtesting.False(t, RemoveByType(tc.giveModule))
 		}
 	}
 }
 
-func TestProvideImpl(t *testing.T) {
+func TestProvideByIntf(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
 	for _, tc := range []struct {
@@ -108,17 +121,18 @@ func TestProvideImpl(t *testing.T) {
 		{(*fmt.Stringer)(nil), &strings.Builder{}, false, false},
 	} {
 		if tc.wantPanicP {
-			xtesting.Panic(t, func() { ProvideImpl(tc.givePtr, tc.giveImpl) })
+			xtesting.Panic(t, func() { ProvideByIntf(tc.givePtr, tc.giveImpl) })
 		}
 		if tc.wantPanicR {
-			xtesting.Panic(t, func() { RemoveByImpl(tc.givePtr) })
+			xtesting.Panic(t, func() { RemoveByIntf(tc.givePtr) })
 		}
 		if !tc.wantPanicP && !tc.wantPanicR {
-			ProvideImpl(tc.givePtr, tc.giveImpl)
-			xtesting.Equal(t, _mc.byType[reflect.TypeOf(tc.givePtr).Elem()], tc.giveImpl)
-			RemoveByImpl(tc.givePtr)
-			_, ok := _mc.byType[reflect.TypeOf(tc.givePtr).Elem()]
+			ProvideByIntf(tc.givePtr, tc.giveImpl)
+			xtesting.Equal(t, _mc.modules[typeKey(reflect.TypeOf(tc.givePtr).Elem())], tc.giveImpl)
+			xtesting.True(t, RemoveByIntf(tc.givePtr))
+			_, ok := _mc.modules[typeKey(reflect.TypeOf(tc.givePtr).Elem())]
 			xtesting.False(t, ok)
+			xtesting.False(t, RemoveByIntf(tc.givePtr))
 		}
 	}
 }
@@ -126,15 +140,15 @@ func TestProvideImpl(t *testing.T) {
 func TestGetByName(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
-	ProvideName("int", 12)
-	ProvideName("uint", uint(12))
-	ProvideName("float", 12.5)
-	ProvideName("bool", true)
-	ProvideName("string", "a")
-	ProvideName("array", [2]string{"1", "2"})
-	ProvideName("slice", []string{"1", "2"})
-	ProvideName("pointer", &struct{}{})
-	ProvideName("struct", struct{ int }{1})
+	ProvideByName("int", 12)
+	ProvideByName("uint", uint(12))
+	ProvideByName("float", 12.5)
+	ProvideByName("bool", true)
+	ProvideByName("string", "a")
+	ProvideByName("array", [2]string{"1", "2"})
+	ProvideByName("slice", []string{"1", "2"})
+	ProvideByName("pointer", &struct{}{})
+	ProvideByName("struct", struct{ int }{1})
 
 	for _, tc := range []struct {
 		giveName   ModuleName
@@ -173,15 +187,15 @@ func TestGetByName(t *testing.T) {
 func TestGetByType(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
-	ProvideType(12)
-	ProvideType(uint(12))
-	ProvideType(12.5)
-	ProvideType(true)
-	ProvideType("a")
-	ProvideType([2]string{"1", "2"})
-	ProvideType([]string{"1", "2"})
-	ProvideType(&struct{}{})
-	ProvideType(struct{ int }{1})
+	ProvideByType(12)
+	ProvideByType(uint(12))
+	ProvideByType(12.5)
+	ProvideByType(true)
+	ProvideByType("a")
+	ProvideByType([2]string{"1", "2"})
+	ProvideByType([]string{"1", "2"})
+	ProvideByType(&struct{}{})
+	ProvideByType(struct{ int }{1})
 
 	for _, tc := range []struct {
 		wantModule interface{}
@@ -213,11 +227,11 @@ func TestGetByType(t *testing.T) {
 	xtesting.Panic(t, func() { MustGetByType(struct{}{}) })
 }
 
-func TestGetByImpl(t *testing.T) {
+func TestGetByIntf(t *testing.T) {
 	defer func() { _mc = NewModuleContainer() }()
 	SetLogger(DefaultLogger(LogSilent, nil, nil))
-	ProvideImpl((*error)(nil), errors.New("test"))
-	ProvideImpl((*fmt.Stringer)(nil), &strings.Builder{})
+	ProvideByIntf((*error)(nil), errors.New("test"))
+	ProvideByIntf((*fmt.Stringer)(nil), &strings.Builder{})
 
 	for _, tc := range []struct {
 		givePtr    interface{}
@@ -231,16 +245,16 @@ func TestGetByImpl(t *testing.T) {
 		{(*fmt.Stringer)(nil), &strings.Builder{}, false},
 	} {
 		if tc.wantPanic {
-			xtesting.Panic(t, func() { GetByImpl(tc.givePtr) })
+			xtesting.Panic(t, func() { GetByIntf(tc.givePtr) })
 		} else {
-			module, ok := GetByImpl(tc.givePtr)
+			module, ok := GetByIntf(tc.givePtr)
 			xtesting.Equal(t, module, tc.wantModule)
 			xtesting.True(t, ok)
-			xtesting.Equal(t, MustGetByImpl(tc.givePtr), tc.wantModule)
+			xtesting.Equal(t, MustGetByIntf(tc.givePtr), tc.wantModule)
 		}
 	}
 
-	xtesting.Panic(t, func() { MustGetByImpl((*fmt.GoStringer)(nil)) })
+	xtesting.Panic(t, func() { MustGetByIntf((*fmt.GoStringer)(nil)) })
 }
 
 func TestInject(t *testing.T) {
@@ -309,26 +323,26 @@ func TestInject(t *testing.T) {
 		Err      error         `module:"~"`
 		Sb       fmt.Stringer  `module:"~"`
 	}
-	ProvideName("int", 12)
-	ProvideName("uint", uint(12))
-	ProvideName("float", 12.5)
-	ProvideName("bool", true)
-	ProvideName("string", "a")
-	ProvideName("array", [2]string{"1", "2"})
-	ProvideName("slice", []string{"1", "2"})
-	ProvideName("pointer", &struct{}{})
-	ProvideName("struct", struct{ int }{1})
-	ProvideType(12)
-	ProvideType(uint(12))
-	ProvideType(12.5)
-	ProvideType(true)
-	ProvideType("a")
-	ProvideType([2]string{"1", "2"})
-	ProvideType([]string{"1", "2"})
-	ProvideType(&struct{}{})
-	ProvideType(struct{ int }{1})
-	ProvideImpl((*error)(nil), errors.New("test"))
-	ProvideImpl((*fmt.Stringer)(nil), &strings.Builder{})
+	ProvideByName("int", 12)
+	ProvideByName("uint", uint(12))
+	ProvideByName("float", 12.5)
+	ProvideByName("bool", true)
+	ProvideByName("string", "a")
+	ProvideByName("array", [2]string{"1", "2"})
+	ProvideByName("slice", []string{"1", "2"})
+	ProvideByName("pointer", &struct{}{})
+	ProvideByName("struct", struct{ int }{1})
+	ProvideByType(12)
+	ProvideByType(uint(12))
+	ProvideByType(12.5)
+	ProvideByType(true)
+	ProvideByType("a")
+	ProvideByType([2]string{"1", "2"})
+	ProvideByType([]string{"1", "2"})
+	ProvideByType(&struct{}{})
+	ProvideByType(struct{ int }{1})
+	ProvideByIntf((*error)(nil), errors.New("test"))
+	ProvideByIntf((*fmt.Stringer)(nil), &strings.Builder{})
 
 	t.Run("normal", func(t *testing.T) {
 		test2 := &testStruct{}
@@ -365,24 +379,118 @@ func TestInject(t *testing.T) {
 
 	t.Run("not_all", func(t *testing.T) {
 		// cannot assign
-		ProvideName("uint", 12)
+		ProvideByName("uint", 12)
 		test := &testStruct{}
 		xtesting.False(t, Inject(test))
 		xtesting.Panic(t, func() { MustInject(test) })
 
 		// module not found
-		ProvideName("uint", uint(12))
-		_mc.byName = map[ModuleName]interface{}{}
+		ProvideByName("uint", uint(12))
+		_mc.modules = map[mkey]interface{}{}
 		test = &testStruct{}
 		xtesting.False(t, Inject(test))
 		xtesting.Panic(t, func() { MustInject(test) })
 	})
 }
 
+func TestAutoProvide(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+
+	})
+
+	t.Run("complex", func(t *testing.T) {
+		type (
+			IE interface {
+				EEE()
+			}
+			ID interface {
+				DDD()
+			}
+			F struct{}
+			E struct {
+				IE
+				F *F     `module:"fff"`
+				X string `module:"str1"`
+				Y string `module:"str2"`
+				Z string `module:"~"`
+			}
+			C struct {
+				E IE     `module:"~"`
+				F *F     `module:"fff"`
+				X string `module:"str2"`
+				Y string `module:"~"`
+				Z uint64 `module:"~"`
+			}
+			D struct {
+				ID
+				C *C    `module:"~"`
+				X int32 `module:"int1"`
+				Y int64 `module:"int2"`
+				Z string
+			}
+			B struct {
+				C *C    `module:"~"`
+				D ID    `module:"~"`
+				X int64 `module:"int2"`
+				Y int8
+			}
+			A struct {
+				B *B     `module:"bbb"`
+				C *C     `module:"~"`
+				D *D     `module:"ddd"`
+				E IE     `module:"~"`
+				X string `module:"str1"`
+				Y string `module:"str2"`
+				Z int32  `module:"int1"`
+				W int64  `module:"int2"`
+			}
+			O struct {
+				A *A `module:"~"`
+				F *F `module:"~"`
+				X string
+				Y int64 `module:"int2"`
+			}
+		)
+		providers := []*ModuleProvider{
+			TypeProvider(&O{X: "xxx"}),
+			TypeProvider(&A{}),
+			NameProvider("bbb", &B{Y: 127}),
+			TypeProvider(&C{}),
+			IntfProvider((*ID)(nil), &D{Z: "zzz"}),
+			NameProvider("ddd", &D{Z: "zzz2"}),
+			IntfProvider((*IE)(nil), &E{}),
+			NameProvider("fff", &F{}),
+			TypeProvider(&F{}),
+			TypeProvider("abc"),
+			TypeProvider(uint64(789)),
+			NameProvider("int1", int32(111)),
+			NameProvider("int2", int64(222)),
+			NameProvider("str1", "sss"),
+			NameProvider("str2", "ttt"),
+		}
+		_mc = NewModuleContainer()
+		_mc.SetLogger(DefaultLogger(LogPrvName | LogPrvType | LogPrvIntf | LogInjFinish, nil, nil))
+		xtesting.Nil(t, AutoProvide(providers...))
+		fmt.Println("==============")
+		_mc = NewModuleContainer()
+		_mc.SetLogger(DefaultLogger(LogInjField | LogInjFinish, nil, nil))
+		xtesting.NotPanic(t, func() { MustAutoProvide(providers...) })
+	})
+
+	t.Run("self cycle", func(t *testing.T) {
+
+	})
+
+	t.Run("module cycle", func(t *testing.T) {
+
+	})
+
+}
+
 func TestLogger(t *testing.T) {
 	xtesting.EqualValue(t, LogPrvName, 1)    // 00001
 	xtesting.EqualValue(t, LogPrvType, 2)    // 00010
-	xtesting.EqualValue(t, LogPrvImpl, 4)    // 00100
+	xtesting.EqualValue(t, LogPrvIntf, 4)    // 00100
 	xtesting.EqualValue(t, LogInjField, 8)   // 01000
 	xtesting.EqualValue(t, LogInjFinish, 16) // 10000
 	xtesting.EqualValue(t, LogSilent, 0)     // 00000
@@ -412,10 +520,10 @@ func TestLogger(t *testing.T) {
 		{"LogSilent", LogSilent, false, false, false},
 		{"LogPrvName", LogPrvName, false, false, false},
 		{"LogPrvType", LogPrvType, false, false, false},
-		{"LogPrvImpl", LogPrvImpl, false, false, false},
+		{"LogPrvIntf", LogPrvIntf, false, false, false},
 		{"LogPrvName | LogPrvType", LogPrvName | LogPrvType, false, false, false},
-		{"LogPrvType | LogPrvImpl", LogPrvType | LogPrvImpl, false, false, false},
-		{"LogPrvName | LogPrvImpl", LogPrvImpl | LogPrvName, false, false, false},
+		{"LogPrvType | LogPrvIntf", LogPrvType | LogPrvIntf, false, false, false},
+		{"LogPrvName | LogPrvIntf", LogPrvIntf | LogPrvName, false, false, false},
 		{"LogInjField", LogInjField, false, false, false},
 		{"LogInjFinish with module not found", LogInjFinish, true, false, false},
 		{"LogInjFinish with cannot assign", LogInjFinish, false, true, false},
@@ -437,17 +545,17 @@ func TestLogger(t *testing.T) {
 
 			// prv
 			if !tc.giveMismatch {
-				mc.ProvideName("int", 1)
+				mc.ProvideByName("int", 1)
 			} else {
-				mc.ProvideName("int", "1")
+				mc.ProvideByName("int", "1")
 			}
 			if !tc.giveIgnore {
-				mc.ProvideName("uint", uint(1))
-				mc.ProvideType(1.0)
+				mc.ProvideByName("uint", uint(1))
+				mc.ProvideByType(1.0)
 			}
-			mc.ProvideType("test")
-			mc.ProvideImpl((*interface{})(nil), struct{}{})
-			mc.ProvideImpl((*error)(nil), errors.New("test"))
+			mc.ProvideByType("test")
+			mc.ProvideByIntf((*interface{})(nil), struct{}{})
+			mc.ProvideByIntf((*error)(nil), errors.New("test"))
 
 			// inj
 			_ = mc.Inject(&testStruct{})

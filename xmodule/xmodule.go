@@ -13,25 +13,50 @@ func (m ModuleName) String() string {
 	return string(m)
 }
 
-// ModuleContainer represents a module container.
+// mkey represents the key type of module map used in ModuleContainer, currently these fields are exclusive.
+type mkey struct {
+	name ModuleName   // by name
+	typ  reflect.Type // by type or intf
+}
+
+// nameKey returns a mkey with given ModuleName.
+func nameKey(name ModuleName) mkey {
+	return mkey{name: name}
+}
+
+// typeKey returns a mkey with given reflect.Type.
+func typeKey(typ reflect.Type) mkey {
+	return mkey{typ: typ}
+}
+
+// String returns the string value of mkey.
+func (m mkey) String() string {
+	if m.name != "" {
+		return m.name.String()
+	}
+	if m.typ != nil {
+		return m.typ.String()
+	}
+	return "<invalid>"
+}
+
+// ModuleContainer represents a module container, modules will be stored in a single map using its ModuleName (ProvideByName) or its
+// reflect.Type (ProvideByType or ProvideByIntf).
 type ModuleContainer struct {
-	byName map[ModuleName]interface{}
-	muName sync.RWMutex
-	byType map[reflect.Type]interface{}
-	muType sync.RWMutex
-	logger Logger
+	modules map[mkey]interface{}
+	mu      sync.RWMutex
+	logger  Logger
 }
 
 // NewModuleContainer creates an empty ModuleContainer, using DefaultLogger with LogAll flag and default formats.
 func NewModuleContainer() *ModuleContainer {
 	return &ModuleContainer{
-		byName: make(map[ModuleName]interface{}),
-		byType: make(map[reflect.Type]interface{}),
-		logger: DefaultLogger(LogAll, nil, nil),
+		modules: make(map[mkey]interface{}),
+		logger:  DefaultLogger(LogAll, nil, nil),
 	}
 }
 
-// SetLogger sets the Logger for ModuleContainer.
+// SetLogger sets given Logger for ModuleContainer, default logger can be got from DefaultLogger.
 //
 // Example:
 // 	SetLogger(DefaultLogger(LogAll))    // logs all messages (default)
@@ -83,91 +108,113 @@ func ensureInterfacePtr(interfacePtr interface{}) reflect.Type {
 	return typ
 }
 
+// ensureModuleTypeWithInterface checks whether given value is nil, and whether it implements given interface type, panics if not,
+// otherwise returns its reflect.Type.
+func ensureModuleTypeWithInterface(moduleImpl interface{}, interfaceType reflect.Type) reflect.Type {
+	typ := ensureModuleType(moduleImpl) // module type
+	if !typ.Implements(interfaceType) {
+		panic(panicNotImplemented)
+	}
+	return typ
+}
+
 // =============================
 // methods: Provide, Remove, Get
 // =============================
 
-// ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
+// ProvideByName provides a module using a ModuleName, panics when using invalid module name or nil module.
 //
 // Example:
-// 	ProvideName(ModuleName("module"), &Module{})
-// 	RemoveByName(ModuleName("module"))
-// 	GetByName(ModuleName("module"))
-// 	MustGetByName(ModuleName("module"))
-func (m *ModuleContainer) ProvideName(name ModuleName, module interface{}) {
+// 	m := NewModuleContainer()
+// 	m.ProvideByName(ModuleName("module"), &Module{})
+// 	module, ok := m.GetByName(ModuleName("module"))
+// 	module := m.MustGetByName(ModuleName("module"))
+// 	removed := m.RemoveByName(ModuleName("module"))
+func (m *ModuleContainer) ProvideByName(name ModuleName, module interface{}) {
 	ensureModuleName(name)
 	typ := ensureModuleType(module)
-	m.muName.Lock()
-	m.byName[name] = module
-	m.muName.Unlock()
+	m.mu.Lock()
+	m.modules[nameKey(name)] = module
+	m.mu.Unlock()
 	m.logger.PrvName(name.String(), typ.String())
 }
 
-// ProvideType provides a module using its type, panics when using nil module.
+// ProvideByType provides a module using its type, panics when using nil module.
 //
 // Example:
-// 	ProvideType(&Module{})
-// 	RemoveByType(&Module{})
-// 	GetByType(&Module{})
-// 	MustGetByType(&Module{})
-func (m *ModuleContainer) ProvideType(module interface{}) {
+// 	m := NewModuleContainer()
+// 	m.ProvideByType(&Module{})
+// 	module, ok := m.GetByType(&Module{})
+// 	module := m.MustGetByType(&Module{})
+// 	removed := m.RemoveByType(&Module{})
+func (m *ModuleContainer) ProvideByType(module interface{}) {
 	typ := ensureModuleType(module)
-	m.muType.Lock()
-	m.byType[typ] = module
-	m.muType.Unlock()
+	m.mu.Lock()
+	m.modules[typeKey(typ)] = module
+	m.mu.Unlock()
 	m.logger.PrvType(typ.String())
 }
 
-// ProvideImpl provides a module using the interface type, panics when using invalid interface pointer or nil module.
+// ProvideByIntf provides a module using given interface pointer type, such as `(*Interface)(nil)` or `new(Interface)`, panics when using
+// invalid interface pointer or nil module.
 //
 // Example:
-// 	ProvideImpl((*Interface)(nil), &Module{})
-// 	RemoveByImpl((*Interface)(nil))
-// 	GetByImpl((*Interface)(nil))
-// 	MustGetByImpl((*Interface)(nil))
-func (m *ModuleContainer) ProvideImpl(interfacePtr interface{}, moduleImpl interface{}) {
-	itfType := ensureInterfacePtr(interfacePtr) // interface type
-	innerType := ensureModuleType(moduleImpl)   // inner type
-	if !innerType.Implements(itfType) {
-		panic(panicNotImplemented)
-	}
-	m.muType.Lock()
-	m.byType[itfType] = moduleImpl
-	m.muType.Unlock()
-	m.logger.PrvImpl(itfType.String(), innerType.String())
+// 	m := NewModuleContainer()
+// 	m.ProvideByIntf((*Interface)(nil), &Module{})
+// 	module, ok := m.GetByIntf((*Interface)(nil))
+// 	module := m.MustGetByIntf((*Interface)(nil))
+// 	removed := m.RemoveByIntf((*Interface)(nil))
+func (m *ModuleContainer) ProvideByIntf(interfacePtr interface{}, moduleImpl interface{}) {
+	intfType := ensureInterfacePtr(interfacePtr)               // interface type
+	typ := ensureModuleTypeWithInterface(moduleImpl, intfType) // module type
+	m.mu.Lock()
+	m.modules[typeKey(intfType)] = moduleImpl
+	m.mu.Unlock()
+	m.logger.PrvIntf(intfType.String(), typ.String())
 }
 
-// RemoveByName remove a module with a ModuleName from container, panics when using invalid module name.
-func (m *ModuleContainer) RemoveByName(name ModuleName) {
+// RemoveByName remove a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
+// module name.
+func (m *ModuleContainer) RemoveByName(name ModuleName) (removed bool) {
 	ensureModuleName(name)
-	m.muName.Lock()
-	delete(m.byName, name)
-	m.muName.Unlock()
+	m.mu.Lock()
+	l := len(m.modules)
+	delete(m.modules, nameKey(name))
+	removed = len(m.modules) != l
+	m.mu.Unlock()
+	return removed
 }
 
-// RemoveByType remove given module with its type from container, panics when using nil module.
-func (m *ModuleContainer) RemoveByType(moduleType interface{}) {
+// RemoveByType remove given module with its type from container, return true if module existed before removing, panics when using nil module.
+func (m *ModuleContainer) RemoveByType(moduleType interface{}) (removed bool) {
 	typ := ensureModuleType(moduleType)
-	m.muType.Lock()
-	delete(m.byType, typ)
-	m.muType.Unlock()
+	m.mu.Lock()
+	l := len(m.modules)
+	delete(m.modules, typeKey(typ))
+	removed = len(m.modules) != l
+	m.mu.Unlock()
+	return removed
 }
 
-// RemoveByImpl remove a module with given interface pointer's type from container, panics when using invalid interface pointer.
-func (m *ModuleContainer) RemoveByImpl(interfacePtr interface{}) {
-	itfType := ensureInterfacePtr(interfacePtr) // interface type
-	m.muType.Lock()
-	delete(m.byType, itfType)
-	m.muType.Unlock()
+// RemoveByIntf remove a module with given interface pointer's type from container, return true if module existed before removing, panics when
+// using invalid interface pointer.
+func (m *ModuleContainer) RemoveByIntf(interfacePtr interface{}) (removed bool) {
+	intfType := ensureInterfacePtr(interfacePtr) // interface type
+	m.mu.Lock()
+	l := len(m.modules)
+	delete(m.modules, typeKey(intfType))
+	removed = len(m.modules) != l
+	m.mu.Unlock()
+	return removed
 }
 
 // GetByName returns the module provided by name, panics when using invalid module name.
 func (m *ModuleContainer) GetByName(name ModuleName) (module interface{}, exist bool) {
 	ensureModuleName(name)
-	m.muName.RLock()
-	module, exist = m.byName[name]
-	m.muName.RUnlock()
-	return
+	m.mu.RLock()
+	module, exist = m.modules[nameKey(name)]
+	m.mu.RUnlock()
+	return module, exist
 }
 
 // MustGetByName returns a module provided by name, panics when using invalid module name or module not found.
@@ -182,10 +229,10 @@ func (m *ModuleContainer) MustGetByName(name ModuleName) interface{} {
 // GetByType returns a module provided by type, panics when using nil type.
 func (m *ModuleContainer) GetByType(moduleType interface{}) (module interface{}, exist bool) {
 	typ := ensureModuleType(moduleType)
-	m.muType.RLock()
-	module, exist = m.byType[typ]
-	m.muType.RUnlock()
-	return
+	m.mu.RLock()
+	module, exist = m.modules[typeKey(typ)]
+	m.mu.RUnlock()
+	return module, exist
 }
 
 // MustGetByType returns a module provided by type, panics when using nil type or module not found.
@@ -197,18 +244,18 @@ func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{} {
 	return module
 }
 
-// GetByImpl returns a module by interface pointer, panics when using invalid interface pointer.
-func (m *ModuleContainer) GetByImpl(interfacePtr interface{}) (module interface{}, exist bool) {
-	itfType := ensureInterfacePtr(interfacePtr) // interface type
-	m.muType.RLock()
-	module, exist = m.byType[itfType]
-	m.muType.RUnlock()
-	return
+// GetByIntf returns a module by interface pointer, panics when using invalid interface pointer.
+func (m *ModuleContainer) GetByIntf(interfacePtr interface{}) (module interface{}, exist bool) {
+	intfType := ensureInterfacePtr(interfacePtr) // interface type
+	m.mu.RLock()
+	module, exist = m.modules[typeKey(intfType)]
+	m.mu.RUnlock()
+	return module, exist
 }
 
-// MustGetByImpl returns a module by moduleType, panics when using invalid interface pointer or module not found.
-func (m *ModuleContainer) MustGetByImpl(interfacePtr interface{}) interface{} {
-	module, exist := m.GetByImpl(interfacePtr)
+// MustGetByIntf returns a module by moduleType, panics when using invalid interface pointer or module not found.
+func (m *ModuleContainer) MustGetByIntf(interfacePtr interface{}) interface{} {
+	module, exist := m.GetByIntf(interfacePtr)
 	if !exist {
 		panic(panicModuleNotFound)
 	}
@@ -231,52 +278,55 @@ func SetLogger(logger Logger) {
 	_mc.SetLogger(logger)
 }
 
-// ProvideName provides a module using a ModuleName, panics when using invalid module name or nil module.
+// ProvideByName provides a module using a ModuleName, panics when using invalid module name or nil module.
 //
 // Example:
-// 	ProvideName(ModuleName("module"), &Module{})
-// 	RemoveByName(ModuleName("module"))
-// 	GetByName(ModuleName("module"))
-// 	MustGetByName(ModuleName("module"))
-func ProvideName(name ModuleName, module interface{}) {
-	_mc.ProvideName(name, module)
+// 	xmodule.ProvideByName(ModuleName("module"), &Module{})
+// 	module, ok := xmodule.GetByName(ModuleName("module"))
+// 	module := xmodule.MustGetByName(ModuleName("module"))
+// 	removed := xmodule.RemoveByName(ModuleName("module"))
+func ProvideByName(name ModuleName, module interface{}) {
+	_mc.ProvideByName(name, module)
 }
 
-// ProvideType provides a module using its type, panics when using nil module.
+// ProvideByType provides a module using its type, panics when using nil module.
 //
 // Example:
-// 	ProvideType(&Module{})
-// 	RemoveByType(&Module{})
-// 	GetByType(&Module{})
-// 	MustGetByType(&Module{})
-func ProvideType(module interface{}) {
-	_mc.ProvideType(module)
+// 	xmodule.ProvideByType(&Module{})
+// 	module, ok := xmodule.GetByType(&Module{})
+// 	module := xmodule.MustGetByType(&Module{})
+// 	removed := xmodule.RemoveByType(&Module{})
+func ProvideByType(module interface{}) {
+	_mc.ProvideByType(module)
 }
 
-// ProvideImpl provides a module using the interface type, panics when using invalid interface pointer or nil module.
+// ProvideByIntf provides a module using given interface pointer type, such as `(*Interface)(nil)` or `new(Interface)`, panics when using
+// invalid interface pointer or nil module.
 //
 // Example:
-// 	ProvideImpl((*Interface)(nil), &Module{})
-// 	RemoveByImpl((*Interface)(nil))
-// 	GetByImpl((*Interface)(nil))
-// 	MustGetByImpl((*Interface)(nil))
-func ProvideImpl(interfacePtr interface{}, moduleImpl interface{}) {
-	_mc.ProvideImpl(interfacePtr, moduleImpl)
+// 	xmodule.ProvideByIntf((*Interface)(nil), &Module{})
+// 	module, ok := xmodule.GetByIntf((*Interface)(nil))
+// 	module := xmodule.MustGetByIntf((*Interface)(nil))
+// 	removed := xmodule.RemoveByIntf((*Interface)(nil))
+func ProvideByIntf(interfacePtr interface{}, moduleImpl interface{}) {
+	_mc.ProvideByIntf(interfacePtr, moduleImpl)
 }
 
-// RemoveByName remove a module with a ModuleName from container, panics when using invalid module name.
-func RemoveByName(name ModuleName) {
-	_mc.RemoveByName(name)
+// RemoveByName remove a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
+// module name.
+func RemoveByName(name ModuleName) (removed bool) {
+	return _mc.RemoveByName(name)
 }
 
-// RemoveByType remove given module with its type from container, panics when using nil module.
-func RemoveByType(module interface{}) {
-	_mc.RemoveByType(module)
+// RemoveByType remove given module with its type from container, return true if module existed before removing, panics when using nil module.
+func RemoveByType(module interface{}) (removed bool) {
+	return _mc.RemoveByType(module)
 }
 
-// RemoveByImpl remove a module with given interface pointer's type from container, panics when using invalid interface pointer.
-func RemoveByImpl(interfacePtr interface{}) {
-	_mc.RemoveByImpl(interfacePtr)
+// RemoveByIntf remove a module with given interface pointer's type from container, return true if module existed before removing, panics when
+// using invalid interface pointer.
+func RemoveByIntf(interfacePtr interface{}) (removed bool) {
+	return _mc.RemoveByIntf(interfacePtr)
 }
 
 // GetByName returns the module provided by name, panics when using invalid module name.
@@ -299,42 +349,54 @@ func MustGetByType(moduleType interface{}) interface{} {
 	return _mc.MustGetByType(moduleType)
 }
 
-// GetByImpl returns a module by interface pointer, panics when using invalid interface pointer.
-func GetByImpl(interfacePtr interface{}) (module interface{}, exist bool) {
-	return _mc.GetByImpl(interfacePtr)
+// GetByIntf returns a module by interface pointer, panics when using invalid interface pointer.
+func GetByIntf(interfacePtr interface{}) (module interface{}, exist bool) {
+	return _mc.GetByIntf(interfacePtr)
 }
 
-// MustGetByImpl returns a module by moduleType, panics when using invalid interface pointer or module not found.
-func MustGetByImpl(interfacePtr interface{}) interface{} {
-	return _mc.MustGetByImpl(interfacePtr)
+// MustGetByIntf returns a module by moduleType, panics when using invalid interface pointer or module not found.
+func MustGetByIntf(interfacePtr interface{}) interface{} {
+	return _mc.MustGetByIntf(interfacePtr)
 }
 
-// Inject injects into injectee fields using module tag, returns true if all fields with `module` tag are injected, that means found and assignable.
+// Inject injects into injectee fields using `module` tag, returns true if all module fields are injected, that means found and assignable,
+// panics when injectee passed is nil or not a structure pointer.
 //
 // Example:
 // 	type Struct struct {
-// 		unexportedField string                 // -> ignore
-// 		ExportedField1  string                 // -> ignore
-// 		ExportedField2  string `module:""`     // -> ignore
-// 		ExportedField3  string `module:"-"`    // -> ignore
+// 		unexportedField string                 // -> ignore (unexported)
+// 		ExportedField1  string                 // -> ignore (no module tag)
+// 		ExportedField2  string `module:""`     // -> ignore (module tag is empty)
+// 		ExportedField3  string `module:"-"`    // -> ignore (module tag is "-")
 // 		ExportedField4  string `module:"name"` // -> inject by name
-// 		ExportedField5  string `module:"~"`    // -> inject by type or impl
+// 		ExportedField5  string `module:"~"`    // -> inject by type or intf
 // 	}
+// 	all := Inject(&Struct{})
 func Inject(injectee interface{}) (allInjected bool) {
 	return _mc.Inject(injectee)
 }
 
-// MustInject injects into injectee fields using module tag, panics when some fields with `module` tag are not injected, that means not found or un-assignable.
+// MustInject injects into injectee fields using `module` tag, panics when injectee passed is nil or not a structure pointer, or there are some
+// module fields tag are not injected, that means not found or un-assignable.
 //
 // Example:
 // 	type Struct struct {
-// 		unexportedField string                 // -> ignore
-// 		ExportedField1  string                 // -> ignore
-// 		ExportedField2  string `module:""`     // -> ignore
-// 		ExportedField3  string `module:"-"`    // -> ignore
+// 		unexportedField string                 // -> ignore (unexported)
+// 		ExportedField1  string                 // -> ignore (no module tag)
+// 		ExportedField2  string `module:""`     // -> ignore (module tag is empty)
+// 		ExportedField3  string `module:"-"`    // -> ignore (module tag is "-")
 // 		ExportedField4  string `module:"name"` // -> inject by name
-// 		ExportedField5  string `module:"~"`    // -> inject by type or impl
+// 		ExportedField5  string `module:"~"`    // -> inject by type or intf
 // 	}
+// 	MustInject(&Struct{})
 func MustInject(injectee interface{}) {
 	_mc.MustInject(injectee)
+}
+
+func AutoProvide(providers ...*ModuleProvider) error {
+	return _mc.AutoProvide(providers...)
+}
+
+func MustAutoProvide(providers ...*ModuleProvider) {
+	_mc.MustAutoProvide(providers...)
 }
