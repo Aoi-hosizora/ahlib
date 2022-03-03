@@ -2,8 +2,9 @@
 
 ## Dependencies
 
-+ xtesting*
 + xcolor
++ xerror
++ xtesting*
 
 ## Documents
 
@@ -11,6 +12,7 @@
 
 + `type ModuleName string`
 + `type ModuleContainer struct`
++ `type ModuleProvider struct`
 + `type LogLevel uint8`
 + `type Logger interface`
 
@@ -31,6 +33,9 @@
 ### Functions
 
 + `func NewModuleContainer() *ModuleContainer`
++ `func NameProvider(name ModuleName, module interface{}) *ModuleProvider`
++ `func TypeProvider(module interface{}) *ModuleProvider`
++ `func IntfProvider(interfacePtr interface{}, moduleImpl interface{}) *ModuleProvider`
 + `func SetLogger(logger Logger)`
 + `func ProvideByName(name ModuleName, module interface{})`
 + `func ProvideByType(module interface{})`
@@ -44,8 +49,10 @@
 + `func MustGetByType(moduleType interface{}) interface{}`
 + `func GetByIntf(interfacePtr interface{}) (module interface{}, exist bool)`
 + `func MustGetByIntf(interfacePtr interface{}) interface{}`
-+ `func Inject(injectee interface{}) (allInjected bool)`
++ `func Inject(injectee interface{}) error`
 + `func MustInject(injectee interface{})`
++ `func AutoProvide(providers ...*ModuleProvider) error`
++ `func MustAutoProvide(providers ...*ModuleProvider)`
 + `func DefaultLogger(level LogLevel, logPrvFunc func(moduleName, moduleType string), logInjFunc func(moduleName, injecteeType, addition string)) Logger`
 
 ### Methods
@@ -64,5 +71,7 @@
 + `func (m *ModuleContainer) MustGetByType(moduleType interface{}) interface{}`
 + `func (m *ModuleContainer) GetByIntf(interfacePtr interface{}) (module interface{}, exist bool)`
 + `func (m *ModuleContainer) MustGetByIntf(interfacePtr interface{}) interface{}`
-+ `func (m *ModuleContainer) Inject(injectee interface{}) (allInjected bool)`
++ `func (m *ModuleContainer) Inject(injectee interface{}) error`
 + `func (m *ModuleContainer) MustInject(injectee interface{})`
++ `func (m *ModuleContainer) AutoProvide(providers ...*ModuleProvider) error`
++ `func (m *ModuleContainer) MustAutoProvide(providers ...*ModuleProvider)`

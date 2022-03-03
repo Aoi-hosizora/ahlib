@@ -1,6 +1,7 @@
 package xmodule
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 )
@@ -32,10 +33,10 @@ func typeKey(typ reflect.Type) mkey {
 // String returns the string value of mkey.
 func (m mkey) String() string {
 	if m.name != "" {
-		return m.name.String()
+		return fmt.Sprintf("name:%s", m.name.String())
 	}
 	if m.typ != nil {
-		return m.typ.String()
+		return fmt.Sprintf("type:%s", m.typ.String())
 	}
 	return "<invalid>"
 }
@@ -108,8 +109,8 @@ func ensureInterfacePtr(interfacePtr interface{}) reflect.Type {
 	return typ
 }
 
-// ensureModuleTypeWithInterface checks whether given value is nil, and whether it implements given interface type, panics if not,
-// otherwise returns its reflect.Type.
+// ensureModuleTypeWithInterface checks whether given value is nil, and whether it implements given interface type, panics if not, otherwise
+// returns its reflect.Type.
 func ensureModuleTypeWithInterface(moduleImpl interface{}, interfaceType reflect.Type) reflect.Type {
 	typ := ensureModuleType(moduleImpl) // module type
 	if !typ.Implements(interfaceType) {
@@ -122,7 +123,7 @@ func ensureModuleTypeWithInterface(moduleImpl interface{}, interfaceType reflect
 // methods: Provide, Remove, Get
 // =============================
 
-// ProvideByName provides a module using a ModuleName, panics when using invalid module name or nil module.
+// ProvideByName provides a module using given ModuleName, panics when using invalid module name or nil module.
 //
 // Example:
 // 	m := NewModuleContainer()
@@ -165,12 +166,12 @@ func (m *ModuleContainer) ProvideByType(module interface{}) {
 // 	module := m.MustGetByIntf((*Interface)(nil))
 // 	removed := m.RemoveByIntf((*Interface)(nil))
 func (m *ModuleContainer) ProvideByIntf(interfacePtr interface{}, moduleImpl interface{}) {
-	intfType := ensureInterfacePtr(interfacePtr)               // interface type
-	typ := ensureModuleTypeWithInterface(moduleImpl, intfType) // module type
+	intfType := ensureInterfacePtr(interfacePtr)                   // interface type
+	modType := ensureModuleTypeWithInterface(moduleImpl, intfType) // module type
 	m.mu.Lock()
 	m.modules[typeKey(intfType)] = moduleImpl
 	m.mu.Unlock()
-	m.logger.PrvIntf(intfType.String(), typ.String())
+	m.logger.PrvIntf(intfType.String(), modType.String())
 }
 
 // RemoveByName remove a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
@@ -253,7 +254,7 @@ func (m *ModuleContainer) GetByIntf(interfacePtr interface{}) (module interface{
 	return module, exist
 }
 
-// MustGetByIntf returns a module by moduleType, panics when using invalid interface pointer or module not found.
+// MustGetByIntf returns a module by interface pointer, panics when using invalid interface pointer or module not found.
 func (m *ModuleContainer) MustGetByIntf(interfacePtr interface{}) interface{} {
 	module, exist := m.GetByIntf(interfacePtr)
 	if !exist {
@@ -278,7 +279,7 @@ func SetLogger(logger Logger) {
 	_mc.SetLogger(logger)
 }
 
-// ProvideByName provides a module using a ModuleName, panics when using invalid module name or nil module.
+// ProvideByName provides a module using given ModuleName, panics when using invalid module name or nil module.
 //
 // Example:
 // 	xmodule.ProvideByName(ModuleName("module"), &Module{})
@@ -354,13 +355,14 @@ func GetByIntf(interfacePtr interface{}) (module interface{}, exist bool) {
 	return _mc.GetByIntf(interfacePtr)
 }
 
-// MustGetByIntf returns a module by moduleType, panics when using invalid interface pointer or module not found.
+// MustGetByIntf returns a module by interface pointer, panics when using invalid interface pointer or module not found.
 func MustGetByIntf(interfacePtr interface{}) interface{} {
 	return _mc.MustGetByIntf(interfacePtr)
 }
 
-// Inject injects into injectee fields using `module` tag, returns true if all module fields are injected, that means found and assignable,
-// panics when injectee passed is nil or not a structure pointer.
+// Inject injects into given injectee's module fields, returns error if there are some fields can not be injected (possible reasons: specific
+// module is not found, module type mismatches with field), panics when injectee passed is nil or not a structure pointer. Note that if error
+// is returned, remaining fields will still be injected as usual.
 //
 // Example:
 // 	type Struct struct {
@@ -371,32 +373,44 @@ func MustGetByIntf(interfacePtr interface{}) interface{} {
 // 		ExportedField4  string `module:"name"` // -> inject by name
 // 		ExportedField5  string `module:"~"`    // -> inject by type or intf
 // 	}
+// 	m := NewModuleContainer()
 // 	all := Inject(&Struct{})
-func Inject(injectee interface{}) (allInjected bool) {
+func Inject(injectee interface{}) error {
 	return _mc.Inject(injectee)
 }
 
-// MustInject injects into injectee fields using `module` tag, panics when injectee passed is nil or not a structure pointer, or there are some
-// module fields tag are not injected, that means not found or un-assignable.
-//
-// Example:
-// 	type Struct struct {
-// 		unexportedField string                 // -> ignore (unexported)
-// 		ExportedField1  string                 // -> ignore (no module tag)
-// 		ExportedField2  string `module:""`     // -> ignore (module tag is empty)
-// 		ExportedField3  string `module:"-"`    // -> ignore (module tag is "-")
-// 		ExportedField4  string `module:"name"` // -> inject by name
-// 		ExportedField5  string `module:"~"`    // -> inject by type or intf
-// 	}
-// 	MustInject(&Struct{})
+// MustInject injects into given injectee's module fields, panics when injectee passed is nil or not a structure pointer, or there are some fields
+// can not be injected for several reasons. Note that remaining fields will stop injecting once error happened. See Inject for more details.
 func MustInject(injectee interface{}) {
 	_mc.MustInject(injectee)
 }
 
+// AutoProvide processes with given ModuleProvider-s, injects them if necessary (must be a pointer of struct), and provides them in dependency
+// order, returns error if some fields from providers can not be injected (see Inject for more details), or some dependent modules is not found,
+// or cycle dependency happens, panics when using invalid provider.
+//
+// Example:
+// 	wellKnownList := []int{...}
+// 	type Service struct {
+// 		WellKnownList  []int     `module:"list"`
+// 		AnotherService *ServiceB `module:"~"`
+// 		Implement      Interface `module:"~"`
+// 		LocalVariable  string
+// 	}
+// 	m := NewModuleContainer()
+// 	_ = m.AutoProvide(
+// 		TypeProvider(&Service{LocalVariable: "..."}),
+// 		TypeProvider(&ServiceB{...}),
+// 		NameProvider("list", wellKnownList),
+// 		IntfProvider((*Interface)(nil), &Implement{}),
+// 	)
+// 	_ = m.MustGetByType(&Service{}).(*Service)
 func AutoProvide(providers ...*ModuleProvider) error {
 	return _mc.AutoProvide(providers...)
 }
 
+// MustAutoProvide processes with given ModuleProvider-s, injects them if necessary and provides them in dependency order, panics when error happens.
+// See AutoProvide for more details.
 func MustAutoProvide(providers ...*ModuleProvider) {
 	_mc.MustAutoProvide(providers...)
 }

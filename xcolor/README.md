@@ -72,88 +72,88 @@
 + `func (s Style) WithStyle(s2 Style) MixCode`
 + `func (s Style) WithColor(c Color) MixCode`
 + `func (s Style) WithBackground(b Background) MixCode`
-+ `func (s Style) Print(a ...interface{})`
-+ `func (s Style) Printf(format string, a ...interface{})`
-+ `func (s Style) Println(a ...interface{})`
-+ `func (s Style) Sprint(a ...interface{}) string`
-+ `func (s Style) Sprintf(format string, a ...interface{}) string`
-+ `func (s Style) Sprintln(a ...interface{}) string`
-+ `func (s Style) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (s Style) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (s Style) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (s Style) AlignedPrint(alignment int, a ...interface{})`
-+ `func (s Style) AlignedPrintf(alignment int, format string, a ...interface{})`
-+ `func (s Style) AlignedPrintln(alignment int, a ...interface{})`
-+ `func (s Style) AlignedSprint(alignment int, a ...interface{}) string`
-+ `func (s Style) AlignedSprintf(alignment int, format string, a ...interface{}) string`
-+ `func (s Style) AlignedSprintln(alignment int, a ...interface{}) string`
-+ `func (s Style) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (s Style) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (s Style) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (s Style) Print(v ...interface{})`
++ `func (s Style) Printf(format string, v ...interface{})`
++ `func (s Style) Println(v ...interface{})`
++ `func (s Style) Sprint(v ...interface{}) string`
++ `func (s Style) Sprintf(format string, v ...interface{}) string`
++ `func (s Style) Sprintln(v ...interface{}) string`
++ `func (s Style) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (s Style) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (s Style) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (s Style) NPrint(a int, v ...interface{})`
++ `func (s Style) NPrintf(a int, format string, v ...interface{})`
++ `func (s Style) NPrintln(a int, v ...interface{})`
++ `func (s Style) NSprint(a int, v ...interface{}) string`
++ `func (s Style) NSprintf(a int, format string, v ...interface{}) string`
++ `func (s Style) NSprintln(a int, v ...interface{}) string`
++ `func (s Style) NFprint(a int, w io.Writer, v ...interface{}) (n int, err error)`
++ `func (s Style) NFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (s Style) NFprintln(a int, w io.Writer, v ...interface{}) (n int, err error)`
 + `func (c Color) String() string`
 + `func (c Color) Code() string`
 + `func (c Color) WithStyle(s Style) MixCode`
 + `func (c Color) WithBackground(b Background) MixCode`
-+ `func (c Color) Print(a ...interface{})`
-+ `func (c Color) Printf(format string, a ...interface{})`
-+ `func (c Color) Println(a ...interface{})`
-+ `func (c Color) Sprint(a ...interface{}) string`
-+ `func (c Color) Sprintf(format string, a ...interface{}) string`
-+ `func (c Color) Sprintln(a ...interface{}) string`
-+ `func (c Color) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (c Color) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (c Color) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (c Color) AlignedPrint(alignment int, a ...interface{})`
-+ `func (c Color) AlignedPrintf(alignment int, format string, a ...interface{})`
-+ `func (c Color) AlignedPrintln(alignment int, a ...interface{})`
-+ `func (c Color) AlignedSprint(alignment int, a ...interface{}) string`
-+ `func (c Color) AlignedSprintf(alignment int, format string, a ...interface{}) string`
-+ `func (c Color) AlignedSprintln(alignment int, a ...interface{}) string`
-+ `func (c Color) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (c Color) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (c Color) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (c Color) Print(v ...interface{})`
++ `func (c Color) Printf(format string, v ...interface{})`
++ `func (c Color) Println(v ...interface{})`
++ `func (c Color) Sprint(v ...interface{}) string`
++ `func (c Color) Sprintf(format string, v ...interface{}) string`
++ `func (c Color) Sprintln(v ...interface{}) string`
++ `func (c Color) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (c Color) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (c Color) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (c Color) NPrint(a int, v ...interface{})`
++ `func (c Color) NPrintf(a int, format string, v ...interface{})`
++ `func (c Color) NPrintln(a int, v ...interface{})`
++ `func (c Color) NSprint(a int, v ...interface{}) string`
++ `func (c Color) NSprintf(a int, format string, v ...interface{}) string`
++ `func (c Color) NSprintln(a int, v ...interface{}) string`
++ `func (c Color) NFprint(a int, w io.Writer, v ...interface{}) (n int, err error)`
++ `func (c Color) NFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (c Color) NFprintln(a int, w io.Writer, v ...interface{}) (n int, err error)`
 + `func (b Background) String() string`
 + `func (b Background) Code() string`
 + `func (b Background) WithStyle(s Style) MixCode`
 + `func (b Background) WithColor(c Color) MixCode`
-+ `func (b Background) Print(a ...interface{})`
-+ `func (b Background) Printf(format string, a ...interface{})`
-+ `func (b Background) Println(a ...interface{})`
-+ `func (b Background) Sprint(a ...interface{}) string`
-+ `func (b Background) Sprintf(format string, a ...interface{}) string`
-+ `func (b Background) Sprintln(a ...interface{}) string`
-+ `func (b Background) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (b Background) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (b Background) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (b Background) AlignedPrint(alignment int, a ...interface{})`
-+ `func (b Background) AlignedPrintf(alignment int, format string, a ...interface{})`
-+ `func (b Background) AlignedPrintln(alignment int, a ...interface{})`
-+ `func (b Background) AlignedSprint(alignment int, a ...interface{}) string`
-+ `func (b Background) AlignedSprintf(alignment int, format string, a ...interface{}) string`
-+ `func (b Background) AlignedSprintln(alignment int, a ...interface{}) string`
-+ `func (b Background) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (b Background) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (b Background) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (b Background) Print(v ...interface{})`
++ `func (b Background) Printf(format string, v ...interface{})`
++ `func (b Background) Println(v ...interface{})`
++ `func (b Background) Sprint(v ...interface{}) string`
++ `func (b Background) Sprintf(format string, v ...interface{}) string`
++ `func (b Background) Sprintln(v ...interface{}) string`
++ `func (b Background) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (b Background) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (b Background) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (b Background) NPrint(a int, v ...interface{})`
++ `func (b Background) NPrintf(a int, format string, v ...interface{})`
++ `func (b Background) NPrintln(a int, v ...interface{})`
++ `func (b Background) NSprint(a int, v ...interface{}) string`
++ `func (b Background) NSprintf(a int, format string, v ...interface{}) string`
++ `func (b Background) NSprintln(a int, v ...interface{}) string`
++ `func (b Background) NFprint(a int, w io.Writer, v ...interface{}) (n int, err error)`
++ `func (b Background) NFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (b Background) NFprintln(a int, w io.Writer, v ...interface{}) (n int, err error)`
 + `func (m MixCode) String() string`
 + `func (m MixCode) Codes() []uint8`
 + `func (m MixCode) WithStyle(s Style) MixCode`
 + `func (m MixCode) WithColor(c Color) MixCode`
 + `func (m MixCode) WithBackground(b Background) MixCode`
-+ `func (m MixCode) Print(a ...interface{})`
-+ `func (m MixCode) Printf(format string, a ...interface{})`
-+ `func (m MixCode) Println(a ...interface{})`
-+ `func (m MixCode) Sprint(a ...interface{}) string`
-+ `func (m MixCode) Sprintf(format string, a ...interface{}) string`
-+ `func (m MixCode) Sprintln(a ...interface{}) string`
-+ `func (m MixCode) Fprint(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (m MixCode) Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (m MixCode) Fprintln(w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (m MixCode) AlignedPrint(alignment int, a ...interface{})`
-+ `func (m MixCode) AlignedPrintf(alignment int, format string, a ...interface{})`
-+ `func (m MixCode) AlignedPrintln(alignment int, a ...interface{})`
-+ `func (m MixCode) AlignedSprint(alignment int, a ...interface{}) string`
-+ `func (m MixCode) AlignedSprintf(alignment int, format string, a ...interface{}) string`
-+ `func (m MixCode) AlignedSprintln(alignment int, a ...interface{}) string`
-+ `func (m MixCode) AlignedFprint(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
-+ `func (m MixCode) AlignedFprintf(alignment int, w io.Writer, format string, a ...interface{}) (n int, err error)`
-+ `func (m MixCode) AlignedFprintln(alignment int, w io.Writer, a ...interface{}) (n int, err error)`
++ `func (m MixCode) Print(v ...interface{})`
++ `func (m MixCode) Printf(format string, v ...interface{})`
++ `func (m MixCode) Println(v ...interface{})`
++ `func (m MixCode) Sprint(v ...interface{}) string`
++ `func (m MixCode) Sprintf(format string, v ...interface{}) string`
++ `func (m MixCode) Sprintln(v ...interface{}) string`
++ `func (m MixCode) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (m MixCode) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (m MixCode) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
++ `func (m MixCode) NPrint(a int, v ...interface{})`
++ `func (m MixCode) NPrintf(a int, format string, v ...interface{})`
++ `func (m MixCode) NPrintln(a int, v ...interface{})`
++ `func (m MixCode) NSprint(a int, v ...interface{}) string`
++ `func (m MixCode) NSprintf(a int, format string, v ...interface{}) string`
++ `func (m MixCode) NSprintln(a int, v ...interface{}) string`
++ `func (m MixCode) NFprint(a int, w io.Writer, v ...interface{}) (n int, err error)`
++ `func (m MixCode) NFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error)`
++ `func (m MixCode) NFprintln(a int, w io.Writer, v ...interface{}) (n int, err error)`

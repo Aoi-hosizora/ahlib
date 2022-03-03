@@ -2,8 +2,8 @@
 
 ## Dependencies
 
-+ xtesting*
 + xreflect
++ xtesting*
 
 ## Documents
 

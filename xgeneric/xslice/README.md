@@ -26,12 +26,12 @@
 + `func Shuffle[T any](slice []T) []T`
 + `func ReverseSelf[T any](slice []T)`
 + `func Reverse[T any](slice []T) []T`
-+ `func SortSelf[T constraints.Ordered](slice []T)`
-+ `func Sort[T constraints.Ordered](slice []T) []T`
++ `func SortSelf[T xsugar.Ordered](slice []T)`
++ `func Sort[T xsugar.Ordered](slice []T) []T`
 + `func SortSelfWith[T any](slice []T, less Lesser)`
 + `func SortWith[T any](slice []T, less Lesser) []T`
-+ `func StableSortSelf[T constraints.Ordered](slice []T)`
-+ `func StableSort[T constraints.Ordered](slice []T) []T`
++ `func StableSortSelf[T xsugar.Ordered](slice []T)`
++ `func StableSort[T xsugar.Ordered](slice []T) []T`
 + `func StableSortSelfWith[T any](slice []T, less Lesser)`
 + `func StableSortWith[T any](slice []T, less Lesser) []T`
 + `func IndexOf[T comparable](slice []T, value T) int`

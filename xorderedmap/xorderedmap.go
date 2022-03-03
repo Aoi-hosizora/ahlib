@@ -13,13 +13,13 @@ import (
 
 // OrderedMap represents a map which is in ordered, which is implemented by slice and map. This type is concurrent safe.
 type OrderedMap struct {
-	// kv represents the inner dictionary.
+	// kv represents the inner dictionary
 	kv map[string]interface{}
 
-	// keys represents the inner key list in ordered.
+	// keys represents the inner key list in ordered
 	keys []string
 
-	// mu locks kv and keys.
+	// mu locks kv and keys
 	mu sync.RWMutex
 }
 
@@ -183,10 +183,12 @@ func (l *OrderedMap) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// CreateYamlMapSliceFunc represents a function used to create a yaml.MapSlice from a slice of kv pair ([2]interface{}), used in OrderedMap.MarshalYAML. For more
-// details, please visit https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go and https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
+// CreateYamlMapSliceFunc represents a function used to create a yaml.MapSlice from a slice of kv pair ([2]interface{}), used in OrderedMap.MarshalYAML. This can
+// make OrderedMap support to marshal to ordered yaml document. For more details, please visit https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go and
+// https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
 //
 // Example:
+// 	// import "gopkg.in/yaml.v2"
 // 	xorderedmap.CreateYamlMapSliceFunc = func(kvPairs [][2]interface{}) (interface{}, error) {
 // 		slice := yaml.MapSlice{}
 // 		for _, pair := range kvPairs {

@@ -4,7 +4,7 @@ xtesting                (x) <<<
 $1 -- packages based on some libraries in $0 group
 xcolor              (xtesting) <<<
 xcondition          (xtesting)
-xerror              (xtesting)
+xerror              (xtesting) <<<
 xgopool             (xtesting)
 xnumber             (xtesting)
 xpointer            (xtesting)
@@ -16,8 +16,8 @@ xstring             (xtesting)
 xtime               (xtesting)
 
 $2 -- packages based on some libraries in $0 and $1 groups
-xmodule             (xtesting, xcolor)
-xorderedmap         (xtesting, xreflect)
+xmodule             (xcolor, xerror, xtesting)
+xorderedmap         (xreflect, xtesting)
 
 ---
 
