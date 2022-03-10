@@ -6,6 +6,8 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"math"
 	"reflect"
+	"runtime"
+	_ "runtime"
 	"strings"
 	"testing"
 	"unsafe"
@@ -91,7 +93,7 @@ func TestUnexportedField(t *testing.T) {
 	xtesting.Equal(t, GetUnexportedField(FieldValueOf(ts, "m")).Interface(), map[int]int{0: -1, -3: 2})
 }
 
-func TestStructFieldValueOf(t *testing.T) {
+func TestFieldValueOf(t *testing.T) {
 	type testStruct struct {
 		A string
 		B int64
@@ -131,6 +133,60 @@ func TestStructFieldValueOf(t *testing.T) {
 			} else {
 				val := FieldValueOf(tc.give, tc.giveName)
 				xtesting.Equal(t, val.Interface(), tc.want)
+			}
+		})
+	}
+}
+
+func TestGetFuncByPC(t *testing.T) {
+	// now := func() (t time.Time) { return }
+	// xtesting.Nil(t, GetFuncByPC(&now, "time.Now"))
+	// xtesting.NotPanic(t, func() { _ = now() })
+	//
+	// now2 := func() (sec int64, nsec int32, mono int64) { return }
+	// xtesting.Nil(t, GetFuncByName(&now2, "time.now"))
+	// xtesting.NotPanic(t, func() { now2() })
+	//
+	// fastrand := func() uint32 { return 0 }
+	// xtesting.Nil(t, GetFuncByName(&fastrand, "runtime.fastrand"))
+	// xtesting.NotPanic(t, func() { _ = fastrand() })
+
+	// getFuncByName := func(funcPtr interface{}, name string) error { return nil }
+	// xtesting.Nil(t, GetFuncByName(&getFuncByName, "github.com/Aoi-hosizora/ahlib/xreflect.GetFuncByName"))
+	// xtesting.NotPanic(t, func() {
+	// 	a := func(funcPtr interface{}, name string) error { return nil }
+	// 	xtesting.Nil(t, getFuncByName(a, "github.com/Aoi-hosizora/ahlib/xreflect.GetFuncByName"))
+	// 	xtesting.NotNil(t, getFuncByName(a, ""))
+	// })
+	//
+	// notFound := func() {}
+	// xtesting.NotNil(t, GetFuncByName(&notFound, "xxx"))
+}
+
+func TestFuncForName(t *testing.T) {
+	for _, tc := range []struct {
+		give    string
+		wantErr bool
+	}{
+		{"time.Now", false},
+		{"time.now", false},
+		{"runtime.time_now", true}, // <<<
+		{"time.runtimeNano", true}, // <<<
+		{"runtime.nanotime", false},
+		{"runtime.fastrand", false},
+		{"xxx", true}, // <<<
+		{"github.com/Aoi-hosizora/ahlib/xreflect.FuncForName", false},
+		{"github.com/Aoi-hosizora/ahlib/xreflect.isEmptyValueInternal", false},
+		{"github.com/Aoi-hosizora/ahlib/xreflect.xxx", true}, // <<<
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			fns, err := FuncForName(tc.give)
+			xtesting.Equal(t, err != nil, tc.wantErr)
+			if err == nil {
+				for _, fn := range fns {
+					nameAgain := runtime.FuncForPC(fn.Entry())
+					xtesting.Equal(t, nameAgain.Name(), tc.give)
+				}
 			}
 		})
 	}

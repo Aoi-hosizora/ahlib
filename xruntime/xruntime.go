@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -146,9 +147,9 @@ func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, fu
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
 }
 
-// =============
-// pprof related
-// =============
+// ============================
+// mass functions and constants
+// ============================
 
 // Pprof profile names, see pprof.Lookup (runtime/pprof) and pprof.Handler (net/http/pprof) for more details.
 const (
@@ -159,10 +160,6 @@ const (
 	PprofBlockProfle         = "block"
 	PprofMutexProfile        = "mutex"
 )
-
-// ==============
-// signal related
-// ==============
 
 // signalNames is used by SignalName.
 var signalNames = [...]string{
@@ -217,4 +214,12 @@ func SignalReadableName(sig syscall.Signal) string {
 		return signalReadableNames[sig]
 	}
 	return "signal " + strconv.Itoa(int(sig))
+}
+
+// GetProxyEnv lookups and returns three proxy environments, including http_proxy, https_proxy and socks_proxy.
+func GetProxyEnv() (httpProxy string, httpsProxy string, socksProxy string) {
+	hp := strings.TrimSpace(os.Getenv("http_proxy"))
+	hsp := strings.TrimSpace(os.Getenv("https_proxy"))
+	ssp := strings.TrimSpace(os.Getenv("socks_proxy"))
+	return hp, hsp, ssp
 }

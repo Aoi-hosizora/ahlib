@@ -242,3 +242,39 @@ func TestSignalName(t *testing.T) {
 		})
 	}
 }
+
+func TestGetProxyEnv(t *testing.T) {
+	for _, key := range []string{
+		"http_proxy", "https_proxy", "socks_proxy",
+	} {
+		e, ok := os.LookupEnv(key)
+		if ok {
+			//goland:noinspection GoDeferInLoop
+			defer os.Setenv(key, e)
+		}
+	}
+
+	os.Setenv("http_proxy", "")
+	os.Setenv("https_proxy", "")
+	os.Setenv("socks_proxy", "")
+	hp, hsp, ssp := GetProxyEnv()
+	xtesting.Equal(t, hp, "")
+	xtesting.Equal(t, hsp, "")
+	xtesting.Equal(t, ssp, "")
+
+	os.Setenv("http_proxy", "http://localhost:9000")
+	os.Setenv("https_proxy", "https://localhost:9000")
+	os.Setenv("socks_proxy", "socks://localhost:9000")
+	hp, hsp, ssp = GetProxyEnv()
+	xtesting.Equal(t, hp, "http://localhost:9000")
+	xtesting.Equal(t, hsp, "https://localhost:9000")
+	xtesting.Equal(t, ssp, "socks://localhost:9000")
+
+	os.Setenv("http_proxy", "")
+	os.Setenv("https_proxy", "")
+	os.Setenv("socks_proxy", "")
+	hp, hsp, ssp = GetProxyEnv()
+	xtesting.Equal(t, hp, "")
+	xtesting.Equal(t, hsp, "")
+	xtesting.Equal(t, ssp, "")
+}

@@ -31,6 +31,7 @@
 + `func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcName string, lineIndex int, lineText string)`
 + `func SignalName(sig syscall.Signal) string`
 + `func SignalReadableName(sig syscall.Signal) string`
++ `func GetProxyEnv() (httpProxy string, httpsProxy string, socksProxy string)`
 
 ### Methods
 

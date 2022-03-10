@@ -57,16 +57,30 @@ func PtrVal[T any](t *T, o T) T {
 	return *t
 }
 
-// Incr increments given Real n and returns it, this just make "n++" statement to expression.
-func Incr[T Real](n T) T {
-	n++
-	return n
+// Incr increments the value of given Real and then returns it, this is the same as C "++n" expression.
+func Incr[T Real](n *T) T {
+	*n++
+	return *n
 }
 
-// Decr decrements given Real n and returns it, this just make "n++" statement to expression.
-func Decr[T Real](n T) T {
-	n--
-	return n
+// Decr decrements the value of given Real and then returns it, this is the same as C "--n" expression.
+func Decr[T Real](n *T) T {
+	*n--
+	return *n
+}
+
+// IncrR returns the value of given Real and then increments it, this is the same as C "n++" expression.
+func IncrR[T Real](n *T) T {
+	v := *n
+	*n++
+	return v
+}
+
+// DecrR returns the value of given Real and then decrements it, this is the same as C "n--" expression.
+func DecrR[T Real](n *T) T {
+	v := *n
+	*n--
+	return v
 }
 
 // UnmarshalJson unmarshals given byte array to T, just like json.Unmarshal, but with T returned.
