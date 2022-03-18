@@ -1,33 +1,33 @@
-$0 -- packages with no dependencies
-xtesting                (x) <<<
+$0 -- the most basic packages
+xreflect            (x) <<<
+xtesting            (xreflect) <<<
 
-$1 -- packages based on some libraries in $0 group
+$1 -- packages that depend on $0 libraries
 xcolor              (xtesting) <<<
 xcondition          (xtesting)
 xerror              (xtesting) <<<
 xgopool             (xtesting)
 xnumber             (xtesting)
 xpointer            (xtesting)
-xreflect            (xtesting) <<<
+xorderedmap         (xreflect, xtesting)
 xruntime            (xtesting)
 xslice              (xtesting)
 xstatus             (xtesting)
 xstring             (xtesting)
 xtime               (xtesting)
 
-$2 -- packages based on some libraries in $0 and $1 groups
+$2 -- packages that depend on $0 and $1 libraries
 xmodule             (xcolor, xerror, xtesting)
-xorderedmap         (xreflect, xtesting)
 
 ---
 
-$$ -- seperated packages, does not dependent any package in $0, $1 and $2 groups
+$$ -- seperated module, does not depend on any $* packages
 xgeneric/...
 
-$$0 -- packages with no dependencies
+$$0 -- the most basic packages
 xgeneric/xsugar     (x) <<<
 xgeneric/xtuple     (x) <<<
 
-$$1 -- packages based on some libraries in $$0 group
-xgeneric/xmap       (xgeneric/xsugar, xgeneric/xtuple)
-xgeneric/xslice     (xgeneric/xsugar, xgeneric/xtuple)
+$$1 -- packages that depend on $$0 libraries
+xgeneric/xgmap      (xgeneric/xsugar, xgeneric/xtuple)
+xgeneric/xgslice    (xgeneric/xsugar, xgeneric/xtuple)

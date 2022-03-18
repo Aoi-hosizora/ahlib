@@ -30,61 +30,6 @@ func TestAssert(t *testing.T) {
 	}()
 }
 
-func TestIsObjectDeepEqual(t *testing.T) {
-	if !IsObjectDeepEqual("Hello World", "Hello World") {
-		fail(t)
-	}
-	if !IsObjectDeepEqual(123, 123) {
-		fail(t)
-	}
-	if !IsObjectDeepEqual(123.5, 123.5) {
-		fail(t)
-	}
-	if !IsObjectDeepEqual([]byte("Hello World"), []byte("Hello World")) {
-		fail(t)
-	}
-	if !IsObjectDeepEqual(nil, nil) {
-		fail(t)
-	}
-	if IsObjectDeepEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
-		fail(t)
-	}
-	if IsObjectDeepEqual('x', "x") {
-		fail(t)
-	}
-	if IsObjectDeepEqual("x", 'x') {
-		fail(t)
-	}
-	if IsObjectDeepEqual(0, 0.1) {
-		fail(t)
-	}
-	if IsObjectDeepEqual(0.1, 0) {
-		fail(t)
-	}
-	if IsObjectDeepEqual(time.Now, time.Now) {
-		fail(t)
-	}
-	if IsObjectDeepEqual(func() {}, func() {}) {
-		fail(t)
-	}
-	if IsObjectDeepEqual(uint32(10), int32(10)) {
-		fail(t)
-	}
-
-	if !IsObjectValueEqual(uint32(10), int32(10)) {
-		fail(t)
-	}
-	if !IsObjectValueEqual(float32(0.5), 0.5) {
-		fail(t)
-	}
-	if IsObjectValueEqual(0, nil) {
-		fail(t)
-	}
-	if IsObjectValueEqual(nil, 0) {
-		fail(t)
-	}
-}
-
 func TestEqual(t *testing.T) {
 	mockT := &testing.T{}
 
@@ -806,26 +751,6 @@ func TestGoTool(t *testing.T) {
 	_testGoToolFlag.Store(true)
 	p, err = GoTool()
 	if err == nil {
-		fail(t)
-	}
-	if p != "" {
-		fail(t)
-	}
-
-	mockT := &mockFinishFlagTestingT{}
-
-	_testGoToolFlag.Store(false)
-	p = GoToolPath(mockT)
-	if mockT.finished {
-		fail(t)
-	}
-	if !strings.HasPrefix(p, filepath.Join(runtime.GOROOT(), "bin")) {
-		fail(t)
-	}
-
-	_testGoToolFlag.Store(true)
-	p = GoToolPath(mockT)
-	if !mockT.finished {
 		fail(t)
 	}
 	if p != "" {

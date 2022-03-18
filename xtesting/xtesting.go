@@ -2,62 +2,9 @@ package xtesting
 
 import (
 	"fmt"
-	"path"
 	"reflect"
-	"runtime"
-	"sync/atomic"
 	"testing"
 )
-
-// =========
-// fail test
-// =========
-
-// failTest outputs the error message and fails the test.
-func failTest(t testing.TB, skip int, msg string, msgAndArgs ...interface{}) bool {
-	if skip < 0 {
-		skip = 0
-	}
-	exSkip := int(atomic.LoadInt32(&_extraSkip))
-
-	_, file, line, _ := runtime.Caller(skip + 1 + exSkip)
-	m := fmt.Sprintf("%s:%d %s", path.Base(file), line, msg)
-	if exMsg := combineMsgAndArgs(msgAndArgs...); len(exMsg) > 0 {
-		m += exMsg
-	}
-	fmt.Println(m)
-
-	if failNow := atomic.LoadInt32(&_useFailNow) == 1; !failNow {
-		t.Fail()
-	} else {
-		t.FailNow()
-	}
-	return false
-}
-
-var (
-	// _extraSkip is the extra skip, and this value cannot be less than zero, defaults to zero.
-	_extraSkip int32 = 0
-
-	// _useFailNow is a flag for using `FailNow` (if set to 1) rather than `Fail` (if set to 0), defaults to 0.
-	_useFailNow int32 = 0
-)
-
-// SetExtraSkip sets extra skip for test functions, and it will be used when printing the test failed message, defaults to zero.
-func SetExtraSkip(skip int32) {
-	if skip >= 0 {
-		atomic.StoreInt32(&_extraSkip, skip)
-	}
-}
-
-// UseFailNow makes test functions to fail now when test failed, defaults to false, that means to use `Fail` rather than `FailNow`.
-func UseFailNow(failNow bool) {
-	if failNow {
-		atomic.StoreInt32(&_useFailNow, 1)
-	} else {
-		atomic.StoreInt32(&_useFailNow, 0)
-	}
-}
 
 // =================
 // testing functions
@@ -69,7 +16,7 @@ func Equal(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool
 		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if !IsObjectDeepEqual(give, want) {
+	if !reflect.DeepEqual(give, want) {
 		return failTest(t, 1, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
 	}
 
@@ -82,7 +29,7 @@ func NotEqual(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) b
 		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%v)", give, want, err), msgAndArgs...)
 	}
 
-	if IsObjectDeepEqual(give, want) {
+	if reflect.DeepEqual(give, want) {
 		return failTest(t, 1, fmt.Sprintf("NotEqual: expected not to be `%#v`", want), msgAndArgs...)
 	}
 
@@ -327,41 +274,9 @@ func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...inte
 		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual does not panic", f, want), msgAndArgs...)
 	}
 
-	if !IsObjectDeepEqual(value, want) {
+	if !reflect.DeepEqual(value, want) {
 		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual with `%#v`", f, want, value), msgAndArgs...)
 	}
 
 	return true
 }
-
-/*
-
-// Exit asserts that the code inside the specified function exits.
-func Exit(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
-	// 1. Create a temp code file, use exec.Command to run and get exit code => need to write code file manually
-	// https://github.com/sirupsen/logrus/blob/master/alt_exit_test.go#L75
-	// https://github.com/sirupsen/logrus/blob/master/alt_exit.go#L49
-	// https://stackoverflow.com/questions/10385551/get-exit-code-go
-
-	// 2. Use a stub function and replace os.Exit when test => need to replace all os.Exit and only for internal
-	// https://github.com/uber-go/zap/blob/a68efdbdd15b7816de33cdbe7e6def2a559bdf64/internal/exit/exit.go#L44
-	// https://github.com/uber-go/zap/blob/a68efdbdd1/zapcore/entry_test.go#L124
-	// https://github.com/uber-go/zap/blob/a68efdbdd15b7816de33cdbe7e6def2a559bdf64/zapcore/entry.go#L236
-
-	// 3. Use exec.Command and rerun the test with an argument => gracefullest and recommend
-	// https://talks.golang.org/2014/testing.slide#23
-
-	// 4. Replace os.Exit to other function (patch), and restore it later => unsafe when run os.Exec in concurrency and difficult
-	// https://stackoverflow.com/questions/26225513/how-to-test-os-exit-scenarios-in-go
-	// https://github.com/bouk/monkey/blob/master/monkey.go#L67
-	// https://github.com/bouk/monkey/blob/master/monkey.go#L119
-
-	return true
-}
-
-// ExitWithCode asserts that the code inside the specified function exits with a code which not equals the expected code.
-func ExitWithCode(t testing.TB, code int, f func(), msgAndArgs ...interface{}) bool {
-	return true
-}
-
-*/
