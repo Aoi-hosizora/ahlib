@@ -2,6 +2,8 @@ package xtesting
 
 import (
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -12,12 +14,12 @@ import (
 
 // Equal asserts that two objects are deep equal.
 func Equal(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if err := validateEqualArgs(give, want); err != nil {
-		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%v)", give, want, err), msgAndArgs...)
+	if err := validateArgsAreNotFunc(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (%+v)", give, want, err), msgAndArgs...)
 	}
 
 	if !reflect.DeepEqual(give, want) {
-		return failTest(t, 1, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("Equal: expect to be `%#v`, but actually was `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
@@ -25,12 +27,12 @@ func Equal(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool
 
 // NotEqual asserts that the specified values are not deep equal.
 func NotEqual(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if err := validateEqualArgs(give, want); err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%v)", give, want, err), msgAndArgs...)
+	if err := validateArgsAreNotFunc(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotEqual: invalid operation `%#v` != `%#v` (%+v)", give, want, err), msgAndArgs...)
 	}
 
 	if reflect.DeepEqual(give, want) {
-		return failTest(t, 1, fmt.Sprintf("NotEqual: expected not to be `%#v`", want), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotEqual: expect not to be `%#v`, but actually equaled", want), msgAndArgs...)
 	}
 
 	return true
@@ -38,8 +40,12 @@ func NotEqual(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) b
 
 // EqualValue asserts that two objects are equal or convertible to the same types and equal.
 func EqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectValueEqual(give, want) {
-		return failTest(t, 1, fmt.Sprintf("EqualValue: expected `%#v`, actual `%#v`", want, give), msgAndArgs...)
+	if err := validateArgsAreNotFunc(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("EqualValue: invalid operation `%#v` == `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	if !xreflect.DeepEqualWithoutType(give, want) {
+		return failTest(t, 1, fmt.Sprintf("EqualValue: expect to be `%#v`, but actually was `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
@@ -47,8 +53,12 @@ func EqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{})
 
 // NotEqualValue asserts that two objects are not equal even when converted to the same type.
 func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectValueEqual(give, want) {
-		return failTest(t, 1, fmt.Sprintf("NotEqualValue: expected not to be `%#v`", want), msgAndArgs...)
+	if err := validateArgsAreNotFunc(give, want); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotEqualValue: invalid operation `%#v` != `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	if xreflect.DeepEqualWithoutType(give, want) {
+		return failTest(t, 1, fmt.Sprintf("NotEqualValue: expect not to be `%#v`, but actually equaled", want), msgAndArgs...)
 	}
 
 	return true
@@ -56,8 +66,8 @@ func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface
 
 // SamePointer asserts that two pointers reference the same object.
 func SamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if !IsPointerSame(give, want) {
-		return failTest(t, 1, fmt.Sprintf("SamePointer: expected `%#v` (%p), actual `%#v` (%p)", want, want, give, give), msgAndArgs...)
+	if !xreflect.IsSamePointer(give, want) {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: expect to point to `%#v`, but actually pointed to `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
@@ -65,8 +75,8 @@ func SamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}
 
 // NotSamePointer asserts that two pointers do not reference the same object.
 func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if IsPointerSame(give, want) {
-		return failTest(t, 1, fmt.Sprintf("SamePointer: expected not be `%#v` (%p)", want, want), msgAndArgs...)
+	if xreflect.IsSamePointer(give, want) {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: expect not to point to `%#v`, but actually pointed", want), msgAndArgs...)
 	}
 
 	return true
@@ -75,7 +85,7 @@ func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interfac
 // True asserts that the specified value is true.
 func True(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 	if !value {
-		return failTest(t, 1, fmt.Sprintf("True: expected `true`, actual `%#v`", value), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("True: expect to be `true`, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
@@ -84,138 +94,282 @@ func True(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 // False asserts that the specified value is false.
 func False(t testing.TB, value bool, msgAndArgs ...interface{}) bool {
 	if value {
-		return failTest(t, 1, fmt.Sprintf("False: expected to be `false`, actual `%#v`", value), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("False: expect to be `false`, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
 // Nil asserts that the specified object is nil.
-func Nil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectNil(object) {
-		return failTest(t, 1, fmt.Sprintf("Nil: expected `nil`, actual `%#v`", object), msgAndArgs...)
+func Nil(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if !xreflect.IsNilValue(value) {
+		return failTest(t, 1, fmt.Sprintf("Nil: expect to be `<nil>`, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotNil asserts that the specified object is not nil.
-func NotNil(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectNil(object) {
-		return failTest(t, 1, fmt.Sprintf("NotNil, expected not to be `nil`, actual `%#v`", object), msgAndArgs...)
+func NotNil(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if xreflect.IsNilValue(value) {
+		return failTest(t, 1, fmt.Sprintf("NotNil: expect not to be `<nil>`, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
 // Zero asserts that the specified object is the zero value for its type.
-func Zero(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectZero(object) {
-		return failTest(t, 1, fmt.Sprintf("Zero: expected to be zero value, actual `%#v`", object), msgAndArgs...)
+func Zero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if !xreflect.IsZeroValue(value) {
+		return failTest(t, 1, fmt.Sprintf("Zero: expect to be zero value, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotZero asserts that the specified object is not the zero value for its type.
-func NotZero(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectZero(object) {
-		return failTest(t, 1, fmt.Sprintf("NotZero: expected not to be zero value, actual `%#v`", object), msgAndArgs...)
+func NotZero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if xreflect.IsZeroValue(value) {
+		return failTest(t, 1, fmt.Sprintf("NotZero: expect not to be zero value, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
-// ZeroLen asserts that the length of specified object is zero.
-func ZeroLen(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if !IsObjectZeroLen(object) {
-		return failTest(t, 1, fmt.Sprintf("ZeroLen: expected to be zero length, actual `%#v`", object), msgAndArgs...)
+// EmptyCollection asserts that the specified object is empty collection value.
+func EmptyCollection(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if !xreflect.IsEmptyCollection(value) {
+		return failTest(t, 1, fmt.Sprintf("EmptyCollection: expect to be empty collection value, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true
 }
 
-// NotZeroLen asserts that the length of specified object is not zero.
-func NotZeroLen(t testing.TB, object interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectZeroLen(object) {
-		return failTest(t, 1, fmt.Sprintf("NotZeroLen: expected not to be zero length, actual `%#v`", object), msgAndArgs...)
+// NotEmptyCollection asserts that the specified object is not empty collection value.
+func NotEmptyCollection(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	if xreflect.IsEmptyCollection(value) {
+		return failTest(t, 1, fmt.Sprintf("NotEmptyCollection: expect not to be empty collection value, but actually was `%#v`", value), msgAndArgs...)
+	}
+
+	return true
+}
+
+// Error asserts that a function returned an error.
+func Error(t testing.TB, err error, msgAndArgs ...interface{}) bool {
+	if err == nil {
+		return failTest(t, 1, fmt.Sprintf("Error: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NilError asserts that a function returned no error.
+func NilError(t testing.TB, err error, msgAndArgs ...interface{}) bool {
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NilError: expect to be nil error, but actually was `%+v`", err), msgAndArgs...)
+	}
+
+	return true
+}
+
+// EqualError asserts that a function returned an error and that it is equal to the provided error.
+func EqualError(t testing.TB, err error, wantString string, msgAndArgs ...interface{}) bool {
+	if err == nil {
+		return failTest(t, 1, fmt.Sprintf("EqualError: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+	}
+
+	if msg := err.Error(); msg != wantString {
+		return failTest(t, 1, fmt.Sprintf("EqualError: expect to be error with message `%+v`, but actually with `%#v`", err, msg), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotEqualError asserts that a function returned an error and that it is not equal to the provided error.
+func NotEqualError(t testing.TB, err error, wantString string, msgAndArgs ...interface{}) bool {
+	if err == nil {
+		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+	}
+
+	if err.Error() == wantString {
+		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect error message not to be `%+v`, but actually equaled", err), msgAndArgs...)
+	}
+
+	return true
+}
+
+// MatchRegexp asserts that a specified regexp matches a string.
+func MatchRegexp(t testing.TB, rx interface{}, str string, msgAndArgs ...interface{}) bool {
+	match, re, err := matchRegexp(rx, str)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("MatchRegexp: invalid regular expression value `%#v` (%+v)", rx, err), msgAndArgs...)
+	}
+
+	if !match {
+		return failTest(t, 1, fmt.Sprintf("MatchRegexp: expect `%#v` to match `%#v`, but actually not matched", str, re.String()), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotMatchRegexp asserts that a specified regexp does not match a string.
+func NotMatchRegexp(t testing.TB, rx interface{}, str string, msgAndArgs ...interface{}) bool {
+	match, re, err := matchRegexp(rx, str)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotMatchRegexp: invalid regular expression value `%#v` (%+v)", rx, err), msgAndArgs...)
+	}
+
+	if match {
+		return failTest(t, 1, fmt.Sprintf("NotMatchRegexp: expect `%#v` not to match `%#v`, but actually matched", str, re.String()), msgAndArgs...)
 	}
 
 	return true
 }
 
 // InDelta asserts that the two numerals are within delta of each other.
-func InDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(give, want, eps)
+func InDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation (%v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InDelta: invalid parameters (%+v)", err), msgAndArgs...)
 	}
 
-	if !in {
-		return failTest(t, 1, fmt.Sprintf("InDelta: max difference between `%#v` and `%#v` allowed is `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
+	if !inDelta {
+		return failTest(t, 1, fmt.Sprintf("InDelta: expect difference between `%#v` and `%#v` to be less than `%#v`, but actually was `%#v`", give, want, delta, actualDiff), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotInDelta asserts that the two numerals are not within delta of each other.
-func NotInDelta(t testing.TB, give, want interface{}, eps float64, msgAndArgs ...interface{}) bool {
-	in, actualEps, err := calcDeltaInEps(give, want, eps)
+func NotInDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation (%v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid parameters (%+v)", err), msgAndArgs...)
 	}
 
-	if in {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: max difference between `%#v` and `%#v` is not allowed in `%#v`, but difference was `%#v`", give, want, eps, actualEps), msgAndArgs...)
+	if inDelta {
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: expect difference between `%#v` and `%#v` to be greater than `%#v`, but actually was `%#v`", give, want, delta, actualDiff), msgAndArgs...)
 	}
 
 	return true
 }
 
-// Contain asserts that the specified container contains the specified substring or element.
-// Support string, array, slice or map.
-func Contain(t testing.TB, container, object interface{}, msgAndArgs ...interface{}) bool {
-	ok, found := includeElement(container, object)
+// InEpsilon asserts that two numerals have a relative error less than epsilon.
+func InEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("InEpsilon: invalid parameters (%+v)", err), msgAndArgs...)
+	}
 
-	if !ok {
-		return failTest(t, 1, fmt.Sprintf("Contain: invalid operator len(`%#v`)", container), msgAndArgs...)
+	if !inEps {
+		return failTest(t, 1, fmt.Sprintf("InEpsilon: expect relative error between `%#v` and `%#v` to be less than `%#v`, but actually was `%#v`", give, want, epsilon, actualRee), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotInEpsilon asserts that two numerals have a relative error greater than epsilon.
+func NotInEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotInEpsilon: invalid parameters (%+v)", err), msgAndArgs...)
+	}
+
+	if inEps {
+		return failTest(t, 1, fmt.Sprintf("NotInEpsilon: expect relative error between `%#v` and `%#v` to be greater than `%#v`, but actually was `%#v`", give, want, epsilon, actualRee), msgAndArgs...)
+	}
+
+	return true
+}
+
+// Contain asserts that the specified string, list(array, slice...) or map contains the specified substring or element.
+func Contain(t testing.TB, container, value interface{}, msgAndArgs ...interface{}) bool {
+	valid, found := containElement(container, value)
+
+	if !valid {
+		return failTest(t, 1, fmt.Sprintf("Contain: invalid type of `%#v` (`%T` is unsupported)", container, container), msgAndArgs...)
 	}
 	if !found {
-		return failTest(t, 1, fmt.Sprintf("Contain: `%#v` is expected to contain `%#v`", container, object), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("Contain: expect `%#v` to contain `%#v`, but actually not contained", container, value), msgAndArgs...)
 	}
 
 	return true
 }
 
-// NotContain asserts that the specified container does not contain the specified substring or element.
-// Support string, array, slice or map.
-func NotContain(t testing.TB, container, object interface{}, msgAndArgs ...interface{}) bool {
-	ok, found := includeElement(container, object)
+// NotContain asserts that the specified string, list(array, slice...) or map does not contain the specified substring or element.
+func NotContain(t testing.TB, container, value interface{}, msgAndArgs ...interface{}) bool {
+	valid, found := containElement(container, value)
 
-	if !ok {
-		return failTest(t, 1, fmt.Sprintf("NotContain: invalid operator len(`%#v`)", container), msgAndArgs...)
+	if !valid {
+		return failTest(t, 1, fmt.Sprintf("NotContain: invalid type of `%#v` (`%T` is unsupported)", container, container), msgAndArgs...)
 	}
 	if found {
-		return failTest(t, 1, fmt.Sprintf("NotContain: `%#v` is expected not to contain `%#v`", container, object), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotContain: expect `%#v` not to contain `%#v`, but actually contained", container, value), msgAndArgs...)
 	}
 
 	return true
 }
 
-// ElementMatch asserts that the specified listA is equal to specified listB ignoring the order of the elements.
+// Subset asserts that the specified list(array, slice...) contains all elements given in the specified subset(array, slice...).
+func Subset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}) bool {
+	valid, allFound, element := containAllElements(list, subset)
+
+	if !valid {
+		return failTest(t, 1, fmt.Sprintf("Subset: invalid type of `%#v` or type of `%#v`", list, subset), msgAndArgs...)
+	}
+	if !allFound {
+		return failTest(t, 1, fmt.Sprintf("Subset: expect `%#v` to contain `%#v`, but actually not contained", list, element), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotSubset asserts that the specified list(array, slice...) contains not all elements given in the specified subset(array, slice...).
+func NotSubset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}) bool {
+	valid, allFound, _ := containAllElements(list, subset)
+
+	if !valid {
+		return failTest(t, 1, fmt.Sprintf("NotSubset: invalid type of `%#v` or type of `%#v`", list, subset), msgAndArgs...)
+	}
+	if allFound {
+		return failTest(t, 1, fmt.Sprintf("NotSubset: expect `%#v` not to be a subset of `%#v`, but actually was", subset, list), msgAndArgs...)
+	}
+
+	return true
+}
+
+// ElementMatch asserts that the specified listA(array, slice...) equals to specified listB(array, slice...) ignoring the order of the elements.
 // If there are duplicate elements, the number of appearances of each of them in both lists should match.
 func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interface{}) bool {
-	if IsObjectZeroLen(listA) && IsObjectZeroLen(listB) {
+	if (listA == nil || xreflect.IsEmptyCollection(listA)) && (listB == nil || xreflect.IsEmptyCollection(listB)) {
 		return true
 	}
 
-	if err := validateArgIsList(listA, listB); err != nil {
-		return failTest(t, 1, fmt.Sprintf("ElementMatch: invalid operator: `%#v` <-> `%#v` (%v)", listA, listB, err), msgAndArgs...)
+	if err := validateArgsAreList(listA, listB); err != nil {
+		return failTest(t, 1, fmt.Sprintf("ElementMatch: invalid type of `%#v` or type of `%#v` (%+v)", listA, listB, err), msgAndArgs...)
 	}
 
 	extraA, extraB := diffLists(listA, listB)
 	if len(extraA) != 0 || len(extraB) != 0 {
-		return failTest(t, 1, fmt.Sprintf("ElementMatch: `%#v` and `%#v` are expected to match each other", listA, listB), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("ElementMatch: expect `%#v` and `%#v` to match each other, but actually not matched", listA, listB), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotElementMatch asserts that the specified listA(array, slice...) does not equal to specified listB(array, slice...) ignoring the order of the elements.
+func NotElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interface{}) bool {
+	if (listA == nil || xreflect.IsEmptyCollection(listA)) && (listB == nil || xreflect.IsEmptyCollection(listB)) {
+		return true
+	}
+
+	if err := validateArgsAreList(listA, listB); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotElementMatch: invalid type of `%#v` or type of `%#v` (%+v)", listA, listB, err), msgAndArgs...)
+	}
+
+	extraA, extraB := diffLists(listA, listB)
+	if len(extraA) != 0 || len(extraB) != 0 {
+		return failTest(t, 1, fmt.Sprintf("NotElementMatch: expect `%#v` and `%#v` not to match each other, but actually matched", listA, listB), msgAndArgs...)
 	}
 
 	return true
@@ -226,22 +380,48 @@ func IsType(t testing.TB, object, want interface{}, msgAndArgs ...interface{}) b
 	objectType := reflect.TypeOf(object)
 	wantType := reflect.TypeOf(want)
 
-	if objectType != wantType {
-		return failTest(t, 1, fmt.Sprintf("IsType: expected to be of type `%s`, actual was `%s`", wantType.String(), objectType.String()), msgAndArgs...)
+	if !reflect.DeepEqual(objectType, wantType) {
+		return failTest(t, 1, fmt.Sprintf("IsType: expect `%#v` to be of type `%s`, but actually was `%s`", object, wantType.String(), objectType.String()), msgAndArgs...)
 	}
 
 	return true
 }
 
-// Implements asserts that an object is implemented by the specified interface.
-func Implements(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
-	interfaceType := reflect.TypeOf(interfacePtr).Elem()
+// IsNotType asserts that the specified objects are of the different types.
+func IsNotType(t testing.TB, object, want interface{}, msgAndArgs ...interface{}) bool {
+	objectType := reflect.TypeOf(object)
+	wantType := reflect.TypeOf(want)
 
-	if object == nil {
-		return failTest(t, 1, fmt.Sprintf("Implements: invalid operation for `nil`"), msgAndArgs...)
+	if reflect.DeepEqual(objectType, wantType) {
+		return failTest(t, 1, fmt.Sprintf("IsNotType: expect `%#v` not to be of type `%s`, but actually was the same type", object, wantType.String()), msgAndArgs...)
 	}
+
+	return true
+}
+
+// Implement asserts that an object implements the specified interface.
+func Implement(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
+	interfaceType, err := validateArgsForImplement(object, interfacePtr)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("Implement: invalid parameters (%+v)", err), msgAndArgs...)
+	}
+
 	if !reflect.TypeOf(object).Implements(interfaceType) {
-		return failTest(t, 1, fmt.Sprintf("Implements: %T expected to implement `%v`, actual not implment.", object, interfacePtr), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("Implement: expect `%T` to implement `%s`, but actually not implemented", object, interfaceType.String()), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotImplement asserts that an object does not implement the specified interface.
+func NotImplement(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
+	interfaceType, err := validateArgsForImplement(object, interfacePtr)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("Implement: invalid parameters (%+v)", err), msgAndArgs...)
+	}
+
+	if reflect.TypeOf(object).Implements(interfaceType) {
+		return failTest(t, 1, fmt.Sprintf("Implement: expect `%T` not to implement `%s`, but actually implemented", object, interfaceType.String()), msgAndArgs...)
 	}
 
 	return true
@@ -249,9 +429,9 @@ func Implements(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...in
 
 // Panic asserts that the code inside the specified function panics.
 func Panic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
-	isPanic, _ := didPanic(f)
-	if !isPanic {
-		return failTest(t, 1, fmt.Sprintf("Panic: function (%p) is expected to panic, actual does not panic", f), msgAndArgs...)
+	funcDidPanic, _ := checkPanic(f)
+	if !funcDidPanic {
+		return failTest(t, 1, fmt.Sprintf("Panic: expect function `%#v` to panic, but actually did not panic", interface{}(f)), msgAndArgs...)
 	}
 
 	return true
@@ -259,23 +439,77 @@ func Panic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
 
 // NotPanic asserts that the code inside the specified function does not panic.
 func NotPanic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
-	isPanic, value := didPanic(f)
-	if isPanic {
-		return failTest(t, 1, fmt.Sprintf("NotPanic: function (%p) is expected not to panic, acutal panic with `%v`", f, value), msgAndArgs...)
+	funcDidPanic, panicValue := checkPanic(f)
+	if funcDidPanic {
+		return failTest(t, 1, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually panicked with `%v`", interface{}(f), panicValue), msgAndArgs...)
 	}
 
 	return true
 }
 
-// PanicWithValue asserts that the code inside the specified function panics, and the recovered value equals the expected value.
+// PanicWithValue asserts that the code inside the specified function panics, and that the recovered panic value equals the wanted panic value.
 func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...interface{}) bool {
-	isPanic, value := didPanic(f)
-	if !isPanic {
-		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual does not panic", f, want), msgAndArgs...)
+	funcDidPanic, panicValue := checkPanic(f)
+	if !funcDidPanic {
+		return failTest(t, 1, fmt.Sprintf("PanicWithValue: expect function `%#v` to panic, but actually did not panic", interface{}(f)), msgAndArgs...)
 	}
 
-	if !reflect.DeepEqual(value, want) {
-		return failTest(t, 1, fmt.Sprintf("PanicWithValue: function (%p) is expected to panic with `%#v`, actual with `%#v`", f, want, value), msgAndArgs...)
+	if !reflect.DeepEqual(panicValue, want) {
+		return failTest(t, 1, fmt.Sprintf("PanicWithValue: expect function `%#v` to panic with `%#v`, but actually with `%#v`", interface{}(f), want, panicValue), msgAndArgs...)
+	}
+
+	return true
+}
+
+// FileExist checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("FileExist: error when calling os.Lstat on `%s` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("FileExist: expect file `%s` to exist, but actually not existed", path), msgAndArgs...)
+	}
+	if info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("FileExist: expect `%s` to be a file, but actually was a directory", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// FileNotExist checks whether a file does not exist in a given path. It fails if the path points to an existing file only.
+func FileNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err == nil && !info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("FileNotExist: expect file `%s` not to exist, but actually was an existing file", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// DirExist checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("DirExist: error when calling os.Lstat on `%s` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("DirExist: expect directory `%s` to exist, but actually not existed", path), msgAndArgs...)
+	}
+	if !info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("DirExist: expect `%s` to be a directory, but actually was a file", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// DirNotExist checks whether a directory does not exist in the given path. It fails if the path points to an existing directory only.
+func DirNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err == nil && info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("DirNotExist: expect directory `%s` not to exist, but actually was an existing directory", path), msgAndArgs...)
 	}
 
 	return true

@@ -1,7 +1,7 @@
 //go:build go1.18
 // +build go1.18
 
-package xslice
+package xgslice
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xsugar"
@@ -36,11 +36,9 @@ func defaultEqualler[T comparable]() Equaller[T] {
 }
 
 func init() {
-	// fore ShuffleSelf
+	// for ShuffleSelf
 	rand.Seed(time.Now().UnixNano())
 }
-
-// func ShuffleSelf[A ~[]T, T any](slice A)
 
 // ShuffleSelf shuffles the []T slice directly.
 func ShuffleSelf[T any](slice []T) {
@@ -351,11 +349,11 @@ func Repeat[T any](value T, count uint) []T {
 // ==================
 
 const (
-	panicNilEachFunc      = "xslice: nil each function"
-	panicNilMapFunc       = "xslice: nil map function"
-	panicNilExpandFunc    = "xslice: nil expand function"
-	panicNilReduceFunc    = "xslice: nil reduce function"
-	panicNilPredicateFunc = "xslice: nil predicate function"
+	panicNilEachFunc      = "xgslice: nil each function"
+	panicNilMapFunc       = "xgslice: nil map function"
+	panicNilExpandFunc    = "xgslice: nil expand function"
+	panicNilReduceFunc    = "xgslice: nil reduce function"
+	panicNilPredicateFunc = "xgslice: nil predicate function"
 )
 
 // Foreach invokes given function for each item of given slice.

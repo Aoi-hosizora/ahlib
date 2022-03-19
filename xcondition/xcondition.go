@@ -18,7 +18,7 @@ func IfThenElse(condition bool, value1, value2 interface{}) interface{} {
 
 // DefaultIfNil returns value if it is not nil, otherwise returns defaultValue.
 func DefaultIfNil(value, defaultValue interface{}) interface{} {
-	if value != nil {
+	if value != nil { // TODO nil checker
 		return value
 	}
 	return defaultValue

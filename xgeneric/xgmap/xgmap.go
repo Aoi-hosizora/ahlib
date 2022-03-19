@@ -1,7 +1,7 @@
 //go:build go1.18
 // +build go1.18
 
-package xmap
+package xgmap
 
 import (
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
@@ -12,10 +12,10 @@ import (
 // ==================
 
 const (
-	panicNilEachFunc      = "xslice: nil each function"
-	panicNilMapFunc       = "xslice: nil map function"
-	panicNilReduceFunc    = "xslice: nil reduce function"
-	panicNilPredicateFunc = "xslice: nil predicate function"
+	panicNilEachFunc      = "xgmap: nil each function"
+	panicNilMapFunc       = "xgmap: nil map function"
+	panicNilReduceFunc    = "xgmap: nil reduce function"
+	panicNilPredicateFunc = "xgmap: nil predicate function"
 )
 
 // Keys returns a key slice of given map, notes that returned slice has no order.

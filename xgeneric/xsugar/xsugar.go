@@ -28,6 +28,14 @@ func IfThenElse[T any](condition bool, value1, value2 T) T {
 	return value2
 }
 
+// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue.
+func DefaultIfNil[T any](value, defaultValue T) T {
+	if any(value) != nil { // TODO nil checker
+		return value
+	}
+	return defaultValue
+}
+
 // PanicIfErr returns value if err is nil, otherwise panics with error message.
 func PanicIfErr[T any](value T, err error) T {
 	if err != nil {

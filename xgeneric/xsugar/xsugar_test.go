@@ -26,6 +26,11 @@ func TestIfThen(t *testing.T) {
 	xtestingEqual(t, IfThenElse(false, 1+1i, 2+2i), 2+2i)
 }
 
+func TestXXXIfNil(t *testing.T) {
+	// DefaultIfNil
+	_ = DefaultIfNil[any]
+}
+
 func TestPanicIfErr(t *testing.T) {
 	// PanicIfErr
 	xtestingPanic(t, func() { xtestingEqual(t, PanicIfErr("a", nil), "a") }, false)

@@ -1,4 +1,4 @@
-# xmap
+# xgmap
 
 ## Dependencies
 

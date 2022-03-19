@@ -81,9 +81,9 @@
 + `func (s Style) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
 + `func (s Style) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
 + `func (s Style) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
-+ `func (s Style) NPrint(a int, v ...interface{})`
-+ `func (s Style) NPrintf(a int, format string, v ...interface{})`
-+ `func (s Style) NPrintln(a int, v ...interface{})`
++ `func (s Style) APrint(a int, v ...interface{})`
++ `func (s Style) APrintf(a int, format string, v ...interface{})`
++ `func (s Style) APrintln(a int, v ...interface{})`
 + `func (s Style) NSprint(a int, v ...interface{}) string`
 + `func (s Style) NSprintf(a int, format string, v ...interface{}) string`
 + `func (s Style) NSprintln(a int, v ...interface{}) string`
@@ -103,9 +103,9 @@
 + `func (c Color) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
 + `func (c Color) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
 + `func (c Color) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
-+ `func (c Color) NPrint(a int, v ...interface{})`
-+ `func (c Color) NPrintf(a int, format string, v ...interface{})`
-+ `func (c Color) NPrintln(a int, v ...interface{})`
++ `func (c Color) APrint(a int, v ...interface{})`
++ `func (c Color) APrintf(a int, format string, v ...interface{})`
++ `func (c Color) APrintln(a int, v ...interface{})`
 + `func (c Color) NSprint(a int, v ...interface{}) string`
 + `func (c Color) NSprintf(a int, format string, v ...interface{}) string`
 + `func (c Color) NSprintln(a int, v ...interface{}) string`
@@ -125,9 +125,9 @@
 + `func (b Background) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
 + `func (b Background) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
 + `func (b Background) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
-+ `func (b Background) NPrint(a int, v ...interface{})`
-+ `func (b Background) NPrintf(a int, format string, v ...interface{})`
-+ `func (b Background) NPrintln(a int, v ...interface{})`
++ `func (b Background) APrint(a int, v ...interface{})`
++ `func (b Background) APrintf(a int, format string, v ...interface{})`
++ `func (b Background) APrintln(a int, v ...interface{})`
 + `func (b Background) NSprint(a int, v ...interface{}) string`
 + `func (b Background) NSprintf(a int, format string, v ...interface{}) string`
 + `func (b Background) NSprintln(a int, v ...interface{}) string`
@@ -148,9 +148,9 @@
 + `func (m MixCode) Fprint(w io.Writer, v ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error)`
 + `func (m MixCode) Fprintln(w io.Writer, v ...interface{}) (n int, err error)`
-+ `func (m MixCode) NPrint(a int, v ...interface{})`
-+ `func (m MixCode) NPrintf(a int, format string, v ...interface{})`
-+ `func (m MixCode) NPrintln(a int, v ...interface{})`
++ `func (m MixCode) APrint(a int, v ...interface{})`
++ `func (m MixCode) APrintf(a int, format string, v ...interface{})`
++ `func (m MixCode) APrintln(a int, v ...interface{})`
 + `func (m MixCode) NSprint(a int, v ...interface{}) string`
 + `func (m MixCode) NSprintf(a int, format string, v ...interface{}) string`
 + `func (m MixCode) NSprintln(a int, v ...interface{}) string`

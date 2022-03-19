@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 )
 
 func fail(t *testing.T) {
@@ -360,7 +359,7 @@ func TestZero(t *testing.T) {
 	}
 }
 
-func TestZeroLen(t *testing.T) {
+func TestEmptyCollection(t *testing.T) {
 	mockT := &testing.T{}
 
 	lenZeros := []interface{}{
@@ -378,24 +377,24 @@ func TestZeroLen(t *testing.T) {
 
 	// ZeroLen
 	for _, zero := range lenZeros {
-		if !ZeroLen(mockT, zero) {
+		if !EmptyCollection(mockT, zero) {
 			fail(t)
 		}
 	}
 	for _, nonZero := range nonLenZeros {
-		if ZeroLen(mockT, nonZero) {
+		if EmptyCollection(mockT, nonZero) {
 			fail(t)
 		}
 	}
 
 	// NotZeroLen
 	for _, zero := range lenZeros {
-		if NotZeroLen(mockT, zero) {
+		if NotEmptyCollection(mockT, zero) {
 			fail(t)
 		}
 	}
 	for _, nonZero := range nonLenZeros {
-		if !NotZeroLen(mockT, nonZero) {
+		if !NotEmptyCollection(mockT, nonZero) {
 			fail(t)
 		}
 	}
@@ -621,13 +620,13 @@ type TypeStruct2 struct{}
 func TestImplements(t *testing.T) {
 	mockT := &testing.T{}
 
-	if !Implements(mockT, &TypeStruct{}, (*TypeInterface)(nil)) {
+	if !Implement(mockT, &TypeStruct{}, (*TypeInterface)(nil)) {
 		fail(t)
 	}
-	if Implements(mockT, &TypeStruct2{}, (*TypeInterface)(nil)) {
+	if Implement(mockT, &TypeStruct2{}, (*TypeInterface)(nil)) {
 		fail(t)
 	}
-	if Implements(mockT, nil, (*TypeInterface)(nil)) {
+	if Implement(mockT, nil, (*TypeInterface)(nil)) {
 		fail(t)
 	}
 }
@@ -740,7 +739,7 @@ func TestGoTool(t *testing.T) {
 	defer _testGoToolFlag.Store(false)
 
 	_testGoToolFlag.Store(false)
-	p, err := GoTool()
+	p, err := GoCommand()
 	if err != nil {
 		fail(t)
 	}
@@ -749,7 +748,7 @@ func TestGoTool(t *testing.T) {
 	}
 
 	_testGoToolFlag.Store(true)
-	p, err = GoTool()
+	p, err = GoCommand()
 	if err == nil {
 		fail(t)
 	}

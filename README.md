@@ -35,8 +35,8 @@
 + xtime
 + xtime/zones
 + xgeneric (separated package with `go >= 1.18` required)
-+ xgeneric/xmap
-+ xgeneric/xslice
++ xgeneric/xgmap
++ xgeneric/xgslice
 + xgeneric/xsugar
 + xgeneric/xtuple
 

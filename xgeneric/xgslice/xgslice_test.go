@@ -1,7 +1,7 @@
 //go:build go1.18
 // +build go1.18
 
-package xslice
+package xgslice
 
 import (
 	"fmt"
