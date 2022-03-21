@@ -1,5 +1,9 @@
 package xcondition
 
+import (
+	"fmt"
+)
+
 // IfThen returns value if condition is true, otherwise returns nil.
 func IfThen(condition bool, value interface{}) interface{} {
 	if condition {
@@ -24,12 +28,35 @@ func DefaultIfNil(value, defaultValue interface{}) interface{} {
 	return defaultValue
 }
 
-// PanicIfErr returns value if err is nil, otherwise panics with error message.
+const (
+	panicNilValue = "xcondition: nil value for %T"
+)
+
+// PanicIfNil returns value if it is not nil, otherwise panics with given v.
+func PanicIfNil(value interface{}, v interface{}) interface{} {
+	if value != nil { // TODO nil checker
+		return value
+	}
+	if v == nil {
+		panic(fmt.Sprintf(panicNilValue, value))
+	}
+	panic(v)
+}
+
+// PanicIfErr returns value if given err is nil, otherwise panics with error message.
 func PanicIfErr(value interface{}, err error) interface{} {
 	if err != nil {
 		panic(err.Error())
 	}
 	return value
+}
+
+// PanicIfErr2 returns value1 and value2 if given err is nil, otherwise panics with error message.
+func PanicIfErr2(value1, value2 interface{}, err error) (interface{}, interface{}) {
+	if err != nil {
+		panic(err.Error())
+	}
+	return value1, value2
 }
 
 // FirstNotNil returns the first value which is not nil.

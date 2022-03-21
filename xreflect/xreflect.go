@@ -86,20 +86,15 @@ func IsZeroValue(v interface{}) bool {
 func IsEmptyCollection(v interface{}) bool {
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
-	case reflect.String, reflect.Array:
-		return val.Len() == 0
-	case reflect.Slice, reflect.Map, reflect.Chan:
-		return val.IsNil() || val.Len() == 0
+	case reflect.String, reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
+		return val.Len() == 0 // call val.Len() directly without unnecessary val.IsNil()
 	}
-	return false
+	return false // including reflect.Invalid
 }
 
 // IsEmptyValue checks whether given value is empty or not. Note that empty means zero value, nil value, zero item and zero field, and this works
-// almost the same as json.isEmptyValue.
+// almost the same as json.isEmptyValue for "omitempty".
 func IsEmptyValue(v interface{}) bool {
-	if v == nil {
-		return true
-	}
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -114,58 +109,87 @@ func IsEmptyValue(v interface{}) bool {
 		return math.Float64bits(real(c)) == 0 && math.Float64bits(imag(c)) == 0
 	case reflect.Bool:
 		return !val.Bool()
-	case reflect.String, reflect.Array:
-		return val.Len() == 0
-	case reflect.Slice, reflect.Map, reflect.Chan:
-		return val.IsNil() || val.Len() == 0
+	case reflect.String, reflect.Array, reflect.Slice, reflect.Map, reflect.Chan:
+		return val.Len() == 0 // => val.IsNil() || val.Len() == 0, do not check fields recursively
 	case reflect.Interface, reflect.Ptr, reflect.UnsafePointer, reflect.Func:
 		return val.IsNil()
 	case reflect.Struct:
-		return val.NumField() == 0 // do not check fields recursively
+		return val.NumField() == 0 // do not check fields recursively (different with val.Zero())
 	default:
-		// reflect.Invalid, that is "nil" without any types <= unreachable
+		// reflect.Invalid, that is untyped "nil"
 		return true
 	}
-}
-
-// DeepEqualWithoutType checks whether given two values are deeply equal without considering their types. Note that it checks by checking type convertable
-// and comparing after type conversion.
-func DeepEqualWithoutType(v1, v2 interface{}) bool {
-	if reflect.DeepEqual(v1, v2) {
-		return true
-	}
-	val1, val2 := reflect.ValueOf(v1), reflect.ValueOf(v2)
-	if !val1.IsValid() || !val2.IsValid() {
-		return false
-	}
-
-	// check convertable, and compare after type conversion
-	type1, type2 := val1.Type(), val2.Type()
-	if type1.ConvertibleTo(type2) {
-		return reflect.DeepEqual(val1.Convert(type2).Interface(), v2)
-	}
-	if type2.ConvertibleTo(type1) {
-		return reflect.DeepEqual(v1, val2.Convert(type1).Interface())
-	}
-	return false // not equal
-}
-
-// IsSamePointer checks whether given two values are the same pointer types, and whether they point to the same address.
-func IsSamePointer(p1, p2 interface{}) bool {
-	val1, val2 := reflect.ValueOf(p1), reflect.ValueOf(p2)
-	if val1.Kind() != reflect.Ptr || val2.Kind() != reflect.Ptr || val1.Type() != val2.Type() {
-		return false
-	}
-
-	// compare addresses which two pointers point to
-	return p1 == p2
 }
 
 // =====================
 // numeric value related
 // =====================
 
-// TODO
+// Float64Value returns the float64 value for given numeric value, returns false if given value is not numeric value.
+func Float64Value(v interface{}) (float64, bool) {
+	switch vv := v.(type) {
+	case int:
+		return float64(vv), true
+	case int8:
+		return float64(vv), true
+	case int16:
+		return float64(vv), true
+	case int32:
+		return float64(vv), true
+	case int64:
+		return float64(vv), true
+	case uint:
+		return float64(vv), true
+	case uint8:
+		return float64(vv), true
+	case uint16:
+		return float64(vv), true
+	case uint32:
+		return float64(vv), true
+	case uint64:
+		return float64(vv), true
+	case uintptr:
+		return float64(vv), true
+	case float32:
+		return float64(vv), true
+	case float64:
+		return vv, true
+	}
+	return 0, false
+}
+
+// Uint64Value returns the uint64 value for given numeric value, returns false if given value is not numeric value.
+func Uint64Value(v interface{}) (uint64, bool) {
+	switch vv := v.(type) {
+	case int:
+		return uint64(vv), true
+	case int8:
+		return uint64(vv), true
+	case int16:
+		return uint64(vv), true
+	case int32:
+		return uint64(vv), true
+	case int64:
+		return uint64(vv), true
+	case uint:
+		return uint64(vv), true
+	case uint8:
+		return uint64(vv), true
+	case uint16:
+		return uint64(vv), true
+	case uint32:
+		return uint64(vv), true
+	case uint64:
+		return vv, true
+	case uintptr:
+		return uint64(vv), true
+	case float32:
+		return uint64(vv), true
+	case float64:
+		return uint64(vv), true
+	}
+	return 0, false
+}
 
 // ========================
 // unexported field related
@@ -205,11 +229,11 @@ const (
 // Example:
 // 	FieldValueOf(app, "noMethod")       // equals to reflect.ValueOf(app)[.Elem()*].FieldByName("noMethod")
 // 	FieldValueOf(trans, "translations") // equals to reflect.ValueOf(trans)[.Elem()*].FieldByName("translations")
-func FieldValueOf(i interface{}, name string) reflect.Value {
-	if i == nil {
+func FieldValueOf(v interface{}, name string) reflect.Value {
+	if v == nil {
 		panic(panicNilInterface)
 	}
-	val := reflect.ValueOf(i)
+	val := reflect.ValueOf(v)
 	for val.Kind() == reflect.Ptr && !val.IsNil() {
 		val = val.Elem()
 	}
@@ -238,44 +262,77 @@ func FieldValueOf(i interface{}, name string) reflect.Value {
 // mass functions
 // ==============
 
-// eface keeps same as runtime.eface, which is the internal implementation of interface{}.
+// eface keeps the same as runtime.eface, which is the internal representation of interface{}.
 type eface struct {
 	_type uintptr // *runtime._type
 	data  unsafe.Pointer
 }
 
-// HasZeroEface checks whether given interface value has no type information or no wrapped data. Note that this is an unsafe function.
-func HasZeroEface(i interface{}) bool {
-	e := (*eface)(unsafe.Pointer(&i))
+// HasZeroEface checks whether given interface value has no type information or wrapped data (more than `== nil`). Note that this is an unsafe function.
+func HasZeroEface(v interface{}) bool {
+	e := (*eface)(unsafe.Pointer(&v))
 	return e._type == 0 || uintptr(e.data) == 0
 }
 
+// DeepEqualInValue checks whether given two values are deeply equal without considering their types. Note that it checks by checking type convertable
+// and comparing after type conversion.
+func DeepEqualInValue(v1, v2 interface{}) bool {
+	if reflect.DeepEqual(v1, v2) {
+		return true
+	}
+	val1, val2 := reflect.ValueOf(v1), reflect.ValueOf(v2)
+	if !val1.IsValid() || !val2.IsValid() {
+		return false
+	}
+
+	// check convertable, and compare after type conversion
+	type1, type2 := val1.Type(), val2.Type()
+	if type1.ConvertibleTo(type2) {
+		return reflect.DeepEqual(val1.Convert(type2).Interface(), v2)
+	}
+	if type2.ConvertibleTo(type1) {
+		return reflect.DeepEqual(v1, val2.Convert(type1).Interface())
+	}
+	return false // not equal
+}
+
+// IsSamePointer checks whether given two values are the same pointer types, and whether they point to the same address.
+func IsSamePointer(p1, p2 interface{}) bool {
+	val1, val2 := reflect.ValueOf(p1), reflect.ValueOf(p2)
+	if val1.Kind() != reflect.Ptr || val2.Kind() != reflect.Ptr || val1.Type() != val2.Type() {
+		return false
+	}
+
+	// compare addresses which two pointers point to
+	return p1 == p2
+}
+
 const (
-	panicNilMap = "xreflect: nil map"
-	panicNonMap = "xreflect: not a map"
+	panicNonNilMap = "xreflect: not a non-nil map"
 )
 
-// GetMapB returns the B value from given map value. Note that this is an unsafe function, and returned value may differ in different Go versions.
-func GetMapB(m interface{}) uint8 {
-	if m == nil {
-		panic(panicNilMap)
-	}
-	typ := reflect.TypeOf(m)
-	if typ.Kind() != reflect.Map {
-		panic(panicNonMap)
-	}
+// hmap keeps the same as runtime.hmap, which represents a header for a Go map.
+type hmap struct {
+	count int
+	flags uint8
+	B     uint8 // log_2 of # of buckets (can hold up to loadFactor * 2^B items)
+	// ...
+}
 
-	type hmap struct {
-		count int
-		flags uint8
-		B     uint8
-		// ...
+// GetMapB returns the B value from given map value. Note that this is an unsafe function, and returned value may differ in different Go versions.
+func GetMapB(m interface{}) (b uint8) {
+	if m == nil {
+		panic(panicNonNilMap)
+	}
+	val := reflect.ValueOf(m)
+	if val.Kind() != reflect.Map || val.IsNil() {
+		panic(panicNonNilMap)
 	}
 
 	// https://hackernoon.com/some-insights-on-maps-in-golang-rm5v3ywh
-	ei := *(*eface)(unsafe.Pointer(&m))
-	mobj := *(*hmap)(ei.data)
-	return mobj.B
+	e := (*eface)(unsafe.Pointer(&m))
+	h := (*hmap)(e.data)
+	return h.B
 }
 
 // GetMapBuckets returns the B value and the buckets count from given map value. Note that this is an unsafe function, and returned value may

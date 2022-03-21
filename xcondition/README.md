@@ -23,7 +23,9 @@
 + `func IfThen(condition bool, value1 interface{}) interface{}`
 + `func IfThenElse(condition bool, value1 interface{}, value2 interface{}) interface{}`
 + `func DefaultIfNil(value interface{}, defaultValue interface{}) interface{}`
++ `func PanicIfNil(value interface{}, v interface{}) interface{}`
 + `func PanicIfErr(i interface{}, err error) interface{}`
++ `func PanicIfErr2(value1, value2 interface{}, err error) (interface{}, interface{})`
 + `func FirstNotNil(values ...interface{}) interface{}`
 + `func First(args ...interface{}) interface{}`
 + `func Second(args ...interface{}) interface{}`

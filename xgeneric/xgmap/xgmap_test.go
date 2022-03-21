@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xsugar"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -159,31 +160,38 @@ func sorted2[K xsugar.Ordered, V any, T []string | xtuple.Tuple[K, V]](slice []T
 	return slice
 }
 
-func failTest(t testing.TB, msg string) bool {
+// =============================
+// simplified xtesting functions
+// =============================
+
+func failTest(t testing.TB, failureMessage string) bool {
 	_, file, line, _ := runtime.Caller(2)
-	fmt.Println(fmt.Sprintf("%s:%d %s", path.Base(file), line, msg))
+	_, _ = fmt.Fprintf(os.Stderr, "%s:%d %s\n", path.Base(file), line, failureMessage)
 	t.Fail()
 	return false
 }
 
 func xtestingEqual(t testing.TB, give, want interface{}) bool {
 	if give != nil && want != nil && (reflect.TypeOf(give).Kind() == reflect.Func || reflect.TypeOf(want).Kind() == reflect.Func) {
-		return failTest(t, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (xtesting: cannot take func type as argument)", give, want))
+		return failTest(t, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (cannot take func type as argument)", give, want))
 	}
 	if !reflect.DeepEqual(give, want) {
-		return failTest(t, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give))
+		return failTest(t, fmt.Sprintf("Equal: expect to be `%#v`, but actually was `%#v`", want, give))
 	}
 	return true
 }
 
-func xtestingPanic(t testing.TB, f func(), want bool) bool {
-	didPanic := false
-	func() { defer func() { didPanic = recover() != nil }(); f() }()
-	if want && !didPanic {
-		return failTest(t, fmt.Sprintf("Panic: function (%p) is expected to panic, actual does not panic", f))
+func xtestingPanic(t *testing.T, want bool, f func(), v ...any) bool {
+	isPanic, value := false, interface{}(nil)
+	func() { defer func() { value = recover(); isPanic = value != nil }(); f() }()
+	if want && !isPanic {
+		return failTest(t, fmt.Sprintf("Panic: expect function `%#v` to panic, but actually did not panic", interface{}(f)))
 	}
-	if !want && didPanic {
-		return failTest(t, fmt.Sprintf("NotPanic: function (%p) is expected not to panic, acutal panic", f))
+	if want && isPanic && len(v) > 0 && v[0] != nil && !reflect.DeepEqual(value, v[0]) {
+		return failTest(t, fmt.Sprintf("PanicWithValue: expect function `%#v` to panic with `%#v`, but actually with `%#v`", interface{}(f), want, value))
+	}
+	if !want && isPanic {
+		return failTest(t, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually panicked with `%v`", interface{}(f), value))
 	}
 	return true
 }

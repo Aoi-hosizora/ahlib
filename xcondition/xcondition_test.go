@@ -1,7 +1,7 @@
 package xcondition
 
 import (
-	"fmt"
+	"errors"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"testing"
 )
@@ -22,10 +22,24 @@ func TestDefaultIfNil(t *testing.T) {
 	xtesting.Equal(t, DefaultIfNil(nil, nil), nil)
 }
 
+func TestPanicIfNil(t *testing.T) {
+	xtesting.Equal(t, PanicIfNil(1, ""), 1) // => unwrap
+	xtesting.PanicWithValue(t, "nil value", func() { PanicIfNil(nil, "nil value") })
+	xtesting.PanicWithValue(t, "xcondition: nil value for <nil>", func() { PanicIfNil(nil, nil) })
+}
+
 func TestPanicIfErr(t *testing.T) {
-	xtesting.Equal(t, PanicIfErr(0, nil), 0)
+	xtesting.Equal(t, PanicIfErr(0, nil), 0) // => unwrap
 	xtesting.Equal(t, PanicIfErr("0", nil), "0")
-	xtesting.PanicWithValue(t, "test", func() { PanicIfErr(nil, fmt.Errorf("test")) })
+	xtesting.PanicWithValue(t, "test", func() { PanicIfErr(nil, errors.New("test")) })
+
+	v1, v2 := PanicIfErr2(1, "2", nil) // => unwrap
+	xtesting.Equal(t, v1, 1)
+	xtesting.Equal(t, v2, "2")
+	v1, v2 = PanicIfErr2(3.3, uint(4), nil)
+	xtesting.Equal(t, v1, 3.3)
+	xtesting.Equal(t, v2, uint(4))
+	xtesting.PanicWithValue(t, "test", func() { PanicIfErr2(nil, nil, errors.New("test")) })
 }
 
 func TestFirstNotNil(t *testing.T) {

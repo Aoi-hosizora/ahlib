@@ -2,6 +2,7 @@ package xtesting
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -21,11 +22,11 @@ func failTest(t testing.TB, skip int, failureMessage string, msgAndArgs ...inter
 		skip = 0
 	}
 	extraSkip := int(atomic.LoadInt32(&_extraSkip))
-	skip = skip + 1 + extraSkip
+	skip = skip + extraSkip
 
-	_, file, line, _ := runtime.Caller(skip)
+	_, file, line, _ := runtime.Caller(skip + 1)
 	message := fmt.Sprintf("%s:%d %s", path.Base(file), line, failureMessage)
-	t.Log(message + combineMsgAndArgs(msgAndArgs...))
+	_, _ = fmt.Fprintf(os.Stderr, "%s%s\n", message, combineMsgAndArgs(msgAndArgs...)) // use fmt.Fprintf() rather than t.Log()
 
 	failNow := atomic.LoadInt32(&_useFailNow) == 1
 	if !failNow {
@@ -98,12 +99,19 @@ var _testGoToolFlag atomic.Value
 // Example:
 // 	func TestXXX(t *testing.T) {
 // 		gocmd, err := GoCommand()
+// 		if err != nil {
+// 			t.Fail()
+// 		}
 // 		tmpdir := t.TempDir()
 //
 // 		modFile := path.Join(tmpdir, "go.mod")
-// 		err = ioutil.WriteFile(modFile, []byte("module xxx\ngo 1.18"), 0666)
+// 		if ioutil.WriteFile(modFile, []byte("module xxx\ngo 1.18"), 0666) != nil {
+// 			t.Fail()
+// 		}
 // 		sourceFile := path.Join(tmpdir, "test.go")
-// 		err = ioutil.WriteFile(sourceFile, []byte("package main\nfunc main() { ... }"), 0666)
+// 		if ioutil.WriteFile(sourceFile, []byte("package main\nfunc main() { ... }"), 0666) != nil {
+// 			t.Fail()
+// 		}
 //
 // 		buildCmd := exec.Command(gocmd, "build", "-o", "test", sourceFile)
 // 		buildCmd.Dir = tmpdir
@@ -124,7 +132,7 @@ func GoCommand() (string, error) {
 
 	goBin, err := exec.LookPath(p)
 	if err != nil {
-		return "", fmt.Errorf("xtesting: cannot find go command: %w", err)
+		return "", fmt.Errorf("xtesting: go command is not found: %w", err)
 	}
 	return goBin, nil
 }

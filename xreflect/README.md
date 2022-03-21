@@ -20,19 +20,28 @@
 
 ### Functions
 
-+ `func GetUnexportedField(field reflect.Value) reflect.Value`
-+ `func SetUnexportedField(field reflect.Value, value reflect.Value)`
-+ `func FieldValueOf(i interface{}, name string) reflect.Value`
 + `func IsIntKind(kind reflect.Kind) bool`
 + `func IsUintKind(kind reflect.Kind) bool`
 + `func IsFloatKind(kind reflect.Kind) bool`
 + `func IsComplexKind(kind reflect.Kind) bool`
-+ `func IsLenGettableKind(kind reflect.Kind) bool`
++ `func IsNumericKind(kind reflect.Kind) bool`
++ `func IsCollectionKind(kind reflect.Kind) bool`
 + `func IsNillableKind(kind reflect.Kind) bool`
-+ `func IsEmptyValue(i interface{}) bool`
-+ `func GetMapB(m interface{}) uint8`
-+ `func GetMapBuckets(m interface{}) (uint8, uint64)`
-+ `func FillDefaultFields(s interface{}) (bool, error)`
++ `func IsNilValue(v interface{}) bool`
++ `func IsZeroValue(v interface{}) bool`
++ `func IsEmptyCollection(v interface{}) bool`
++ `func IsEmptyValue(v interface{}) bool`
++ `func Float64Value(v interface{}) (float64, bool)`
++ `func Uint64Value(v interface{}) (uint64, bool)`
++ `func GetUnexportedField(field reflect.Value) reflect.Value`
++ `func SetUnexportedField(field reflect.Value, value reflect.Value)`
++ `func FieldValueOf(v interface{}, name string) reflect.Value`
++ `func HasZeroEface(v interface{}) bool`
++ `func DeepEqualInValue(v1, v2 interface{}) bool`
++ `func IsSamePointer(p1, p2 interface{}) bool`
++ `func GetMapB(m interface{}) (b uint8)`
++ `func GetMapBuckets(m interface{}) (b uint8, buckets uint64)`
++ `func FillDefaultFields(s interface{}) (allFilled bool, err error)`
 
 ### Methods
 

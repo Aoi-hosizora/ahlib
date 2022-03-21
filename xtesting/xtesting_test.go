@@ -2,7 +2,9 @@ package xtesting
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -14,19 +16,6 @@ func fail(t *testing.T) {
 	_, file, line, _ := runtime.Caller(1)
 	fmt.Printf("%s:%d Failed <<<\n", path.Base(file), line)
 	t.Fail()
-}
-
-func TestAssert(t *testing.T) {
-	Assert(true, "test %s", "test")
-	func() {
-		defer func() {
-			err := recover()
-			if err != "test test" {
-				fail(t)
-			}
-		}()
-		Assert(false, "test %s", "test")
-	}()
 }
 
 func TestEqual(t *testing.T) {
@@ -670,30 +659,25 @@ func TestPanics(t *testing.T) {
 	}
 }
 
-func TestMsgAndArgs(t *testing.T) {
-	s := combineMsgAndArgs()
-	if s != "" {
-		fail(t)
-	}
+// ==================================
+// testings for helpers and internals
+// ==================================
 
-	s = combineMsgAndArgs("0")
-	if s != "0" {
-		fail(t)
-	}
-
-	s = combineMsgAndArgs([]int{1, 2})
-	if s != "[1 2]" {
-		fail(t)
-	}
-
-	s = combineMsgAndArgs(nil)
-	if s != "<nil>" {
-		fail(t)
-	}
-
-	s = combineMsgAndArgs("a%sc", "b")
-	if s != "abc" {
-		fail(t)
+func TestCombineMsgAndArgs(t *testing.T) {
+	for _, tc := range []struct {
+		give []interface{}
+		want string
+	}{
+		{nil, ""},
+		{[]interface{}{"0"}, "0"},
+		{[]interface{}{[]int{1, 2}}, "[1 2]"},
+		{[]interface{}{nil}, "<nil>"},
+		{[]interface{}{"a%sc", "b"}, "abc"},
+	} {
+		s := combineMsgAndArgs(tc.give...)
+		if s != tc.want {
+			fail(t)
+		}
 	}
 }
 
@@ -702,35 +686,104 @@ type mockFinishFlagTestingT struct {
 	finished bool
 }
 
+func (m *mockFinishFlagTestingT) Fail()                { m.finished = false }
 func (m *mockFinishFlagTestingT) FailNow()             { m.finished = true }
 func (m *mockFinishFlagTestingT) Fatal(...interface{}) { m.finished = true }
 
-func TestOptions(t *testing.T) {
-	mockT := &testing.T{}
-	SetExtraSkip(1)
-	if failTest(mockT, 0, "a", "") != false {
-		fail(t)
-	}
-	if failTest(mockT, -1, "a", "%%a%s", "b") != false {
-		fail(t)
-	}
-	SetExtraSkip(0)
-
-	mockT2 := &mockFinishFlagTestingT{}
-	UseFailNow(true)
-	if failTest(mockT2, 1, "a", "") != false {
-		fail(t)
-	}
-	if !mockT2.finished {
-		fail(t)
+func TestFailTestOptions(t *testing.T) {
+	captureStderr := func(f func()) string {
+		stderr := os.Stderr
+		r, w, _ := os.Pipe()
+		os.Stderr = w
+		defer func() { os.Stderr = stderr }()
+		f()
+		w.Close()
+		bs, _ := ioutil.ReadAll(r)
+		return string(bs)
 	}
 
-	mockT2 = &mockFinishFlagTestingT{}
-	UseFailNow(false)
-	if failTest(mockT, 1, "a", "") != false {
+	t.Run("SetExtraSkip", func(t *testing.T) {
+		mockT := &testing.T{}
+
+		// 1
+		SetExtraSkip(1)
+		result1 := captureStderr(func() {
+			if failTest(mockT, -1, "a", "") != false {
+				fail(t)
+			}
+		})
+		if !strings.HasSuffix(result1, "a\n") {
+			fail(t)
+		}
+
+		// 2
+		result2 := captureStderr(func() {
+			if failTest(mockT, 0, "a", ", %%a%s", "bbb") != false {
+				fail(t)
+			}
+		})
+		if !strings.HasSuffix(result2, "a, %abbb\n") {
+			fail(t)
+		}
+
+		// 3
+		SetExtraSkip(0)
+		result3 := captureStderr(func() {
+			if failTest(mockT, 0, "%s", ", %s%s%03d", "xx", "yy", 3) != false {
+				fail(t)
+			}
+		})
+		if !strings.HasSuffix(result3, "%s, xxyy003\n") {
+			fail(t)
+		}
+	})
+
+	t.Run("UseFailNow", func(t *testing.T) {
+		mockT := &mockFinishFlagTestingT{}
+		UseFailNow(true)
+		result1 := captureStderr(func() {
+			if failTest(mockT, 1, "") != false {
+				fail(t)
+			}
+		})
+		if !mockT.finished {
+			fail(t)
+		}
+		if !strings.HasPrefix(result1, "xtesting_test.go") {
+			fail(t)
+		}
+
+		mockT = &mockFinishFlagTestingT{}
+		UseFailNow(false)
+		result2 := captureStderr(func() {
+			if failTest(mockT, 1, "") != false {
+				fail(t)
+			}
+		})
+		if mockT.finished {
+			fail(t)
+		}
+		if !strings.HasPrefix(result2, "xtesting_test.go") {
+			fail(t)
+		}
+	})
+}
+
+func TestAssert(t *testing.T) {
+	funcDidPanic, _ := checkPanic(func() {
+		Assert(true, "test %s", "test")
+	})
+	if funcDidPanic {
 		fail(t)
 	}
-	if mockT2.finished {
+
+	funcDidPanic, panicValue := checkPanic(func() {
+		Assert(false, "test %s", "test")
+	})
+	if !funcDidPanic {
+		fail(t)
+	}
+	if panicValue != "test test" {
 		fail(t)
 	}
 }

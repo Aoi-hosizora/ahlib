@@ -5,6 +5,7 @@ package xsugar
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // ==============
@@ -36,7 +37,22 @@ func DefaultIfNil[T any](value, defaultValue T) T {
 	return defaultValue
 }
 
-// PanicIfErr returns value if err is nil, otherwise panics with error message.
+const (
+	panicNilValue = "xcondition: nil value for %T"
+)
+
+// PanicIfNil returns value if it is not nil, otherwise panics with given v.
+func PanicIfNil[T any](value T, v any) T {
+	if any(value) != nil { // TODO nil checker
+		return value
+	}
+	if v == nil {
+		panic(fmt.Sprintf(panicNilValue, value))
+	}
+	panic(v)
+}
+
+// PanicIfErr returns value if given err is nil, otherwise panics with error message.
 func PanicIfErr[T any](value T, err error) T {
 	if err != nil {
 		panic(err.Error())
@@ -44,7 +60,7 @@ func PanicIfErr[T any](value T, err error) T {
 	return value
 }
 
-// PanicIfErr2 returns value1 and value2 if err is nil, otherwise panics with error message.
+// PanicIfErr2 returns value1 and value2 if given err is nil, otherwise panics with error message.
 func PanicIfErr2[T, K any](value1 T, value2 K, err error) (T, K) {
 	if err != nil {
 		panic(err.Error())
@@ -77,15 +93,15 @@ func Decr[T Real](n *T) T {
 	return *n
 }
 
-// IncrR returns the value of given Real and then increments it, this is the same as C "n++" expression.
-func IncrR[T Real](n *T) T {
+// RIncr returns the value of given Real and then increments it, this is the same as C "n++" expression.
+func RIncr[T Real](n *T) T {
 	v := *n
 	*n++
 	return v
 }
 
-// DecrR returns the value of given Real and then decrements it, this is the same as C "n--" expression.
-func DecrR[T Real](n *T) T {
+// RDecr returns the value of given Real and then decrements it, this is the same as C "n--" expression.
+func RDecr[T Real](n *T) T {
 	v := *n
 	*n--
 	return v

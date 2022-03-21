@@ -44,7 +44,7 @@ func EqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{})
 		return failTest(t, 1, fmt.Sprintf("EqualValue: invalid operation `%#v` == `%#v` (%+v)", give, want, err), msgAndArgs...)
 	}
 
-	if !xreflect.DeepEqualWithoutType(give, want) {
+	if !xreflect.DeepEqualInValue(give, want) {
 		return failTest(t, 1, fmt.Sprintf("EqualValue: expect to be `%#v`, but actually was `%#v`", want, give), msgAndArgs...)
 	}
 
@@ -57,7 +57,7 @@ func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface
 		return failTest(t, 1, fmt.Sprintf("NotEqualValue: invalid operation `%#v` != `%#v` (%+v)", give, want, err), msgAndArgs...)
 	}
 
-	if xreflect.DeepEqualWithoutType(give, want) {
+	if xreflect.DeepEqualInValue(give, want) {
 		return failTest(t, 1, fmt.Sprintf("NotEqualValue: expect not to be `%#v`, but actually equaled", want), msgAndArgs...)
 	}
 
@@ -375,53 +375,53 @@ func NotElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...inter
 	return true
 }
 
-// IsType asserts that the specified objects are of the same type.
-func IsType(t testing.TB, object, want interface{}, msgAndArgs ...interface{}) bool {
-	objectType := reflect.TypeOf(object)
+// SameType asserts that the specified objects are of the same type.
+func SameType(t testing.TB, value, want interface{}, msgAndArgs ...interface{}) bool {
+	valueType := reflect.TypeOf(value)
 	wantType := reflect.TypeOf(want)
 
-	if !reflect.DeepEqual(objectType, wantType) {
-		return failTest(t, 1, fmt.Sprintf("IsType: expect `%#v` to be of type `%s`, but actually was `%s`", object, wantType.String(), objectType.String()), msgAndArgs...)
+	if !reflect.DeepEqual(valueType, wantType) {
+		return failTest(t, 1, fmt.Sprintf("SameType: expect `%#v` to be of type `%T`, but actually was `%T`", value, want, value), msgAndArgs...)
 	}
 
 	return true
 }
 
-// IsNotType asserts that the specified objects are of the different types.
-func IsNotType(t testing.TB, object, want interface{}, msgAndArgs ...interface{}) bool {
-	objectType := reflect.TypeOf(object)
+// NotSameType asserts that the specified objects are of the different types.
+func NotSameType(t testing.TB, value, want interface{}, msgAndArgs ...interface{}) bool {
+	valueType := reflect.TypeOf(value)
 	wantType := reflect.TypeOf(want)
 
-	if reflect.DeepEqual(objectType, wantType) {
-		return failTest(t, 1, fmt.Sprintf("IsNotType: expect `%#v` not to be of type `%s`, but actually was the same type", object, wantType.String()), msgAndArgs...)
+	if reflect.DeepEqual(valueType, wantType) {
+		return failTest(t, 1, fmt.Sprintf("NotSameType: expect `%#v` not to be of type `%T`, but actually was the same type", value, want), msgAndArgs...)
 	}
 
 	return true
 }
 
 // Implement asserts that an object implements the specified interface.
-func Implement(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
-	interfaceType, err := validateArgsForImplement(object, interfacePtr)
+func Implement(t testing.TB, value, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
+	interfaceType, err := validateArgsForImplement(value, interfacePtr)
 	if err != nil {
 		return failTest(t, 1, fmt.Sprintf("Implement: invalid parameters (%+v)", err), msgAndArgs...)
 	}
 
-	if !reflect.TypeOf(object).Implements(interfaceType) {
-		return failTest(t, 1, fmt.Sprintf("Implement: expect `%T` to implement `%s`, but actually not implemented", object, interfaceType.String()), msgAndArgs...)
+	if !reflect.TypeOf(value).Implements(interfaceType) {
+		return failTest(t, 1, fmt.Sprintf("Implement: expect type `%T` to implement `%s`, but actually not implemented", value, interfaceType.String()), msgAndArgs...)
 	}
 
 	return true
 }
 
 // NotImplement asserts that an object does not implement the specified interface.
-func NotImplement(t testing.TB, object, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
-	interfaceType, err := validateArgsForImplement(object, interfacePtr)
+func NotImplement(t testing.TB, value, interfacePtr interface{}, msgAndArgs ...interface{}) bool {
+	interfaceType, err := validateArgsForImplement(value, interfacePtr)
 	if err != nil {
 		return failTest(t, 1, fmt.Sprintf("Implement: invalid parameters (%+v)", err), msgAndArgs...)
 	}
 
-	if reflect.TypeOf(object).Implements(interfaceType) {
-		return failTest(t, 1, fmt.Sprintf("Implement: expect `%T` not to implement `%s`, but actually implemented", object, interfaceType.String()), msgAndArgs...)
+	if reflect.TypeOf(value).Implements(interfaceType) {
+		return failTest(t, 1, fmt.Sprintf("Implement: expect type `%T` not to implement `%s`, but actually implemented", value, interfaceType.String()), msgAndArgs...)
 	}
 
 	return true
@@ -463,9 +463,9 @@ func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...inte
 
 // FileExist checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
 func FileExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
-	info, err := os.Lstat(path)
+	info, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
-		return failTest(t, 1, fmt.Sprintf("FileExist: error when calling os.Lstat on `%s` (%+v)", path, err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("FileExist: error when calling os.Stat on `%s` (%+v)", path, err), msgAndArgs...)
 	}
 
 	if err != nil {
@@ -490,9 +490,9 @@ func FileNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 
 // DirExist checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
-	info, err := os.Lstat(path)
+	info, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
-		return failTest(t, 1, fmt.Sprintf("DirExist: error when calling os.Lstat on `%s` (%+v)", path, err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("DirExist: error when calling os.Stat on `%s` (%+v)", path, err), msgAndArgs...)
 	}
 
 	if err != nil {

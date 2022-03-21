@@ -3,6 +3,7 @@ package xtesting
 import (
 	"errors"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"math"
 	"reflect"
 	"regexp"
@@ -34,8 +35,11 @@ func matchRegexp(rx interface{}, str string) (matched bool, re *regexp.Regexp, e
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
 		r = rr
-	} else if s := rx.(string); ok {
-		r = regexp.MustCompile(s)
+	} else if s, ok := rx.(string); ok {
+		r, err = regexp.Compile(s)
+		if err != nil {
+			return false, nil, errors.New("invalid regexp")
+		}
 	} else {
 		return false, nil, errors.New("must be *regexp.Regexp or string")
 	}
@@ -43,38 +47,16 @@ func matchRegexp(rx interface{}, str string) (matched bool, re *regexp.Regexp, e
 	return r.FindStringIndex(str) != nil, r, nil
 }
 
-// toFloat returns a float64 for given numerical value.
-func toFloat(x interface{}) (float64, bool) {
-	if x == nil {
-		return 0, false
-	}
-
-	var xf float64
-	val := reflect.ValueOf(x)
-	switch val.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		xf = float64(val.Int())
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		xf = float64(val.Uint())
-	case reflect.Float32, reflect.Float64:
-		xf = val.Float()
-	default:
-		return 0, false
-	}
-
-	return xf, true
-}
-
 // calcDiffInDelta calculates the different between given values.
 func calcDiffInDelta(give, want interface{}, delta float64) (inDelta bool, actualDiff float64, err error) {
-	giveFloat, ok1 := toFloat(give)
-	wantFloat, ok2 := toFloat(want)
+	giveFloat, ok1 := xreflect.Float64Value(give)
+	wantFloat, ok2 := xreflect.Float64Value(want)
 
 	if !ok1 || !ok2 {
 		return false, 0, errors.New("parameters must be numerical")
 	}
 	if math.IsNaN(giveFloat) || math.IsNaN(wantFloat) {
-		return false, 0, errors.New("number must not be NaN")
+		return false, 0, errors.New("numbers must not be NaN")
 	}
 	if math.IsNaN(delta) {
 		return false, 0, errors.New("delta must not be NaN")
@@ -86,14 +68,14 @@ func calcDiffInDelta(give, want interface{}, delta float64) (inDelta bool, actua
 
 // calcRelativeError calculates the relative error between given values.
 func calcRelativeError(give, want interface{}, epsilon float64) (inEps bool, actualRee float64, err error) {
-	giveFloat, ok1 := toFloat(give)
-	wantFloat, ok2 := toFloat(want)
+	giveFloat, ok1 := xreflect.Float64Value(give)
+	wantFloat, ok2 := xreflect.Float64Value(want)
 
 	if !ok1 || !ok2 {
 		return false, 0, errors.New("parameters must be numerical")
 	}
 	if math.IsNaN(giveFloat) || math.IsNaN(wantFloat) {
-		return false, 0, errors.New("number must not be NaN")
+		return false, 0, errors.New("numbers must not be NaN")
 	}
 	if math.IsNaN(epsilon) {
 		return false, 0, errors.New("epsilon must not be NaN")
@@ -102,7 +84,7 @@ func calcRelativeError(give, want interface{}, epsilon float64) (inEps bool, act
 		return false, 0, fmt.Errorf("wanted value must not be zero")
 	}
 
-	actualRee = math.Abs(giveFloat-wantFloat) / math.Abs(giveFloat)
+	actualRee = math.Abs(giveFloat-wantFloat) / math.Abs(wantFloat)
 	return actualRee <= math.Abs(epsilon), actualRee, nil
 }
 
@@ -242,21 +224,21 @@ func diffLists(listA, listB interface{}) (extraA []interface{}, extraB []interfa
 }
 
 // validateArgsForImplement checks the value of object is not nil, and checks the type of interfacePtr is *SomeInterface.
-func validateArgsForImplement(object, interfacePtr interface{}) (interfaceType reflect.Type, err error) {
+func validateArgsForImplement(value, interfacePtr interface{}) (interfaceType reflect.Type, err error) {
 	interfaceType = reflect.TypeOf(interfacePtr)
 	if interfaceType == nil {
-		return nil, errors.New("interfacePtr must be not nil")
+		return nil, errors.New("cannot take nil as interfacePtr argument")
 	}
 	if interfaceType.Kind() != reflect.Ptr {
-		return nil, errors.New("interfacePtr must be of interface pointer type")
+		return nil, errors.New("cannot take non-interface-pointer type as interfacePtr argument")
 	}
 	interfaceType = interfaceType.Elem()
 	if interfaceType.Kind() != reflect.Interface {
-		return nil, errors.New("interfacePtr must be of interface pointer type")
+		return nil, errors.New("cannot take non-interface-pointer type as interfacePtr argument")
 	}
 
-	if object == nil {
-		return nil, fmt.Errorf("cannot check whether nil object implements `%s` or not", interfaceType.String())
+	if value == nil {
+		return nil, fmt.Errorf("cannot check whether nil value implements `%s` or not", interfaceType.String())
 	}
 
 	return interfaceType, nil
@@ -264,7 +246,7 @@ func validateArgsForImplement(object, interfacePtr interface{}) (interfaceType r
 
 // checkPanic returns true if the function passed to it panics. Otherwise, it returns false.
 func checkPanic(f func()) (didPanic bool, message interface{}) {
-	// used to detect panic(nil)
+	// set to true first, used to detect panic(nil)
 	didPanic = true
 
 	defer func() {

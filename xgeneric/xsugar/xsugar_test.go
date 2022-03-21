@@ -6,6 +6,7 @@ package xsugar
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -28,29 +29,32 @@ func TestIfThen(t *testing.T) {
 
 func TestXXXIfNil(t *testing.T) {
 	// DefaultIfNil
-	_ = DefaultIfNil[any]
+	_ = DefaultIfNil[interface{}]
+
+	// PanicIfNil
+	_ = PanicIfNil[interface{}]
 }
 
 func TestPanicIfErr(t *testing.T) {
 	// PanicIfErr
-	xtestingPanic(t, func() { xtestingEqual(t, PanicIfErr("a", nil), "a") }, false)
-	xtestingPanic(t, func() { xtestingEqual(t, PanicIfErr(1.1, nil), 1.1) }, false)
-	xtestingPanic(t, func() { PanicIfErr("a", errors.New("x")) }, true)
-	xtestingPanic(t, func() { PanicIfErr(1.1, errors.New("x")) }, true)
+	xtestingPanic(t, false, func() { xtestingEqual(t, PanicIfErr("a", nil), "a") })
+	xtestingPanic(t, false, func() { xtestingEqual(t, PanicIfErr(1.1, nil), 1.1) })
+	xtestingPanic(t, true, func() { PanicIfErr("a", errors.New("x")) }, "x")
+	xtestingPanic(t, true, func() { PanicIfErr(1.1, errors.New("x")) }, "x")
 
 	// PanicIfErr2
-	xtestingPanic(t, func() {
+	xtestingPanic(t, false, func() {
 		a, b := PanicIfErr2("a", uint32(2), nil)
 		xtestingEqual(t, a, "a")
 		xtestingEqual(t, b, uint32(2))
-	}, false)
-	xtestingPanic(t, func() {
+	})
+	xtestingPanic(t, false, func() {
 		a, b := PanicIfErr2(int64(1), true, nil)
 		xtestingEqual(t, a, int64(1))
 		xtestingEqual(t, b, true)
-	}, false)
-	xtestingPanic(t, func() { PanicIfErr2("a", uint32(2), errors.New("x")) }, true)
-	xtestingPanic(t, func() { PanicIfErr2(int64(1), true, errors.New("x")) }, true)
+	})
+	xtestingPanic(t, true, func() { PanicIfErr2("a", uint32(2), errors.New("x")) }, "x")
+	xtestingPanic(t, true, func() { PanicIfErr2(int64(1), true, errors.New("x")) }, "x")
 }
 
 func TestValPtr(t *testing.T) {
@@ -140,17 +144,17 @@ func TestIncrDecr(t *testing.T) {
 	byt = byte(3)
 	f64 = 4.5
 	f32 = float32(5.5)
-	xtestingEqual(t, IncrR(&i), 0)
+	xtestingEqual(t, RIncr(&i), 0)
 	xtestingEqual(t, i, 1)
-	xtestingEqual(t, IncrR(&i32), int32(1))
+	xtestingEqual(t, RIncr(&i32), int32(1))
 	xtestingEqual(t, i32, int32(2))
-	xtestingEqual(t, IncrR(&u64), uint64(2))
+	xtestingEqual(t, RIncr(&u64), uint64(2))
 	xtestingEqual(t, u64, uint64(3))
-	xtestingEqual(t, IncrR(&byt), byte(3))
+	xtestingEqual(t, RIncr(&byt), byte(3))
 	xtestingEqual(t, byt, byte(4))
-	xtestingEqual(t, IncrR(&f64), 4.5)
+	xtestingEqual(t, RIncr(&f64), 4.5)
 	xtestingEqual(t, f64, 5.5)
-	xtestingEqual(t, IncrR(&f32), float32(5.5))
+	xtestingEqual(t, RIncr(&f32), float32(5.5))
 	xtestingEqual(t, f32, float32(6.5))
 
 	i = 0
@@ -159,17 +163,17 @@ func TestIncrDecr(t *testing.T) {
 	byt = byte(3)
 	f64 = 4.5
 	f32 = float32(5.5)
-	xtestingEqual(t, DecrR(&i), 0)
+	xtestingEqual(t, RDecr(&i), 0)
 	xtestingEqual(t, i, -1)
-	xtestingEqual(t, DecrR(&i32), int32(1))
+	xtestingEqual(t, RDecr(&i32), int32(1))
 	xtestingEqual(t, i32, int32(0))
-	xtestingEqual(t, DecrR(&u64), uint64(2))
+	xtestingEqual(t, RDecr(&u64), uint64(2))
 	xtestingEqual(t, u64, uint64(1))
-	xtestingEqual(t, DecrR(&byt), byte(3))
+	xtestingEqual(t, RDecr(&byt), byte(3))
 	xtestingEqual(t, byt, byte(2))
-	xtestingEqual(t, DecrR(&f64), 4.5)
+	xtestingEqual(t, RDecr(&f64), 4.5)
 	xtestingEqual(t, f64, 3.5)
-	xtestingEqual(t, DecrR(&f32), float32(5.5))
+	xtestingEqual(t, RDecr(&f32), float32(5.5))
 	xtestingEqual(t, f32, float32(4.5))
 }
 
@@ -205,31 +209,38 @@ func TestUnmarshalJson(t *testing.T) {
 	xtestingEqual(t, o4, &s{ID: 111, Name: "$$$"})
 }
 
-func failTest(t testing.TB, msg string) bool {
+// =============================
+// simplified xtesting functions
+// =============================
+
+func failTest(t testing.TB, failureMessage string) bool {
 	_, file, line, _ := runtime.Caller(2)
-	fmt.Println(fmt.Sprintf("%s:%d %s", path.Base(file), line, msg))
+	_, _ = fmt.Fprintf(os.Stderr, "%s:%d %s\n", path.Base(file), line, failureMessage)
 	t.Fail()
 	return false
 }
 
 func xtestingEqual(t testing.TB, give, want interface{}) bool {
 	if give != nil && want != nil && (reflect.TypeOf(give).Kind() == reflect.Func || reflect.TypeOf(want).Kind() == reflect.Func) {
-		return failTest(t, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (xtesting: cannot take func type as argument)", give, want))
+		return failTest(t, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (cannot take func type as argument)", give, want))
 	}
 	if !reflect.DeepEqual(give, want) {
-		return failTest(t, fmt.Sprintf("Equal: expected `%#v`, actual `%#v`", want, give))
+		return failTest(t, fmt.Sprintf("Equal: expect to be `%#v`, but actually was `%#v`", want, give))
 	}
 	return true
 }
 
-func xtestingPanic(t testing.TB, f func(), want bool) bool {
-	didPanic := false
-	func() { defer func() { didPanic = recover() != nil }(); f() }()
-	if want && !didPanic {
-		return failTest(t, fmt.Sprintf("Panic: function (%p) is expected to panic, actual does not panic", f))
+func xtestingPanic(t *testing.T, want bool, f func(), v ...interface{}) bool {
+	isPanic, value := false, interface{}(nil)
+	func() { defer func() { value = recover(); isPanic = value != nil }(); f() }()
+	if want && !isPanic {
+		return failTest(t, fmt.Sprintf("Panic: expect function `%#v` to panic, but actually did not panic", interface{}(f)))
 	}
-	if !want && didPanic {
-		return failTest(t, fmt.Sprintf("NotPanic: function (%p) is expected not to panic, acutal panic", f))
+	if want && isPanic && len(v) > 0 && v[0] != nil && !reflect.DeepEqual(value, v[0]) {
+		return failTest(t, fmt.Sprintf("PanicWithValue: expect function `%#v` to panic with `%#v`, but actually with `%#v`", interface{}(f), want, value))
+	}
+	if !want && isPanic {
+		return failTest(t, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually panicked with `%v`", interface{}(f), value))
 	}
 	return true
 }

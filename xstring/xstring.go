@@ -75,7 +75,7 @@ func IsArabicNumber(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-// IsBlank checks if given rune is a blank (including space, CR, LF, tabulation, ideographic space, etc.). In the Latin-1 space, a blank is [\t\n\v\f\r\x20\x85\xA0].
+// IsBlank checks whether given rune is a blank (including space, CR, LF, tabulation, ideographic space, etc.). In the Latin-1 space, a blank is [\t\n\v\f\r\x20\x85\xA0].
 // Note that this equals to unicode.IsSpace, see IsBlank's source code for more details.
 func IsBlank(r rune) bool {
 	// https://compart.com/en/unicode/U+2000
@@ -106,7 +106,7 @@ func IsBlank(r rune) bool {
 	return unicode.IsSpace(r)
 }
 
-// TrimBlanks trims blanks left and right of the string, note that this equals to strings.TrimSpace.
+// TrimBlanks trims blanks left and right of the string. Note that this equals to strings.TrimSpace.
 func TrimBlanks(s string) string {
 	return strings.TrimSpace(s)
 }
@@ -301,7 +301,7 @@ func RandLowercaseLetterNumberString(count int) string {
 // fast related
 // ============
 
-// FastStob fast casts string to []byte in an unsafe ways.
+// FastStob fast casts string to []byte. Note that this is an unsafe function.
 func FastStob(s string) []byte {
 	if s == "" {
 		return []byte{}
@@ -312,7 +312,7 @@ func FastStob(s string) []byte {
 	}{s, len(s)}))
 }
 
-// FastBtos fast casts []byte to string in an unsafe ways.
+// FastBtos fast casts []byte to string. Note that this is an unsafe function.
 func FastBtos(bs []byte) string {
 	if bs == nil || len(bs) == 0 {
 		return ""
