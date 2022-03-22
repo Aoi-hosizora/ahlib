@@ -58,15 +58,15 @@ func FillDefaultFields(s interface{}) (allFilled bool, err error) {
 	}
 	typ := val.Type()
 
-	filled := false
+	allFilled = false
 	for i := 0; i < typ.NumField(); i++ {
 		sf := typ.Field(i)
 		if sf.IsExported() && sf.Type != nil { // only for exported fields
-			filled = coreFillField(sf.Type, val.Field(i), sf.Tag, sf.Name, nil) || filled
+			allFilled = coreFillField(sf.Type, val.Field(i), sf.Tag, sf.Name, nil) || allFilled
 		}
 	}
 
-	return filled, nil
+	return allFilled, nil
 }
 
 // coreFillField is the core implementation of FillDefaultFields, this sets the default value using given reflect.StructTag to given reflect.Value.
@@ -93,35 +93,35 @@ func coreFillField(ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag
 }
 
 // fillComplexField is the core implementation of coreFillField for complex field types.
-func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag, fname string, setMapItem func(v reflect.Value)) bool {
+func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag, fname string, setMapItem func(v reflect.Value)) (allFilled bool) {
 	switch k {
 	case reflect.Map:
-		filled := false
+		allFilled = false
 		for _, key := range fval.MapKeys() {
 			key := key
-			filled = coreFillField(ftyp.Elem(), fval.MapIndex(key), ftag, fmt.Sprintf("(%s)[\"%s\"]", fname, key.String()), func(v reflect.Value) {
+			allFilled = coreFillField(ftyp.Elem(), fval.MapIndex(key), ftag, fmt.Sprintf("(%s)[\"%s\"]", fname, key.String()), func(v reflect.Value) {
 				// note: non-reference values (or items), which are got from map by index directly, cannot be addressed and written !!!
 				fval.SetMapIndex(key, v)
-			}) || filled
+			}) || allFilled
 		}
-		return filled
+		return allFilled
 
 	case reflect.Slice:
-		filled := false
+		allFilled = false
 		for i := 0; i < fval.Len(); i++ {
-			filled = coreFillField(ftyp.Elem(), fval.Index(i), ftag, fmt.Sprintf("(%s)[%d]", fname, i), nil) || filled
+			allFilled = coreFillField(ftyp.Elem(), fval.Index(i), ftag, fmt.Sprintf("(%s)[%d]", fname, i), nil) || allFilled
 			// <<< no need to setMapItem, because slice items are stored in heap
 		}
-		return filled
+		return allFilled
 
 	case reflect.Array:
-		filled := false
+		allFilled = false
 		cached := make(map[int]reflect.Value) // array value index to reflect.Value
 		for i := 0; i < ftyp.Len(); i++ {
 			i := i
-			filled = coreFillField(ftyp.Elem(), fval.Index(i), ftag, fmt.Sprintf("(%s)[%d]", fname, i), func(v reflect.Value) {
+			allFilled = coreFillField(ftyp.Elem(), fval.Index(i), ftag, fmt.Sprintf("(%s)[%d]", fname, i), func(v reflect.Value) {
 				cached[i] = v // record each value for new array
-			}) || filled
+			}) || allFilled
 		}
 		if len(cached) > 0 {
 			newArray := reflect.New(ftyp).Elem()
@@ -133,7 +133,7 @@ func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, fta
 			}
 			setMapItem(newArray) // <<< replace the whole array to map item in all cases
 		}
-		return filled
+		return allFilled
 
 	case reflect.Ptr:
 		etyp := ftyp.Elem()
@@ -152,14 +152,14 @@ func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, fta
 		return filled
 
 	case reflect.Struct:
-		filled := false
+		allFilled = false
 		cached := make(map[int]reflect.Value) // struct field index to reflect.Value
 		for i := 0; i < ftyp.NumField(); i++ {
 			i := i
 			if sf := ftyp.Field(i); sf.IsExported() && sf.Type != nil { // only for exported fields
-				filled = coreFillField(sf.Type, fval.Field(i), sf.Tag, fmt.Sprintf("%s.%s", fname, sf.Name), func(v reflect.Value) {
+				allFilled = coreFillField(sf.Type, fval.Field(i), sf.Tag, fmt.Sprintf("%s.%s", fname, sf.Name), func(v reflect.Value) {
 					cached[i] = v // record each field value for new struct
-				}) || filled
+				}) || allFilled
 			}
 		}
 		if len(cached) > 0 {
@@ -172,7 +172,7 @@ func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, fta
 			}
 			setMapItem(newStruct) // <<< replace the whole struct to map item in all cases
 		}
-		return filled
+		return allFilled
 
 	default:
 		// unreachable
@@ -190,7 +190,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		if fval.CanSet() { // addressable and writable
 			fval.SetInt(i)
-		} else { // must be a value of map
+		} else { // must be a value of map, followings are all the same case
 			setMapItem(reflect.ValueOf(i).Convert(ftyp))
 		}
 		return true

@@ -157,7 +157,7 @@ func NotEmptyCollection(t testing.TB, value interface{}, msgAndArgs ...interface
 // Error asserts that a function returned an error.
 func Error(t testing.TB, err error, msgAndArgs ...interface{}) bool {
 	if err == nil {
-		return failTest(t, 1, fmt.Sprintf("Error: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("Error: expect not to be nil error, but actually was `%#v`", err), msgAndArgs...)
 	}
 
 	return true
@@ -166,7 +166,7 @@ func Error(t testing.TB, err error, msgAndArgs ...interface{}) bool {
 // NilError asserts that a function returned no error.
 func NilError(t testing.TB, err error, msgAndArgs ...interface{}) bool {
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NilError: expect to be nil error, but actually was `%+v`", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NilError: expect to be nil error, but actually was `%#v`", err), msgAndArgs...)
 	}
 
 	return true
@@ -175,11 +175,11 @@ func NilError(t testing.TB, err error, msgAndArgs ...interface{}) bool {
 // EqualError asserts that a function returned an error and that it is equal to the provided error.
 func EqualError(t testing.TB, err error, wantString string, msgAndArgs ...interface{}) bool {
 	if err == nil {
-		return failTest(t, 1, fmt.Sprintf("EqualError: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("EqualError: expect not to be nil error, but actually was `%#v`", err), msgAndArgs...)
 	}
 
 	if msg := err.Error(); msg != wantString {
-		return failTest(t, 1, fmt.Sprintf("EqualError: expect to be error with message `%+v`, but actually with `%#v`", err, msg), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("EqualError: expect to be error with message `%#v`, but actually with `%#v`", wantString, msg), msgAndArgs...)
 	}
 
 	return true
@@ -188,11 +188,11 @@ func EqualError(t testing.TB, err error, wantString string, msgAndArgs ...interf
 // NotEqualError asserts that a function returned an error and that it is not equal to the provided error.
 func NotEqualError(t testing.TB, err error, wantString string, msgAndArgs ...interface{}) bool {
 	if err == nil {
-		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect to be non-nil error, but actually was `%+v`", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect not to be nil error, but actually was `%#v`", err), msgAndArgs...)
 	}
 
 	if err.Error() == wantString {
-		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect error message not to be `%+v`, but actually equaled", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotEqualError: expect error message not to be `%#v`, but actually equaled", wantString), msgAndArgs...)
 	}
 
 	return true
@@ -230,11 +230,11 @@ func NotMatchRegexp(t testing.TB, rx interface{}, str string, msgAndArgs ...inte
 func InDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("InDelta: invalid parameters (%+v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InDelta: invalid operation on `%#v`, `%#v` and `%#v` (%+v)", give, want, delta, err), msgAndArgs...)
 	}
 
 	if !inDelta {
-		return failTest(t, 1, fmt.Sprintf("InDelta: expect difference between `%#v` and `%#v` to be less than `%#v`, but actually was `%#v`", give, want, delta, actualDiff), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InDelta: expect difference between `%#v` and `%#v` to be less than or equal to `%#v`, but actually was `%#v`", give, want, delta, actualDiff), msgAndArgs...)
 	}
 
 	return true
@@ -244,7 +244,7 @@ func InDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...
 func NotInDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid parameters (%+v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotInDelta: invalid operation on `%#v`, `%#v` and `%#v` (%+v)", err, give, want, delta), msgAndArgs...)
 	}
 
 	if inDelta {
@@ -258,11 +258,11 @@ func NotInDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs 
 func InEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("InEpsilon: invalid parameters (%+v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InEpsilon: invalid operation on `%#v`, `%#v` and `%#v` (%+v)", err, give, want, epsilon), msgAndArgs...)
 	}
 
 	if !inEps {
-		return failTest(t, 1, fmt.Sprintf("InEpsilon: expect relative error between `%#v` and `%#v` to be less than `%#v`, but actually was `%#v`", give, want, epsilon, actualRee), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("InEpsilon: expect relative error between `%#v` and `%#v` to be less than or equal to `%#v`, but actually was `%#v`", give, want, epsilon, actualRee), msgAndArgs...)
 	}
 
 	return true
@@ -272,7 +272,7 @@ func InEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs
 func NotInEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
 	if err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotInEpsilon: invalid parameters (%+v)", err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotInEpsilon: invalid operation on `%#v`, `%#v` and `%#v` (%+v)", err, give, want, epsilon), msgAndArgs...)
 	}
 
 	if inEps {
@@ -284,11 +284,11 @@ func NotInEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndA
 
 // Contain asserts that the specified string, list(array, slice...) or map contains the specified substring or element.
 func Contain(t testing.TB, container, value interface{}, msgAndArgs ...interface{}) bool {
-	valid, found := containElement(container, value)
-
-	if !valid {
-		return failTest(t, 1, fmt.Sprintf("Contain: invalid type of `%#v` (`%T` is unsupported)", container, container), msgAndArgs...)
+	found, err := containElement(container, value)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("Contain: invalid operation on `%#v` and `%#v` (%+v)", container, value, err), msgAndArgs...)
 	}
+
 	if !found {
 		return failTest(t, 1, fmt.Sprintf("Contain: expect `%#v` to contain `%#v`, but actually not contained", container, value), msgAndArgs...)
 	}
@@ -298,11 +298,11 @@ func Contain(t testing.TB, container, value interface{}, msgAndArgs ...interface
 
 // NotContain asserts that the specified string, list(array, slice...) or map does not contain the specified substring or element.
 func NotContain(t testing.TB, container, value interface{}, msgAndArgs ...interface{}) bool {
-	valid, found := containElement(container, value)
-
-	if !valid {
-		return failTest(t, 1, fmt.Sprintf("NotContain: invalid type of `%#v` (`%T` is unsupported)", container, container), msgAndArgs...)
+	found, err := containElement(container, value)
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotContain: invalid operation on `%#v` and `%#v` (%+v)", container, value, err), msgAndArgs...)
 	}
+
 	if found {
 		return failTest(t, 1, fmt.Sprintf("NotContain: expect `%#v` not to contain `%#v`, but actually contained", container, value), msgAndArgs...)
 	}
@@ -312,11 +312,11 @@ func NotContain(t testing.TB, container, value interface{}, msgAndArgs ...interf
 
 // Subset asserts that the specified list(array, slice...) contains all elements given in the specified subset(array, slice...).
 func Subset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}) bool {
-	valid, allFound, element := containAllElements(list, subset)
-
-	if !valid {
-		return failTest(t, 1, fmt.Sprintf("Subset: invalid type of `%#v` or type of `%#v`", list, subset), msgAndArgs...)
+	if err := validateArgsAreSameList(list, subset); err != nil {
+		return failTest(t, 1, fmt.Sprintf("Subset: invalid operation on `%#v` and `%#v` (%+v)", list, subset, err), msgAndArgs...)
 	}
+
+	allFound, element := containAllElements(list, subset)
 	if !allFound {
 		return failTest(t, 1, fmt.Sprintf("Subset: expect `%#v` to contain `%#v`, but actually not contained", list, element), msgAndArgs...)
 	}
@@ -326,11 +326,11 @@ func Subset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}) b
 
 // NotSubset asserts that the specified list(array, slice...) contains not all elements given in the specified subset(array, slice...).
 func NotSubset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}) bool {
-	valid, allFound, _ := containAllElements(list, subset)
-
-	if !valid {
-		return failTest(t, 1, fmt.Sprintf("NotSubset: invalid type of `%#v` or type of `%#v`", list, subset), msgAndArgs...)
+	if err := validateArgsAreSameList(list, subset); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotSubset: invalid operation on `%#v` and `%#v` (%+v)", list, subset, err), msgAndArgs...)
 	}
+
+	allFound, _ := containAllElements(list, subset)
 	if allFound {
 		return failTest(t, 1, fmt.Sprintf("NotSubset: expect `%#v` not to be a subset of `%#v`, but actually was", subset, list), msgAndArgs...)
 	}
@@ -341,12 +341,8 @@ func NotSubset(t testing.TB, list, subset interface{}, msgAndArgs ...interface{}
 // ElementMatch asserts that the specified listA(array, slice...) equals to specified listB(array, slice...) ignoring the order of the elements.
 // If there are duplicate elements, the number of appearances of each of them in both lists should match.
 func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interface{}) bool {
-	if (listA == nil || xreflect.IsEmptyCollection(listA)) && (listB == nil || xreflect.IsEmptyCollection(listB)) {
-		return true
-	}
-
-	if err := validateArgsAreList(listA, listB); err != nil {
-		return failTest(t, 1, fmt.Sprintf("ElementMatch: invalid type of `%#v` or type of `%#v` (%+v)", listA, listB, err), msgAndArgs...)
+	if err := validateArgsAreSameList(listA, listB); err != nil {
+		return failTest(t, 1, fmt.Sprintf("ElementMatch: invalid operation on `%#v` and `%#v` (%+v)", listA, listB, err), msgAndArgs...)
 	}
 
 	extraA, extraB := diffLists(listA, listB)
@@ -359,16 +355,12 @@ func ElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interfac
 
 // NotElementMatch asserts that the specified listA(array, slice...) does not equal to specified listB(array, slice...) ignoring the order of the elements.
 func NotElementMatch(t testing.TB, listA, listB interface{}, msgAndArgs ...interface{}) bool {
-	if (listA == nil || xreflect.IsEmptyCollection(listA)) && (listB == nil || xreflect.IsEmptyCollection(listB)) {
-		return true
-	}
-
-	if err := validateArgsAreList(listA, listB); err != nil {
-		return failTest(t, 1, fmt.Sprintf("NotElementMatch: invalid type of `%#v` or type of `%#v` (%+v)", listA, listB, err), msgAndArgs...)
+	if err := validateArgsAreSameList(listA, listB); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotElementMatch: invalid operation on `%#v` and `%#v` (%+v)", listA, listB, err), msgAndArgs...)
 	}
 
 	extraA, extraB := diffLists(listA, listB)
-	if len(extraA) != 0 || len(extraB) != 0 {
+	if len(extraA) == 0 && len(extraB) == 0 {
 		return failTest(t, 1, fmt.Sprintf("NotElementMatch: expect `%#v` and `%#v` not to match each other, but actually matched", listA, listB), msgAndArgs...)
 	}
 
@@ -441,7 +433,7 @@ func Panic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
 func NotPanic(t testing.TB, f func(), msgAndArgs ...interface{}) bool {
 	funcDidPanic, panicValue := checkPanic(f)
 	if funcDidPanic {
-		return failTest(t, 1, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually panicked with `%v`", interface{}(f), panicValue), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually paniced with `%#v`", interface{}(f), panicValue), msgAndArgs...)
 	}
 
 	return true
@@ -461,11 +453,26 @@ func PanicWithValue(t testing.TB, want interface{}, f func(), msgAndArgs ...inte
 	return true
 }
 
-// FileExist checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// PanicWithError asserts that the code inside the specified PanicTestFunc panics, and that the recovered panic value is an error that satisfies the EqualError comparison.
+func PanicWithError(t testing.TB, wantString string, f func(), msgAndArgs ...interface{}) bool {
+	funcDidPanic, panicValue := checkPanic(f)
+	if !funcDidPanic {
+		return failTest(t, 1, fmt.Sprintf("PanicWithError: expect function `%#v` to panic, but actually did not panic", interface{}(f)), msgAndArgs...)
+	}
+
+	panicErr, ok := panicValue.(error)
+	if !ok || panicErr.Error() != wantString {
+		return failTest(t, 1, fmt.Sprintf("PanicWithError: expect function `%#v` to panic with error message `%#v`, but actually with `%#v`", interface{}(f), wantString, panicValue), msgAndArgs...)
+	}
+
+	return true
+}
+
+// FileExist checks whether a file exists in given path. It fails if the path points to a directory, or there is an error when checking whether it exists.
 func FileExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 	info, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
-		return failTest(t, 1, fmt.Sprintf("FileExist: error when calling os.Stat on `%s` (%+v)", path, err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("FileExist: error when calling os.Stat on `%#v` (%+v)", path, err), msgAndArgs...)
 	}
 
 	if err != nil {
@@ -478,9 +485,13 @@ func FileExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// FileNotExist checks whether a file does not exist in a given path. It fails if the path points to an existing file only.
+// FileNotExist checks whether a file does not exist in given path. It fails if the path points to an existing file only, or there is an error when checking whether it exists.
 func FileNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
-	info, err := os.Lstat(path)
+	info, err := os.Stat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("FileNotExist: error when calling os.Stat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
 	if err == nil && !info.IsDir() {
 		return failTest(t, 1, fmt.Sprintf("FileNotExist: expect file `%s` not to exist, but actually was an existing file", path), msgAndArgs...)
 	}
@@ -488,11 +499,42 @@ func FileNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// DirExist checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// FileLexist checks whether a file lexists in given path. It fails if the path points to a directory, or there is an error when checking whether it exists.
+func FileLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("FileLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("FileLexist: expect file `%s` to exist, but actually not existed", path), msgAndArgs...)
+	}
+	if info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("FileLexist: expect `%s` to be a file, but actually was a directory", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// FileNotLexist checks whether a file does not lexist in given path. It fails if the path points to an existing file only, or there is an error when checking whether it exists.
+func FileNotLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("FileNotLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err == nil && !info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("FileNotLexist: expect file `%s` not to exist, but actually was an existing file", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// DirExist checks whether a directory exists in given path. It fails if the path is a file rather a directory, or there is an error checking whether it exists.
 func DirExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 	info, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
-		return failTest(t, 1, fmt.Sprintf("DirExist: error when calling os.Stat on `%s` (%+v)", path, err), msgAndArgs...)
+		return failTest(t, 1, fmt.Sprintf("DirExist: error when calling os.Stat on `%#v` (%+v)", path, err), msgAndArgs...)
 	}
 
 	if err != nil {
@@ -505,11 +547,77 @@ func DirExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// DirNotExist checks whether a directory does not exist in the given path. It fails if the path points to an existing directory only.
+// DirNotExist checks whether a directory does not exist in given path. It fails if the path points to an existing directory only, or there is an error when checking whether it exists.
 func DirNotExist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
-	info, err := os.Lstat(path)
+	info, err := os.Stat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("DirNotExist: error when calling os.Stat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
 	if err == nil && info.IsDir() {
 		return failTest(t, 1, fmt.Sprintf("DirNotExist: expect directory `%s` not to exist, but actually was an existing directory", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// DirLexist checks whether a directory lexists in given path. It fails if the path is a file rather a directory, or there is an error checking whether it exists.
+func DirLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("DirLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("DirLexist: expect directory `%s` to exist, but actually not existed", path), msgAndArgs...)
+	}
+	if !info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("DirLexist: expect `%s` to be a directory, but actually was a file", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// DirNotLexist checks whether a directory does not lexist in given path. It fails if the path points to an existing directory only, or there is an error when checking whether it exists.
+func DirNotLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("DirNotLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err == nil && info.IsDir() {
+		return failTest(t, 1, fmt.Sprintf("DirNotLexist: expect directory `%s` not to exist, but actually was an existing directory", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// SymlinkLexist checks whether a symlink lexists in given path. It fails if the path does not point to an existing symlink, or there is an error checking whether it exists.
+func SymlinkLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("SymlinkLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err != nil {
+		return failTest(t, 1, fmt.Sprintf("SymlinkLexist: expect symlink `%s` to exist, but actually not existed", path), msgAndArgs...)
+	}
+	if (info.Mode() & os.ModeSymlink) == 0 {
+		return failTest(t, 1, fmt.Sprintf("SymlinkLexist: expect `%s` to be a symlink, but actually was an existing file or directory", path), msgAndArgs...)
+	}
+
+	return true
+}
+
+// SymlinkNotLexist checks whether a symlink does not lexist in given path. It fails if the path points to an existing symlink only, or there is an error when checking whether it exist.
+func SymlinkNotLexist(t testing.TB, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return failTest(t, 1, fmt.Sprintf("SymlinkNotLexist: error when calling os.Lstat on `%#v` (%+v)", path, err), msgAndArgs...)
+	}
+
+	if err == nil && (info.Mode()&os.ModeSymlink) == os.ModeSymlink {
+		return failTest(t, 1, fmt.Sprintf("SymlinkNotLexist: expect symlink `%s` not to exist, but actually was an existing file or directory", path), msgAndArgs...)
 	}
 
 	return true

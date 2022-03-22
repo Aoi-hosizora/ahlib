@@ -88,121 +88,114 @@ func calcRelativeError(give, want interface{}, epsilon float64) (inEps bool, act
 	return actualRee <= math.Abs(epsilon), actualRee, nil
 }
 
-// containElement try loop over the list check if the list includes the element. Returns (false, false) if impossible, returns
-// (true, false) if element was not found, returns (true, true) if element was found.
-func containElement(list interface{}, element interface{}) (valid, found bool) {
+// containElement try loop over the list check if the list includes the element.
+func containElement(list interface{}, element interface{}) (found bool, err error) {
+	if list == nil || element == nil {
+		return false, errors.New("cannot take nil as argument")
+	}
+
 	listValue := reflect.ValueOf(list)
-	listType := reflect.TypeOf(list)
-	if listType == nil {
-		return false, false
+	elemType := reflect.TypeOf(element)
+	listType := listValue.Type()
+	listKind := listValue.Kind()
+
+	if listKind == reflect.String && elemType.Kind() != reflect.String {
+		return false, fmt.Errorf("cannot take incompatible element type `%T` as argument", element)
 	}
-	listKind := listType.Kind()
-	defer func() {
-		if e := recover(); e != nil {
-			valid = false
-			found = false
+	if listKind == reflect.Array || listKind == reflect.Slice || listKind == reflect.Map {
+		listElemType := listType.Elem() // allow interface{} values compare with all other values
+		if listElemType.Kind() != reflect.Interface && !reflect.DeepEqual(elemType, listElemType) {
+			return false, fmt.Errorf("cannot take incompatible element type `%T` as argument", element)
 		}
-	}()
-
-	if listKind == reflect.String {
-		elementValue := reflect.ValueOf(element)
-		return true, strings.Contains(listValue.String(), elementValue.String())
 	}
 
-	if listKind == reflect.Map {
+	switch listKind {
+	case reflect.String:
+		elementValue := reflect.ValueOf(element)
+		return strings.Contains(listValue.String(), elementValue.String()), nil
+
+	case reflect.Map:
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if reflect.DeepEqual(mapKeys[i].Interface(), element) {
-				return true, true
+				return true, nil
 			}
 		}
-		return true, false
-	}
+		return false, nil
 
-	for i := 0; i < listValue.Len(); i++ {
-		if reflect.DeepEqual(listValue.Index(i).Interface(), element) {
-			return true, true
+	case reflect.Array, reflect.Slice:
+		for i := 0; i < listValue.Len(); i++ {
+			if reflect.DeepEqual(listValue.Index(i).Interface(), element) {
+				return true, nil
+			}
 		}
+		return false, nil
+
+	default:
+		return false, fmt.Errorf("cannot take a non-list type `%T` as argument", list)
 	}
-	return true, false
 }
 
-// containAllElements checks the specified list contains all elements given in the specified subset. Returns (false, false, nil) if
-// impossible, returns (true, false, element) if some elements were not found, returns (true, true, nil) if all elements were found.
-func containAllElements(list, subset interface{}) (valid, allFound bool, element interface{}) {
-	if subset == nil {
-		return true, true, nil
-	}
-
-	subsetValue := reflect.ValueOf(subset)
-	defer func() {
-		if e := recover(); e != nil {
-			valid = false
-		}
-	}()
-
-	listKind := reflect.TypeOf(list).Kind()
-	subsetKind := reflect.TypeOf(subset).Kind()
-
-	if listKind != reflect.Array && listKind != reflect.Slice {
-		return false, false, nil
-	}
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
-		return false, false, nil
-	}
-
-	for i := 0; i < subsetValue.Len(); i++ {
-		el := subsetValue.Index(i).Interface()
-		ok, found := containElement(list, el)
-		if !ok {
-			return false, false, nil
-		}
-		if !found {
-			return true, false, el
-		}
-	}
-
-	return true, true, nil
-}
-
-// validateArgsAreList checks that the provided value is array or slice.
-func validateArgsAreList(listA, listB interface{}) error {
+// validateArgsAreSameList checks that the provided value is array or slice, and their types are the same.
+func validateArgsAreSameList(listA, listB interface{}) error {
 	if listA == nil || listB == nil {
-		return errors.New("cannot take a non-list type as argument")
+		return errors.New("cannot take nil as argument")
 	}
 
-	kindA := reflect.TypeOf(listA).Kind()
-	kindB := reflect.TypeOf(listB).Kind()
+	typeA, typeB := reflect.TypeOf(listA), reflect.TypeOf(listB)
+	kindA, kindB := typeA.Kind(), typeB.Kind()
 
 	if kindA != reflect.Array && kindA != reflect.Slice {
-		return errors.New("cannot take a non-list type as argument")
+		return fmt.Errorf("cannot take a non-list type `%T` as argument", listA)
 	}
 	if kindB != reflect.Array && kindB != reflect.Slice {
-		return errors.New("cannot take a non-list type as argument")
+		return fmt.Errorf("cannot take a non-list type `%T` as argument", listB)
+	}
+	if !reflect.DeepEqual(typeA, typeB) {
+		return fmt.Errorf("cannot take two lists in different-types `%T` and `%T` as argument", listA, listB)
 	}
 
 	return nil
 }
 
+// containAllElements checks the specified list contains all elements given in the specified subset.
+func containAllElements(list, subset interface{}) (allFound bool, element interface{}) {
+	if xreflect.IsEmptyCollection(list) && xreflect.IsEmptyCollection(subset) {
+		return true, nil
+	}
+
+	subsetValue := reflect.ValueOf(subset)
+	for i := 0; i < subsetValue.Len(); i++ {
+		el := subsetValue.Index(i).Interface()
+		found, err := containElement(list, el)
+
+		if err != nil || !found {
+			return false, el
+		}
+	}
+
+	return true, nil
+}
+
 // diffLists diffs two arrays/slices and returns slices of elements that are only in A and only in B. If some element is
 // present multiple times, each instance is counted separately. The order of items in both lists is ignored.
 func diffLists(listA, listB interface{}) (extraA []interface{}, extraB []interface{}) {
-	aValue := reflect.ValueOf(listA)
-	bValue := reflect.ValueOf(listB)
+	if (xreflect.IsEmptyCollection(listA)) && (xreflect.IsEmptyCollection(listB)) {
+		return nil, nil
+	}
 
-	aLen := aValue.Len()
-	bLen := bValue.Len()
+	valueA, valueB := reflect.ValueOf(listA), reflect.ValueOf(listB)
+	lenA, lenB := valueA.Len(), valueB.Len()
+	visited := make([]bool, lenB) // Mark indexes in valueB that we already used
 
-	// Mark indexes in bValue that we already used
-	visited := make([]bool, bLen)
-	for i := 0; i < aLen; i++ {
-		element := aValue.Index(i).Interface()
+	for i := 0; i < lenA; i++ {
+		element := valueA.Index(i).Interface()
 		found := false
-		for j := 0; j < bLen; j++ {
+		for j := 0; j < lenB; j++ {
 			if visited[j] {
 				continue
 			}
-			if reflect.DeepEqual(bValue.Index(j).Interface(), element) {
+			if reflect.DeepEqual(valueB.Index(j).Interface(), element) {
 				visited[j] = true
 				found = true
 				break
@@ -213,14 +206,14 @@ func diffLists(listA, listB interface{}) (extraA []interface{}, extraB []interfa
 		}
 	}
 
-	for j := 0; j < bLen; j++ {
+	for j := 0; j < lenB; j++ {
 		if visited[j] {
 			continue
 		}
-		extraB = append(extraB, bValue.Index(j).Interface())
+		extraB = append(extraB, valueB.Index(j).Interface())
 	}
 
-	return
+	return extraA, extraB
 }
 
 // validateArgsForImplement checks the value of object is not nil, and checks the type of interfacePtr is *SomeInterface.

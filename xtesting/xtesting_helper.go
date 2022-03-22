@@ -26,7 +26,7 @@ func failTest(t testing.TB, skip int, failureMessage string, msgAndArgs ...inter
 
 	_, file, line, _ := runtime.Caller(skip + 1)
 	message := fmt.Sprintf("%s:%d %s", path.Base(file), line, failureMessage)
-	_, _ = fmt.Fprintf(os.Stderr, "%s%s\n", message, combineMsgAndArgs(msgAndArgs...)) // use fmt.Fprintf() rather than t.Log()
+	_, _ = fmt.Fprintf(os.Stderr, "%s%s\n", message, combineMsgAndArgs(msgAndArgs...)) // use fmt.Fprintf() rather than t.Log() or t.Errorf()
 
 	failNow := atomic.LoadInt32(&_useFailNow) == 1
 	if !failNow {
