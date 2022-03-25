@@ -1,4 +1,4 @@
-# xgmap
+# xgmap (generic map)
 
 ## Dependencies
 
@@ -30,8 +30,8 @@
 + `func Foreach[K comparable, V any](m map[K]V, f func(K, V))`
 + `func Map[K1, K2 comparable, V1, V2 any](m map[K1]V1, f func(K1, V1) (K2, V2)) map[K2]V2`
 + `func Expand[K1, K2 comparable, V1, V2 any](m map[K1]V1, f func(K1, V1) []xtuple.Tuple[K2, V2]) map[K2]V2`
-+ `func Reduce[K comparable, V, S any](m map[K]V, initial S, f func(S, K, V) S) S`
-+ `func Filter[K comparable, V any](m map[K]V, f func(K, V) bool) map[K]V`
++ `func Reduce[K comparable, V, U any](m map[K]V, initial U, f func(U, K, V) U) U`
++ `func Filter[K comparable, V any, M ~map[K]V](m M, f func(K, V) bool) M`
 + `func Any[K comparable, V any](m map[K]V, f func(K, V) bool) bool`
 + `func All[K comparable, V any](m map[K]V, f func(K, V) bool) bool`
 

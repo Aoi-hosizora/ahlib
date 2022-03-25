@@ -30,7 +30,7 @@
 + `func IfThen[T any](condition bool, value T) T`
 + `func IfThenElse[T any](condition bool, value1, value2 T) T`
 + `func DefaultIfNil[T any](value, defaultValue T) T`
-+ `func PanicIfNil[T any](value T, v any) T`
++ `func PanicIfNil[T any](value T, panicValue any) T`
 + `func PanicIfErr[T any](value T, err error) T`
 + `func PanicIfErr2[T, K any](value1 T, value2 K, err error) (T, K)`
 + `func ValPtr[T any](t T) *T`

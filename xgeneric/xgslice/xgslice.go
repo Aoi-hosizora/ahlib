@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-// =================
-// xslice compatible
-// =================
+// ====================
+// xslice compatibility
+// ====================
 
 // Equaller represents an equality function for two values, is used in XXXWith methods.
 type Equaller[T any] func(i, j T) bool
@@ -21,14 +21,14 @@ type Equaller[T any] func(i, j T) bool
 // Lesser represents a less function for sort, see sort.Interface.
 type Lesser[T any] func(i, j T) bool
 
-// defaultLesser represents a default Equaller, it just checks order by `<` with constraints.Ordered.
+// defaultLesser represents a default Equaller, it just checks order by `<` between xsugar.Ordered types.
 func defaultLesser[T xsugar.Ordered]() Lesser[T] {
 	return func(i, j T) bool {
 		return i < j
 	}
 }
 
-// defaultEqualler represents a default Equaller, it just checks equality by `==` with comparable.
+// defaultEqualler represents a default Equaller, it just checks equality by `==` between comparable types.
 func defaultEqualler[T comparable]() Equaller[T] {
 	return func(i, j T) bool {
 		return i == j
@@ -49,7 +49,7 @@ func ShuffleSelf[T any](slice []T) {
 }
 
 // Shuffle shuffles the []T slice and returns the result.
-func Shuffle[T any](slice []T) []T {
+func Shuffle[T any, S ~[]T](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	ShuffleSelf(out)
@@ -64,7 +64,7 @@ func ReverseSelf[T any](slice []T) {
 }
 
 // Reverse reverses the []T slice and returns the result.
-func Reverse[T any](slice []T) []T {
+func Reverse[T any, S ~[]T](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	ReverseSelf(out)
@@ -77,7 +77,7 @@ func SortSelf[T xsugar.Ordered](slice []T) {
 }
 
 // Sort sorts the []T slice directly and returns the result.
-func Sort[T xsugar.Ordered](slice []T) []T {
+func Sort[T xsugar.Ordered, S ~[]T](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	SortSelf(out)
@@ -92,7 +92,7 @@ func SortSelfWith[T any](slice []T, less Lesser[T]) {
 }
 
 // SortWith sorts the []T slice with less function and returns the result.
-func SortWith[T any](slice []T, less Lesser[T]) []T {
+func SortWith[T any, S ~[]T](slice S, less Lesser[T]) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	SortSelfWith(out, less)
@@ -105,7 +105,7 @@ func StableSortSelf[T xsugar.Ordered](slice []T) {
 }
 
 // StableSort sorts the []T slice in stable directly and returns the result.
-func StableSort[T xsugar.Ordered](slice []T) []T {
+func StableSort[T xsugar.Ordered, S ~[]T](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	StableSortSelf(out)
@@ -120,7 +120,7 @@ func StableSortSelfWith[T any](slice []T, less Lesser[T]) {
 }
 
 // StableSortWith sorts the []T slice in stable with less function and returns the result.
-func StableSortWith[T any](slice []T, less Lesser[T]) []T {
+func StableSortWith[T any, S ~[]T](slice S, less Lesser[T]) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	StableSortSelfWith(out, less)
@@ -188,52 +188,43 @@ func CountWith[T any](slice []T, value T, equaller Equaller[T]) int {
 	return cnt
 }
 
-// Insert inserts value to the position of index in []T slice.
-func Insert[T any](slice []T, value T, index int) []T {
-	if len(slice) == 0 {
-		return []T{value}
-	}
-	if index <= 0 {
-		return append([]T{value}, slice...)
-	}
-	if index >= len(slice) {
-		return append(slice, value)
-	}
-	return append(slice[:index], append([]T{value}, slice[index:]...)...)
+// Insert inserts values into []T slice at index position using a new slice space to store.
+func Insert[T any, S ~[]T](slice S, index int, values ...T) S {
+	// TODO
 }
 
 // Delete deletes value from []T slice in n times.
-func Delete[T comparable](slice []T, value T, n int) []T {
+func Delete[T comparable, S ~[]T](slice S, value T, n int) S {
 	return DeleteWith(slice, value, n, defaultEqualler[T]())
 }
 
 // DeleteWith deletes value from []T slice in n times with Equaller.
-func DeleteWith[T any](slice []T, value T, n int, equaller Equaller[T]) []T {
-	slice = append(make([]T, 0, len(slice)), slice...) // <<<
+func DeleteWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S {
+	out := append(make([]T, 0, len(slice)), slice...)
 	if n <= 0 {
-		n = len(slice)
+		n = len(out)
 	}
 	cnt := 0
-	idx := IndexOfWith(slice, value, equaller)
+	idx := IndexOfWith(out, value, equaller)
 	for idx != -1 && cnt < n {
-		if idx == len(slice)-1 {
-			slice = slice[:idx]
+		if idx == len(out)-1 {
+			out = out[:idx]
 		} else {
-			slice = append(slice[:idx], slice[idx+1:]...)
+			out = append(out[:idx], out[idx+1:]...)
 		}
 		cnt++
-		idx = IndexOfWith(slice, value, equaller)
+		idx = IndexOfWith(out, value, equaller)
 	}
-	return slice
+	return out
 }
 
 // DeleteAll deletes value from []T slice in all.
-func DeleteAll[T comparable](slice []T, value T) []T {
+func DeleteAll[T comparable, S ~[]T](slice S, value T) S {
 	return DeleteWith(slice, value, -1, defaultEqualler[T]())
 }
 
 // DeleteAllWith deletes value from []T slice in all with Equaller.
-func DeleteAllWith[T any](slice []T, value T, equaller Equaller[T]) []T {
+func DeleteAllWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
 	return DeleteWith(slice, value, -1, equaller)
 }
 
@@ -287,12 +278,12 @@ func IntersectWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
 }
 
 // Deduplicate removes the duplicate items from []T slice as a set.
-func Deduplicate[T comparable](slice []T) []T {
+func Deduplicate[T comparable, S ~[]T](slice S) S {
 	return DeduplicateWith(slice, defaultEqualler[T]())
 }
 
 // DeduplicateWith removes the duplicate items from []T slice as a set with Equaller.
-func DeduplicateWith[T any](slice []T, equaller Equaller[T]) []T {
+func DeduplicateWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 	result := make([]T, 0, 0)
 	for _, item := range slice {
 		if !ContainsWith(result, item, equaller) {
@@ -335,7 +326,7 @@ func ElementMatchWith[T any](slice1, slice2 []T, equaller Equaller[T]) bool {
 	return len(extra1) == 0 && len(extra2) == 0
 }
 
-// Repeat generates a []T with given value repeated given count.
+// Repeat generates a []T slice with given value and repeat count.
 func Repeat[T any](value T, count uint) []T {
 	out := make([]T, 0, count)
 	for i := 0; i < int(count); i++ {

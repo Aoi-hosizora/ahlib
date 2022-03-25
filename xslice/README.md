@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-+ xtesting*
++ (xtesting)
 
 ## Documents
 
@@ -38,13 +38,13 @@
 + `func StableSortSelfG(slice interface{}, less Lesser)`
 + `func StableSortG(slice interface{}, less Lesser) interface{}`
 + `func IndexOf(slice []interface{}, value interface{}) int`
-+ `func IndexOfWith(slice []interface{}, value interface{}, equaller Equaller)`
-+ `func IndexOfG(slice interface{}, value interface{})`
-+ `func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller)`
++ `func IndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int`
++ `func IndexOfG(slice interface{}, value interface{}) int`
++ `func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller) int`
 + `func LastIndexOf(slice []interface{}, value interface{}) int`
-+ `func LastIndexOfWith(slice []interface{}, value interface{}, equaller Equaller)`
-+ `func LastIndexOfG(slice interface{}, value interface{})`
-+ `func LastIndexOfWithG(slice interface{}, value interface{}, equaller Equaller)`
++ `func LastIndexOfWith(slice []interface{}, value interface{}, equaller Equaller) int`
++ `func LastIndexOfG(slice interface{}, value interface{}) int`
++ `func LastIndexOfWithG(slice interface{}, value interface{}, equaller Equaller) int`
 + `func Contains(slice []interface{}, value interface{}) bool`
 + `func ContainsWith(slice []interface{}, value interface{}, equaller Equaller) bool`
 + `func ContainsG(slice interface{}, value interface{}) bool`
@@ -53,8 +53,10 @@
 + `func CountWith(slice []interface{}, value interface{}, equaller Equaller) int`
 + `func CountG(slice interface{}, value interface{}) int`
 + `func CountWithG(slice interface{}, value interface{}, equaller Equaller) int`
-+ `func Insert(slice []interface{}, value interface{}, index int) []interface{}`
-+ `func InsertG(slice interface{}, value interface{}, index int) interface{}`
++ `func InsertSelf(slice []interface{}, index int, values ...interface{}) []interface{}`
++ `func Insert(slice []interface{}, index int, values ...interface{}) []interface{}`
++ `func InsertSelfG(slice interface{}, index int, values interface{}) interface{}`
++ `func InsertG(slice interface{}, index int, values interface{}) interface{}`
 + `func Delete(slice []interface{}, value interface{}, n int) []interface{}`
 + `func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
 + `func DeleteG(slice interface{}, value interface{}, n int) interface{}`

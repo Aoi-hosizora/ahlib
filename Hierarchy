@@ -1,10 +1,10 @@
 $0 -- the most basic packages
-xreflect            (x) <<<
+xreflect            (x)        <<<
 xtesting            (xreflect) <<<
 
 $1 -- packages that depend on $0 libraries
 xcolor              (xtesting) <<<
-xcondition          (xtesting)
+xcondition          (xreflect, xtesting)
 xerror              (xtesting) <<<
 xgopool             (xtesting)
 xnumber             (xtesting)

@@ -50,8 +50,7 @@ func init() {
 func coreShuffle(slice innerSlice) {
 	for i := slice.length() - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
-		itemJ := slice.get(j)
-		itemI := slice.get(i)
+		itemI, itemJ := slice.get(i), slice.get(j)
 		slice.set(i, itemJ)
 		slice.set(j, itemI)
 	}
@@ -84,8 +83,7 @@ func ReverseG(slice interface{}) interface{} {
 // coreReverse is the implementation for ReverseSelf Reverse, ReverseSelfG and ReverseG.
 func coreReverse(slice innerSlice) {
 	for i, j := 0, slice.length()-1; i < j; i, j = i+1, j-1 {
-		itemJ := slice.get(j)
-		itemI := slice.get(i)
+		itemI, itemJ := slice.get(i), slice.get(j)
 		slice.set(i, itemJ)
 		slice.set(j, itemI)
 	}
@@ -141,7 +139,7 @@ func StableSortG(slice interface{}, less Lesser) interface{} {
 
 // coreSort is the implementation for SortSelf, Sort, StableSortSelf, StableSort, SortSelfG, SortG, StableSortSelfG and StableSortG, using sort.Slice and sort.SliceStable.
 func coreSort(slice innerSlice, less Lesser, stable bool) {
-	ss := &sortSlice{slice: slice, less: less}
+	ss := &sortableSlice{slice: slice, less: less}
 	if stable {
 		sort.Stable(ss)
 	} else {
@@ -285,27 +283,43 @@ func coreCount(slice innerSlice, value interface{}, equaller Equaller) int {
 	return cnt
 }
 
-// Insert inserts value to the position of index in []interface{} slice.
-func Insert(slice []interface{}, value interface{}, index int) []interface{} {
-	newSlice := cloneInterfaceSlice(slice)
-	return coreInsert(checkInterfaceSliceParam(newSlice), value, index).actual().([]interface{})
+// InsertSelf inserts values into []interface{} slice at index position using the space of given slice.
+func InsertSelf(slice []interface{}, index int, values ...interface{}) []interface{} {
+	return coreInsert(checkInterfaceSliceParam(slice), checkInterfaceSliceParam(values), index, true).actual().([]interface{})
 }
 
-// InsertG inserts value to the position of index in []interface{} slice, is the generic function of Delete.
-func InsertG(slice interface{}, value interface{}, index int) interface{} {
-	newSlice := cloneSliceInterface(slice)
-	return coreInsert(checkSliceInterfaceParam(newSlice), value, index).actual()
+// Insert inserts values into []interface{} slice at index position using a new slice space to store.
+func Insert(slice []interface{}, index int, values ...interface{}) []interface{} {
+	return coreInsert(checkInterfaceSliceParam(slice), checkInterfaceSliceParam(values), index, false).actual().([]interface{})
 }
 
-// coreInsert is the implementation for Insert and InsertG.
-func coreInsert(slice innerSlice, value interface{}, index int) innerSlice {
-	if index < 0 {
-		index = 0
-	} else if index > slice.length() {
-		index = slice.length()
+// InsertSelfG inserts values into []T slice at index position using the space of given slice, is the generic function of InsertSelf.
+func InsertSelfG(slice interface{}, index int, values interface{}) interface{} {
+	s, v := checkTwoSliceInterfaceParam(slice, values)
+	return coreInsert(s, v, index, true).actual()
+}
+
+// InsertG inserts values into []T slice at index position using a new slice space to store, is the generic function of Insert.
+func InsertG(slice interface{}, index int, values interface{}) interface{} {
+	s, v := checkTwoSliceInterfaceParam(slice, values)
+	return coreInsert(s, v, index, false).actual()
+}
+
+// coreInsert is the implementation for InsertSelf, Insert, InsertSelfG and InsertG.
+func coreInsert(slice, values innerSlice, index int, self bool) innerSlice {
+	if values.length() == 0 {
+		if self {
+			return slice
+		}
+		return cloneInnerSliceItems(slice, 0)
 	}
-	slice.insert(value, index)
-	return slice
+	if self {
+		slice.insert(index, values)
+		return slice
+	}
+	newSlice := cloneInnerSliceItems(slice, values.length())
+	newSlice.insert(index, values)
+	return newSlice
 }
 
 // Delete deletes value from []interface{} slice in n times.
@@ -399,7 +413,7 @@ func DiffWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 
 // coreDiff is the implementation for Diff, DiffWith, DiffG and DiffWithG.
 func coreDiff(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
-	result := makeInnerSlice(slice1, 0, 0)
+	result := makeSameTypeInnerSlice(slice1, 0, 0)
 	length1 := slice1.length()
 	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
@@ -434,7 +448,7 @@ func UnionWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 
 // coreUnion is the implementation for Union, UnionWith, UnionG and UnionWithG.
 func coreUnion(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
-	result := makeInnerSlice(slice1, 0, slice1.length())
+	result := makeSameTypeInnerSlice(slice1, 0, slice1.length())
 	length1 := slice1.length()
 	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
@@ -474,7 +488,7 @@ func IntersectWithG(slice1, slice2 interface{}, equaller Equaller) interface{} {
 
 // coreIntersect is the implementation for Intersect, IntersectWith, IntersectG and IntersectWithG.
 func coreIntersect(slice1, slice2 innerSlice, equaller Equaller) innerSlice {
-	result := makeInnerSlice(slice1, 0, 0)
+	result := makeSameTypeInnerSlice(slice1, 0, 0)
 	length1 := slice1.length()
 	for i1 := 0; i1 < length1; i1++ {
 		item1 := slice1.get(i1)
@@ -507,7 +521,7 @@ func DeduplicateWithG(slice interface{}, equaller Equaller) interface{} {
 
 // coreDeduplicate is the implementation for Deduplicate, DeduplicateWith, DeduplicateG and DeduplicateWithG.
 func coreDeduplicate(slice innerSlice, equaller Equaller) innerSlice {
-	result := makeInnerSlice(slice, 0, 0)
+	result := makeSameTypeInnerSlice(slice, 0, 0)
 	length := slice.length()
 	for idx := 0; idx < length; idx++ {
 		item := slice.get(idx)
@@ -518,23 +532,23 @@ func coreDeduplicate(slice innerSlice, equaller Equaller) innerSlice {
 	return result
 }
 
-// ElementMatch checks if two []interface{} slice equal without order.
+// ElementMatch checks whether two []interface{} slice equal without order.
 func ElementMatch(slice1, slice2 []interface{}) bool {
 	return coreElementMatch(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler)
 }
 
-// ElementMatchWith checks if two []interface{} slice equal without order with Equaller.
+// ElementMatchWith checks whether two []interface{} slice equal without order with Equaller.
 func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool {
 	return coreElementMatch(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller)
 }
 
-// ElementMatchG checks if two []T slice equal without order, is the generic function of ElementMatch.
+// ElementMatchG checks whether two []T slice equal without order, is the generic function of ElementMatch.
 func ElementMatchG(slice1, slice2 interface{}) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, defaultEqualler)
 }
 
-// ElementMatchWithG checks if two []T slice equal without order with Equaller, is the generic function of ElementMatchWith.
+// ElementMatchWithG checks whether two []T slice equal without order with Equaller, is the generic function of ElementMatchWith.
 func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, equaller)
@@ -542,8 +556,8 @@ func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 
 // coreElementMatch is the implementation for ElementMatch, ElementMatchWith, ElementMatchG and ElementMatchWithG.
 func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
-	extra1 := makeInnerSlice(slice1, 0, 0)
-	extra2 := makeInnerSlice(slice2, 0, 0)
+	extra1 := makeSameTypeInnerSlice(slice1, 0, 0)
+	extra2 := makeSameTypeInnerSlice(slice2, 0, 0)
 
 	length1 := slice1.length()
 	length2 := slice2.length()
@@ -592,9 +606,9 @@ func coreRepeat(value interface{}, count uint, g bool) innerSlice {
 	if value == nil {
 		g = false
 	}
-	s := makeInnerSliceFromItem(value, g, int(count), int(count))
+	slice := makeItemTypeInnerSlice(value, int(count), int(count), g)
 	for i := 0; i < int(count); i++ {
-		s.set(i, value)
+		slice.set(i, value)
 	}
-	return s
+	return slice
 }

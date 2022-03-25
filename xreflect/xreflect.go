@@ -58,7 +58,7 @@ func IsNillableKind(kind reflect.Kind) bool {
 // value checker related
 // =====================
 
-// IsNilValue checks whether given value is nil or not. Note that this will also check the wrapped data of given interface{}.
+// IsNilValue checks whether given value is nil in its type or not. Note that this will also check the wrapped data of given interface{}.
 func IsNilValue(v interface{}) bool {
 	if v == nil {
 		return true
@@ -71,8 +71,8 @@ func IsNilValue(v interface{}) bool {
 	return false
 }
 
-// IsZeroValue checks whether given value is the zero value of its type or not. Note that all non-nil nillable collection values (such as empty
-// []int{} and map[string]int{}) are regarded as not zero.
+// IsZeroValue checks whether given value is the zero value of its type or not. Note that all non-nil nillable collection values (such as empty []int{}
+// and map[string]int{}) are regarded as not zero.
 func IsZeroValue(v interface{}) bool {
 	if v == nil {
 		return true

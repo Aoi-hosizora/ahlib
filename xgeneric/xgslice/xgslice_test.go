@@ -6,12 +6,15 @@ package xgslice
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 func TestShuffle(t *testing.T) {
@@ -168,7 +171,7 @@ func newTestSlice(s []int) []testStruct {
 	return newSlice
 }
 
-func testToIntSlice(s interface{}) []int {
+func testToIntSlice(s any) []int {
 	out := make([]int, len(s.([]testStruct)))
 	for idx, item := range s.([]testStruct) {
 		out[idx] = item.value
@@ -278,41 +281,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	for _, tc := range []struct {
-		give      []int
-		giveValue int
-		giveIndex int
-		want      []int
-	}{
-		{[]int{}, 9, -2, []int{9}},
-		{[]int{}, 9, -1, []int{9}},
-		{[]int{}, 9, 0, []int{9}},
-		{[]int{}, 9, 1, []int{9}},
-		{[]int{1}, 9, -1, []int{9, 1}},
-		{[]int{1}, 9, 0, []int{9, 1}},
-		{[]int{1}, 9, 1, []int{1, 9}},
-		{[]int{1}, 9, 2, []int{1, 9}},
-		{[]int{1, 2}, 9, -1, []int{9, 1, 2}},
-		{[]int{1, 2}, 9, 0, []int{9, 1, 2}},
-		{[]int{1, 2}, 9, 1, []int{1, 9, 2}},
-		{[]int{1, 2}, 9, 2, []int{1, 2, 9}},
-		{[]int{1, 2}, 9, 3, []int{1, 2, 9}},
-		{[]int{1, 2, 3}, 9, -1, []int{9, 1, 2, 3}},
-		{[]int{1, 2, 3}, 9, 0, []int{9, 1, 2, 3}},
-		{[]int{1, 2, 3}, 9, 1, []int{1, 9, 2, 3}},
-		{[]int{1, 2, 3}, 9, 2, []int{1, 2, 9, 3}},
-		{[]int{1, 2, 3}, 9, 3, []int{1, 2, 3, 9}},
-		{[]int{1, 2, 3}, 9, 4, []int{1, 2, 3, 9}},
-		{[]int{1, 2, 3, 4}, 9, -1, []int{9, 1, 2, 3, 4}},
-		{[]int{1, 2, 3, 4}, 9, 0, []int{9, 1, 2, 3, 4}},
-		{[]int{1, 2, 3, 4}, 9, 1, []int{1, 9, 2, 3, 4}},
-		{[]int{1, 2, 3, 4}, 9, 2, []int{1, 2, 9, 3, 4}},
-		{[]int{1, 2, 3, 4}, 9, 3, []int{1, 2, 3, 9, 4}},
-		{[]int{1, 2, 3, 4}, 9, 4, []int{1, 2, 3, 4, 9}},
-		{[]int{1, 2, 3, 4}, 9, 5, []int{1, 2, 3, 4, 9}},
-	} {
-		xtestingEqual(t, Insert(tc.give, tc.giveValue, tc.giveIndex), tc.want)
-	}
+	// TODO
 }
 
 func TestDelete(t *testing.T) {
@@ -499,11 +468,11 @@ func (t *testError) Error() string { return t.m }
 
 func TestRepeat(t *testing.T) {
 	for _, tc := range []struct {
-		give interface{}
-		want interface{}
+		give any
+		want any
 	}{
-		{Repeat[interface{}](nil, 0), []interface{}{}},
-		{Repeat[interface{}](nil, 2), []interface{}{nil, nil}},
+		{Repeat[any](nil, 0), []any{}},
+		{Repeat[any](nil, 2), []any{nil, nil}},
 		{Repeat(true, 0), []bool{}},
 		{Repeat(true, 1), []bool{true}},
 		{Repeat(5, 5), []int{5, 5, 5, 5, 5}},
@@ -520,8 +489,8 @@ func TestRepeat(t *testing.T) {
 }
 
 func TestForeach(t *testing.T) {
-	xtestingPanic(t, func() { Foreach([]bool{}, nil) }, true)
-	xtestingPanic(t, func() { Foreach([]bool{}, func(t bool) {}) }, false)
+	xtestingPanic(t, true, func() { Foreach([]bool{}, nil) })
+	xtestingPanic(t, false, func() { Foreach([]bool{}, func(t bool) {}) })
 
 	test1 := 0
 	Foreach([]int{1, 2, 3, 4}, func(t int) { test1 += t })
@@ -538,7 +507,7 @@ func TestForeach(t *testing.T) {
 }
 
 func TestMapExpand(t *testing.T) {
-	xtestingPanic(t, func() { Map[bool, bool]([]bool{}, nil) }, true)
+	xtestingPanic(t, true, func() { Map[bool, bool]([]bool{}, nil) })
 	xtestingEqual(t, Map([]bool{}, func(t bool) bool { return false }), []bool{})
 	xtestingEqual(t, Map([]bool{true, true, true, true}, func(t bool) bool { return false }), []bool{false, false, false, false})
 	xtestingEqual(t, Map([]int{1, 2, 3}, func(t int) int32 { return int32(t) + 1 }), []int32{2, 3, 4})
@@ -548,7 +517,7 @@ func TestMapExpand(t *testing.T) {
 		return int32(s)
 	}), []int32{1, 0, 3, 4})
 
-	xtestingPanic(t, func() { Expand[bool, bool]([]bool{}, nil) }, true)
+	xtestingPanic(t, true, func() { Expand[bool, bool]([]bool{}, nil) })
 	xtestingEqual(t, Expand([]bool{}, func(t bool) []bool { return []bool{} }), []bool{})
 	xtestingEqual(t, Expand([]bool{true, false}, func(t bool) []bool { return []bool{t, !t} }), []bool{true, false, false, true})
 	xtestingEqual(t, Expand([]int{1, 2, 3}, func(t int) []int32 { return []int32{int32(t), int32(t) + 1} }), []int32{1, 2, 2, 3, 3, 4})
@@ -560,7 +529,7 @@ func TestMapExpand(t *testing.T) {
 }
 
 func TestReduce(t *testing.T) {
-	xtestingPanic(t, func() { Reduce([]bool{}, true, nil) }, true)
+	xtestingPanic(t, true, func() { Reduce([]bool{}, true, nil) })
 	xtestingEqual(t, Reduce([]bool{}, true, func(k bool, t bool) bool { return false }), true)
 	xtestingEqual(t, Reduce([]int{1, 2, 3}, 0.0, func(k float64, t int) float64 { return k + float64(t) }), 1.+2.+3.)
 	xtestingEqual(t, Reduce([]string{"a", "b", "c", "d"}, "0", func(k string, t string) string { return k + t }), "0abcd")
@@ -583,14 +552,14 @@ func TestReduce(t *testing.T) {
 }
 
 func TestFilterAnyAll(t *testing.T) {
-	xtestingPanic(t, func() { Filter([]bool{}, nil) }, true)
+	xtestingPanic(t, true, func() { Filter([]bool{}, nil) })
 	xtestingEqual(t, Filter([]bool{}, func(t bool) bool { return t }), []bool{})
 	xtestingEqual(t, Filter([]bool{true, false, true, false}, func(t bool) bool { return t }), []bool{true, true})
 	xtestingEqual(t, Filter([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), []int32{9, 8, 7, 6})
 	xtestingEqual(t, Filter([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), []string{"1", "3"})
 	xtestingEqual(t, Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), []string{"aaa", "ccccc"})
 
-	xtestingPanic(t, func() { Any([]bool{}, nil) }, true)
+	xtestingPanic(t, true, func() { Any([]bool{}, nil) })
 	xtestingEqual(t, Any([]bool{}, func(t bool) bool { return t }), true)
 	xtestingEqual(t, Any([]bool{true, false, true, false}, func(t bool) bool { return t }), true)
 	xtestingEqual(t, Any([]bool{false, false}, func(t bool) bool { return t }), false)
@@ -599,7 +568,7 @@ func TestFilterAnyAll(t *testing.T) {
 	xtestingEqual(t, Any([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), true)
 	xtestingEqual(t, Any([]string{"!", "@", "#"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), false)
 
-	xtestingPanic(t, func() { All([]bool{}, nil) }, true)
+	xtestingPanic(t, true, func() { All([]bool{}, nil) })
 	xtestingEqual(t, All([]bool{}, func(t bool) bool { return t }), true)
 	xtestingEqual(t, All([]bool{true, false, true, false}, func(t bool) bool { return t }), false)
 	xtestingEqual(t, All([]bool{true, true}, func(t bool) bool { return t }), true)
@@ -637,6 +606,69 @@ func TestZipUnzip(t *testing.T) {
 	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[bool, bool, int]{{true, false, 0}, {false, true, 1}})), xtuple.Triple[[]bool, []bool, []int]{Item1: []bool{true, false}, Item2: []bool{false, true}, Item3: []int{0, 1}})
 	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[int, string, uint32]{{1, "1", 2}, {2, "2", 3}, {3, "3", 4}})), xtuple.Triple[[]int, []string, []uint32]{Item1: []int{1, 2, 3}, Item2: []string{"1", "2", "3"}, Item3: []uint32{2, 3, 4}})
 	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})), xtuple.Triple[[]string, []uint32, []byte]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}, Item3: []byte{'0', '9', '8'}})
+}
+
+type (
+	IntSlice    []int
+	StringSlice []string
+)
+
+func (i IntSlice) typename() string {
+	return strings.TrimPrefix(reflect.TypeOf(i).String(), "xgslice.")
+}
+
+func (s StringSlice) typename() string {
+	return strings.TrimPrefix(reflect.TypeOf(s).String(), "xgslice.")
+}
+
+func TestTildeSignature(t *testing.T) {
+	i := IntSlice{1, 2, 3}
+	s := StringSlice{"aaa", "b", "cc"}
+
+	xtestingEqual(t, Shuffle(i).typename(), "IntSlice")
+	xtestingEqual(t, Shuffle(s).typename(), "StringSlice")
+
+	xtestingEqual(t, Reverse(i), IntSlice{3, 2, 1})
+	xtestingEqual(t, Reverse(s), StringSlice{"cc", "b", "aaa"})
+	xtestingEqual(t, Reverse(i).typename(), "IntSlice")
+	xtestingEqual(t, Reverse(s).typename(), "StringSlice")
+
+	xtestingEqual(t, Sort(i), IntSlice{1, 2, 3})
+	xtestingEqual(t, Sort(s), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Sort(i).typename(), "IntSlice")
+	xtestingEqual(t, Sort(s).typename(), "StringSlice")
+	xtestingEqual(t, SortWith(i, func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	xtestingEqual(t, SortWith(s, func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	xtestingEqual(t, SortWith(i, func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	xtestingEqual(t, SortWith(s, func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+
+	xtestingEqual(t, StableSort(i), IntSlice{1, 2, 3})
+	xtestingEqual(t, StableSort(s), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, StableSort(i).typename(), "IntSlice")
+	xtestingEqual(t, StableSort(s).typename(), "StringSlice")
+	xtestingEqual(t, StableSortWith(i, func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	xtestingEqual(t, StableSortWith(i, func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+
+	xtestingEqual(t, Delete(i, 1, 1), IntSlice{2, 3})
+	xtestingEqual(t, Delete(s, "aaa", 1), StringSlice{"b", "cc"})
+	xtestingEqual(t, Delete(i, 1, 1).typename(), "IntSlice")
+	xtestingEqual(t, Delete(s, "aaa", 1).typename(), "StringSlice")
+	xtestingEqual(t, DeleteAll(i, 1), IntSlice{2, 3})
+	xtestingEqual(t, DeleteAll(s, "aaa"), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteAll(i, 1).typename(), "IntSlice")
+	xtestingEqual(t, DeleteAll(s, "aaa").typename(), "StringSlice")
+
+	xtestingEqual(t, Deduplicate(i), IntSlice{1, 2, 3})
+	xtestingEqual(t, Deduplicate(s), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Deduplicate(i).typename(), "IntSlice")
+	xtestingEqual(t, Deduplicate(s).typename(), "StringSlice")
+
+	xtestingEqual(t, Filter(i, func(i int) bool { return i <= 2 }), IntSlice{1, 2})
+	xtestingEqual(t, Filter(s, func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
+	xtestingEqual(t, Filter(i, func(i int) bool { return i <= 2 }).typename(), "IntSlice")
+	xtestingEqual(t, Filter(s, func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
 }
 
 // =============================

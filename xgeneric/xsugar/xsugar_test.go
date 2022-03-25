@@ -10,6 +10,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -17,51 +18,121 @@ func TestIfThen(t *testing.T) {
 	// IfThen
 	xtestingEqual(t, IfThen(true, "a"), "a")
 	xtestingEqual(t, IfThen(false, "a"), "")
-	xtestingEqual(t, IfThen(true, 1.1), 1.1)
-	xtestingEqual(t, IfThen(false, 1.1), 0.0)
+	xtestingEqual(t, IfThen(true, 1), 1)
+	xtestingEqual(t, IfThen(false, 1), 0)
 
-	// IfThenElse
-	xtestingEqual(t, IfThenElse(true, "x", "y"), "x")
-	xtestingEqual(t, IfThenElse(false, "x", "y"), "y")
-	xtestingEqual(t, IfThenElse(true, uint(1), uint(2)), uint(1))
-	xtestingEqual(t, IfThenElse(false, 1+1i, 2+2i), 2+2i)
+	// type of IfThen
+	i1 := IfThen(true, "a")
+	i2 := IfThen(false, 1)
+	xtestingEqual(t, reflect.TypeOf(&i1).Elem().Kind(), reflect.String)
+	xtestingEqual(t, reflect.TypeOf(&i2).Elem().Kind(), reflect.Int)
 }
 
-func TestXXXIfNil(t *testing.T) {
-	// DefaultIfNil
-	_ = DefaultIfNil[interface{}]
+func TestIfThenElse(t *testing.T) {
+	// IfThenElse
+	xtestingEqual(t, IfThenElse(true, "a", "b"), "a")
+	xtestingEqual(t, IfThenElse(false, "a", "b"), "b")
+	xtestingEqual(t, IfThenElse(true, uint(1), 2), uint(1))
+	xtestingEqual(t, IfThenElse(false, uint(1), 2), uint(2))
 
+	// If
+	xtestingEqual(t, If(true, "a", "b"), "a")
+	xtestingEqual(t, If(false, "a", "b"), "b")
+	xtestingEqual(t, If(true, uint(1), 2), uint(1))
+	xtestingEqual(t, If(false, uint(1), 2), uint(2))
+
+	// type of IfThenElse
+	i1 := IfThenElse(true, uint(1), 2)
+	i2 := IfThenElse(false, uint(1), 2)
+	xtestingEqual(t, reflect.TypeOf(&i1).Elem().Kind(), reflect.Uint)
+	xtestingEqual(t, reflect.TypeOf(&i2).Elem().Kind(), reflect.Uint)
+}
+
+func TestDefaultIfNil(t *testing.T) {
+	// DefaultIfNil
+	xtestingEqual(t, DefaultIfNil(1, 2), 1)
+	xtestingEqual(t, DefaultIfNil("1", "2"), "1")
+	two := 2
+	xtestingEqual(t, DefaultIfNil[*int](nil, &two), &two)
+	xtestingEqual(t, DefaultIfNil[*int](nil, nil), (*int)(nil))
+	xtestingEqual(t, DefaultIfNil([]int(nil), []int{1, 2, 3}), []int{1, 2, 3})
+	xtestingEqual(t, DefaultIfNil(map[int]int(nil), map[int]int{1: 1, 2: 2}), map[int]int{1: 1, 2: 2})
+
+	// type of DefaultIfNil
+	i1 := DefaultIfNil(1, 2)
+	i2 := DefaultIfNil([]int(nil), []int{})
+	xtestingEqual(t, reflect.TypeOf(&i1).Elem().Kind(), reflect.Int)
+	xtestingEqual(t, reflect.TypeOf(&i2).Elem().Kind(), reflect.Slice)
+}
+
+func TestPanicIfNil(t *testing.T) {
 	// PanicIfNil
-	_ = PanicIfNil[interface{}]
+	xtestingEqual(t, PanicIfNil(1), 1)
+	xtestingEqual(t, PanicIfNil(1, ""), 1)
+	xtestingPanic(t, true, func() { PanicIfNil[*int](nil, "nil value") }, "nil value")
+	xtestingPanic(t, true, func() { PanicIfNil([]int(nil), "nil value") }, "nil value")
+	xtestingPanic(t, true, func() { PanicIfNil[*int](nil) }, "xcondition: nil value for *int")
+	xtestingPanic(t, true, func() { PanicIfNil([]int(nil), nil, "x") }, "xcondition: nil value for []int")
+
+	// Un & Unp
+	xtestingEqual(t, Un(1), 1)
+	xtestingEqual(t, Unp(1, ""), 1)
+	xtestingPanic(t, true, func() { Unp[*int](nil, "nil value") }, "nil value")
+	xtestingPanic(t, true, func() { Unp([]int(nil), "nil value") }, "nil value")
+	xtestingPanic(t, true, func() { Un[*int](nil) }, "xcondition: nil value for *int")
+	xtestingPanic(t, true, func() { Unp([]int(nil), nil) }, "xcondition: nil value for []int")
+
+	// type of PanicIfNil
+	i1 := PanicIfNil(1)
+	i2 := PanicIfNil([]int{}, "")
+	xtestingEqual(t, reflect.TypeOf(&i1).Elem().Kind(), reflect.Int)
+	xtestingEqual(t, reflect.TypeOf(&i2).Elem().Kind(), reflect.Slice)
 }
 
 func TestPanicIfErr(t *testing.T) {
-	// PanicIfErr
-	xtestingPanic(t, false, func() { xtestingEqual(t, PanicIfErr("a", nil), "a") })
-	xtestingPanic(t, false, func() { xtestingEqual(t, PanicIfErr(1.1, nil), 1.1) })
-	xtestingPanic(t, true, func() { PanicIfErr("a", errors.New("x")) }, "x")
-	xtestingPanic(t, true, func() { PanicIfErr(1.1, errors.New("x")) }, "x")
+	// PanicIfErr & Ue
+	xtestingEqual(t, PanicIfErr(0, nil), 0)
+	xtestingEqual(t, Ue("0", nil), "0")
+	xtestingPanic(t, true, func() { PanicIfErr[*int](nil, errors.New("test")) }, "test")
+	xtestingPanic(t, true, func() { Ue("xxx", errors.New("test")) }, "test")
 
-	// PanicIfErr2
-	xtestingPanic(t, false, func() {
-		a, b := PanicIfErr2("a", uint32(2), nil)
-		xtestingEqual(t, a, "a")
-		xtestingEqual(t, b, uint32(2))
-	})
-	xtestingPanic(t, false, func() {
-		a, b := PanicIfErr2(int64(1), true, nil)
-		xtestingEqual(t, a, int64(1))
-		xtestingEqual(t, b, true)
-	})
-	xtestingPanic(t, true, func() { PanicIfErr2("a", uint32(2), errors.New("x")) }, "x")
-	xtestingPanic(t, true, func() { PanicIfErr2(int64(1), true, errors.New("x")) }, "x")
+	// PanicIfErr2 & Ue2
+	v1, v2 := PanicIfErr2("1", 2, nil)
+	xtestingEqual(t, v1, "1")
+	xtestingEqual(t, v2, 2)
+	v1_, v2_ := Ue2(3.3, uint(4), nil)
+	xtestingEqual(t, v1_, 3.3)
+	xtestingEqual(t, v2_, uint(4))
+	xtestingPanic(t, true, func() { PanicIfErr2[*int, *int](nil, nil, errors.New("test")) }, "test")
+	xtestingPanic(t, true, func() { Ue2("xxx", "yyy", errors.New("test")) }, "test")
+
+	// PanicIfErr3 & Ue3
+	v1, v2, v3 := PanicIfErr3("1", 2, '3', nil)
+	xtestingEqual(t, v1, "1")
+	xtestingEqual(t, v2, 2)
+	xtestingEqual(t, v3, '3')
+	v1_, v2_, v3_ := Ue3(4.4, uint(5), true, nil)
+	xtestingEqual(t, v1_, 4.4)
+	xtestingEqual(t, v2_, uint(5))
+	xtestingEqual(t, v3_, true)
+	xtestingPanic(t, true, func() { PanicIfErr3[*int, *int, *int](nil, nil, nil, errors.New("test")) }, "test")
+	xtestingPanic(t, true, func() { Ue3("xxx", "yyy", "zzz", errors.New("test")) }, "test")
+
+	// type of PanicIfErr U& PanicIfErr3
+	i1 := PanicIfErr(0, nil)
+	i2 := PanicIfErr("0", nil)
+	xtestingEqual(t, reflect.TypeOf(&i1).Elem().Kind(), reflect.Int)
+	xtestingEqual(t, reflect.TypeOf(&i2).Elem().Kind(), reflect.String)
+	xtestingEqual(t, reflect.TypeOf(&v1).Elem().Kind(), reflect.String)
+	xtestingEqual(t, reflect.TypeOf(&v2).Elem().Kind(), reflect.Int)
+	xtestingEqual(t, reflect.TypeOf(&v3).Elem().Kind(), reflect.Int32)
 }
 
 func TestValPtr(t *testing.T) {
 	i := 1
 	u := uint(1)
 	a := [2]float64{1, 2}
-	m := map[string]interface{}{"1": uint(1)}
+	m := map[string]any{"1": uint(1)}
 	s := []string{"1", "1"}
 
 	// ValPtr
@@ -85,7 +156,7 @@ func TestValPtr(t *testing.T) {
 	xtestingEqual(t, PtrVal[int](nil, i), i)
 	xtestingEqual(t, PtrVal[uint](nil, u), u)
 	xtestingEqual(t, PtrVal[[2]float64](nil, a), a)
-	xtestingEqual(t, PtrVal[map[string]interface{}](nil, m), m)
+	xtestingEqual(t, PtrVal[map[string]any](nil, m), m)
 	xtestingEqual(t, PtrVal[[]string](nil, s), s)
 	xtestingEqual(t, PtrVal(&i, i), i)
 	xtestingEqual(t, PtrVal(&u, u), u)
@@ -178,15 +249,15 @@ func TestIncrDecr(t *testing.T) {
 }
 
 func TestUnmarshalJson(t *testing.T) {
-	o1, err := UnmarshalJson([]byte(`{`), &map[string]interface{}{})
+	o1, err := UnmarshalJson([]byte(`{`), &map[string]any{})
 	xtestingEqual(t, err != nil, true)
-	xtestingEqual(t, o1, (*map[string]interface{})(nil))
-	o1, err = UnmarshalJson([]byte(`{}`), &map[string]interface{}{})
+	xtestingEqual(t, o1, (*map[string]any)(nil))
+	o1, err = UnmarshalJson([]byte(`{}`), &map[string]any{})
 	xtestingEqual(t, err == nil, true)
-	xtestingEqual(t, o1, &map[string]interface{}{})
-	o2, err := UnmarshalJson([]byte(`{"a": {"b": "c"}}`), &map[string]interface{}{})
+	xtestingEqual(t, o1, &map[string]any{})
+	o2, err := UnmarshalJson([]byte(`{"a": {"b": "c"}}`), &map[string]any{})
 	xtestingEqual(t, err == nil, true)
-	xtestingEqual(t, o2, &map[string]interface{}{"a": map[string]interface{}{"b": "c"}})
+	xtestingEqual(t, o2, &map[string]any{"a": map[string]any{"b": "c"}})
 	o3, err := UnmarshalJson([]byte(`[1, "2"]`), &[]string{})
 	xtestingEqual(t, err != nil, true)
 	xtestingEqual(t, o3, (*[]string)(nil))
@@ -207,6 +278,26 @@ func TestUnmarshalJson(t *testing.T) {
 	o4, err = UnmarshalJson([]byte(`{"id": 111, "name": "$$$"}`), &s{})
 	xtestingEqual(t, err == nil, true)
 	xtestingEqual(t, o4, &s{ID: 111, Name: "$$$"})
+}
+
+func TestIsNilValue(t *testing.T) {
+	// keep almost the same as xtesting.TestNilNotNil
+
+	// nil
+	for _, v := range []interface{}{
+		nil, (*struct{})(nil), (*int)(nil), (func())(nil), fmt.Stringer(nil), error(nil),
+		[]int(nil), map[int]int(nil), (chan int)(nil), (chan<- int)(nil), (<-chan int)(nil),
+	} {
+		xtestingEqual(t, isNilValue(v), true)
+	}
+
+	// non-nil
+	for _, v := range []interface{}{
+		0, "", &struct{}{}, new(interface{}), new(int), func() {}, fmt.Stringer(&strings.Builder{}), errors.New(""),
+		[]int{}, map[int]int{}, make(chan int), make(chan<- int), make(<-chan int),
+	} {
+		xtestingEqual(t, isNilValue(v), false)
+	}
 }
 
 // =============================
@@ -230,7 +321,7 @@ func xtestingEqual(t testing.TB, give, want interface{}) bool {
 	return true
 }
 
-func xtestingPanic(t *testing.T, want bool, f func(), v ...interface{}) bool {
+func xtestingPanic(t *testing.T, want bool, f func(), v ...any) bool {
 	isPanic, value := false, interface{}(nil)
 	func() { defer func() { value = recover(); isPanic = value != nil }(); f() }()
 	if want && !isPanic {

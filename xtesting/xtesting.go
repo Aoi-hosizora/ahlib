@@ -226,7 +226,7 @@ func NotMatchRegexp(t testing.TB, rx interface{}, str string, msgAndArgs ...inte
 	return true
 }
 
-// InDelta asserts that the two numerals are within delta of each other.
+// InDelta asserts that the two numerics are within delta of each other.
 func InDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
@@ -240,7 +240,7 @@ func InDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...
 	return true
 }
 
-// NotInDelta asserts that the two numerals are not within delta of each other.
+// NotInDelta asserts that the two numerics are not within delta of each other.
 func NotInDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	inDelta, actualDiff, err := calcDiffInDelta(give, want, delta)
 	if err != nil {
@@ -254,7 +254,7 @@ func NotInDelta(t testing.TB, give, want interface{}, delta float64, msgAndArgs 
 	return true
 }
 
-// InEpsilon asserts that two numerals have a relative error less than epsilon.
+// InEpsilon asserts that two numerics have a relative error less than epsilon.
 func InEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
 	if err != nil {
@@ -268,7 +268,7 @@ func InEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs
 	return true
 }
 
-// NotInEpsilon asserts that two numerals have a relative error greater than epsilon.
+// NotInEpsilon asserts that two numerics have a relative error greater than epsilon.
 func NotInEpsilon(t testing.TB, give, want interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	inEps, actualRee, err := calcRelativeError(give, want, epsilon)
 	if err != nil {

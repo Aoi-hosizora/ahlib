@@ -6,19 +6,20 @@ package xsugar
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
-// ==============
-// mass functions
-// ==============
+// ========================
+// xcondition compatibility
+// ========================
 
 // IfThen returns value if condition is true, otherwise returns the default value of type T.
 func IfThen[T any](condition bool, value T) T {
 	if condition {
 		return value
 	}
-	var v T
-	return v
+	var tt T
+	return tt
 }
 
 // IfThenElse returns value1 if condition is true, otherwise returns value2.
@@ -29,30 +30,41 @@ func IfThenElse[T any](condition bool, value1, value2 T) T {
 	return value2
 }
 
-// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue.
+// If is the short form of IfThenElse.
+func If[T any](cond bool, v1, v2 T) T {
+	return IfThenElse(cond, v1, v2)
+}
+
+// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue. Note that this also checks the wrapped data of given value.
 func DefaultIfNil[T any](value, defaultValue T) T {
-	if any(value) != nil { // TODO nil checker
+	if !isNilValue(any(value)) {
 		return value
 	}
 	return defaultValue
 }
 
-const (
-	panicNilValue = "xcondition: nil value for %T"
-)
-
-// PanicIfNil returns value if it is not nil, otherwise panics with given v.
-func PanicIfNil[T any](value T, v any) T {
-	if any(value) != nil { // TODO nil checker
+// PanicIfNil returns value if it is not nil, otherwise panics with given the first panicValue. Note that this also checks the wrapped data of given value.
+func PanicIfNil[T any](value T, panicValue ...any) T {
+	if !isNilValue(any(value)) {
 		return value
 	}
-	if v == nil {
-		panic(fmt.Sprintf(panicNilValue, value))
+	if len(panicValue) == 0 || panicValue[0] == nil {
+		panic(fmt.Sprintf("xcondition: nil value for %T", value))
 	}
-	panic(v)
+	panic(panicValue[0])
 }
 
-// PanicIfErr returns value if given err is nil, otherwise panics with error message.
+// Un is the short form of PanicIfNil without panicValue, which means "unwrap nil with builtin panic value".
+func Un[T any](v T) T {
+	return PanicIfNil(v)
+}
+
+// Unp is the short form of PanicIfNil with panicValue, which means "unwrap nil with custom panic value".
+func Unp[T any](v T, panicV any) T {
+	return PanicIfNil(v, panicV)
+}
+
+// PanicIfErr returns value if given err is nil, otherwise panics with given error message.
 func PanicIfErr[T any](value T, err error) T {
 	if err != nil {
 		panic(err.Error())
@@ -60,13 +72,40 @@ func PanicIfErr[T any](value T, err error) T {
 	return value
 }
 
-// PanicIfErr2 returns value1 and value2 if given err is nil, otherwise panics with error message.
-func PanicIfErr2[T, K any](value1 T, value2 K, err error) (T, K) {
+// PanicIfErr2 returns value1 and value2 if given err is nil, otherwise panics with given error message.
+func PanicIfErr2[T1, T2 any](value1 T1, value2 T2, err error) (T1, T2) {
 	if err != nil {
 		panic(err.Error())
 	}
 	return value1, value2
 }
+
+// PanicIfErr3 returns value1, value2 and value3 if given err is nil, otherwise panics with given error message.
+func PanicIfErr3[T1, T2, T3 any](value1 T1, value2 T2, value3 T3, err error) (T1, T2, T3) {
+	if err != nil {
+		panic(err.Error())
+	}
+	return value1, value2, value3
+}
+
+// Ue is the short form of PanicIfErr, which means "unwrap error".
+func Ue[T any](v T, err error) T {
+	return PanicIfErr(v, err)
+}
+
+// Ue2 is the short form of PanicIfErr2, which means "unwrap error".
+func Ue2[T1, T2 any](v1 T1, v2 T2, err error) (T1, T2) {
+	return PanicIfErr2(v1, v2, err)
+}
+
+// Ue3 is the short form of PanicIfErr3, which means "unwrap error".
+func Ue3[T1, T2, T3 any](v1 T1, v2 T2, v3 T3, err error) (T1, T2, T3) {
+	return PanicIfErr3(v1, v2, v3, err)
+}
+
+// ==============
+// mass functions
+// ==============
 
 // ValPtr returns a pointer pointed to given value.
 func ValPtr[T any](t T) *T {
@@ -81,33 +120,33 @@ func PtrVal[T any](t *T, o T) T {
 	return *t
 }
 
-// Incr increments the value of given Real and then returns it, this is the same as C "++n" expression.
+// Incr increments the value of given Real first, and then returns it, this is the same as C "++n" expression.
 func Incr[T Real](n *T) T {
 	*n++
 	return *n
 }
 
-// Decr decrements the value of given Real and then returns it, this is the same as C "--n" expression.
+// Decr decrements the value of given Real first, and then returns it, this is the same as C "--n" expression.
 func Decr[T Real](n *T) T {
 	*n--
 	return *n
 }
 
-// RIncr returns the value of given Real and then increments it, this is the same as C "n++" expression.
+// RIncr returns the value of given Real first, and then increments it, this is the same as C "n++" expression.
 func RIncr[T Real](n *T) T {
 	v := *n
 	*n++
 	return v
 }
 
-// RDecr returns the value of given Real and then decrements it, this is the same as C "n--" expression.
+// RDecr returns the value of given Real first, and then decrements it, this is the same as C "n--" expression.
 func RDecr[T Real](n *T) T {
 	v := *n
 	*n--
 	return v
 }
 
-// UnmarshalJson unmarshals given byte array to T, just like json.Unmarshal, but with T returned.
+// UnmarshalJson unmarshals given byte array to T, just like json.Unmarshal.
 func UnmarshalJson[T any](bs []byte, t T) (T, error) {
 	err := json.Unmarshal(bs, t)
 	if err != nil {
@@ -115,6 +154,19 @@ func UnmarshalJson[T any](bs []byte, t T) (T, error) {
 		return tt, err
 	}
 	return t, err
+}
+
+// isNilValue keeps the same as xreflect.IsNilValue, checks whether given value is nil in its type or not.
+func isNilValue(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Ptr, reflect.Func, reflect.Interface, reflect.UnsafePointer, reflect.Slice, reflect.Map, reflect.Chan:
+		return val.IsNil()
+	}
+	return false
 }
 
 // =====================

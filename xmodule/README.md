@@ -4,7 +4,7 @@
 
 + xcolor
 + xerror
-+ xtesting*
++ (xtesting)
 
 ## Documents
 
