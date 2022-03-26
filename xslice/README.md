@@ -65,6 +65,10 @@
 + `func DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{}`
 + `func DeleteAllG(slice interface{}, value interface{}) interface{}`
 + `func DeleteAllWithG(slice interface{}, value interface{}, equaller Equaller) interface{}`
++ `func ContainsAll(list, subset []interface{}) bool`
++ `func ContainsAllWith(list, subset []interface{}, equaller Equaller) bool`
++ `func ContainsAllG(list, subset interface{}) bool`
++ `func ContainsAllWithG(list, subset interface{}, equaller Equaller) bool`
 + `func Diff(slice1, slice2 []interface{}) []interface{}`
 + `func DiffWith(slice1, slice2 []interface{}, equaller Equaller) []interface{}`
 + `func DiffG(slice1, slice2 interface{}) interface{}`

@@ -7,6 +7,10 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
 )
 
+// TODO
+// https://github.com/zyedidia/generic
+// https://pkg.go.dev/golang.org/x/exp/maps
+
 // ==================
 // fp-style functions
 // ==================
@@ -117,7 +121,7 @@ func Expand[K1, K2 comparable, V1, V2 any](m map[K1]V1, f func(K1, V1) []xtuple.
 }
 
 // Reduce reduces given map to a single value using initial value and left reducer function.
-func Reduce[K comparable, V, S any](m map[K]V, initial S, f func(S, K, V) S) S {
+func Reduce[K comparable, V, U any](m map[K]V, initial U, f func(U, K, V) U) U {
 	if f == nil {
 		panic(panicNilReduceFunc)
 	}
@@ -128,7 +132,7 @@ func Reduce[K comparable, V, S any](m map[K]V, initial S, f func(S, K, V) S) S {
 }
 
 // Filter filters given map and returns a new map using given predicate function.
-func Filter[K comparable, V any](m map[K]V, f func(K, V) bool) map[K]V {
+func Filter[K comparable, V any, M ~map[K]V](m M, f func(K, V) bool) M {
 	if f == nil {
 		panic(panicNilPredicateFunc)
 	}
@@ -141,7 +145,7 @@ func Filter[K comparable, V any](m map[K]V, f func(K, V) bool) map[K]V {
 	return out
 }
 
-// Any checks if given map contains a key-value pair that satisfied given predicate function.
+// Any checks whether given map contains a key-value pair that satisfied given predicate function.
 func Any[K comparable, V any](m map[K]V, f func(K, V) bool) bool {
 	if f == nil {
 		panic(panicNilPredicateFunc)
@@ -157,7 +161,7 @@ func Any[K comparable, V any](m map[K]V, f func(K, V) bool) bool {
 	return false
 }
 
-// All checks if key-value pairs from given map that all satisfied given predicate function.
+// All checks whether key-value pairs from given map that all satisfied given predicate function.
 func All[K comparable, V any](m map[K]V, f func(K, V) bool) bool {
 	if f == nil {
 		panic(panicNilPredicateFunc)

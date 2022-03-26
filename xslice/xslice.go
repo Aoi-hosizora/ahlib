@@ -389,6 +389,39 @@ func coreDelete(slice innerSlice, value interface{}, n int, equaller Equaller) i
 	return slice
 }
 
+// ContainsAll returns true if values in []interface{} subset are all in the []interface{} list.
+func ContainsAll(list, subset []interface{}) bool {
+	return coreContainsAll(checkInterfaceSliceParam(list), checkInterfaceSliceParam(subset), defaultEqualler)
+}
+
+// ContainsAllWith returns true if values in []interface{} subset are all in the []interface{} list.
+func ContainsAllWith(list, subset []interface{}, equaller Equaller) bool {
+	return coreContainsAll(checkInterfaceSliceParam(list), checkInterfaceSliceParam(subset), equaller)
+}
+
+// ContainsAllG returns true if values in []T subset are all in the []T list, is the generic function of ContainsAll.
+func ContainsAllG(list, subset interface{}) bool {
+	s1, s2 := checkTwoSliceInterfaceParam(list, subset)
+	return coreContainsAll(s1, s2, defaultEqualler)
+}
+
+// ContainsAllWithG returns true if values in []T subset are all in the []T list, is the generic function of ContainsAllWith.
+func ContainsAllWithG(list, subset interface{}, equaller Equaller) bool {
+	s1, s2 := checkTwoSliceInterfaceParam(list, subset)
+	return coreContainsAll(s1, s2, equaller)
+}
+
+// coreContainsAll is the implementation for ContainsAll, ContainsAllWith, ContainsAllG and ContainsAllWithG.
+func coreContainsAll(list, subset innerSlice, equaller Equaller) bool {
+	for i := 0; i < subset.length(); i++ {
+		val := subset.get(i)
+		if !coreContains(list, val, equaller) {
+			return false
+		}
+	}
+	return true
+}
+
 // Diff returns the difference of two []interface{} slices.
 func Diff(slice1, slice2 []interface{}) []interface{} {
 	return coreDiff(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler).actual().([]interface{})

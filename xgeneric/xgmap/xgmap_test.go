@@ -114,13 +114,18 @@ func TestReduce(t *testing.T) {
 	xtestingEqual(t, results, 0+5./1.+1+3./6.+3+3./1.)
 }
 
+type UintStringMap map[uint]string
+
+func (u UintStringMap) xxx() bool { return true }
+
 func TestFilterAnyAll(t *testing.T) {
 	xtestingPanic(t, true, func() { Filter(map[bool]bool{}, nil) })
 	xtestingEqual(t, Filter(map[bool]bool{}, func(t bool, t2 bool) bool { return t }), map[bool]bool{})
 	xtestingEqual(t, Filter(map[int32]bool{0: true, 1: false, 2: true, 3: false}, func(t int32, t2 bool) bool { return t2 }), map[int32]bool{0: true, 2: true})
 	xtestingEqual(t, Filter(map[int32]int32{5: 9, 4: 1, 6: 8, 3: 2, 7: 7}, func(t int32, t2 int32) bool { return t >= 5 || t2 > 5 }), map[int32]int32{5: 9, 6: 8, 7: 7})
 	xtestingEqual(t, Filter(map[byte]string{'1': "1", '@': "@", '3': "3"}, func(t byte, t2 string) bool { _, err := strconv.Atoi(t2); return err == nil }), map[byte]string{'1': "1", '3': "3"})
-	xtestingEqual(t, Filter(map[uint]string{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return t != 0 && len(t2) > 2 }), map[uint]string{1: "ccccc"})
+	xtestingEqual(t, Filter(UintStringMap{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return t != 0 && len(t2) > 2 }), UintStringMap{1: "ccccc"})
+	xtestingEqual(t, Filter(UintStringMap{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return true }).xxx(), true)
 
 	xtestingPanic(t, true, func() { Any(map[bool]bool{}, nil) })
 	xtestingEqual(t, Any(map[bool]bool{}, func(t bool, t2 bool) bool { return t }), true)
@@ -149,11 +154,11 @@ func sorted[T xsugar.Ordered](slice []T) []T {
 func sorted2[K xsugar.Ordered, V any, T []string | xtuple.Tuple[K, V]](slice []T) []T {
 	sort.Slice(slice, func(i, j int) bool {
 		var t T
-		switch (interface{})(t).(type) {
+		switch (any)(t).(type) {
 		case []string:
-			return (interface{})(slice[i]).([]string)[0] < (interface{})(slice[j]).([]string)[0]
+			return (any)(slice[i]).([]string)[0] < (any)(slice[j]).([]string)[0]
 		case xtuple.Tuple[K, V]:
-			return (interface{})(slice[i]).(xtuple.Tuple[K, V]).Item1 < (interface{})(slice[j]).(xtuple.Tuple[K, V]).Item1
+			return (any)(slice[i]).(xtuple.Tuple[K, V]).Item1 < (any)(slice[j]).(xtuple.Tuple[K, V]).Item1
 		}
 		return false
 	})

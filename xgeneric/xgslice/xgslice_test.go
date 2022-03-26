@@ -281,7 +281,44 @@ func TestCount(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	// TODO
+	for _, tc := range []struct {
+		give       []int
+		giveValues []int
+		giveIndex  int
+		want       []int
+	}{
+		{[]int{}, []int{}, -2, []int{}},
+		{[]int{}, []int{1, 2}, -1, []int{1, 2}},
+		{[]int{}, []int{0, 0, 0}, 0, []int{0, 0, 0}},
+		{[]int{}, []int{3}, 1, []int{3}},
+		{[]int{1}, []int{9}, -1, []int{9, 1}},
+		{[]int{1}, []int{9, 9, 9}, 0, []int{9, 9, 9, 1}},
+		{[]int{1}, []int{}, 1, []int{1}},
+		{[]int{1}, []int{0, 9}, 2, []int{1, 0, 9}},
+		{[]int{1, 2}, []int{-1}, -1, []int{-1, 1, 2}},
+		{[]int{1, 2}, []int{9, 9}, 0, []int{9, 9, 1, 2}},
+		{[]int{1, 2}, []int{3, 2, 1}, 1, []int{1, 3, 2, 1, 2}},
+		{[]int{1, 2}, []int{9, 9, 9}, 2, []int{1, 2, 9, 9, 9}},
+		{[]int{1, 2, 3}, []int{-9}, -1, []int{-9, 1, 2, 3}},
+		{[]int{1, 2, 3}, []int{9, 8, 7}, 0, []int{9, 8, 7, 1, 2, 3}},
+		{[]int{1, 2, 3}, []int{}, 1, []int{1, 2, 3}},
+		{[]int{1, 2, 3}, []int{-2, -1}, 2, []int{1, 2, -2, -1, 3}},
+		{[]int{1, 2, 3}, []int{0, 9999, 999, 99, 9}, 4, []int{1, 2, 3, 0, 9999, 999, 99, 9}},
+	} {
+		xtestingEqual(t, Insert(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
+		xtestingEqual(t, InsertSelf(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
+	}
+
+	give2 := append(make([]int, 0, 6), 1, 2, 3)
+	addr2 := (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data
+	addr2_ := Insert(give2, 0)
+	xtestingEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&addr2_)).Data, true)
+	give2 = InsertSelf(give2, 1, 4, 5)
+	xtestingEqual(t, cap(give2), 6)
+	xtestingEqual(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data)
+	give2 = InsertSelf(give2, 0, 4, 5)
+	xtestingEqual(t, cap(give2) != 6, true)
+	xtestingEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data, true)
 }
 
 func TestDelete(t *testing.T) {
@@ -340,6 +377,31 @@ func TestDeleteAll(t *testing.T) {
 		xtestingEqual(t, DeleteAll(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
 		xtestingEqual(t, testToIntSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
+	}
+}
+
+func TestContainsAll(t *testing.T) {
+	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
+	eq := func(i, j testStruct) bool { return i.value == j.value }
+
+	for _, tc := range []struct {
+		give1 []int
+		give2 []int
+		want  bool
+	}{
+		{[]int{}, []int{}, true},
+		{[]int{}, []int{1, 1, 1}, false},
+		{s2, []int{}, true},
+		{s2, []int{1}, true},
+		{s2, []int{1, 0}, false},
+		{s2, []int{5, 2, 1}, true},
+		{s2, []int{5, 5, 5, 5}, true},
+		{s2, []int{2, 2, 2, 1, 5, 2, 1, 5, 2, 6, 3, 2}, true},
+		{s2, []int{1, 2, 3, 4, 5, 6}, false},
+	} {
+		xtestingEqual(t, ContainsAll(tc.give1, tc.give2), tc.want)
+		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
+		xtestingEqual(t, ContainsAllWith(give1, give2, eq), tc.want)
 	}
 }
 
@@ -650,6 +712,11 @@ func TestTildeSignature(t *testing.T) {
 	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
 	xtestingEqual(t, StableSortWith(i, func(i, j int) bool { return i > j }).typename(), "IntSlice")
 	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+
+	xtestingEqual(t, Insert(i, 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
+	xtestingEqual(t, Insert(s, 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
+	xtestingEqual(t, Insert(i, 0, 4, 0).typename(), "IntSlice")
+	xtestingEqual(t, Insert(s, 0, "zzzz", "x").typename(), "StringSlice")
 
 	xtestingEqual(t, Delete(i, 1, 1), IntSlice{2, 3})
 	xtestingEqual(t, Delete(s, "aaa", 1), StringSlice{"b", "cc"})

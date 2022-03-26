@@ -19,7 +19,7 @@ import (
 // RawStack returns the raw debug trace stack of the calling goroutine from runtime.Stack, if all is true, it will also return other
 // goroutines' trace stack. Also see debug.Stack and runtime.Stack for more information.
 //
-// The returned value is just like:
+// Returned value is just like:
 // 	goroutine 19 [running]:
 // 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
 // 		.../xruntime/xruntime.go:30 +0x9f
@@ -66,7 +66,7 @@ type TraceFrame struct {
 
 // String returns the formatted TraceFrame.
 //
-// The returned value is just like:
+// Returned value is just like:
 // 	File: .../xruntime/xruntime_test.go:100
 // 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
@@ -79,7 +79,7 @@ type TraceStack []*TraceFrame
 
 // String returns the formatted TraceStack.
 //
-// The returned value is just like:
+// Returned value is just like:
 // 	File: .../xruntime/xruntime_test.go:100
 // 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
@@ -148,7 +148,7 @@ func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, fu
 }
 
 // ============================
-// mass functions and constants
+// mass constants and functions
 // ============================
 
 // Pprof profile names, see pprof.Lookup (runtime/pprof) and pprof.Handler (net/http/pprof) for more details.

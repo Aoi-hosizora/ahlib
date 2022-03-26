@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// TODO
+// https://pkg.go.dev/golang.org/x/exp/slices
+
 // ====================
 // xslice compatibility
 // ====================
@@ -188,9 +191,31 @@ func CountWith[T any](slice []T, value T, equaller Equaller[T]) int {
 	return cnt
 }
 
+// InsertSelf inserts values into []T slice at index position using the space of given slice.
+func InsertSelf[T any, S ~[]T](slice S, index int, values ...T) S {
+	switch {
+	case len(values) == 0:
+		return slice
+	case len(slice) == 0 || index >= len(slice):
+		return append(slice, values...)
+	default:
+		if index <= 0 {
+			index = 0
+		}
+		expanded := append(slice, values...)
+		shifted := append(expanded[:index+len(values)], slice[index:]...)
+		copy(shifted[index:], values)
+		return shifted
+	}
+}
+
 // Insert inserts values into []T slice at index position using a new slice space to store.
 func Insert[T any, S ~[]T](slice S, index int, values ...T) S {
-	// TODO
+	out := make([]T, 0, len(slice)+len(values))
+	for _, v := range slice {
+		out = append(out, v)
+	}
+	return InsertSelf(S(out), index, values...)
 }
 
 // Delete deletes value from []T slice in n times.
@@ -226,6 +251,21 @@ func DeleteAll[T comparable, S ~[]T](slice S, value T) S {
 // DeleteAllWith deletes value from []T slice in all with Equaller.
 func DeleteAllWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
 	return DeleteWith(slice, value, -1, equaller)
+}
+
+// ContainsAll returns true if values in []T subset are all in the []T list.
+func ContainsAll[T comparable](list, subset []T) bool {
+	return ContainsAllWith(list, subset, defaultEqualler[T]())
+}
+
+// ContainsAllWith returns true if values in []T subset are all in the []T list with Equaller.
+func ContainsAllWith[T any](list, subset []T, equaller Equaller[T]) bool {
+	for _, val := range subset {
+		if !ContainsWith(list, val, equaller) {
+			return false
+		}
+	}
+	return true
 }
 
 // Diff returns the difference of two []T slices.
@@ -293,12 +333,12 @@ func DeduplicateWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 	return result
 }
 
-// ElementMatch checks if two []T slice equal without order.
+// ElementMatch checks whether two []T slice equal without order.
 func ElementMatch[T comparable](slice1, slice2 []T) bool {
 	return ElementMatchWith(slice1, slice2, defaultEqualler[T]())
 }
 
-// ElementMatchWith checks if two []T slice equal without order with Equaller.
+// ElementMatchWith checks whether two []T slice equal without order with Equaller.
 func ElementMatchWith[T any](slice1, slice2 []T, equaller Equaller[T]) bool {
 	extra1, extra2 := make([]T, 0, 0), make([]T, 0, 0)
 	visited := make([]bool, len(slice2))
@@ -358,11 +398,11 @@ func Foreach[T any](slice []T, f func(T)) {
 }
 
 // Map maps given slice to another slice using mapper function.
-func Map[T, K any](slice []T, f func(T) K) []K {
+func Map[T1, T2 any](slice []T1, f func(T1) T2) []T2 {
 	if f == nil {
 		panic(panicNilMapFunc)
 	}
-	out := make([]K, 0, len(slice))
+	out := make([]T2, 0, len(slice))
 	for _, item := range slice {
 		out = append(out, f(item))
 	}
@@ -370,11 +410,11 @@ func Map[T, K any](slice []T, f func(T) K) []K {
 }
 
 // Expand maps and expands given slice to another slice using expand function.
-func Expand[T, K any](slice []T, f func(T) []K) []K {
+func Expand[T1, T2 any](slice []T1, f func(T1) []T2) []T2 {
 	if f == nil {
 		panic(panicNilExpandFunc)
 	}
-	out := make([]K, 0, len(slice))
+	out := make([]T2, 0, len(slice))
 	for _, item := range slice {
 		out = append(out, f(item)...)
 	}
@@ -382,7 +422,7 @@ func Expand[T, K any](slice []T, f func(T) []K) []K {
 }
 
 // Reduce reduces given slice to a single value using initial value and left reducer function.
-func Reduce[T, K any](slice []T, initial K, f func(K, T) K) K {
+func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U {
 	if f == nil {
 		panic(panicNilReduceFunc)
 	}
@@ -393,7 +433,7 @@ func Reduce[T, K any](slice []T, initial K, f func(K, T) K) K {
 }
 
 // Filter filters given slice and returns a new slice using given predicate function.
-func Filter[T any](slice []T, f func(T) bool) []T {
+func Filter[T any, S ~[]T](slice S, f func(T) bool) S {
 	if f == nil {
 		panic(panicNilPredicateFunc)
 	}
@@ -406,7 +446,7 @@ func Filter[T any](slice []T, f func(T) bool) []T {
 	return out
 }
 
-// Any checks if given slice contains an item that satisfied given predicate function.
+// Any checks whether given slice contains an item that satisfied given predicate function.
 func Any[T any](slice []T, f func(T) bool) bool {
 	if f == nil {
 		panic(panicNilPredicateFunc)
@@ -422,7 +462,7 @@ func Any[T any](slice []T, f func(T) bool) bool {
 	return false
 }
 
-// All checks if items from given slice that all satisfied given predicate function.
+// All checks whether items from given slice that all satisfied given predicate function.
 func All[T any](slice []T, f func(T) bool) bool {
 	if f == nil {
 		panic(panicNilPredicateFunc)
@@ -436,12 +476,12 @@ func All[T any](slice []T, f func(T) bool) bool {
 }
 
 // Zip zips given two slices to a tuple slice, its length is the less one of two slices.
-func Zip[T, K any](slice1 []T, slice2 []K) []xtuple.Tuple[T, K] {
+func Zip[T1, T2 any](slice1 []T1, slice2 []T2) []xtuple.Tuple[T1, T2] {
 	l := len(slice1)
 	if l2 := len(slice2); l2 < l {
 		l = l2
 	}
-	out := make([]xtuple.Tuple[T, K], 0, l)
+	out := make([]xtuple.Tuple[T1, T2], 0, l)
 	for i := 0; i < l; i++ {
 		out = append(out, xtuple.NewTuple(slice1[i], slice2[i]))
 	}
@@ -449,7 +489,7 @@ func Zip[T, K any](slice1 []T, slice2 []K) []xtuple.Tuple[T, K] {
 }
 
 // Zip3 zips given three slices to a triple slice, its length is the less one of three slices.
-func Zip3[T, K, S any](slice1 []T, slice2 []K, slice3 []S) []xtuple.Triple[T, K, S] {
+func Zip3[T1, T2, T3 any](slice1 []T1, slice2 []T2, slice3 []T3) []xtuple.Triple[T1, T2, T3] {
 	l := len(slice1)
 	if l2 := len(slice2); l2 < l {
 		l = l2
@@ -457,7 +497,7 @@ func Zip3[T, K, S any](slice1 []T, slice2 []K, slice3 []S) []xtuple.Triple[T, K,
 	if l3 := len(slice3); l3 < l {
 		l = l3
 	}
-	out := make([]xtuple.Triple[T, K, S], 0, l)
+	out := make([]xtuple.Triple[T1, T2, T3], 0, l)
 	for i := 0; i < l; i++ {
 		out = append(out, xtuple.NewTriple(slice1[i], slice2[i], slice3[i]))
 	}
@@ -465,9 +505,9 @@ func Zip3[T, K, S any](slice1 []T, slice2 []K, slice3 []S) []xtuple.Triple[T, K,
 }
 
 // Unzip unzips given tuple slice to two slices.
-func Unzip[T, K any](slice []xtuple.Tuple[T, K]) ([]T, []K) {
-	slice1 := make([]T, 0, len(slice))
-	slice2 := make([]K, 0, len(slice))
+func Unzip[T1, T2 any](slice []xtuple.Tuple[T1, T2]) ([]T1, []T2) {
+	slice1 := make([]T1, 0, len(slice))
+	slice2 := make([]T2, 0, len(slice))
 	for _, item := range slice {
 		slice1 = append(slice1, item.Item1)
 		slice2 = append(slice2, item.Item2)
@@ -476,10 +516,10 @@ func Unzip[T, K any](slice []xtuple.Tuple[T, K]) ([]T, []K) {
 }
 
 // Unzip3 unzips given triple slice to three slices.
-func Unzip3[T, K, S any](slice []xtuple.Triple[T, K, S]) ([]T, []K, []S) {
-	slice1 := make([]T, 0, len(slice))
-	slice2 := make([]K, 0, len(slice))
-	slice3 := make([]S, 0, len(slice))
+func Unzip3[T1, T2, T3 any](slice []xtuple.Triple[T1, T2, T3]) ([]T1, []T2, []T3) {
+	slice1 := make([]T1, 0, len(slice))
+	slice2 := make([]T2, 0, len(slice))
+	slice3 := make([]T3, 0, len(slice))
 	for _, item := range slice {
 		slice1 = append(slice1, item.Item1)
 		slice2 = append(slice2, item.Item2)
