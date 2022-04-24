@@ -11,7 +11,8 @@ import (
 	_ "unsafe"
 )
 
-// OrderedMap represents a map which is in ordered, which is implemented by slice and map. This type is concurrent safe.
+// OrderedMap represents a map whose keys are in ordered, it is implemented by go map to store kv data, and slice to store
+// key order. Note that this is safe for concurrent use.
 type OrderedMap struct {
 	// kv represents the inner dictionary
 	kv map[string]interface{}
@@ -67,7 +68,7 @@ func (l *OrderedMap) Len() int {
 	return length
 }
 
-// Set sets a key-value pair, note that it does not change the order for the existed key.
+// Set sets a key-value pair to OrderedMap. Note that it does not change the order for the existed key.
 func (l *OrderedMap) Set(key string, value interface{}) {
 	l.mu.Lock()
 	_, exist := l.kv[key]
@@ -183,9 +184,10 @@ func (l *OrderedMap) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// CreateYamlMapSliceFunc represents a function used to create a yaml.MapSlice from a slice of kv pair ([2]interface{}), used in OrderedMap.MarshalYAML. This can
-// make OrderedMap support to marshal to ordered yaml document. For more details, please visit https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go and
-// https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
+// CreateYamlMapSliceFunc represents a function which is used to create a yaml.MapSlice from a slice of kv pair (of
+// [2]interface{} type), and it is used in OrderedMap.MarshalYAML. This can make OrderedMap support to marshal it to
+// ordered yaml document. For more details, please visit https://blog.labix.org/2014/09/22/announcing-yaml-v2-for-go
+// and https://github.com/go-yaml/yaml/issues/30#issuecomment-56246239.
 //
 // Example:
 // 	// import "gopkg.in/yaml.v2"
@@ -198,8 +200,9 @@ func (l *OrderedMap) MarshalJSON() ([]byte, error) {
 // 	}
 var CreateYamlMapSliceFunc func(kvPairs [][2]interface{}) (interface{}, error)
 
-// MarshalYAML marshals the current OrderedMap to yaml supported object, you have to set CreateYamlMapSliceFunc before use MarshalYAML, otherwise the yaml.Marshal
-// function will marshal to a map that is in no order. For more details, please visit xorderedmap.CreateYamlMapSliceFunc.
+// MarshalYAML marshals the current OrderedMap to yaml supported object, you have to set CreateYamlMapSliceFunc before
+// use MarshalYAML, otherwise the yaml.Marshal function will marshal to a map that is in no order. For more details,
+// please visit xorderedmap.CreateYamlMapSliceFunc.
 func (l *OrderedMap) MarshalYAML() (interface{}, error) {
 	if CreateYamlMapSliceFunc == nil {
 		l.mu.RLock()

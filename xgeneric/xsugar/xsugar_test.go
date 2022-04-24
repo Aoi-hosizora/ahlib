@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 func TestIfThen(t *testing.T) {
@@ -279,6 +280,126 @@ func TestUnmarshalJson(t *testing.T) {
 	xtestingEqual(t, err == nil, true)
 	xtestingEqual(t, o4, &s{ID: 111, Name: "$$$"})
 }
+
+func TestFastStoaAtos(t *testing.T) {
+	slice := []int32{3, 2, 1}
+	array := [...]int32{3, 2, 1}
+	// int32{3, 2, 1}
+	// => [0x00000003, 0x00000002, 0x00000001] (number literal)
+	// => 0x03 0x00 0x00 0x00 0x02 0x00 0x00 0x00 0x01 0x00 0x00 0x00 (big endian in memory)
+
+	a1 := FastStoa(slice, (*[2]int32)(nil))
+	a2 := FastStoa(slice, (*[12]int8)(nil))
+	a3 := FastStoa(slice, (*[3]int64)(nil))
+	xtestingEqual(t, *a1, [2]int32{3, 2})
+	xtestingEqual(t, *a2, [12]int8{3, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0})
+	xtestingEqual(t, (*a3)[0], int64(0x00000002_00000003))
+	xtestingEqual(t, int32((*a3)[1]&0x00000000_11111111), int32(0x00000000_00000001))
+	xtestingEqual(t, len(*a3), 3)
+	xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&slice)).Data, uintptr(unsafe.Pointer(a1)))
+
+	s1 := FastAtos(&array, []int32(nil), 2)
+	s2 := FastAtos(&array, []int8(nil), 12)
+	s3 := FastAtos(&array, []int64(nil), 3)
+	xtestingEqual(t, s1, []int32{3, 2})
+	xtestingEqual(t, s2, []int8{3, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0})
+	xtestingEqual(t, s3[0], int64(0x00000002_00000003))
+	xtestingEqual(t, int32((*a3)[1]&0x00000000_11111111), int32(0x00000000_00000001))
+	xtestingEqual(t, uintptr(unsafe.Pointer(&array)), (*reflect.SliceHeader)(unsafe.Pointer(&s1)).Data)
+	xtestingEqual(t, len(s3), 3)
+	xtestingEqual(t, cap(s3), 3)
+
+	xtestingPanic(t, false, func() {
+		zero := FastStoa([]string(nil), (*[3]string)(nil))
+		xtestingEqual(t, zero, (*[3]string)(nil))
+		xtestingPanic(t, true, func() { _ = *zero })
+	})
+	xtestingPanic(t, false, func() {
+		zero := FastAtos((*[3]string)(nil), []string(nil), 3)
+		var x []string
+		xtestingEqual(t, zero, x)
+		xtestingEqual(t, len(zero), 3)
+
+		zero2 := FastAtos((*[3]string)(nil), []string(nil), 0)
+		xtestingPanic(t, true, func() { zero = append(zero, "") }) // invalid memory address
+		xtestingPanic(t, false, func() { zero2 = append(zero2, "") })
+	})
+}
+
+func BenchmarkFastStoa(b *testing.B) {
+	slice := []int32{3, 2, 1}
+	const N = 3
+
+	b.Run("FastStoa", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = FastStoa(slice, (*[N]int32)(nil))
+		}
+	})
+
+	b.Run("ConvertDirectly", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = (*[N]int32)(slice)
+		}
+	})
+
+	b.Run("ConvertManually", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			var array [N]int32
+			for idx, item := range slice {
+				array[idx] = item
+			}
+		}
+	})
+}
+
+func BenchmarkFastAtos(b *testing.B) {
+	array := [...]int32{3, 2, 1}
+
+	b.Run("FastAtos", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = FastAtos(&array, []int32(nil), 3)
+		}
+	})
+
+	b.Run("ConvertManually", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			slice := make([]int32, len(array))
+			for idx, item := range array {
+				slice[idx] = item
+			}
+		}
+	})
+}
+
+/*
+	goos: windows
+	goarch: amd64
+	pkg: github.com/Aoi-hosizora/ahlib/xgeneric/xsugar
+	cpu: Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
+	BenchmarkFastStoa
+	BenchmarkFastStoa/FastStoa
+	BenchmarkFastStoa/FastStoa-8            1000000000               0.3407 ns/op			0 B/op          0 allocs/op
+	BenchmarkFastStoa/ConvertDirectly
+	BenchmarkFastStoa/ConvertDirectly-8     1000000000               0.6826 ns/op			0 B/op          0 allocs/op
+	BenchmarkFastStoa/ConvertManually
+	BenchmarkFastStoa/ConvertManually-8     257601165                7.337 ns/op			0 B/op          0 allocs/op
+	BenchmarkFastAtos
+	BenchmarkFastAtos/FastAtos
+	BenchmarkFastAtos/FastAtos-8            1000000000               0.7306 ns/op			0 B/op          0 allocs/op
+	BenchmarkFastAtos/ConvertManually
+	BenchmarkFastAtos/ConvertManually-8     357974751                3.359 ns/op			0 B/op          0 allocs/op
+	PASS
+*/
 
 func TestIsNilValue(t *testing.T) {
 	// keep almost the same as xtesting.TestNilNotNil

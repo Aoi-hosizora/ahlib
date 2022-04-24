@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-// _moduleTagName is the tag name which represents current struct field is a module.
+// _moduleTagName is the "module" tag name which is used to regard struct field as a module.
 const _moduleTagName = "module"
 
 const (
@@ -16,13 +16,13 @@ const (
 	panicInvalidProvider        = "xmodule: using nil or invalid module provider"
 
 	errRequiredModuleNotFound = "xmodule: module '%s' required by injectee '%s' is not found"
-	errMismatchesModuleType   = "xmodule: module type '%s' mismatches with field type '%s'"
+	errMismatchedModuleType   = "xmodule: module type '%s' mismatches with field type '%s'"
 	errModulesCycleDependency = "xmodule: given provided modules have cycle dependency"
 )
 
-// ==============
-// inject related
-// ==============
+// =================
+// injection related
+// =================
 
 // Inject injects into given injectee's module fields, returns error if there are some fields can not be injected (possible reasons: specific
 // module is not found, module type mismatches with field), panics when injectee passed is nil or not a structure pointer. Note that if error
@@ -74,9 +74,9 @@ func coreInject(mc *ModuleContainer, injectee interface{}, force bool) error {
 
 // injectToStructFields tries to inject modules to given structure, returns errors when some fields can not be injected.
 func injectToStructFields(mc *ModuleContainer, structType reflect.Type, structValue reflect.Value, injecteeTypeName string, lock, force bool) []error {
+	var errs []error
 	totalCount := 0
 	injectedCount := 0
-	var errs []error
 
 	// for each struct field
 	for idx := 0; idx < structType.NumField(); idx++ {
@@ -91,7 +91,7 @@ func injectToStructFields(mc *ModuleContainer, structType reflect.Type, structVa
 		err := injectToSingleField(mc, moduleTag, sf.Type, sv, injecteeTypeName, lock)
 		if err != nil {
 			if force {
-				panic(err)
+				panic(err.Error())
 			}
 			errs = append(errs, err)
 			continue // no force -> just continue
@@ -110,12 +110,7 @@ func injectToStructFields(mc *ModuleContainer, structType reflect.Type, structVa
 // injectToSingleField checks whether the module for given field exists and type matches, and injects it to given field if check passed.
 func injectToSingleField(mc *ModuleContainer, moduleTag string, fieldType reflect.Type, fieldValue reflect.Value, injecteeTypeName string, lock bool) error {
 	// generate key by field tag and type
-	key := mkey{}
-	if moduleTag != "~" {
-		key.name = ModuleName(moduleTag) // by name -> use field tag
-	} else {
-		key.typ = fieldType // by type or intf -> use field type
-	}
+	key := mkeyFromField(moduleTag, fieldType) // by name (...), type or intf (~)
 
 	// check module existence
 	if lock {
@@ -135,10 +130,10 @@ func injectToSingleField(mc *ModuleContainer, moduleTag string, fieldType reflec
 	moduleType := moduleVal.Type()
 	if !moduleType.AssignableTo(fieldType) {
 		// module type mismatches with field
-		return fmt.Errorf(errMismatchesModuleType, moduleType.String(), fieldType.String())
+		return fmt.Errorf(errMismatchedModuleType, moduleType.String(), fieldType.String())
 	}
 
-	// inject module to field
+	// check field assignable, inject module to field
 	if fieldValue.CanSet() {
 		fieldValue.Set(moduleVal)
 	}
@@ -149,8 +144,8 @@ func injectToSingleField(mc *ModuleContainer, moduleTag string, fieldType reflec
 // auto provide related
 // ====================
 
-// ModuleProvider represents a type for module provider used by AutoProvide, note that you must create this value by NameProvider, TypeProvider
-// or IntfProvider, otherwise operations in AutoProvide may panic.
+// ModuleProvider represents a type for module provider used by AutoProvide. Note that you must create this value by NameProvider, TypeProvider
+// or IntfProvider, otherwise it may panic when invoking AutoProvide.
 type ModuleProvider struct {
 	mod interface{}
 	key mkey
@@ -193,7 +188,7 @@ func IntfProvider(interfacePtr interface{}, moduleImpl interface{}) *ModuleProvi
 // 		WellKnownList  []int     `module:"list"`
 // 		AnotherService *ServiceB `module:"~"`
 // 		Implement      Interface `module:"~"`
-// 		LocalVariable  string
+// 		LocalVariable  string // a local variable for Service
 // 	}
 // 	m := NewModuleContainer()
 // 	_ = m.AutoProvide(
@@ -212,7 +207,7 @@ func (m *ModuleContainer) AutoProvide(providers ...*ModuleProvider) error {
 func (m *ModuleContainer) MustAutoProvide(providers ...*ModuleProvider) {
 	err := coreAutoProvide(m, providers)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 }
 
@@ -231,7 +226,8 @@ func coreAutoProvide(mc *ModuleContainer, providers []*ModuleProvider) error {
 
 	// 2. dependent providers
 	for len(depGraph) > 0 {
-		providable, err := findProvidableModules(mc, depGraph) // module: no dep in graph & all deps have been provided
+		// providable module: no dependent in graph || all dependents have been provided
+		providable, err := findProvidableModules(mc, depGraph)
 		if err != nil {
 			return err
 		}
@@ -240,7 +236,8 @@ func coreAutoProvide(mc *ModuleContainer, providers []*ModuleProvider) error {
 			if err != nil {
 				return err
 			}
-			delete(depGraph, p.key) // just delete the current provider from graph
+			// just delete the current module provider from graph
+			delete(depGraph, p.key)
 		}
 	}
 
@@ -267,16 +264,11 @@ func analyseDependency(providers []*ModuleProvider) (indeps []*ModuleProvider, d
 			typ = typ.Elem()
 			for idx := 0; idx < typ.NumField(); idx++ {
 				sf := typ.Field(idx)
-				tag := sf.Tag.Get(_moduleTagName)
-				if tag == "" || tag == "-" {
+				moduleTag := sf.Tag.Get(_moduleTagName)
+				if moduleTag == "" || moduleTag == "-" {
 					continue
 				}
-				key := mkey{}
-				if tag != "~" {
-					key.name = ModuleName(tag) // by name -> use field tag
-				} else {
-					key.typ = sf.Type // by type or intf -> use field type
-				}
+				key := mkeyFromField(moduleTag, sf.Type) // by name (...), type or intf (~)
 				p.depKeys = append(p.depKeys, key)
 			}
 		}
@@ -323,17 +315,17 @@ func findProvidableModules(mc *ModuleContainer, graph map[mkey]*ModuleProvider) 
 	return providable, nil
 }
 
-// injectAndProvide injects given ModuleProvider only for struct pointer type, and provides it to ModuleContainer for all types.
+// injectAndProvide injects to given ModuleProvider only for struct pointer type, and provides it to ModuleContainer for all types.
 func injectAndProvide(mc *ModuleContainer, p *ModuleProvider, needInject bool) error {
-	// check module type and inject module
+	// check module injectable and do inject
 	if needInject {
 		val := reflect.ValueOf(p.mod)
 		typ := val.Type()
 		if typ.Kind() == reflect.Ptr {
 			injecteeName := typ.String()
-			val = val.Elem()
-			typ = typ.Elem()
+			typ, val = typ.Elem(), val.Elem()
 			if typ.Kind() == reflect.Struct {
+				// inject something to module first
 				errs := injectToStructFields(mc, typ, val, injecteeName, false, false)
 				if len(errs) > 0 {
 					return xerror.Combine(errs...)
@@ -342,7 +334,7 @@ func injectAndProvide(mc *ModuleContainer, p *ModuleProvider, needInject bool) e
 		}
 	}
 
-	// provide module
+	// provide module after injecting
 	mc.modules[p.key] = p.mod
 	switch {
 	case p.byName:

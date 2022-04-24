@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"unsafe"
 )
 
 // ========================
@@ -35,7 +36,8 @@ func If[T any](cond bool, v1, v2 T) T {
 	return IfThenElse(cond, v1, v2)
 }
 
-// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue. Note that this also checks the wrapped data of given value.
+// DefaultIfNil returns value if it is not nil, otherwise returns defaultValue. Note that this also checks the
+// wrapped data of given value.
 func DefaultIfNil[T any](value, defaultValue T) T {
 	if !isNilValue(any(value)) {
 		return value
@@ -43,7 +45,8 @@ func DefaultIfNil[T any](value, defaultValue T) T {
 	return defaultValue
 }
 
-// PanicIfNil returns value if it is not nil, otherwise panics with given the first panicValue. Note that this also checks the wrapped data of given value.
+// PanicIfNil returns value if it is not nil, otherwise panics with given the first panicValue. Note that this
+// also checks the wrapped data of given value.
 func PanicIfNil[T any](value T, panicValue ...any) T {
 	if !isNilValue(any(value)) {
 		return value
@@ -154,6 +157,30 @@ func UnmarshalJson[T any](bs []byte, t T) (T, error) {
 		return tt, err
 	}
 	return t, err
+}
+
+// FastStoa casts slice to array pointer that has the same underlying data, using given nil array pointer as element type.
+// Note that this is an unsafe function, and this function won't check any parameter type.
+//
+// Example:
+// 	var _ *[2]int32 = FastStoa([]int32{3, 2, 1}, (*[2]int32)(nil)) -> normal usage, got a 2-len array
+// 	var _ *[12]int8 = FastStoa([]int32{3, 2, 1}, (*[12]int8)(nil)) -> using with different types is also allowed
+// 	var _ *[3]int64 = FastStoa([]int32{3, 2, 1}, (*[3]int64)(nil)) -> out of length is also allowed, but in undefined behavior
+func FastStoa[T, A any](slice []T, arrayPtr *A) *A {
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
+	return (*A)(unsafe.Pointer(sh.Data))
+}
+
+// FastAtos casts array pointer to slice that has the same underlying data, using given length and nil slice as element type.
+// Note that this is an unsafe function, and this function won't check any parameter type.
+//
+// Example:
+// 	var _ []int32 = FastAtos(&[...]int32{3, 2, 1}, []int32(nil), 2) -> normal usage, got a 2-len and 2-cap slice
+// 	var _ []int8 = FastAtos(&[...]int32{3, 2, 1}, []int8(nil), 12)  -> using with different types is also allowed
+// 	var _ []int64 = FastAtos(&[...]int32{3, 2, 1}, []int64(nil), 3) -> out of length is also allowed, but in undefined behavior
+func FastAtos[T, A any](array *A, sliceType []T, length int) []T {
+	sh := reflect.SliceHeader{Len: length, Cap: length, Data: uintptr(unsafe.Pointer(array))}
+	return *(*[]T)(unsafe.Pointer(&sh))
 }
 
 // isNilValue keeps the same as xreflect.IsNilValue, checks whether given value is nil in its type or not.

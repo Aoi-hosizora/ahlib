@@ -22,7 +22,7 @@ const (
 	panicNilPredicateFunc = "xgmap: nil predicate function"
 )
 
-// Keys returns a key slice of given map, notes that returned slice has no order.
+// Keys returns a key slice of given map. Note that returned slice has no order.
 func Keys[K comparable, V any](m map[K]V) []K {
 	keys := make([]K, 0, len(m))
 	for k := range m {
@@ -31,7 +31,7 @@ func Keys[K comparable, V any](m map[K]V) []K {
 	return keys
 }
 
-// Values returns a value slice of given map, notes that returned slice has no order.
+// Values returns a value slice of given map. Note that returned slice has no order.
 func Values[K comparable, V any](m map[K]V) []V {
 	values := make([]V, 0, len(m))
 	for _, v := range m {
@@ -40,7 +40,7 @@ func Values[K comparable, V any](m map[K]V) []V {
 	return values
 }
 
-// KeyValues returns a key-value tuple slice of given map, notes that returned slice has no order.
+// KeyValues returns a key-value tuple slice of given map. Note that returned slice has no order.
 func KeyValues[K comparable, V any](m map[K]V) []xtuple.Tuple[K, V] {
 	kvs := make([]xtuple.Tuple[K, V], 0, len(m))
 	for k, v := range m {

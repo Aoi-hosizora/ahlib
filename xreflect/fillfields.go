@@ -74,13 +74,13 @@ func coreFillField(ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag
 	k := ftyp.Kind()
 	switch {
 	case k == reflect.Struct && ftyp.NumField() == 0,
-		(k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8) || k == reflect.Map) && fval.Len() == 0,
+		(k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8 /* byte */) || k == reflect.Map) && fval.Len() == 0,
 		k == reflect.Invalid || k == reflect.Func || k == reflect.Chan || k == reflect.Interface || k == reflect.UnsafePointer:
 		return false
 
-	case k == reflect.Struct || k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8) || k == reflect.Map || k == reflect.Ptr:
+	case k == reflect.Struct || k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8 /* byte */) || k == reflect.Map || k == reflect.Ptr:
 		// set default value to array / non-bytes-slice / map / pointer / struct
-		return fillComplexField(k, ftyp, fval, ftag, fname, setMapItem) // it may call coreFillField recursively
+		return fillComplexField(k, ftyp, fval, ftag, fname, setMapItem) // this may call coreFillField function recursively
 
 	default:
 		// set default value to int / uint / float / bool / complex / string / bytes
@@ -88,7 +88,7 @@ func coreFillField(ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag
 		if !ok {
 			return false // no "default" tag
 		}
-		return fillSimpleField(k, ftyp, fval, defaul, fname, setMapItem) // it may call setMapItem
+		return fillSimpleField(k, ftyp, fval, defaul, fname, setMapItem) // this may call setMapItem function
 	}
 }
 
@@ -125,7 +125,7 @@ func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, fta
 		}
 		if len(cached) > 0 {
 			newArray := reflect.New(ftyp).Elem()
-			newArray.Set(fval) // use typedmemmove, faster than for-iterate
+			newArray.Set(fval) // note: use typedmemmove (reflect.Value.Set), faster than for-iterate
 			for i := 0; i < ftyp.Len(); i++ {
 				if newVal, ok := cached[i]; ok {
 					newArray.Index(i).Set(newVal)
@@ -188,9 +188,9 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		if err != nil {
 			panic(fmt.Sprintf(panicInvalidDefaultType, defaul, fname, err))
 		}
-		if fval.CanSet() { // addressable and writable
+		if fval.CanSet() { // addressable and assignable
 			fval.SetInt(i)
-		} else { // must be a value of map, followings are all the same case
+		} else if setMapItem != nil { // must be a value of map, followings that call setMapItem are all the same case
 			setMapItem(reflect.ValueOf(i).Convert(ftyp))
 		}
 		return true
@@ -202,7 +202,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		if fval.CanSet() {
 			fval.SetUint(u)
-		} else {
+		} else if setMapItem != nil {
 			setMapItem(reflect.ValueOf(u).Convert(ftyp))
 		}
 		return true
@@ -214,7 +214,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		if fval.CanSet() {
 			fval.SetFloat(f)
-		} else {
+		} else if setMapItem != nil {
 			setMapItem(reflect.ValueOf(f).Convert(ftyp))
 		}
 		return true
@@ -226,34 +226,35 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		if fval.CanSet() {
 			fval.SetComplex(c)
-		} else {
+		} else if setMapItem != nil {
 			setMapItem(reflect.ValueOf(c).Convert(ftyp))
 		}
 		return true
 
 	case k == reflect.Bool && fval.Bool() == false:
-		b := defaul == "1" || strings.ToLower(defaul) == "true" || strings.ToLower(defaul) == "t"
+		defaul = strings.ToLower(defaul)
+		b := defaul == "1" || defaul == "true" || defaul == "t"
 		if fval.CanSet() {
 			fval.SetBool(b)
-		} else {
+		} else if setMapItem != nil {
 			setMapItem(reflect.ValueOf(b))
 		}
 		return true
 
 	case k == reflect.String && len(fval.String()) == 0:
-		s := defaul
+		str := defaul
 		if fval.CanSet() {
-			fval.SetString(s)
-		} else {
-			setMapItem(reflect.ValueOf(s))
+			fval.SetString(str)
+		} else if setMapItem != nil {
+			setMapItem(reflect.ValueOf(str))
 		}
 		return true
 
-	case k == reflect.Slice && ftyp.Elem().Kind() == reflect.Uint8 && fval.Len() == 0:
+	case k == reflect.Slice && ftyp.Elem().Kind() == reflect.Uint8 /* byte */ && fval.Len() == 0:
 		bs := []byte(defaul)
 		if fval.CanSet() {
 			fval.SetBytes(bs)
-		} else {
+		} else if setMapItem != nil {
 			setMapItem(reflect.ValueOf(bs))
 		}
 		return true

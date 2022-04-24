@@ -5,11 +5,14 @@ go:
   - 1.16
   - 1.17
 
-before_install:
-  - go get -t -v ./...
+branches:
+  only:
+    - master
+    - /^dev.*$/
+    # feat -> dev -> master
 
 script:
-  - sh ./go.test.sh
+  - bash ./go.test.sh
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash < curl -s https://codecov.io/bash

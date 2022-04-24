@@ -79,12 +79,12 @@ func DefaultLogger(level LogLevel, logPrvFunc func(moduleName, moduleType string
 	xcolor.ForceColor()
 	if logPrvFunc == nil {
 		logPrvFunc = func(moduleName, moduleType string) {
-			fmt.Printf("[Xmodule] Prv: %s <-- %s\n", xcolor.Red.NSprint(-20, moduleName), xcolor.Yellow.Sprint(moduleType))
+			fmt.Printf("[Xmodule] Prv: %s <-- %s\n", xcolor.Red.ASprint(-20, moduleName), xcolor.Yellow.Sprint(moduleType))
 		}
 	}
 	if logInjFunc == nil {
 		logInjFunc = func(moduleName, injecteeType, addition string) {
-			fmt.Printf("[Xmodule] Inj: %s --> %s %s\n", xcolor.Red.NSprint(-20, moduleName), xcolor.Blue.Sprint(injecteeType), xcolor.Yellow.Sprintf("(%s)", addition))
+			fmt.Printf("[Xmodule] Inj: %s --> %s %s\n", xcolor.Red.ASprint(-20, moduleName), xcolor.Blue.Sprint(injecteeType), xcolor.Yellow.Sprintf("(%s)", addition))
 		}
 	}
 	return &defaultLogger{level: level, logPrvFunc: logPrvFunc, logInjFunc: logInjFunc}

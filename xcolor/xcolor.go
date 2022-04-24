@@ -290,8 +290,8 @@ func (s Style) Print(v ...interface{}) {
 }
 
 // Printf prints the formatted ANSI styled string, with given Style.
-func (s Style) Printf(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) Printf(f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(s, msg, 0)
 }
 
@@ -308,8 +308,8 @@ func (s Style) Sprint(v ...interface{}) string {
 }
 
 // Sprintf returns the formatted ANSI styled string, with given Style.
-func (s Style) Sprintf(format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) Sprintf(f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(s, msg, 0)
 }
 
@@ -326,8 +326,8 @@ func (s Style) Fprint(w io.Writer, v ...interface{}) (n int, err error) {
 }
 
 // Fprintf writes the formats ANSI styled string to io.Writer, with given Style.
-func (s Style) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) Fprintf(w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(s, w, msg, 0)
 }
 
@@ -344,8 +344,8 @@ func (s Style) APrint(a int, v ...interface{}) {
 }
 
 // APrintf prints the formatted ANSI styled string, with given Style and alignment.
-func (s Style) APrintf(a int, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) APrintf(a int, f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(s, msg, a)
 }
 
@@ -362,8 +362,8 @@ func (s Style) ASprint(a int, v ...interface{}) string {
 }
 
 // ASprintf returns the formatted ANSI styled string, with given Style and alignment.
-func (s Style) ASprintf(a int, format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) ASprintf(a int, f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(s, msg, a)
 }
 
@@ -380,8 +380,8 @@ func (s Style) AFprint(a int, w io.Writer, v ...interface{}) (n int, err error) 
 }
 
 // AFprintf writes the formats ANSI styled string to io.Writer, with given Style and alignment.
-func (s Style) AFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (s Style) AFprintf(a int, w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(s, w, msg, a)
 }
 
@@ -402,8 +402,8 @@ func (c Color) Print(v ...interface{}) {
 }
 
 // Printf prints the formatted ANSI colored string, with given Color.
-func (c Color) Printf(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) Printf(f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(c, msg, 0)
 }
 
@@ -420,8 +420,8 @@ func (c Color) Sprint(v ...interface{}) string {
 }
 
 // Sprintf returns the formatted ANSI colored string, with given Color.
-func (c Color) Sprintf(format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) Sprintf(f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(c, msg, 0)
 }
 
@@ -438,8 +438,8 @@ func (c Color) Fprint(w io.Writer, v ...interface{}) (n int, err error) {
 }
 
 // Fprintf writes the formats ANSI colored string to io.Writer, with given Color.
-func (c Color) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) Fprintf(w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(c, w, msg, 0)
 }
 
@@ -456,8 +456,8 @@ func (c Color) APrint(a int, v ...interface{}) {
 }
 
 // APrintf prints the formatted ANSI colored string, with given Color and alignment.
-func (c Color) APrintf(a int, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) APrintf(a int, f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(c, msg, a)
 }
 
@@ -474,8 +474,8 @@ func (c Color) ASprint(a int, v ...interface{}) string {
 }
 
 // ASprintf returns the formatted ANSI colored string, with given Color and alignment.
-func (c Color) ASprintf(a int, format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) ASprintf(a int, f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(c, msg, a)
 }
 
@@ -492,8 +492,8 @@ func (c Color) AFprint(a int, w io.Writer, v ...interface{}) (n int, err error) 
 }
 
 // AFprintf writes the formats ANSI colored string to io.Writer, with given Color and alignment.
-func (c Color) AFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (c Color) AFprintf(a int, w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(c, w, msg, a)
 }
 
@@ -514,8 +514,8 @@ func (b Background) Print(v ...interface{}) {
 }
 
 // Printf prints the formatted ANSI colored string, with given Background.
-func (b Background) Printf(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) Printf(f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(b, msg, 0)
 }
 
@@ -532,8 +532,8 @@ func (b Background) Sprint(v ...interface{}) string {
 }
 
 // Sprintf returns the formatted ANSI colored string, with given Background.
-func (b Background) Sprintf(format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) Sprintf(f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(b, msg, 0)
 }
 
@@ -550,8 +550,8 @@ func (b Background) Fprint(w io.Writer, v ...interface{}) (n int, err error) {
 }
 
 // Fprintf writes the formats ANSI colored string to io.Writer, with given Background.
-func (b Background) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) Fprintf(w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(b, w, msg, 0)
 }
 
@@ -568,8 +568,8 @@ func (b Background) APrint(a int, v ...interface{}) {
 }
 
 // APrintf prints the formatted ANSI colored string, with given Background and alignment.
-func (b Background) APrintf(a int, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) APrintf(a int, f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(b, msg, a)
 }
 
@@ -586,8 +586,8 @@ func (b Background) ASprint(a int, v ...interface{}) string {
 }
 
 // ASprintf returns the formatted ANSI colored string, with given Background and alignment.
-func (b Background) ASprintf(a int, format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) ASprintf(a int, f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(b, msg, a)
 }
 
@@ -604,8 +604,8 @@ func (b Background) AFprint(a int, w io.Writer, v ...interface{}) (n int, err er
 }
 
 // AFprintf writes the formats ANSI colored string to io.Writer, with given Background and alignment.
-func (b Background) AFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (b Background) AFprintf(a int, w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(b, w, msg, a)
 }
 
@@ -626,8 +626,8 @@ func (m MixCode) Print(v ...interface{}) {
 }
 
 // Printf prints the formatted ANSI styled and colored string, with given MixCode.
-func (m MixCode) Printf(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) Printf(f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(m, msg, 0)
 }
 
@@ -644,8 +644,8 @@ func (m MixCode) Sprint(v ...interface{}) string {
 }
 
 // Sprintf returns the formatted ANSI styled and colored string, with given MixCode.
-func (m MixCode) Sprintf(format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) Sprintf(f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(m, msg, 0)
 }
 
@@ -662,8 +662,8 @@ func (m MixCode) Fprint(w io.Writer, v ...interface{}) (n int, err error) {
 }
 
 // Fprintf writes the formats ANSI styled and colored string to io.Writer, with given MixCode.
-func (m MixCode) Fprintf(w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) Fprintf(w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(m, w, msg, 0)
 }
 
@@ -680,8 +680,8 @@ func (m MixCode) APrint(a int, v ...interface{}) {
 }
 
 // APrintf prints the formatted ANSI styled and colored string, with given MixCode and alignment.
-func (m MixCode) APrintf(a int, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) APrintf(a int, f string, v ...interface{}) {
+	msg := fmt.Sprintf(f, v...)
 	doPrint(m, msg, a)
 }
 
@@ -698,8 +698,8 @@ func (m MixCode) ASprint(a int, v ...interface{}) string {
 }
 
 // ASprintf returns the formatted ANSI styled and colored string, with given MixCode and alignment.
-func (m MixCode) ASprintf(a int, format string, v ...interface{}) string {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) ASprintf(a int, f string, v ...interface{}) string {
+	msg := fmt.Sprintf(f, v...)
 	return doSprint(m, msg, a)
 }
 
@@ -716,8 +716,8 @@ func (m MixCode) AFprint(a int, w io.Writer, v ...interface{}) (n int, err error
 }
 
 // AFprintf writes the formats ANSI styled and colored string to io.Writer, with given MixCode and alignment.
-func (m MixCode) AFprintf(a int, w io.Writer, format string, v ...interface{}) (n int, err error) {
-	msg := fmt.Sprintf(format, v...)
+func (m MixCode) AFprintf(a int, w io.Writer, f string, v ...interface{}) (n int, err error) {
+	msg := fmt.Sprintf(f, v...)
 	return doFprint(m, w, msg, a)
 }
 

@@ -7,17 +7,18 @@ import (
 	"sync/atomic"
 )
 
-// GoPool represents a simple goroutine pool with workers capacity, panic handler, worker pool, task pool and task queue.
+// GoPool represents a simple goroutine pool with workers capacity, panic handler, worker pool, task pool and task queue. Please
+// visit https://github.com/bytedance/gopkg/blob/develop/util/gopool/gopool.go for more details.
 type GoPool struct {
-	workersCap   int32
+	workersCap   int32 // atomic
 	panicHandler func(context.Context, interface{})
 
 	workerPool  *sync.Pool
-	numWorkers  int32
+	numWorkers  int32 // atomic
 	workerMutex *sync.Mutex
 
 	taskPool  *sync.Pool
-	numTasks  int32
+	numTasks  int32 // atomic
 	taskMutex *sync.Mutex
 	taskHead  *task
 	taskTail  *task
@@ -72,38 +73,36 @@ func (g *GoPool) NumTasks() int32 {
 	return atomic.LoadInt32(&g.numTasks)
 }
 
-// Go creates a task and waits for a worker to be scheduled and invoke the task function.
+// Go creates a task and waits for a worker to be scheduled, and invokes the task function.
 func (g *GoPool) Go(f func()) {
-	if f == nil {
-		return
+	if f != nil {
+		g.CtxGo(context.Background(), func(context.Context) {
+			f()
+		})
 	}
-	g.CtxGo(context.Background(), func(ctx context.Context) { f() })
 }
 
-// CtxGo creates a task and waits for a worker to be scheduled and invoke the task function, this method can take context.Context as parameter.
+// CtxGo creates a task and waits for a worker to be scheduled and invoke the task function. Note that function in this method
+// takes context.Context as parameter.
 func (g *GoPool) CtxGo(ctx context.Context, f func(context.Context)) {
-	if f == nil {
-		return
+	if f != nil {
+		t := g.getTask(ctx, f)
+		g.enqueueTask(t) // numTasks++
+		if g.NumWorkers() < g.WorkersCap() {
+			w := g.getWorker() // numWorkers++
+			go w.start(g)
+		}
 	}
-	t := g.getTask(ctx, f)
-	g.enqueueTask(t) // numTasks++
-
-	g.workerMutex.Lock()
-	if g.NumWorkers() < g.WorkersCap() {
-		w := g.getWorker() // numWorkers++
-		go w.start(g)
-	}
-	g.workerMutex.Unlock()
 }
 
-// task represents a goroutine task, with context.Context, given function and next pointer for linked list.
+// task represents a goroutine task, with context.Context, given function and next pointer for task linked list.
 type task struct {
 	ctx  context.Context
 	f    func(context.Context)
 	next *task
 }
 
-// getTask returns an empty task structure from task sync.Pool and sets given parameters.
+// getTask returns an empty task structure from task sync.Pool and initializes fields.
 func (g *GoPool) getTask(ctx context.Context, f func(context.Context)) *task {
 	t := g.taskPool.Get().(*task)
 	t.ctx = ctx
@@ -120,7 +119,7 @@ func (g *GoPool) recycleTask(t *task) {
 	g.taskPool.Put(t)
 }
 
-// enqueueTask enqueues given task to GoPool's task linked list.
+// enqueueTask enqueues given task to GoPool's task linked list and updates numTasks.
 func (g *GoPool) enqueueTask(t *task) {
 	g.taskMutex.Lock()
 	defer g.taskMutex.Unlock()
@@ -134,7 +133,7 @@ func (g *GoPool) enqueueTask(t *task) {
 	atomic.AddInt32(&g.numTasks, 1)
 }
 
-// dequeueTask dequeues a task from the head of GoPool's task linked list, returns false if the task list is empty.
+// dequeueTask dequeues a task from the head of GoPool's task linked list and updates numTasks, returns false if the task list is empty.
 func (g *GoPool) dequeueTask() (*task, bool) {
 	g.taskMutex.Lock()
 	defer g.taskMutex.Unlock()
@@ -147,39 +146,44 @@ func (g *GoPool) dequeueTask() (*task, bool) {
 	return t, true
 }
 
-// worker represents a goroutine worker, used to execute task.
+// worker represents a goroutine worker, and is used to execute task.
 type worker struct{}
 
-// getWorker returns an empty worker structure from worker sync.Pool.
+// getWorker returns an empty worker structure from worker sync.Pool and updates numWorkers.
 func (g *GoPool) getWorker() *worker {
+	g.workerMutex.Lock()
+	defer g.workerMutex.Unlock()
 	atomic.AddInt32(&g.numWorkers, 1)
 	return g.workerPool.Get().(*worker)
 }
 
-// recycleWorker recycles to worker sync.Pool.
+// recycleWorker recycles to worker sync.Pool and updates numWorkers.
 func (g *GoPool) recycleWorker(w *worker) {
+	g.workerMutex.Lock()
+	defer g.workerMutex.Unlock()
 	g.workerPool.Put(w)
 	atomic.AddInt32(&g.numWorkers, -1)
 }
 
-// _testFlag is only used when testing the xgopool package, `true` value represents that now is testing.
+// _testFlag is only used when testing the xgopool package, it represents that now is testing if it equals to true.
 var _testFlag atomic.Value
 
 // start dequeues a task from the head of GoPool's task linked list, and invokes given function with panic handler.
-func (w *worker) start(parent *GoPool) {
+func (w *worker) start(g *GoPool) {
+	defer g.recycleWorker(w) // numWorkers--
 	for {
-		t, ok := parent.dequeueTask() // numTasks--
+		t, ok := g.dequeueTask() // numTasks--
 		if !ok {
 			break
 		}
 		func() {
 			defer func() {
-				if hdl := parent.panicHandler; hdl != nil {
+				if hdl := g.panicHandler; hdl != nil {
 					if i := recover(); i != nil {
 						hdl(t.ctx, i)
 					}
 				} else if _testFlag.Load() == true {
-					// enter only when testing the xgopool package, needn't worry about the performance
+					// enter only when testing xgopool package
 					if i := recover(); i != nil {
 						defer func() {
 							log.Printf("Panic when testing: `%v`", i)
@@ -190,11 +194,8 @@ func (w *worker) start(parent *GoPool) {
 			}()
 			t.f(t.ctx)
 		}()
-		parent.recycleTask(t)
+		g.recycleTask(t)
 	}
-	parent.workerMutex.Lock()
-	parent.recycleWorker(w) // numWorkers--
-	parent.workerMutex.Unlock()
 }
 
 // _defaultPool is a global GoPool with capacity 10000.
@@ -225,12 +226,13 @@ func NumTasks() int32 {
 	return _defaultPool.NumTasks()
 }
 
-// Go creates a task and waits for a worker to be scheduled and invoke the task function.
+// Go creates a task and waits for a worker to be scheduled, and invokes the task function.
 func Go(f func()) {
 	_defaultPool.Go(f)
 }
 
-// CtxGo creates a task and waits for a worker to be scheduled and invoke the task function, this method can take context.Context as parameter.
+// CtxGo creates a task and waits for a worker to be scheduled and invokes the task function. Note that function in this method
+// takes context.Context as parameter.
 func CtxGo(ctx context.Context, f func(context.Context)) {
 	_defaultPool.CtxGo(ctx, f)
 }

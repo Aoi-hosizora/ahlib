@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// ==============
+// mass functions
+// ==============
+
 // Bool returns given t if given value is true, otherwise returns given f.
 func Bool(b bool, t, f string) string {
 	if b {
@@ -132,7 +136,7 @@ func SplitAndGet(s string, sep string, index int) string {
 	panic(panicIndexOutOfRange)
 }
 
-// StringSliceToMap returns a string-string map from given string slice, notes that extra argument will be skipped.
+// StringSliceToMap returns a string-string map from given string slice. Note that extra argument will be skipped.
 func StringSliceToMap(args []string) map[string]string {
 	l := len(args)
 	out := make(map[string]string, l/2)
@@ -146,7 +150,7 @@ func StringSliceToMap(args []string) map[string]string {
 	return out
 }
 
-// SliceToStringMap returns a string-interface{} map from given interface{} slice, notes that nil arguments and extra argument will be skipped.
+// SliceToStringMap returns a string-interface{} map from given interface{} slice. Note that nil arguments and extra argument will be skipped.
 func SliceToStringMap(args []interface{}) map[string]interface{} {
 	l := len(args)
 	out := make(map[string]interface{}, l/2)
@@ -178,7 +182,7 @@ var (
 	errUnsupportedVersionString = errors.New("xstring: unsupported version string")
 )
 
-// SemanticVersion parses given semantic version string to (major, minor, patch) version number, notes that this function supports
+// SemanticVersion parses given semantic version string to (major, minor, patch) version number. Note that this function supports
 // "1", "1.1", "1.1.1", "v1", "v1.1", "v1.1.1" format.
 func SemanticVersion(semver string) (uint64, uint64, uint64, error) {
 	if len(semver) == 0 || (len(semver) == 1 && !IsArabicNumber(rune(semver[0]))) {

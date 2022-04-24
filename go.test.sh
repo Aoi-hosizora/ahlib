@@ -1,20 +1,18 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
-echo "" > coverage.txt
-
-function test {
-  for d in $(go list ./... | grep -v vendor); do
-      go test -v -race -coverprofile=profile.out -covermode=atomic "$d"
-      if [ -f profile.out ]; then
-          cat profile.out >> $coverage
-          rm profile.out
-      fi
-  done
+function test_module {
+    for package in $(go list ./...); do
+        go test $package -v -count=1 -race -cover -covermode=atomic -coverprofile=$profile
+        test -f $profile && cat $profile >> $coverage && rm $profile
+    done
 }
 
+rm -f coverage.txt
 coverage=coverage.txt
-test
+profile=profile.out
+test_module
 
 coverage=../coverage.txt
-cd xgeneric && test && cd ..
+profile=../profile.out
+cd xgeneric && test_module && cd ..

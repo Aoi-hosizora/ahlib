@@ -121,8 +121,8 @@ func Combine(errs ...error) error {
 	}
 }
 
-// Separate separates given error to multiple errors that given error is composed of (that is MultiError). If given error is nil,
-// a nil slice is returned.
+// Separate separates given error to multiple errors that given error is composed of (that is MultiError). If given error is
+// nil, a nil slice is returned.
 func Separate(err error) []error {
 	if err == nil {
 		return nil
@@ -157,14 +157,15 @@ type ErrorGroup struct {
 	goExecutor func(f func())
 }
 
-// NewErrorGroup returns a new ErrorGroup with cancelable context derived from given context, and a default goroutine executor DefaultExecutor.
+// NewErrorGroup returns a new ErrorGroup with cancelable context derived from given context, and the default goroutine executor.
 func NewErrorGroup(ctx context.Context) *ErrorGroup {
 	ctx, cancel := context.WithCancel(ctx)
-	return &ErrorGroup{ctx: ctx, cancel: cancel, goExecutor: DefaultExecutor}
+	return &ErrorGroup{ctx: ctx, cancel: cancel, goExecutor: defaultExecutor}
 }
 
-// DefaultExecutor is the default goroutine executor for ErrorGroup, including create goroutine by `go` keyword and panic recovery with no logging.
-var DefaultExecutor = func(f func()) {
+// defaultExecutor is the default goroutine executor for ErrorGroup, including create goroutine by `go` keyword and panic
+// recovery with no logging.
+var defaultExecutor = func(f func()) {
 	go func() {
 		defer func() {
 			_ = recover()
@@ -173,7 +174,8 @@ var DefaultExecutor = func(f func()) {
 	}()
 }
 
-// SetGoExecutor sets goroutine executor, can be used to change the behavior of `go` keyword, you can use this executor to add recover behavior for goroutine.
+// SetGoExecutor sets goroutine executor, can be used to change the behavior of `go` keyword, you can use this executor to
+// add recover behavior for goroutine.
 //
 // Example:
 // 	// custom recover behavior
@@ -181,18 +183,23 @@ var DefaultExecutor = func(f func()) {
 // 	eg.SetGoExecutor(func(f func()) {
 // 		go func() {
 // 			defer func() {
-// 				if i := recover(); i != nil {
-// 					log.Printf("Warning: Panic with %v", i)
+// 				if v := recover(); v != nil {
+// 					log.Printf("Warning: Panic with %v", v)
 // 				}
 // 			}()
 // 			f()
 // 		}()
 // 	})
 //
-// 	// use goroutine pool
+// 	// use xgopool goroutine pool
 // 	eg := NewErrorGroup(context.Background())
 // 	gp := xgopool.New(runtime.NumCPU() * 10)
-// 	eg.SetGoExecutor(func(f func()) { gp.Go(f) })
+// 	gp.SetPanicHandler(func(_ context.Context, v interface{}) {
+// 		log.Printf("Warning: Panic with %v", v)
+// 	})
+// 	eg.SetGoExecutor(func(f func()) {
+// 		gp.Go(f)
+// 	})
 func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
 	if executor != nil {
 		eg.mu.Lock()
@@ -201,22 +208,16 @@ func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
 	}
 }
 
-// Go calls given function in a new goroutine using specific executor. The first call to return a non-nil error cancels the group, its
-// error will be returned by Wait.
+// Go calls given function in a new goroutine using specific executor. The first call to return a non-nil error cancels the
+// group, its error will be returned by Wait.
 //
-// If using a zero ErrorGroup, ctx will be Background, otherwise it will be the context derived from given context passed to NewErrorGroup.
+// If using a zero ErrorGroup, ctx will be Background, otherwise it will be the context derived from given context passed
+// to NewErrorGroup.
 //
 // Example:
 // 	eg := NewErrorGroup(context.Background())
 //
-// 	// use in cancelable http requesting
-// 	eg.Go(func(ctx context.Context) error {
-// 		req, _ := http.NewRequestWithContext(ctx, "GET", "...", nil)
-// 		// ...
-// 		return nil
-// 	})
-//
-// 	// use in select statement
+// 	// in select statement
 // 	eg.Go(func(ctx context.Context) error {
 // 		select {
 // 		case ...:
@@ -224,22 +225,33 @@ func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
 // 		}
 // 		return nil
 // 	})
+//
+// 	// in cancelable http requesting
+// 	eg.Go(func(ctx context.Context) error {
+// 		req, _ := http.NewRequestWithContext(ctx, "GET", "...", nil)
+// 		// ...
+// 		return nil
+// 	})
 func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 	if f == nil {
 		return
 	}
 
-	// get and update executor
+	// get executor and context
 	eg.mu.RLock()
 	executor := eg.goExecutor
+	ctx := eg.ctx
 	eg.mu.RUnlock()
 	if executor == nil {
 		eg.mu.Lock()
 		if eg.goExecutor == nil {
-			eg.goExecutor = DefaultExecutor
+			eg.goExecutor = defaultExecutor
 		}
 		executor = eg.goExecutor
 		eg.mu.Unlock()
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
 	// execute with goroutine
@@ -247,23 +259,20 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 	executor(func() {
 		defer eg.wg.Done()
 
-		ctx := eg.ctx
-		if ctx == nil {
-			ctx = context.Background()
-		}
-		err := f(ctx) // <<<
+		err := f(ctx) // call given function
 		if err != nil {
 			eg.errOnce.Do(func() {
-				eg.err = err // <<<
+				eg.err = err // record the first error
 				if eg.cancel != nil {
-					eg.cancel()
+					eg.cancel() // cancel the context also
 				}
 			})
 		}
 	})
 }
 
-// Wait blocks until all function calls from the Go method have returned, then returns the first non-nil error (if any) from them.
+// Wait blocks until all function calls from the Go method have returned, then returns the first non-nil error (if any)
+// from them.
 func (eg *ErrorGroup) Wait() error {
 	eg.wg.Wait()
 	if eg.cancel != nil {

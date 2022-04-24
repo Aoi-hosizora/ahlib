@@ -30,22 +30,22 @@ func (eps Accuracy) NotEqual(a, b float64) bool {
 	return math.Abs(a-b) >= eps()
 }
 
-// Greater checks if float `a` is greater than (gt) `b`.
+// Greater checks whether float `a` is greater than (gt) `b`.
 func (eps Accuracy) Greater(a, b float64) bool {
 	return math.Max(a, b) == a && math.Abs(a-b) > eps()
 }
 
-// Less checks if float `a` is less than (lt) `b`.
+// Less checks whether float `a` is less than (lt) `b`.
 func (eps Accuracy) Less(a, b float64) bool {
 	return math.Max(a, b) == b && math.Abs(a-b) > eps()
 }
 
-// GreaterOrEqual checks if float `a` is greater than or equals to (gte) `b`.
+// GreaterOrEqual checks whether float `a` is greater than or equals to (gte) `b`.
 func (eps Accuracy) GreaterOrEqual(a, b float64) bool {
 	return math.Max(a, b) == a || math.Abs(a-b) < eps()
 }
 
-// LessOrEqual checks if float `a` is less than or equals to (lte) `b`.
+// LessOrEqual checks whether float `a` is less than or equals to (lte) `b`.
 func (eps Accuracy) LessOrEqual(a, b float64) bool {
 	return math.Max(a, b) == b || math.Abs(a-b) < eps()
 }
@@ -63,22 +63,22 @@ func NotEqualInAccuracy(a, b float64) bool {
 	return _acc.NotEqual(a, b)
 }
 
-// GreaterInAccuracy checks if float `a` is greater than (gt) `b` with 1e-3 accuracy.
+// GreaterInAccuracy checks whether float `a` is greater than (gt) `b` with 1e-3 accuracy.
 func GreaterInAccuracy(a, b float64) bool {
 	return _acc.Greater(a, b)
 }
 
-// LessInAccuracy checks if float `a` is less than (lt) `b` with 1e-3 accuracy.
+// LessInAccuracy checks whether float `a` is less than (lt) `b` with 1e-3 accuracy.
 func LessInAccuracy(a, b float64) bool {
 	return _acc.Less(a, b)
 }
 
-// GreaterOrEqualInAccuracy checks if float `a` is greater than or equals to (gte) `b` with 1e-3 accuracy.
+// GreaterOrEqualInAccuracy checks whether float `a` is greater than or equals to (gte) `b` with 1e-3 accuracy.
 func GreaterOrEqualInAccuracy(a, b float64) bool {
 	return _acc.GreaterOrEqual(a, b)
 }
 
-// LessOrEqualInAccuracy checks if float `a` is less than or equals to (lte) `b` with 1e-3 accuracy.
+// LessOrEqualInAccuracy checks whether float `a` is less than or equals to (lte) `b` with 1e-3 accuracy.
 func LessOrEqualInAccuracy(a, b float64) bool {
 	return _acc.LessOrEqual(a, b)
 }

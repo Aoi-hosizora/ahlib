@@ -40,6 +40,8 @@
 + `func RIncr[T Real](n *T) T`
 + `func RDecr[T Real](n *T) T`
 + `func UnmarshalJson[T any](bs []byte, t T) (T, error)`
++ `func FastStoa[T, A any](slice []T, arrayPtr *A) *A`
++ `func FastAtos[T, A any](array *A, sliceType []T, length int) []T`
 
 ### Methods
 

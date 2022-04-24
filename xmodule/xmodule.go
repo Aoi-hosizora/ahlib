@@ -30,6 +30,14 @@ func typeKey(typ reflect.Type) mkey {
 	return mkey{typ: typ}
 }
 
+// mkeyFromField returns a mkey with given field information, including field name and field type.
+func mkeyFromField(moduleTag string, fieldType reflect.Type) mkey {
+	if moduleTag != "~" {
+		return mkey{name: ModuleName(moduleTag)} // by name -> use field tag
+	}
+	return mkey{typ: fieldType} // by type or intf -> use field type
+}
+
 // String returns the string value of mkey.
 func (m mkey) String() string {
 	if m.name != "" {
@@ -174,7 +182,7 @@ func (m *ModuleContainer) ProvideByIntf(interfacePtr interface{}, moduleImpl int
 	m.logger.PrvIntf(intfType.String(), modType.String())
 }
 
-// RemoveByName remove a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
+// RemoveByName removes a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
 // module name.
 func (m *ModuleContainer) RemoveByName(name ModuleName) (removed bool) {
 	ensureModuleName(name)
@@ -186,7 +194,7 @@ func (m *ModuleContainer) RemoveByName(name ModuleName) (removed bool) {
 	return removed
 }
 
-// RemoveByType remove given module with its type from container, return true if module existed before removing, panics when using nil module.
+// RemoveByType removes given module with its type from container, return true if module existed before removing, panics when using nil module.
 func (m *ModuleContainer) RemoveByType(moduleType interface{}) (removed bool) {
 	typ := ensureModuleType(moduleType)
 	m.mu.Lock()
@@ -197,7 +205,7 @@ func (m *ModuleContainer) RemoveByType(moduleType interface{}) (removed bool) {
 	return removed
 }
 
-// RemoveByIntf remove a module with given interface pointer's type from container, return true if module existed before removing, panics when
+// RemoveByIntf removes a module with given interface pointer's type from container, return true if module existed before removing, panics when
 // using invalid interface pointer.
 func (m *ModuleContainer) RemoveByIntf(interfacePtr interface{}) (removed bool) {
 	intfType := ensureInterfacePtr(interfacePtr) // interface type
@@ -313,18 +321,18 @@ func ProvideByIntf(interfacePtr interface{}, moduleImpl interface{}) {
 	_mc.ProvideByIntf(interfacePtr, moduleImpl)
 }
 
-// RemoveByName remove a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
+// RemoveByName removes a module with a ModuleName from container, return true if module existed before removing, panics when using invalid
 // module name.
 func RemoveByName(name ModuleName) (removed bool) {
 	return _mc.RemoveByName(name)
 }
 
-// RemoveByType remove given module with its type from container, return true if module existed before removing, panics when using nil module.
+// RemoveByType removes given module with its type from container, return true if module existed before removing, panics when using nil module.
 func RemoveByType(module interface{}) (removed bool) {
 	return _mc.RemoveByType(module)
 }
 
-// RemoveByIntf remove a module with given interface pointer's type from container, return true if module existed before removing, panics when
+// RemoveByIntf removes a module with given interface pointer's type from container, return true if module existed before removing, panics when
 // using invalid interface pointer.
 func RemoveByIntf(interfacePtr interface{}) (removed bool) {
 	return _mc.RemoveByIntf(interfacePtr)
@@ -395,7 +403,7 @@ func MustInject(injectee interface{}) {
 // 		WellKnownList  []int     `module:"list"`
 // 		AnotherService *ServiceB `module:"~"`
 // 		Implement      Interface `module:"~"`
-// 		LocalVariable  string
+// 		LocalVariable  string // a local variable for Service
 // 	}
 // 	m := NewModuleContainer()
 // 	_ = m.AutoProvide(
