@@ -16,6 +16,7 @@ type innerSlice interface {
 	length() int
 	capacity() int
 	get(index int) interface{}
+	slice(index1, index2 int) innerSlice
 	// setter
 	set(index int, item interface{})
 	insert(index int, items innerSlice)
@@ -57,6 +58,13 @@ func (i *interfaceItemSlice) get(index int) interface{} {
 		panic(panicIndexOutOfRange)
 	}
 	return i.origin[index]
+}
+
+func (i *interfaceItemSlice) slice(index1, index2 int) innerSlice {
+	if index1 < 0 || index2 < index1 || index2 > i.capacity() {
+		panic(panicIndexOutOfRange)
+	}
+	return &interfaceItemSlice{origin: i.origin[index1:index2]}
 }
 
 func (i *interfaceItemSlice) set(index int, item interface{}) {
@@ -129,6 +137,13 @@ func (i *interfaceWrappedSlice) get(index int) interface{} {
 		panic(panicIndexOutOfRange)
 	}
 	return i.val.Index(index).Interface()
+}
+
+func (i *interfaceWrappedSlice) slice(index1, index2 int) innerSlice {
+	if index1 < 0 || index2 < index1 || index2 > i.capacity() {
+		panic(panicIndexOutOfRange)
+	}
+	return &interfaceWrappedSlice{typ: i.typ, val: i.val.Slice(index1, index2)}
 }
 
 func (i *interfaceWrappedSlice) set(index int, item interface{}) {

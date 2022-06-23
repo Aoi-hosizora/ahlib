@@ -498,7 +498,64 @@ func TestDeduplicate(t *testing.T) {
 	} {
 		xtestingEqual(t, Deduplicate(tc.give), tc.want)
 		give := newTestSlice(tc.give)
+		d1 := DeduplicateSelf(tc.give)
+		xtestingEqual(t, d1, tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtestingEqual(t, testToIntSlice(DeduplicateWith(give, eq)), tc.want)
+		d2 := DeduplicateSelfWith(give, eq)
+		xtestingEqual(t, testToIntSlice(d2), tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+	}
+}
+
+func TestCompact(t *testing.T) {
+	eq := func(i, j testStruct) bool { return i.value == j.value }
+
+	for _, tc := range []struct {
+		give []int
+		want []int
+	}{
+		{[]int{}, []int{}},
+		{[]int{1}, []int{1}},
+		{[]int{1, 1, 1}, []int{1}},
+		{[]int{2, 2, 1, 1, 1, 2, 1, 3}, []int{2, 1, 2, 1, 3}},
+		{[]int{1, 5, 5, 2, 1, 5, 2, 2, 6, 6, 6, 3, 2, 1, 1}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 1}},
+	} {
+		xtestingEqual(t, Compact(tc.give), tc.want)
+		give := newTestSlice(tc.give)
+		d1 := CompactSelf(tc.give)
+		xtestingEqual(t, d1, tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		xtestingEqual(t, testToIntSlice(CompactWith(give, eq)), tc.want)
+		d2 := CompactSelfWith(give, eq)
+		xtestingEqual(t, testToIntSlice(d2), tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+	}
+}
+
+func TestEqual(t *testing.T) {
+	eq := func(i, j testStruct) bool { return i.value == j.value }
+
+	for _, tc := range []struct {
+		give1 []int
+		give2 []int
+		want  bool
+	}{
+		{[]int{}, []int{}, true},
+		{[]int{0}, []int{}, false},
+		{[]int{}, []int{0}, false},
+		{[]int{0}, []int{0}, true},
+		{[]int{1, 1, 1}, []int{1}, false},
+		{[]int{1}, []int{1, 1, 1}, false},
+		{[]int{1, 1, 1}, []int{1, 1, 1}, true},
+		{[]int{1, 2, 1}, []int{1, 1, 2}, false},
+		{[]int{1, 1, 2, 3}, []int{1, 2, 3, 1}, false},
+		{[]int{1, 1, 2, 2}, []int{1, 1, 2}, false},
+		{[]int{1, 1, 2, 3}, []int{1, 1, 2, 3}, true},
+	} {
+		xtestingEqual(t, Equal(tc.give1, tc.give2), tc.want)
+		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
+		xtestingEqual(t, EqualWith(give1, give2, eq), tc.want)
 	}
 }
 
@@ -512,11 +569,14 @@ func TestElementMatch(t *testing.T) {
 	}{
 		{[]int{}, []int{}, true},
 		{[]int{0}, []int{}, false},
+		{[]int{}, []int{0}, false},
 		{[]int{0}, []int{0}, true},
 		{[]int{1, 1, 1}, []int{1}, false},
+		{[]int{1}, []int{1, 1, 1}, false},
 		{[]int{1, 1, 1}, []int{1, 1, 1}, true},
-		{[]int{1, 2, 1}, []int{1, 2, 1}, true},
-		{[]int{1, 2, 1}, []int{1, 2, 2}, false},
+		{[]int{1, 2, 1}, []int{1, 1, 2}, true},
+		{[]int{1, 2, 3}, []int{1, 2, 2}, false},
+		{[]int{1, 2, 2}, []int{1, 2, 3}, false},
 	} {
 		xtestingEqual(t, ElementMatch(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
@@ -684,58 +744,99 @@ func (s StringSlice) typename() string {
 }
 
 func TestTildeSignature(t *testing.T) {
-	i := IntSlice{1, 2, 3}
-	s := StringSlice{"aaa", "b", "cc"}
+	i := func() IntSlice { return IntSlice{1, 2, 3} }
+	s := func() StringSlice { return StringSlice{"aaa", "b", "cc"} }
 
-	xtestingEqual(t, Shuffle(i).typename(), "IntSlice")
-	xtestingEqual(t, Shuffle(s).typename(), "StringSlice")
+	xtestingEqual(t, Shuffle(i()).typename(), "IntSlice")
+	xtestingEqual(t, Shuffle(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Reverse(i), IntSlice{3, 2, 1})
-	xtestingEqual(t, Reverse(s), StringSlice{"cc", "b", "aaa"})
-	xtestingEqual(t, Reverse(i).typename(), "IntSlice")
-	xtestingEqual(t, Reverse(s).typename(), "StringSlice")
+	xtestingEqual(t, Reverse(i()), IntSlice{3, 2, 1})
+	xtestingEqual(t, Reverse(s()), StringSlice{"cc", "b", "aaa"})
+	xtestingEqual(t, Reverse(i()).typename(), "IntSlice")
+	xtestingEqual(t, Reverse(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Sort(i), IntSlice{1, 2, 3})
-	xtestingEqual(t, Sort(s), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Sort(i).typename(), "IntSlice")
-	xtestingEqual(t, Sort(s).typename(), "StringSlice")
-	xtestingEqual(t, SortWith(i, func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
-	xtestingEqual(t, SortWith(s, func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
-	xtestingEqual(t, SortWith(i, func(i, j int) bool { return i > j }).typename(), "IntSlice")
-	xtestingEqual(t, SortWith(s, func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+	xtestingEqual(t, Sort(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Sort(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Sort(i()).typename(), "IntSlice")
+	xtestingEqual(t, Sort(s()).typename(), "StringSlice")
+	xtestingEqual(t, SortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	xtestingEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	xtestingEqual(t, SortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	xtestingEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
 
-	xtestingEqual(t, StableSort(i), IntSlice{1, 2, 3})
-	xtestingEqual(t, StableSort(s), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, StableSort(i).typename(), "IntSlice")
-	xtestingEqual(t, StableSort(s).typename(), "StringSlice")
-	xtestingEqual(t, StableSortWith(i, func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
-	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
-	xtestingEqual(t, StableSortWith(i, func(i, j int) bool { return i > j }).typename(), "IntSlice")
-	xtestingEqual(t, StableSortWith(s, func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+	xtestingEqual(t, StableSort(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, StableSort(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, StableSort(i()).typename(), "IntSlice")
+	xtestingEqual(t, StableSort(s()).typename(), "StringSlice")
+	xtestingEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	xtestingEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	xtestingEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	xtestingEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
 
-	xtestingEqual(t, Insert(i, 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
-	xtestingEqual(t, Insert(s, 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
-	xtestingEqual(t, Insert(i, 0, 4, 0).typename(), "IntSlice")
-	xtestingEqual(t, Insert(s, 0, "zzzz", "x").typename(), "StringSlice")
+	xtestingEqual(t, Insert(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
+	xtestingEqual(t, Insert(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
+	xtestingEqual(t, Insert(i(), 0, 4, 0).typename(), "IntSlice")
+	xtestingEqual(t, Insert(s(), 0, "zzzz", "x").typename(), "StringSlice")
+	xtestingEqual(t, InsertSelf(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
+	xtestingEqual(t, InsertSelf(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
+	xtestingEqual(t, InsertSelf(i(), 0, 4, 0).typename(), "IntSlice")
+	xtestingEqual(t, InsertSelf(s(), 0, "zzzz", "x").typename(), "StringSlice")
 
-	xtestingEqual(t, Delete(i, 1, 1), IntSlice{2, 3})
-	xtestingEqual(t, Delete(s, "aaa", 1), StringSlice{"b", "cc"})
-	xtestingEqual(t, Delete(i, 1, 1).typename(), "IntSlice")
-	xtestingEqual(t, Delete(s, "aaa", 1).typename(), "StringSlice")
-	xtestingEqual(t, DeleteAll(i, 1), IntSlice{2, 3})
-	xtestingEqual(t, DeleteAll(s, "aaa"), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteAll(i, 1).typename(), "IntSlice")
-	xtestingEqual(t, DeleteAll(s, "aaa").typename(), "StringSlice")
+	xtestingEqual(t, Delete(i(), 1, 1), IntSlice{2, 3})
+	xtestingEqual(t, Delete(s(), "aaa", 1), StringSlice{"b", "cc"})
+	xtestingEqual(t, Delete(i(), 1, 1).typename(), "IntSlice")
+	xtestingEqual(t, Delete(s(), "aaa", 1).typename(), "StringSlice")
+	xtestingEqual(t, DeleteAll(i(), 1), IntSlice{2, 3})
+	xtestingEqual(t, DeleteAll(s(), "aaa"), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteAll(i(), 1).typename(), "IntSlice")
+	xtestingEqual(t, DeleteAll(s(), "aaa").typename(), "StringSlice")
+	xtestingEqual(t, DeleteSelf(i(), 1, 1), IntSlice{2, 3})
+	xtestingEqual(t, DeleteSelf(s(), "aaa", 1), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteSelf(i(), 1, 1).typename(), "IntSlice")
+	xtestingEqual(t, DeleteSelf(s(), "aaa", 1).typename(), "StringSlice")
+	xtestingEqual(t, DeleteAllSelf(i(), 1), IntSlice{2, 3})
+	xtestingEqual(t, DeleteAllSelf(s(), "aaa"), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteAllSelf(i(), 1).typename(), "IntSlice")
+	xtestingEqual(t, DeleteAllSelf(s(), "aaa").typename(), "StringSlice")
+	xtestingEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
+	xtestingEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
+	xtestingEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
+	xtestingEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
+	xtestingEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
+	xtestingEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
+	xtestingEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
+	xtestingEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
+	xtestingEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
+	xtestingEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
+	xtestingEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
+	xtestingEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
+	xtestingEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
 
-	xtestingEqual(t, Deduplicate(i), IntSlice{1, 2, 3})
-	xtestingEqual(t, Deduplicate(s), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Deduplicate(i).typename(), "IntSlice")
-	xtestingEqual(t, Deduplicate(s).typename(), "StringSlice")
+	xtestingEqual(t, Deduplicate(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Deduplicate(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Deduplicate(i()).typename(), "IntSlice")
+	xtestingEqual(t, Deduplicate(s()).typename(), "StringSlice")
+	xtestingEqual(t, DeduplicateSelf(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, DeduplicateSelf(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, DeduplicateSelf(i()).typename(), "IntSlice")
+	xtestingEqual(t, DeduplicateSelf(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Filter(i, func(i int) bool { return i <= 2 }), IntSlice{1, 2})
-	xtestingEqual(t, Filter(s, func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
-	xtestingEqual(t, Filter(i, func(i int) bool { return i <= 2 }).typename(), "IntSlice")
-	xtestingEqual(t, Filter(s, func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
+	xtestingEqual(t, Compact(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Compact(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Compact(i()).typename(), "IntSlice")
+	xtestingEqual(t, Compact(s()).typename(), "StringSlice")
+	xtestingEqual(t, CompactSelf(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, CompactSelf(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, CompactSelf(i()).typename(), "IntSlice")
+	xtestingEqual(t, CompactSelf(s()).typename(), "StringSlice")
+
+	xtestingEqual(t, Filter(i(), func(i int) bool { return i <= 2 }), IntSlice{1, 2})
+	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
+	xtestingEqual(t, Filter(i(), func(i int) bool { return i <= 2 }).typename(), "IntSlice")
+	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
 }
 
 // =============================

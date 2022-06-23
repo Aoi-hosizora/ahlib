@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-// TODO
-// https://pkg.go.dev/golang.org/x/exp/slices
-
 // ====================
 // xslice compatibility
 // ====================
 
 // Equaller represents an equality function for two values, is used in XXXWith methods.
 type Equaller[T any] func(i, j T) bool
+
+// Equaller2 represents an equality function for two values in different types, is used in XXXWith methods.
+type Equaller2[T1, T2 any] func(i T1, j T2) bool
 
 // Lesser represents a less function for sort, see sort.Interface.
 type Lesser[T any] func(i, j T) bool
@@ -31,8 +31,15 @@ func defaultLesser[T xsugar.Ordered]() Lesser[T] {
 	}
 }
 
-// defaultEqualler represents a default Equaller, it just checks equality by `==` between comparable types.
+// defaultEqualler represents a default Equaller, it just checks equality by `==` between two comparable values.
 func defaultEqualler[T comparable]() Equaller[T] {
+	return func(i, j T) bool {
+		return i == j
+	}
+}
+
+// defaultEqualler2 represents a default Equaller2 with the same type, it just checks equality by `==` between two comparable values.
+func defaultEqualler2[T comparable]() Equaller2[T, T] {
 	return func(i, j T) bool {
 		return i == j
 	}
@@ -137,8 +144,8 @@ func IndexOf[T comparable](slice []T, value T) int {
 
 // IndexOfWith returns the first index of value in the []T slice with Equaller.
 func IndexOfWith[T any](slice []T, value T, equaller Equaller[T]) int {
-	for idx, val := range slice {
-		if equaller(val, value) {
+	for idx, item := range slice {
+		if equaller(item, value) {
 			return idx
 		}
 	}
@@ -167,8 +174,8 @@ func Contains[T comparable](slice []T, value T) bool {
 
 // ContainsWith returns true if value is in the []T slice with Equaller.
 func ContainsWith[T any](slice []T, value T, equaller Equaller[T]) bool {
-	for _, val := range slice {
-		if equaller(val, value) {
+	for _, item := range slice {
+		if equaller(item, value) {
 			return true
 		}
 	}
@@ -191,6 +198,13 @@ func CountWith[T any](slice []T, value T, equaller Equaller[T]) int {
 	return cnt
 }
 
+// Insert inserts values into []T slice at index position using a new slice space to store.
+func Insert[T any, S ~[]T](slice S, index int, values ...T) S {
+	out := make([]T, len(slice), len(slice)+len(values))
+	copy(out, slice)
+	return InsertSelf(S(out), index, values...)
+}
+
 // InsertSelf inserts values into []T slice at index position using the space of given slice.
 func InsertSelf[T any, S ~[]T](slice S, index int, values ...T) S {
 	switch {
@@ -209,15 +223,6 @@ func InsertSelf[T any, S ~[]T](slice S, index int, values ...T) S {
 	}
 }
 
-// Insert inserts values into []T slice at index position using a new slice space to store.
-func Insert[T any, S ~[]T](slice S, index int, values ...T) S {
-	out := make([]T, 0, len(slice)+len(values))
-	for _, v := range slice {
-		out = append(out, v)
-	}
-	return InsertSelf(S(out), index, values...)
-}
-
 // Delete deletes value from []T slice in n times.
 func Delete[T comparable, S ~[]T](slice S, value T, n int) S {
 	return DeleteWith(slice, value, n, defaultEqualler[T]())
@@ -225,20 +230,21 @@ func Delete[T comparable, S ~[]T](slice S, value T, n int) S {
 
 // DeleteWith deletes value from []T slice in n times with Equaller.
 func DeleteWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S {
-	out := append(make([]T, 0, len(slice)), slice...)
 	if n <= 0 {
-		n = len(out)
+		n = len(slice)
 	}
+	out := make([]T, 0)
 	cnt := 0
-	idx := IndexOfWith(out, value, equaller)
-	for idx != -1 && cnt < n {
-		if idx == len(out)-1 {
-			out = out[:idx]
-		} else {
-			out = append(out[:idx], out[idx+1:]...)
+	for idx, item := range slice { // O(n)
+		if cnt >= n {
+			out = append(out, slice[idx:]...)
+			break
 		}
-		cnt++
-		idx = IndexOfWith(out, value, equaller)
+		if equaller(item, value) {
+			cnt++
+		} else {
+			out = append(out, item)
+		}
 	}
 	return out
 }
@@ -253,6 +259,40 @@ func DeleteAllWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
 	return DeleteWith(slice, value, -1, equaller)
 }
 
+// DeleteSelf deletes value from []T slice in n times, by modifying given slice directly.
+func DeleteSelf[T comparable, S ~[]T](slice S, value T, n int) S {
+	return DeleteSelfWith(slice, value, n, defaultEqualler[T]())
+}
+
+// DeleteSelfWith deletes value from []T slice in n times with Equaller, by modifying given slice directly.
+func DeleteSelfWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S {
+	if n <= 0 {
+		n = len(slice)
+	}
+	cnt := 0
+	idx := IndexOfWith(slice, value, equaller)
+	for idx != -1 && cnt < n {
+		if idx == len(slice)-1 {
+			slice = slice[:idx]
+		} else {
+			slice = append(slice[:idx], slice[idx+1:]...)
+		}
+		cnt++
+		idx = IndexOfWith(slice, value, equaller) // O(n^2)
+	}
+	return slice
+}
+
+// DeleteAllSelf deletes value from []T slice in all, by modifying given slice directly.
+func DeleteAllSelf[T comparable, S ~[]T](slice S, value T) S {
+	return DeleteSelfWith(slice, value, -1, defaultEqualler[T]())
+}
+
+// DeleteAllSelfWith deletes value from []T slice in all with Equaller, by modifying given slice directly.
+func DeleteAllSelfWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
+	return DeleteSelfWith(slice, value, -1, equaller)
+}
+
 // ContainsAll returns true if values in []T subset are all in the []T list.
 func ContainsAll[T comparable](list, subset []T) bool {
 	return ContainsAllWith(list, subset, defaultEqualler[T]())
@@ -260,8 +300,8 @@ func ContainsAll[T comparable](list, subset []T) bool {
 
 // ContainsAllWith returns true if values in []T subset are all in the []T list with Equaller.
 func ContainsAllWith[T any](list, subset []T, equaller Equaller[T]) bool {
-	for _, val := range subset {
-		if !ContainsWith(list, val, equaller) {
+	for _, item := range subset {
+		if !ContainsWith(list, item, equaller) {
 			return false
 		}
 	}
@@ -326,21 +366,102 @@ func Deduplicate[T comparable, S ~[]T](slice S) S {
 func DeduplicateWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 	result := make([]T, 0, 0)
 	for _, item := range slice {
-		if !ContainsWith(result, item, equaller) {
-			result = append(result, item) // O(n^2)
+		if !ContainsWith(result, item, equaller) { // O(n^2)
+			result = append(result, item)
 		}
 	}
 	return result
 }
 
-// ElementMatch checks whether two []T slice equal without order.
-func ElementMatch[T comparable](slice1, slice2 []T) bool {
-	return ElementMatchWith(slice1, slice2, defaultEqualler[T]())
+// DeduplicateSelf removes the duplicate items from []T slice as a set, by modifying given slice directly.
+func DeduplicateSelf[T comparable, S ~[]T](slice S) S {
+	return DeduplicateSelfWith(slice, defaultEqualler[T]())
 }
 
-// ElementMatchWith checks whether two []T slice equal without order with Equaller.
-func ElementMatchWith[T any](slice1, slice2 []T, equaller Equaller[T]) bool {
-	extra1, extra2 := make([]T, 0, 0), make([]T, 0, 0)
+// DeduplicateSelfWith removes the duplicate items from []T slice as a set with Equaller, by modifying given slice directly.
+func DeduplicateSelfWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+	if len(slice) <= 1 {
+		return slice
+	}
+	i := 1
+	for _, item := range slice[1:] {
+		if !ContainsWith(slice[:i], item, equaller) {
+			slice[i] = item
+			i++
+		}
+	}
+	return slice[:i]
+}
+
+// Compact removes the duplicate items in neighbor from []T slice.
+func Compact[T comparable, S ~[]T](slice S) S {
+	return CompactWith(slice, defaultEqualler[T]())
+}
+
+// CompactWith removes the duplicate items in neighbor from []T slice with Equaller.
+func CompactWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+	if len(slice) <= 1 {
+		return slice
+	}
+	result := make([]T, 1, 1)
+	last := slice[0]
+	result[0] = last
+	for _, item := range slice[1:] { // O(n)
+		if !equaller(item, last) {
+			result = append(result, item)
+			last = item
+		}
+	}
+	return result
+}
+
+// CompactSelf removes the duplicate items in neighbor from []T slice, by modifying given slice directly.
+func CompactSelf[T comparable, S ~[]T](slice S) S {
+	return CompactSelfWith(slice, defaultEqualler[T]())
+}
+
+// CompactSelfWith removes the duplicate items in neighbor from []T slice with Equaller, by modifying given slice directly.
+func CompactSelfWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+	if len(slice) <= 1 {
+		return slice
+	}
+	i := 1
+	last := slice[0]
+	for _, item := range slice[1:] {
+		if !equaller(item, last) {
+			slice[i] = item
+			i++
+			last = item
+		}
+	}
+	return slice[:i]
+}
+
+// Equal checks whether two []T slices equal (the same length and all elements equal).
+func Equal[T comparable](slice1, slice2 []T) bool {
+	return EqualWith(slice1, slice2, defaultEqualler2[T]())
+}
+
+// EqualWith checks whether two slices equal (the same length and all elements equal) with Equaller.
+func EqualWith[T1, T2 any](slice1 []T1, slice2 []T2, equaller Equaller2[T1, T2]) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+	for idx := range slice1 {
+		if !equaller(slice1[idx], slice2[idx]) {
+			return false
+		}
+	}
+	return true
+}
+
+// ElementMatch checks whether two []T slices equal (ignore the order of the elements, but the number of duplicate elements should match).
+func ElementMatch[T comparable](slice1, slice2 []T) bool {
+	return ElementMatchWith(slice1, slice2, defaultEqualler2[T]())
+}
+
+// ElementMatchWith checks whether two slices equal (ignore the order of the elements, but the number of duplicate elements should match) with Equaller.
+func ElementMatchWith[T1, T2 any](slice1 []T1, slice2 []T2, equaller Equaller2[T1, T2]) bool {
 	visited := make([]bool, len(slice2))
 	for _, item1 := range slice1 {
 		exist := false
@@ -355,15 +476,15 @@ func ElementMatchWith[T any](slice1, slice2 []T, equaller Equaller[T]) bool {
 			}
 		}
 		if !exist {
-			extra1 = append(extra1, item1)
+			return false
 		}
 	}
-	for i2, item2 := range slice2 {
+	for i2 := range slice2 {
 		if !visited[i2] {
-			extra2 = append(extra2, item2)
+			return false
 		}
 	}
-	return len(extra1) == 0 && len(extra2) == 0
+	return true
 }
 
 // Repeat generates a []T slice with given value and repeat count.
@@ -526,4 +647,30 @@ func Unzip3[T1, T2, T3 any](slice []xtuple.Triple[T1, T2, T3]) ([]T1, []T2, []T3
 		slice3 = append(slice3, item.Item3)
 	}
 	return slice1, slice2, slice3
+}
+
+// =====================================
+// funtions from golang.org/x/exp/slices
+// =====================================
+
+// Clone returns a copy of given slice, and the elements are copied using assignment.
+func Clone[S ~[]T, T any](slice S) S {
+	newSlice := make(S, len(slice), cap(slice))
+	for i := 0; i < len(slice); i++ {
+		newSlice[i] = slice[i]
+	}
+	return newSlice
+}
+
+// Clip removes unused capacity from given slice, returning slice[:len(s):len(s)].
+func Clip[S ~[]T, T any](slice S) S {
+	return slice[:len(slice):len(slice)]
+}
+
+// Grow increases given slice's capacity, if necessary, to guarantee space for another n elements.
+func Grow[S ~[]T, T any](slice S, n int) S {
+	if n < 0 {
+		n = 0
+	}
+	return append(slice, make(S, n)...)[:len(slice)]
 }

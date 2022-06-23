@@ -1192,6 +1192,54 @@ func TestDeduplicate(t *testing.T) {
 	}
 }
 
+func TestEqual(t *testing.T) {
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
+
+	for _, tc := range []struct {
+		give1 []interface{}
+		give2 []interface{}
+		want  bool
+	}{
+		{[]interface{}{}, []interface{}{}, true},
+		{[]interface{}{0}, []interface{}{}, false},
+		{[]interface{}{}, []interface{}{0}, false},
+		{[]interface{}{0}, []interface{}{0}, true},
+		{[]interface{}{1, 1, 1}, []interface{}{1}, false},
+		{[]interface{}{1}, []interface{}{1, 1, 1}, false},
+		{[]interface{}{1, 1, 1}, []interface{}{1, 1, 1}, true},
+		{[]interface{}{1, 2, 1}, []interface{}{1, 1, 2}, false},
+		{[]interface{}{1, 1, 2, 3}, []interface{}{1, 2, 3, 1}, false},
+		{[]interface{}{1, 1, 2, 2}, []interface{}{1, 1, 2}, false},
+		{[]interface{}{1, 1, 2, 3}, []interface{}{1, 1, 2, 3}, true},
+	} {
+		xtesting.Equal(t, Equal(tc.give1, tc.give2), tc.want)
+		give1, give2 := newTestSlice1(tc.give1), newTestSlice1(tc.give2)
+		xtesting.Equal(t, EqualWith(give1, give2, eq), tc.want)
+	}
+
+	for _, tc := range []struct {
+		give1 []int
+		give2 []int
+		want  bool
+	}{
+		{[]int{}, []int{}, true},
+		{[]int{0}, []int{}, false},
+		{[]int{}, []int{0}, false},
+		{[]int{0}, []int{0}, true},
+		{[]int{1, 1, 1}, []int{1}, false},
+		{[]int{1}, []int{1, 1, 1}, false},
+		{[]int{1, 1, 1}, []int{1, 1, 1}, true},
+		{[]int{1, 2, 1}, []int{1, 1, 2}, false},
+		{[]int{1, 1, 2, 3}, []int{1, 2, 3, 1}, false},
+		{[]int{1, 1, 2, 2}, []int{1, 1, 2}, false},
+		{[]int{1, 1, 2, 3}, []int{1, 1, 2, 3}, true},
+	} {
+		xtesting.Equal(t, EqualG(tc.give1, tc.give2), tc.want)
+		give1, give2 := newTestSlice2(tc.give1), newTestSlice2(tc.give2)
+		xtesting.Equal(t, EqualWithG(give1, give2, eq), tc.want)
+	}
+}
+
 func TestElementMatch(t *testing.T) {
 	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
@@ -1202,11 +1250,14 @@ func TestElementMatch(t *testing.T) {
 	}{
 		{[]interface{}{}, []interface{}{}, true},
 		{[]interface{}{0}, []interface{}{}, false},
+		{[]interface{}{}, []interface{}{0}, false},
 		{[]interface{}{0}, []interface{}{0}, true},
 		{[]interface{}{1, 1, 1}, []interface{}{1}, false},
+		{[]interface{}{1}, []interface{}{1, 1, 1}, false},
 		{[]interface{}{1, 1, 1}, []interface{}{1, 1, 1}, true},
-		{[]interface{}{1, 2, 1}, []interface{}{1, 2, 1}, true},
-		{[]interface{}{1, 2, 1}, []interface{}{1, 2, 2}, false},
+		{[]interface{}{1, 2, 1}, []interface{}{1, 1, 2}, true},
+		{[]interface{}{1, 2, 3}, []interface{}{1, 2, 2}, false},
+		{[]interface{}{1, 2, 2}, []interface{}{1, 2, 3}, false},
 	} {
 		xtesting.Equal(t, ElementMatch(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice1(tc.give1), newTestSlice1(tc.give2)
@@ -1220,11 +1271,14 @@ func TestElementMatch(t *testing.T) {
 	}{
 		{[]int{}, []int{}, true},
 		{[]int{0}, []int{}, false},
+		{[]int{}, []int{0}, false},
 		{[]int{0}, []int{0}, true},
 		{[]int{1, 1, 1}, []int{1}, false},
+		{[]int{1}, []int{1, 1, 1}, false},
 		{[]int{1, 1, 1}, []int{1, 1, 1}, true},
-		{[]int{1, 2, 1}, []int{1, 2, 1}, true},
-		{[]int{1, 2, 1}, []int{1, 2, 2}, false},
+		{[]int{1, 2, 1}, []int{1, 1, 2}, true},
+		{[]int{1, 2, 3}, []int{1, 2, 2}, false},
+		{[]int{1, 2, 2}, []int{1, 2, 3}, false},
 	} {
 		xtesting.Equal(t, ElementMatchG(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice2(tc.give1), newTestSlice2(tc.give2)

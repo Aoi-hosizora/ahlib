@@ -173,8 +173,8 @@ func IndexOfWithG(slice interface{}, value interface{}, equaller Equaller) int {
 func coreIndexOf(slice innerSlice, value interface{}, equaller Equaller) int {
 	length := slice.length()
 	for idx := 0; idx < length; idx++ {
-		val := slice.get(idx)
-		if equaller(val, value) {
+		item := slice.get(idx)
+		if equaller(item, value) {
 			return idx
 		}
 	}
@@ -206,8 +206,8 @@ func LastIndexOfWithG(slice interface{}, value interface{}, equaller Equaller) i
 // coreLastIndexOf is the implementation for LastIndexOf, LastIndexOfWith, LastIndexOfG and LastIndexOfWithG.
 func coreLastIndexOf(slice innerSlice, value interface{}, equaller Equaller) int {
 	for idx := slice.length() - 1; idx >= 0; idx-- {
-		val := slice.get(idx)
-		if equaller(val, value) {
+		item := slice.get(idx)
+		if equaller(item, value) {
 			return idx
 		}
 	}
@@ -240,8 +240,8 @@ func ContainsWithG(slice interface{}, value interface{}, equaller Equaller) bool
 func coreContains(slice innerSlice, value interface{}, equaller Equaller) bool {
 	length := slice.length()
 	for idx := 0; idx < length; idx++ {
-		val := slice.get(idx)
-		if equaller(val, value) {
+		item := slice.get(idx)
+		if equaller(item, value) {
 			return true
 		}
 	}
@@ -275,17 +275,12 @@ func coreCount(slice innerSlice, value interface{}, equaller Equaller) int {
 	cnt := 0
 	length := slice.length()
 	for idx := 0; idx < length; idx++ {
-		val := slice.get(idx)
-		if equaller(val, value) {
+		item := slice.get(idx)
+		if equaller(item, value) {
 			cnt++
 		}
 	}
 	return cnt
-}
-
-// InsertSelf inserts values into []interface{} slice at index position using the space of given slice.
-func InsertSelf(slice []interface{}, index int, values ...interface{}) []interface{} {
-	return coreInsert(checkInterfaceSliceParam(slice), checkInterfaceSliceParam(values), index, true).actual().([]interface{})
 }
 
 // Insert inserts values into []interface{} slice at index position using a new slice space to store.
@@ -293,16 +288,21 @@ func Insert(slice []interface{}, index int, values ...interface{}) []interface{}
 	return coreInsert(checkInterfaceSliceParam(slice), checkInterfaceSliceParam(values), index, false).actual().([]interface{})
 }
 
-// InsertSelfG inserts values into []T slice at index position using the space of given slice, is the generic function of InsertSelf.
-func InsertSelfG(slice interface{}, index int, values interface{}) interface{} {
-	s, v := checkTwoSliceInterfaceParam(slice, values)
-	return coreInsert(s, v, index, true).actual()
+// InsertSelf inserts values into []interface{} slice at index position using the space of given slice.
+func InsertSelf(slice []interface{}, index int, values ...interface{}) []interface{} {
+	return coreInsert(checkInterfaceSliceParam(slice), checkInterfaceSliceParam(values), index, true).actual().([]interface{})
 }
 
 // InsertG inserts values into []T slice at index position using a new slice space to store, is the generic function of Insert.
 func InsertG(slice interface{}, index int, values interface{}) interface{} {
 	s, v := checkTwoSliceInterfaceParam(slice, values)
 	return coreInsert(s, v, index, false).actual()
+}
+
+// InsertSelfG inserts values into []T slice at index position using the space of given slice, is the generic function of InsertSelf.
+func InsertSelfG(slice interface{}, index int, values interface{}) interface{} {
+	s, v := checkTwoSliceInterfaceParam(slice, values)
+	return coreInsert(s, v, index, true).actual()
 }
 
 // coreInsert is the implementation for InsertSelf, Insert, InsertSelfG and InsertG.
@@ -324,58 +324,119 @@ func coreInsert(slice, values innerSlice, index int, self bool) innerSlice {
 
 // Delete deletes value from []interface{} slice in n times.
 func Delete(slice []interface{}, value interface{}, n int) []interface{} {
-	newSlice := cloneInterfaceSlice(slice)
-	return coreDelete(checkInterfaceSliceParam(newSlice), value, n, defaultEqualler).actual().([]interface{})
+	return coreDelete(checkInterfaceSliceParam(slice), value, n, defaultEqualler).actual().([]interface{})
 }
 
 // DeleteWith deletes value from []interface{} slice in n times with Equaller.
 func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{} {
-	newSlice := cloneInterfaceSlice(slice)
-	return coreDelete(checkInterfaceSliceParam(newSlice), value, n, equaller).actual().([]interface{})
+	return coreDelete(checkInterfaceSliceParam(slice), value, n, equaller).actual().([]interface{})
 }
 
 // DeleteG deletes value from []T slice in n times, is the generic function of Delete.
 func DeleteG(slice interface{}, value interface{}, n int) interface{} {
-	newSlice := cloneSliceInterface(slice)
-	s, v := checkSliceInterfaceAndElemParam(newSlice, value)
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreDelete(s, v, n, defaultEqualler).actual()
 }
 
 // DeleteWithG deletes value from []T slice in n times with Equaller, is the generic function of DeleteWith.
 func DeleteWithG(slice interface{}, value interface{}, n int, equaller Equaller) interface{} {
-	newSlice := cloneSliceInterface(slice)
-	s, v := checkSliceInterfaceAndElemParam(newSlice, value)
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreDelete(s, v, n, equaller).actual()
 }
 
 // DeleteAll deletes value from []interface{} slice in all.
 func DeleteAll(slice []interface{}, value interface{}) []interface{} {
-	newSlice := cloneInterfaceSlice(slice)
-	return coreDelete(checkInterfaceSliceParam(newSlice), value, 0, defaultEqualler).actual().([]interface{})
+	return coreDelete(checkInterfaceSliceParam(slice), value, 0, defaultEqualler).actual().([]interface{})
 }
 
 // DeleteAllWith deletes value from []interface{} slice in all with Equaller.
 func DeleteAllWith(slice []interface{}, value interface{}, equaller Equaller) []interface{} {
-	newSlice := cloneInterfaceSlice(slice)
-	return coreDelete(checkInterfaceSliceParam(newSlice), value, 0, equaller).actual().([]interface{})
+	return coreDelete(checkInterfaceSliceParam(slice), value, 0, equaller).actual().([]interface{})
 }
 
 // DeleteAllG deletes value from []T slice in all, is the generic function of DeleteAll.
 func DeleteAllG(slice interface{}, value interface{}) interface{} {
-	newSlice := cloneSliceInterface(slice)
-	s, v := checkSliceInterfaceAndElemParam(newSlice, value)
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreDelete(s, v, 0, defaultEqualler).actual()
 }
 
 // DeleteAllWithG deletes value from []T slice in all with Equaller, is the generic function of DeleteAllWith.
 func DeleteAllWithG(slice interface{}, value interface{}, equaller Equaller) interface{} {
-	newSlice := cloneSliceInterface(slice)
-	s, v := checkSliceInterfaceAndElemParam(newSlice, value)
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
 	return coreDelete(s, v, 0, equaller).actual()
 }
 
 // coreDelete is the implementation for Delete, DeleteWith, DeleteAll, DeleteAllWith, DeleteG, DeleteWithG, DeleteAllG and DeleteAllWithG.
 func coreDelete(slice innerSlice, value interface{}, n int, equaller Equaller) innerSlice {
+	length := slice.length()
+	if n <= 0 {
+		n = length
+	}
+	out := makeSameTypeInnerSlice(slice, 0, 0)
+	cnt := 0
+	for idx := 0; idx < length; idx++ { // O(n)
+		if cnt >= n {
+			for idx2 := idx; idx2 < length; idx2++ {
+				out.append(slice.get(idx2))
+			}
+			break
+		}
+		item := slice.get(idx)
+		if equaller(item, value) {
+			cnt++
+		} else {
+			out.append(item)
+		}
+	}
+	return out
+}
+
+// DeleteSelf deletes value from []interface{} slice in n times, by modifying given slice directly.
+func DeleteSelf(slice []interface{}, value interface{}, n int) []interface{} {
+	return coreDeleteSelf(checkInterfaceSliceParam(slice), value, n, defaultEqualler).actual().([]interface{})
+}
+
+// DeleteSelfWith deletes value from []interface{} slice in n times with Equaller, by modifying given slice directly.
+func DeleteSelfWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{} {
+	return coreDeleteSelf(checkInterfaceSliceParam(slice), value, n, equaller).actual().([]interface{})
+}
+
+// DeleteSelfG deletes value from []T slice in n times, by modifying given slice directly, is the generic function of DeleteSelf.
+func DeleteSelfG(slice interface{}, value interface{}, n int) interface{} {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreDeleteSelf(s, v, n, defaultEqualler).actual()
+}
+
+// DeleteSelfWithG deletes value from []T slice in n times with Equaller, by modifying given slice directly, is the generic function of DeleteSelfWith.
+func DeleteSelfWithG(slice interface{}, value interface{}, n int, equaller Equaller) interface{} {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreDeleteSelf(s, v, n, equaller).actual()
+}
+
+// DeleteAllSelf deletes value from []interface{} slice in all, by modifying given slice directly.
+func DeleteAllSelf(slice []interface{}, value interface{}) []interface{} {
+	return coreDeleteSelf(checkInterfaceSliceParam(slice), value, 0, defaultEqualler).actual().([]interface{})
+}
+
+// DeleteAllSelfWith deletes value from []interface{} slice in all with Equaller, by modifying given slice directly.
+func DeleteAllSelfWith(slice []interface{}, value interface{}, equaller Equaller) []interface{} {
+	return coreDeleteSelf(checkInterfaceSliceParam(slice), value, 0, equaller).actual().([]interface{})
+}
+
+// DeleteAllSelfG deletes value from []T slice in all, by modifying given slice directly, is the generic function of DeleteAll.
+func DeleteAllSelfG(slice interface{}, value interface{}) interface{} {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreDeleteSelf(s, v, 0, defaultEqualler).actual()
+}
+
+// DeleteAllSelfWithG deletes value from []T slice in all with Equaller, by modifying given slice directly, is the generic function of DeleteAllWith.
+func DeleteAllSelfWithG(slice interface{}, value interface{}, equaller Equaller) interface{} {
+	s, v := checkSliceInterfaceAndElemParam(slice, value)
+	return coreDeleteSelf(s, v, 0, equaller).actual()
+}
+
+// coreDeleteSelf is the implementation for DeleteSelf, DeleteSelfWith, DeleteAllSelf, DeleteAllSelfWith, DeleteSelfG, DeleteSelfWithG, DeleteAllSelfG and DeleteAllSelfWithG.
+func coreDeleteSelf(slice innerSlice, value interface{}, n int, equaller Equaller) innerSlice {
 	if n <= 0 {
 		n = slice.length()
 	}
@@ -384,7 +445,7 @@ func coreDelete(slice innerSlice, value interface{}, n int, equaller Equaller) i
 	for idx != -1 && cnt < n {
 		slice.remove(idx)
 		cnt++
-		idx = coreIndexOf(slice, value, equaller)
+		idx = coreIndexOf(slice, value, equaller) // O(n^2)
 	}
 	return slice
 }
@@ -414,8 +475,8 @@ func ContainsAllWithG(list, subset interface{}, equaller Equaller) bool {
 // coreContainsAll is the implementation for ContainsAll, ContainsAllWith, ContainsAllG and ContainsAllWithG.
 func coreContainsAll(list, subset innerSlice, equaller Equaller) bool {
 	for i := 0; i < subset.length(); i++ {
-		val := subset.get(i)
-		if !coreContains(list, val, equaller) {
+		item := subset.get(i)
+		if !coreContains(list, item, equaller) {
 			return false
 		}
 	}
@@ -565,23 +626,175 @@ func coreDeduplicate(slice innerSlice, equaller Equaller) innerSlice {
 	return result
 }
 
-// ElementMatch checks whether two []interface{} slice equal without order.
+// DeduplicateSelf removes the duplicate items from []interface{} slice as a set, by modifying given slice directly.
+func DeduplicateSelf(slice []interface{}) []interface{} {
+	return coreDeduplicateSelf(checkInterfaceSliceParam(slice), defaultEqualler).actual().([]interface{})
+}
+
+// DeduplicateSelfWith removes the duplicate items from []interface{} slice as a set with Equaller, by modifying given slice directly.
+func DeduplicateSelfWith(slice []interface{}, equaller Equaller) []interface{} {
+	return coreDeduplicateSelf(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
+}
+
+// DeduplicateSelfG removes the duplicate items from []T slice as a set, is the generic function of DeduplicateSelf, by modifying given slice directly.
+func DeduplicateSelfG(slice interface{}) interface{} {
+	return coreDeduplicateSelf(checkSliceInterfaceParam(slice), defaultEqualler).actual()
+}
+
+// DeduplicateSelfWithG removes the duplicate items from []T slice as a set with Equaller, is the generic function of DeduplicateSelfWith, by modifying given slice directly.
+func DeduplicateSelfWithG(slice interface{}, equaller Equaller) interface{} {
+	return coreDeduplicateSelf(checkSliceInterfaceParam(slice), equaller).actual()
+}
+
+// coreDeduplicate is the implementation for DeduplicateSelf, DeduplicateSelfWith, DeduplicateSelfG and DeduplicateSelfWithG.
+func coreDeduplicateSelf(slice innerSlice, equaller Equaller) innerSlice {
+	length := slice.length()
+	if length <= 1 {
+		return slice
+	}
+	i := 1
+	for idx := 1; idx < length; idx++ {
+		item := slice.get(idx)
+		if !coreContains(slice.slice(0, i), item, equaller) {
+			slice.set(i, item)
+			i++
+		}
+	}
+	return slice.slice(0, i)
+}
+
+// Compact removes the duplicate items in neighbor from []interface{} slice.
+func Compact(slice []interface{}) []interface{} {
+	return coreCompact(checkInterfaceSliceParam(slice), defaultEqualler).actual().([]interface{})
+}
+
+// CompactWith removes the duplicate items in neighbor from []interface{} slice with Equaller.
+func CompactWith(slice []interface{}, equaller Equaller) []interface{} {
+	return coreCompact(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
+}
+
+// CompactG removes the duplicate items in neighbor from []T slice, is the generic function of Compact.
+func CompactG(slice interface{}) interface{} {
+	return coreCompact(checkSliceInterfaceParam(slice), defaultEqualler).actual()
+}
+
+// CompactWithG removes the duplicate items in neighbor from []T slice with Equaller, is the generic function of CompactWith.
+func CompactWithG(slice interface{}, equaller Equaller) interface{} {
+	return coreCompact(checkSliceInterfaceParam(slice), equaller).actual()
+}
+
+// coreCompact is the implementation for Compact, CompactWith, CompactG and CompactWithG.
+func coreCompact(slice innerSlice, equaller Equaller) innerSlice {
+	length := slice.length()
+	if length <= 1 {
+		return slice
+	}
+	result := makeSameTypeInnerSlice(slice, 1, 1)
+	last := slice.get(0)
+	result.set(0, last)
+	for idx := 1; idx < length; idx++ { // O(n)
+		item := slice.get(idx)
+		if !equaller(item, last) {
+			result.append(item)
+			last = item
+		}
+	}
+	return result
+}
+
+// CompactSelf removes the duplicate items in neighbor from []interface{} slice, by modifying given slice directly.
+func CompactSelf(slice []interface{}) []interface{} {
+	return coreCompactSelf(checkInterfaceSliceParam(slice), defaultEqualler).actual().([]interface{})
+}
+
+// CompactSelfWith removes the duplicate items in neighbor from []interface{} slice with Equaller, by modifying given slice directly.
+func CompactSelfWith(slice []interface{}, equaller Equaller) []interface{} {
+	return coreCompactSelf(checkInterfaceSliceParam(slice), equaller).actual().([]interface{})
+}
+
+// CompactSelfG removes the duplicate items in neighbor from []T slice, is the generic function of CompactSelf, by modifying given slice directly.
+func CompactSelfG(slice interface{}) interface{} {
+	return coreCompactSelf(checkSliceInterfaceParam(slice), defaultEqualler).actual()
+}
+
+// CompactSelfWithG removes the duplicate items in neighbor from []T slice with Equaller, is the generic function of CompactSelfWith, by modifying given slice directly.
+func CompactSelfWithG(slice interface{}, equaller Equaller) interface{} {
+	return coreCompactSelf(checkSliceInterfaceParam(slice), equaller).actual()
+}
+
+// coreCompactSelf is the implementation for CompactSelf, CompactSelfWith, CompactSelfG and CompactSelfWithG.
+func coreCompactSelf(slice innerSlice, equaller Equaller) innerSlice {
+	length := slice.length()
+	if length <= 1 {
+		return slice
+	}
+	i := 1
+	last := slice.get(0)
+	for idx := 1; idx < length; idx++ {
+		item := slice.get(idx)
+		if !equaller(item, last) {
+			slice.set(i, item)
+			i++
+			last = item
+		}
+	}
+	return slice.slice(0, i)
+}
+
+// Equal checks whether two []interface{} slices equal (the same length and all elements equal).
+func Equal(slice1, slice2 []interface{}) bool {
+	return coreEqual(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler)
+}
+
+// EqualWith checks whether two []interface{} slices equal (the same length and all elements equal) with Equaller.
+func EqualWith(slice1, slice2 []interface{}, equaller Equaller) bool {
+	return coreEqual(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller)
+}
+
+// EqualG checks whether two []T slices equal (the same length and all elements equal), is the generic function of Equal.
+func EqualG(slice1, slice2 interface{}) bool {
+	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
+	return coreEqual(s1, s2, defaultEqualler)
+}
+
+// EqualWithG checks whether two []T slices equal (the same length and all elements equal) with Equaller, is the generic function of EqualWith.
+func EqualWithG(slice1, slice2 interface{}, equaller Equaller) bool {
+	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
+	return coreEqual(s1, s2, equaller)
+}
+
+// coreEqual is the implementation for Equal, EqualWith, EqualG and EqualWithG.
+func coreEqual(slice1, slice2 innerSlice, equaller Equaller) bool {
+	length1, length2 := slice1.length(), slice2.length()
+	if length1 != length2 {
+		return false
+	}
+	for idx := 0; idx < length1; idx++ {
+		item1, item2 := slice1.get(idx), slice2.get(idx)
+		if !equaller(item1, item2) {
+			return false
+		}
+	}
+	return true
+}
+
+// ElementMatch checks whether two []interface{} slices equal (ignore the order of the elements, but the number of duplicate elements should match).
 func ElementMatch(slice1, slice2 []interface{}) bool {
 	return coreElementMatch(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), defaultEqualler)
 }
 
-// ElementMatchWith checks whether two []interface{} slice equal without order with Equaller.
+// ElementMatchWith checks whether two []interface{} slices equal (ignore the order of the elements, but the number of duplicate elements should match) with Equaller.
 func ElementMatchWith(slice1, slice2 []interface{}, equaller Equaller) bool {
 	return coreElementMatch(checkInterfaceSliceParam(slice1), checkInterfaceSliceParam(slice2), equaller)
 }
 
-// ElementMatchG checks whether two []T slice equal without order, is the generic function of ElementMatch.
+// ElementMatchG checks whether two []T slices equal (ignore the order of the elements, but the number of duplicate elements should match), is the generic function of ElementMatch.
 func ElementMatchG(slice1, slice2 interface{}) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, defaultEqualler)
 }
 
-// ElementMatchWithG checks whether two []T slice equal without order with Equaller, is the generic function of ElementMatchWith.
+// ElementMatchWithG checks whether two []T slices equal (ignore the order of the elements, but the number of duplicate elements should match) with Equaller, is the generic function of ElementMatchWith.
 func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 	s1, s2 := checkTwoSliceInterfaceParam(slice1, slice2)
 	return coreElementMatch(s1, s2, equaller)
@@ -589,11 +802,7 @@ func ElementMatchWithG(slice1, slice2 interface{}, equaller Equaller) bool {
 
 // coreElementMatch is the implementation for ElementMatch, ElementMatchWith, ElementMatchG and ElementMatchWithG.
 func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
-	extra1 := makeSameTypeInnerSlice(slice1, 0, 0)
-	extra2 := makeSameTypeInnerSlice(slice2, 0, 0)
-
-	length1 := slice1.length()
-	length2 := slice2.length()
+	length1, length2 := slice1.length(), slice2.length()
 	visited := make([]bool, length2)
 	for idx1 := 0; idx1 < length1; idx1++ {
 		item1 := slice1.get(idx1)
@@ -610,18 +819,17 @@ func coreElementMatch(slice1, slice2 innerSlice, equaller Equaller) bool {
 			}
 		}
 		if !exist {
-			extra1.append(item1)
+			return false
 		}
 	}
 
 	for idx2 := 0; idx2 < length2; idx2++ {
-		item2 := slice2.get(idx2)
 		if !visited[idx2] {
-			extra2.append(item2)
+			return false
 		}
 	}
 
-	return extra1.length() == 0 && extra2.length() == 0
+	return true
 }
 
 // Repeat generates a []interface{} with given value repeated given count.
