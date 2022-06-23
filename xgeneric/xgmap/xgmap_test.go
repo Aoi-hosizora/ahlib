@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xsugar"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
+	"math"
 	"os"
 	"path"
 	"reflect"
@@ -144,6 +145,73 @@ func TestFilterAnyAll(t *testing.T) {
 	xtestingEqual(t, All(map[int32]int32{5: 9, 4: 1, 6: 8, 3: 2, 7: 7}, func(t int32, t2 int32) bool { return t > 0 && t2 > 0 }), true)
 	xtestingEqual(t, All(map[uint]string{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return len(t2) > 2 }), false)
 	xtestingEqual(t, All(map[uint]string{0: "aaa", 2: "b", 1: "ccccc", 3: "dd"}, func(t uint, t2 string) bool { return t == 2 || len(t2) >= 2 }), true)
+}
+
+func TestExpMaps(t *testing.T) {
+	// From https://cs.opensource.google/go/x/exp/+/master:maps/maps_test.go
+
+	var m1 = map[int]int{1: 2, 2: 4, 4: 8, 8: 16}
+	var m2 = map[int]string{1: "2", 2: "4", 4: "8", 8: "16"}
+
+	t.Run("TestEqual", func(t *testing.T) {
+		xtestingEqual(t, Equal(m1, m1), true)
+		xtestingEqual(t, Equal(m1, map[int]int(nil)), false)
+		xtestingEqual(t, Equal[map[int]int](nil, nil), true)
+		xtestingEqual(t, Equal(map[int]int(nil), m1), false)
+		xtestingEqual(t, Equal(m1, map[int]int{1: 2}), false)
+		xtestingEqual(t, Equal(map[int]string{1: "2"}, m2), false)
+		xtestingEqual(t, Equal(m2, m2), true)
+
+		// Comparing NaN for equality is expected to fail.
+		mf := map[int]float64{1: 0, 2: math.NaN()}
+		xtestingEqual(t, Equal(mf, mf), false)
+	})
+
+	t.Run("TestEqualWith", func(t *testing.T) {
+		equal := func(v1, v2 int) bool { return v1 == v2 }
+		equalIntStr := func(v1 int, v2 string) bool { return strconv.Itoa(v1) == v2 }
+		equalFp := func(v1, v2 float64) bool { return v1 == v2 }
+		equalNaN := func(v1, v2 float64) bool { return v1 == v2 || (math.IsNaN(v1) && math.IsNaN(v2)) }
+
+		xtestingEqual(t, EqualWith(m1, (map[int]int)(nil), equal), false)
+		xtestingEqual(t, EqualWith((map[int]int)(nil), m1, equal), false)
+		xtestingEqual(t, EqualWith[map[int]int, map[int]int](nil, nil, equal), true)
+		xtestingEqual(t, EqualWith(m1, m1, equal), true)
+		xtestingEqual(t, EqualWith(m1, map[int]int{1: 2}, equal), false)
+		xtestingEqual(t, EqualWith(m1, m2, equalIntStr), true)
+
+		// Comparing NaN for equality is expected to fail, but it should succeed using equalNaN.
+		mf := map[int]float64{1: 0, 2: math.NaN()}
+		xtestingEqual(t, EqualWith(mf, mf, equalFp), false)
+		xtestingEqual(t, EqualWith(mf, mf, equalNaN), true)
+	})
+
+	t.Run("TestClone", func(t *testing.T) {
+		xtestingEqual(t, Clone(map[int]int(nil)), map[int]int{})
+		xtestingEqual(t, Clone(map[int]int{}), map[int]int{})
+		xtestingEqual(t, Clone(map[int]string{0: "0"}), map[int]string{0: "0"})
+		xtestingEqual(t, Clone(m1), m1)
+		xtestingEqual(t, Clone(m2), m2)
+	})
+
+	t.Run("TestCopyTo", func(t *testing.T) {
+		mc := make(map[int]int, 0)
+		CopyTo(mc, m1)
+		xtestingEqual(t, mc, m1)
+		mc = Clone(m1)
+		CopyTo(mc, mc)
+		xtestingEqual(t, mc, m1)
+		CopyTo(mc, map[int]int{16: 32})
+		xtestingEqual(t, mc, map[int]int{1: 2, 2: 4, 4: 8, 8: 16, 16: 32})
+	})
+
+	t.Run("TestClear", func(t *testing.T) {
+		ml := map[int]int{1: 1, 2: 2, 3: 3}
+		Clear(ml)
+		xtestingEqual(t, len(ml), 0)
+		xtestingEqual(t, ml, map[int]int{})
+		xtestingEqual(t, Equal(ml, map[int]int(nil)), true)
+	})
 }
 
 func sorted[T xsugar.Ordered](slice []T) []T {

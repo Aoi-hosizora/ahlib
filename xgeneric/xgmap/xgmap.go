@@ -7,10 +7,6 @@ import (
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
 )
 
-// TODO
-// https://github.com/zyedidia/generic
-// https://pkg.go.dev/golang.org/x/exp/maps
-
 // ==================
 // fp-style functions
 // ==================
@@ -132,7 +128,7 @@ func Reduce[K comparable, V, U any](m map[K]V, initial U, f func(U, K, V) U) U {
 }
 
 // Filter filters given map and returns a new map using given predicate function.
-func Filter[K comparable, V any, M ~map[K]V](m M, f func(K, V) bool) M {
+func Filter[M ~map[K]V, K comparable, V any](m M, f func(K, V) bool) M {
 	if f == nil {
 		panic(panicNilPredicateFunc)
 	}
@@ -172,4 +168,49 @@ func All[K comparable, V any](m map[K]V, f func(K, V) bool) bool {
 		}
 	}
 	return true
+}
+
+// ====================================
+// functions from golang.org/x/exp/maps
+// ====================================
+
+// Equal reports whether two maps contain the same key/value pairs. Values are compared using `==`.
+func Equal[M ~map[K]V, K, V comparable](m1, m2 M) bool {
+	return EqualWith(m1, m2, func(i, j V) bool { return i == j })
+}
+
+// EqualWith is like Equal, but compares values using given equaller.
+func EqualWith[M1 ~map[K]V1, M2 ~map[K]V2, K comparable, V1, V2 any](m1 M1, m2 M2, equaller func(V1, V2) bool) bool {
+	if len(m1) != len(m2) {
+		return false
+	}
+	for k, v1 := range m1 {
+		if v2, ok := m2[k]; !ok || !equaller(v1, v2) {
+			return false
+		}
+	}
+	return true
+}
+
+// Clone returns a copy of given map, and the elements are copied using assignment.
+func Clone[M ~map[K]V, K comparable, V any](m M) M {
+	newMap := make(M, len(m))
+	for k, v := range m {
+		newMap[k] = v
+	}
+	return newMap
+}
+
+// CopyTo copies all key-value pairs in src to dst.
+func CopyTo[K comparable, V any](dst, src map[K]V) {
+	for k, v := range src {
+		dst[k] = v
+	}
+}
+
+// Clear removes all entries from given map, leaving it empty.
+func Clear[M ~map[K]V, K comparable, V any](m M) {
+	for k := range m {
+		delete(m, k)
+	}
 }

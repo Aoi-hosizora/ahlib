@@ -288,9 +288,9 @@ func TestFastStoaAtos(t *testing.T) {
 	// => [0x00000003, 0x00000002, 0x00000001] (number literal)
 	// => 0x03 0x00 0x00 0x00 0x02 0x00 0x00 0x00 0x01 0x00 0x00 0x00 (big endian in memory)
 
-	a1 := FastStoa(slice, (*[2]int32)(nil))
-	a2 := FastStoa(slice, (*[12]int8)(nil))
-	a3 := FastStoa(slice, (*[3]int64)(nil))
+	a1 := FastStoa[[2]int32](slice)
+	a2 := FastStoa[[12]int8](slice)
+	a3 := FastStoa[[3]int64](slice)
 	xtestingEqual(t, *a1, [2]int32{3, 2})
 	xtestingEqual(t, *a2, [12]int8{3, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0})
 	xtestingEqual(t, (*a3)[0], int64(0x00000002_00000003))
@@ -298,9 +298,9 @@ func TestFastStoaAtos(t *testing.T) {
 	xtestingEqual(t, len(*a3), 3)
 	xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&slice)).Data, uintptr(unsafe.Pointer(a1)))
 
-	s1 := FastAtos(&array, []int32(nil), 2)
-	s2 := FastAtos(&array, []int8(nil), 12)
-	s3 := FastAtos(&array, []int64(nil), 3)
+	s1 := FastAtos[int32](&array, 2)
+	s2 := FastAtos[int8](&array, 12)
+	s3 := FastAtos[int64](&array, 3)
 	xtestingEqual(t, s1, []int32{3, 2})
 	xtestingEqual(t, s2, []int8{3, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0})
 	xtestingEqual(t, s3[0], int64(0x00000002_00000003))
@@ -310,17 +310,17 @@ func TestFastStoaAtos(t *testing.T) {
 	xtestingEqual(t, cap(s3), 3)
 
 	xtestingPanic(t, false, func() {
-		zero := FastStoa([]string(nil), (*[3]string)(nil))
+		zero := FastStoa[[3]string]([]string(nil))
 		xtestingEqual(t, zero, (*[3]string)(nil))
 		xtestingPanic(t, true, func() { _ = *zero })
 	})
 	xtestingPanic(t, false, func() {
-		zero := FastAtos((*[3]string)(nil), []string(nil), 3)
+		zero := FastAtos[string]((*[3]string)(nil), 3)
 		var x []string
 		xtestingEqual(t, zero, x)
 		xtestingEqual(t, len(zero), 3)
 
-		zero2 := FastAtos((*[3]string)(nil), []string(nil), 0)
+		zero2 := FastAtos[string]((*[3]string)(nil), 0)
 		xtestingPanic(t, true, func() { zero = append(zero, "") }) // invalid memory address
 		xtestingPanic(t, false, func() { zero2 = append(zero2, "") })
 	})
@@ -334,7 +334,7 @@ func BenchmarkFastStoa(b *testing.B) {
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			_ = FastStoa(slice, (*[N]int32)(nil))
+			_ = FastStoa[[N]int32](slice)
 		}
 	})
 
@@ -365,7 +365,7 @@ func BenchmarkFastAtos(b *testing.B) {
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			_ = FastAtos(&array, []int32(nil), 3)
+			_ = FastAtos[int32](&array, 3)
 		}
 	})
 
