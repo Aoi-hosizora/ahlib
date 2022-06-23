@@ -90,7 +90,7 @@ func (g *GoPool) CtxGo(ctx context.Context, f func(context.Context)) {
 		g.enqueueTask(t) // numTasks++
 		if g.NumWorkers() < g.WorkersCap() {
 			w := g.getWorker() // numWorkers++
-			go w.start(g)
+			go w.start()
 		}
 	}
 }
@@ -147,20 +147,25 @@ func (g *GoPool) dequeueTask() (*task, bool) {
 }
 
 // worker represents a goroutine worker, and is used to execute task.
-type worker struct{}
+type worker struct {
+	g *GoPool
+}
 
 // getWorker returns an empty worker structure from worker sync.Pool and updates numWorkers.
 func (g *GoPool) getWorker() *worker {
 	g.workerMutex.Lock()
 	defer g.workerMutex.Unlock()
+	w := g.workerPool.Get().(*worker)
+	w.g = g
 	atomic.AddInt32(&g.numWorkers, 1)
-	return g.workerPool.Get().(*worker)
+	return w
 }
 
 // recycleWorker recycles to worker sync.Pool and updates numWorkers.
 func (g *GoPool) recycleWorker(w *worker) {
 	g.workerMutex.Lock()
 	defer g.workerMutex.Unlock()
+	w.g = nil
 	g.workerPool.Put(w)
 	atomic.AddInt32(&g.numWorkers, -1)
 }
@@ -169,16 +174,16 @@ func (g *GoPool) recycleWorker(w *worker) {
 var _testFlag atomic.Value
 
 // start dequeues a task from the head of GoPool's task linked list, and invokes given function with panic handler.
-func (w *worker) start(g *GoPool) {
-	defer g.recycleWorker(w) // numWorkers--
+func (w *worker) start() {
+	defer w.g.recycleWorker(w) // numWorkers--
 	for {
-		t, ok := g.dequeueTask() // numTasks--
+		t, ok := w.g.dequeueTask() // numTasks--
 		if !ok {
 			break
 		}
 		func() {
 			defer func() {
-				if hdl := g.panicHandler; hdl != nil {
+				if hdl := w.g.panicHandler; hdl != nil {
 					if i := recover(); i != nil {
 						hdl(t.ctx, i)
 					}
@@ -194,7 +199,7 @@ func (w *worker) start(g *GoPool) {
 			}()
 			t.f(t.ctx)
 		}()
-		g.recycleTask(t)
+		w.g.recycleTask(t)
 	}
 }
 

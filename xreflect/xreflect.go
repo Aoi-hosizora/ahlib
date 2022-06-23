@@ -6,10 +6,6 @@ import (
 	"unsafe"
 )
 
-// https://github.com/modern-go/reflect2
-// reflect2.IFaceToEFace() // TODO
-// TODO add to xreflect
-
 // ====================
 // kind checker related
 // ====================

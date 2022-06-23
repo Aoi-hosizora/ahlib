@@ -233,8 +233,8 @@ func (l *OrderedMap) String() string {
 }
 
 const (
-	panicNilObject = "xorderedmap: nil object"
-	panicNonStruct = "xorderedmap: non-struct object"
+	panicNilObject       = "xorderedmap: nil object"
+	panicNonStructObject = "xorderedmap: non-struct or non-struct-pointer object"
 )
 
 // FromInterface creates an OrderedMap from a struct (with json tag), panics if using nil or non-struct object.
@@ -249,7 +249,7 @@ func FromInterface(object interface{}) *OrderedMap {
 		val = val.Elem()
 	}
 	if typ.Kind() != reflect.Struct {
-		panic(panicNonStruct)
+		panic(panicNonStructObject)
 	}
 
 	om := NewWithCap(typ.NumField())

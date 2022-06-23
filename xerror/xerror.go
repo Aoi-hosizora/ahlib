@@ -141,7 +141,7 @@ func Separate(err error) []error {
 // error group
 // ===========
 
-// ErrorGroup is a sync.WaitGroup wrapper that can used to synchronization, error propagation, and context cancelation for
+// ErrorGroup is a sync.WaitGroup wrapper that can used to synchronization, error propagation, and context cancellation for
 // groups of goroutines, refers to https://pkg.go.dev/golang.org/x/sync/errgroup for more details.
 //
 // A zero ErrorGroup is valid and does not cancel on error.

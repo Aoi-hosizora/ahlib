@@ -90,7 +90,7 @@ func DefaultLogger(level LogLevel, logPrvFunc func(moduleName, moduleType string
 	return &defaultLogger{level: level, logPrvFunc: logPrvFunc, logInjFunc: logInjFunc}
 }
 
-// PrvName logs when ModuleContainer.ProvideByName invoked, can be enabled by LogPrvName flag.
+// PrvName logs when ModuleContainer.ProvideByName or ModuleContainer.AutoProvide invoked, can be enabled by LogPrvName flag.
 //
 // The default format logs like:
 // 	[Xmodule] Prv: xxx-tag <-- *Module
@@ -103,7 +103,7 @@ func (d *defaultLogger) PrvName(moduleName, moduleType string) {
 	}
 }
 
-// PrvType logs when ModuleContainer.ProvideByType invoked, can be enabled by LogPrvType flag.
+// PrvType logs when ModuleContainer.ProvideByType or ModuleContainer.AutoProvide invoked, can be enabled by LogPrvType flag.
 //
 // The default format logs like:
 // 	[Xmodule] Prv: ~ <-- *Module
@@ -116,7 +116,7 @@ func (d *defaultLogger) PrvType(moduleType string) {
 	}
 }
 
-// PrvIntf logs when ModuleContainer.ProvideByIntf invoked, can be enabled by LogInjField flag.
+// PrvIntf logs when ModuleContainer.ProvideByIntf or ModuleContainer.AutoProvide invoked, can be enabled by LogInjField flag.
 //
 // The default format logs like:
 // 	[Xmodule] Prv: ~ <-- IModule (*Module)

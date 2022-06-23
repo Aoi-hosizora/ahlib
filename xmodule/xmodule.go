@@ -30,10 +30,10 @@ func typeKey(typ reflect.Type) mkey {
 	return mkey{typ: typ}
 }
 
-// mkeyFromField returns a mkey with given field information, including field name and field type.
-func mkeyFromField(moduleTag string, fieldType reflect.Type) mkey {
-	if moduleTag != "~" {
-		return mkey{name: ModuleName(moduleTag)} // by name -> use field tag
+// mkeyFromField returns a mkey with given field information.
+func mkeyFromField(fieldTag string, fieldType reflect.Type) mkey {
+	if fieldTag != "~" {
+		return mkey{name: ModuleName(fieldTag)} // by name -> use field tag
 	}
 	return mkey{typ: fieldType} // by type or intf -> use field type
 }

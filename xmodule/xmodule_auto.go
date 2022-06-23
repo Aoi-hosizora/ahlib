@@ -108,9 +108,9 @@ func injectToStructFields(mc *ModuleContainer, structType reflect.Type, structVa
 }
 
 // injectToSingleField checks whether the module for given field exists and type matches, and injects it to given field if check passed.
-func injectToSingleField(mc *ModuleContainer, moduleTag string, fieldType reflect.Type, fieldValue reflect.Value, injecteeTypeName string, lock bool) error {
+func injectToSingleField(mc *ModuleContainer, fieldTag string, fieldType reflect.Type, fieldValue reflect.Value, injecteeTypeName string, lock bool) error {
 	// generate key by field tag and type
-	key := mkeyFromField(moduleTag, fieldType) // by name (...), type or intf (~)
+	key := mkeyFromField(fieldTag, fieldType) // by name (...), type or intf (~)
 
 	// check module existence
 	if lock {
@@ -258,10 +258,9 @@ func analyseDependency(providers []*ModuleProvider) (indeps []*ModuleProvider, d
 			panic(panicInvalidProvider)
 		}
 
-		// analyse module type and fields
-		typ := reflect.TypeOf(p.mod)
-		if typ.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct {
-			typ = typ.Elem()
+		// extract module's dependents
+		if p.modType.Kind() == reflect.Ptr && p.modType.Elem().Kind() == reflect.Struct {
+			typ := p.modType.Elem()
 			for idx := 0; idx < typ.NumField(); idx++ {
 				sf := typ.Field(idx)
 				moduleTag := sf.Tag.Get(_moduleTagName)
@@ -300,7 +299,7 @@ func findProvidableModules(mc *ModuleContainer, graph map[mkey]*ModuleProvider) 
 			providable = append(providable, p)
 		}
 	}
-	if len(providable) == 0 {
+	if len(graph) > 0 && len(providable) == 0 {
 		return nil, errors.New(errModulesCycleDependency)
 	}
 
