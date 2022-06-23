@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Equaller represents an equality function for two interface{}, is used in XXXWith methods.
+// Equaller represents an equality function for two interface{} values, is used in XXXWith methods.
 type Equaller func(i, j interface{}) bool
 
 // Lesser represents a less function for sort, see sort.Interface.
@@ -17,7 +17,7 @@ var defaultEqualler Equaller = func(i, j interface{}) bool {
 	return i == j
 }
 
-// ShuffleSelf shuffles the []interface{} slice directly.
+// ShuffleSelf shuffles the []interface{} slice, by modifying given slice directly.
 func ShuffleSelf(slice []interface{}) {
 	coreShuffle(checkInterfaceSliceParam(slice))
 }
@@ -29,7 +29,7 @@ func Shuffle(slice []interface{}) []interface{} {
 	return newSlice
 }
 
-// ShuffleSelfG shuffles the []T slice directly, is the generic function of ShuffleSelf.
+// ShuffleSelfG shuffles the []T slice, by modifying given slice directly, is the generic function of ShuffleSelf.
 func ShuffleSelfG(slice interface{}) {
 	coreShuffle(checkSliceInterfaceParam(slice))
 }
@@ -56,7 +56,7 @@ func coreShuffle(slice innerSlice) {
 	}
 }
 
-// ReverseSelf reverses the []interface{} slice directly.
+// ReverseSelf reverses the []interface{} slice, by modifying given slice directly.
 func ReverseSelf(slice []interface{}) {
 	coreReverse(checkInterfaceSliceParam(slice))
 }
@@ -68,7 +68,7 @@ func Reverse(slice []interface{}) []interface{} {
 	return newSlice
 }
 
-// ReverseSelfG reverses the []T slice directly, is the generic function of ReverseSelf.
+// ReverseSelfG reverses the []T slice, by modifying given slice directly, is the generic function of ReverseSelf.
 func ReverseSelfG(slice interface{}) {
 	coreReverse(checkSliceInterfaceParam(slice))
 }
@@ -89,7 +89,7 @@ func coreReverse(slice innerSlice) {
 	}
 }
 
-// SortSelf sorts the []interface{} slice with less function directly.
+// SortSelf sorts the []interface{} slice with less function, by modifying given slice directly.
 func SortSelf(slice []interface{}, less Lesser) {
 	coreSort(checkInterfaceSliceParam(slice), less, false)
 }
@@ -101,7 +101,7 @@ func Sort(slice []interface{}, less Lesser) []interface{} {
 	return newSlice
 }
 
-// SortSelfG sorts the []T slice with less function directly, is the generic function of SortSelf.
+// SortSelfG sorts the []T slice with less function, by modifying given slice directly, is the generic function of SortSelf.
 func SortSelfG(slice interface{}, less Lesser) {
 	coreSort(checkSliceInterfaceParam(slice), less, false)
 }
@@ -113,7 +113,7 @@ func SortG(slice interface{}, less Lesser) interface{} {
 	return newSlice
 }
 
-// StableSortSelf sorts the []interface{} slice in stable with less function directly.
+// StableSortSelf sorts the []interface{} slice in stable with less function, by modifying given slice directly.
 func StableSortSelf(slice []interface{}, less Lesser) {
 	coreSort(checkInterfaceSliceParam(slice), less, true)
 }
@@ -125,7 +125,7 @@ func StableSort(slice []interface{}, less Lesser) []interface{} {
 	return newSlice
 }
 
-// StableSortSelfG sorts the []T slice in stable with less function directly, is the generic function of StableSortSelf.
+// StableSortSelfG sorts the []T slice in stable with less function, by modifying given slice directly, is the generic function of StableSortSelf.
 func StableSortSelfG(slice interface{}, less Lesser) {
 	coreSort(checkSliceInterfaceParam(slice), less, true)
 }

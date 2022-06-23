@@ -322,40 +322,41 @@ func TestInsert(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	eq := func(i, j testStruct) bool { return i.value == j.value }
 
 	for _, tc := range []struct {
-		name      string
 		give      []int
 		giveValue int
 		giveN     int
 		want      []int
 	}{
-		{"", []int{}, 0, 1, []int{}},
-		{"", s2, -1, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 0, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 1, 1, []int{5, 2, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 1, 2, []int{5, 2, 5, 2, 6, 3, 2}},
-		{"", s2, 2, 1, []int{1, 5, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 2, 2, []int{1, 5, 1, 5, 6, 3, 2}},
-		{"", s2, 2, -1, []int{1, 5, 1, 5, 6, 3}},
-		{"", s2, 3, 1, []int{1, 5, 2, 1, 5, 2, 6, 2}},
-		{"", s2, 4, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 5, 1, []int{1, 2, 1, 5, 2, 6, 3, 2}},
-		{"", s2, 6, 1, []int{1, 5, 2, 1, 5, 2, 3, 2}},
-		{"", s2, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{}, 0, 1, []int{}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 1, []int{5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 2, []int{5, 2, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 1, []int{1, 5, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 2, []int{1, 5, 1, 5, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, -1, []int{1, 5, 1, 5, 6, 3}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, 1, []int{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, 1, []int{1, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, 1, []int{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			xtestingEqual(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
-			give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
-			xtestingEqual(t, testToIntSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
-		})
+		xtestingEqual(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
+		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteSelf(tc.give, tc.giveValue, tc.giveN)
+		xtestingEqual(t, d1, tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		xtestingEqual(t, testToIntSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
+		d2 := DeleteSelfWith(give, giveValue, tc.giveN, eq)
+		xtestingEqual(t, testToIntSlice(d2), tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
 func TestDeleteAll(t *testing.T) {
-	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	eq := func(i, j testStruct) bool { return i.value == j.value }
 
 	for _, tc := range []struct {
@@ -364,19 +365,25 @@ func TestDeleteAll(t *testing.T) {
 		want      []int
 	}{
 		{[]int{}, 0, []int{}},
-		{s2, -1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 0, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 1, []int{5, 2, 5, 2, 6, 3, 2}},
-		{s2, 2, []int{1, 5, 1, 5, 6, 3}},
-		{s2, 3, []int{1, 5, 2, 1, 5, 2, 6, 2}},
-		{s2, 4, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 5, []int{1, 2, 1, 2, 6, 3, 2}},
-		{s2, 6, []int{1, 5, 2, 1, 5, 2, 3, 2}},
-		{s2, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, []int{5, 2, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, []int{1, 5, 1, 5, 6, 3}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, []int{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, []int{1, 2, 1, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, []int{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtestingEqual(t, DeleteAll(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteAllSelf(tc.give, tc.giveValue)
+		xtestingEqual(t, d1, tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtestingEqual(t, testToIntSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
+		d2 := DeleteAllSelfWith(give, giveValue, eq)
+		xtestingEqual(t, testToIntSlice(d2), tc.want)
+		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -730,6 +737,38 @@ func TestZipUnzip(t *testing.T) {
 	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})), xtuple.Triple[[]string, []uint32, []byte]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}, Item3: []byte{'0', '9', '8'}})
 }
 
+func TestExpSlices(t *testing.T) {
+	// From https://cs.opensource.google/go/x/exp/+/master:slices/slices_test.go
+
+	t.Run("TestClone", func(t *testing.T) {
+		xtestingEqual(t, Clone([]int(nil)), []int{})
+		xtestingEqual(t, Clone([]int{}), []int{})
+		xtestingEqual(t, Clone([]int{0}), []int{0})
+		xtestingEqual(t, Clone([]int{1, 2, 3}), []int{1, 2, 3})
+		xtestingEqual(t, Clone([]byte{'a', 'a', 'b', 'c'}), []byte{'a', 'a', 'b', 'c'})
+		xtestingEqual(t, Clone([]int{1, 2, 3}[:0]), []int{})
+	})
+
+	t.Run("TestClip", func(t *testing.T) {
+		s1 := []int{1, 2, 3, 4, 5, 6}[:3]
+		xtestingEqual(t, len(s1), 3)
+		xtestingEqual(t, cap(s1), 6)
+		s2 := Clip(s1)
+		xtestingEqual(t, s2, []int{1, 2, 3})
+		xtestingEqual(t, cap(s2), 3)
+	})
+
+	t.Run("TestGrow", func(t *testing.T) {
+		s1 := []int{1, 2, 3}
+		s2 := Grow(Clone(s1), -1)
+		xtestingEqual(t, s1, s2)
+		xtestingEqual(t, cap(s2), cap(s1))
+		s3 := Grow(Clone(s1), 1000)
+		xtestingEqual(t, s3, s1)
+		xtestingEqual(t, cap(s3) >= 1000+len(s1), true)
+	})
+}
+
 type (
 	IntSlice    []int
 	StringSlice []string
@@ -815,6 +854,19 @@ func TestTildeSignature(t *testing.T) {
 	xtestingEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
 	xtestingEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
 
+	xtestingEqual(t, Diff(i(), i()), IntSlice{})
+	xtestingEqual(t, Diff(s(), s()), StringSlice{})
+	xtestingEqual(t, Diff(i(), i()).typename(), "IntSlice")
+	xtestingEqual(t, Diff(s(), s()).typename(), "StringSlice")
+	xtestingEqual(t, Union(i(), i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Union(s(), s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Union(i(), i()).typename(), "IntSlice")
+	xtestingEqual(t, Union(s(), s()).typename(), "StringSlice")
+	xtestingEqual(t, Intersect(i(), i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Intersect(s(), s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Intersect(i(), i()).typename(), "IntSlice")
+	xtestingEqual(t, Intersect(s(), s()).typename(), "StringSlice")
+
 	xtestingEqual(t, Deduplicate(i()), IntSlice{1, 2, 3})
 	xtestingEqual(t, Deduplicate(s()), StringSlice{"aaa", "b", "cc"})
 	xtestingEqual(t, Deduplicate(i()).typename(), "IntSlice")
@@ -837,6 +889,19 @@ func TestTildeSignature(t *testing.T) {
 	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
 	xtestingEqual(t, Filter(i(), func(i int) bool { return i <= 2 }).typename(), "IntSlice")
 	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
+
+	xtestingEqual(t, Clone(i()), IntSlice{1, 2, 3})
+	xtestingEqual(t, Clone(s()), StringSlice{"aaa", "b", "cc"})
+	xtestingEqual(t, Clone(i()).typename(), "IntSlice")
+	xtestingEqual(t, Clone(s()).typename(), "StringSlice")
+	xtestingEqual(t, cap(Clip(Grow(i(), 10))), 3)
+	xtestingEqual(t, cap(Clip(Grow(s(), 10))), 3)
+	xtestingEqual(t, Clip(i()).typename(), "IntSlice")
+	xtestingEqual(t, Clip(s()).typename(), "StringSlice")
+	xtestingEqual(t, cap(Grow(i(), 10)) >= 10+3, true)
+	xtestingEqual(t, cap(Grow(s(), 10)) >= 10+3, true)
+	xtestingEqual(t, Grow(i(), 10).typename(), "IntSlice")
+	xtestingEqual(t, Grow(s(), 10).typename(), "StringSlice")
 }
 
 // =============================

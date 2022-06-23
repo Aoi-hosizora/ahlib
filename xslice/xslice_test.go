@@ -120,6 +120,12 @@ func TestInterfaceItemSlice(t *testing.T) {
 	xtesting.Equal(t, slice.get(5), 6)
 	xtesting.Panic(t, func() { slice.get(-1) })
 	xtesting.Panic(t, func() { slice.get(6) })
+	// slice
+	xtesting.Equal(t, slice.slice(0, 0).actual(), []interface{}{})
+	xtesting.Equal(t, slice.slice(0, slice.length()).actual(), []interface{}{1, 2, 3, 4, 5, 6})
+	xtesting.Equal(t, slice.slice(3, slice.capacity()).actual(), []interface{}{4, 5, 6, nil, nil, nil, nil})
+	xtesting.Panic(t, func() { slice.slice(2, 1) })
+	xtesting.Panic(t, func() { slice.slice(3, slice.capacity()+1) })
 	// set
 	slice.set(0, 11)
 	xtesting.Equal(t, slice.get(0), 11)
@@ -175,6 +181,12 @@ func TestInterfaceWrappedSlice(t *testing.T) {
 	xtesting.Equal(t, slice.get(5), 6)
 	xtesting.Panic(t, func() { slice.get(-1) })
 	xtesting.Panic(t, func() { slice.get(6) })
+	// slice
+	xtesting.Equal(t, slice.slice(0, 0).actual(), []int{})
+	xtesting.Equal(t, slice.slice(0, slice.length()).actual(), []int{1, 2, 3, 4, 5, 6})
+	xtesting.Equal(t, slice.slice(3, slice.capacity()).actual(), []int{4, 5, 6, 0, 0, 0, 0})
+	xtesting.Panic(t, func() { slice.slice(2, 1) })
+	xtesting.Panic(t, func() { slice.slice(3, slice.capacity()+1) })
 	// set
 	slice.set(0, nil)
 	xtesting.Equal(t, slice.get(0), 0)
@@ -865,8 +877,6 @@ func TestInsert(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
@@ -876,22 +886,28 @@ func TestDelete(t *testing.T) {
 		want      []interface{}
 	}{
 		{[]interface{}{}, 0, 1, []interface{}{}},
-		{s1, -1, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 0, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 1, 1, []interface{}{5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 1, 2, []interface{}{5, 2, 5, 2, 6, 3, 2}},
-		{s1, 2, 1, []interface{}{1, 5, 1, 5, 2, 6, 3, 2}},
-		{s1, 2, 2, []interface{}{1, 5, 1, 5, 6, 3, 2}},
-		{s1, 2, -1, []interface{}{1, 5, 1, 5, 6, 3}},
-		{s1, 3, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 2}},
-		{s1, 4, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 5, 1, []interface{}{1, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 6, 1, []interface{}{1, 5, 2, 1, 5, 2, 3, 2}},
-		{s1, 7, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 1, []interface{}{5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 2, []interface{}{5, 2, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 1, []interface{}{1, 5, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 2, []interface{}{1, 5, 1, 5, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, -1, []interface{}{1, 5, 1, 5, 6, 3}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, 1, []interface{}{1, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, 1, []interface{}{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, 1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
 		give, giveValue := newTestSlice1(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteSelf(tc.give, tc.giveValue, tc.giveN)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToItfSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
+		d2 := DeleteSelfWith(give, giveValue, tc.giveN, eq)
+		xtesting.Equal(t, testToItfSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 
 	for _, tc := range []struct {
@@ -901,28 +917,32 @@ func TestDelete(t *testing.T) {
 		want      []int
 	}{
 		{[]int{}, 0, 1, []int{}},
-		{s2, -1, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 0, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 1, 1, []int{5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 1, 2, []int{5, 2, 5, 2, 6, 3, 2}},
-		{s2, 2, 1, []int{1, 5, 1, 5, 2, 6, 3, 2}},
-		{s2, 2, 2, []int{1, 5, 1, 5, 6, 3, 2}},
-		{s2, 2, -1, []int{1, 5, 1, 5, 6, 3}},
-		{s2, 3, 1, []int{1, 5, 2, 1, 5, 2, 6, 2}},
-		{s2, 4, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 5, 1, []int{1, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 6, 1, []int{1, 5, 2, 1, 5, 2, 3, 2}},
-		{s2, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 1, []int{5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, 2, []int{5, 2, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 1, []int{1, 5, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, 2, []int{1, 5, 1, 5, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, -1, []int{1, 5, 1, 5, 6, 3}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, 1, []int{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, 1, []int{1, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, 1, []int{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteG(tc.give, tc.giveValue, tc.giveN), tc.want)
 		give, giveValue := newTestSlice2(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteSelfG(tc.give, tc.giveValue, tc.giveN).([]int)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToIntSlice(DeleteWithG(give, giveValue, tc.giveN, eq)), tc.want)
+		d2 := DeleteSelfWithG(give, giveValue, tc.giveN, eq).([]testStruct)
+		xtesting.Equal(t, testToIntSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
 func TestDeleteAll(t *testing.T) {
-	s1 := []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}
-	s2 := []int{1, 5, 2, 1, 5, 2, 6, 3, 2}
 	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
 
 	for _, tc := range []struct {
@@ -931,19 +951,25 @@ func TestDeleteAll(t *testing.T) {
 		want      []interface{}
 	}{
 		{[]interface{}{}, 0, []interface{}{}},
-		{s1, -1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 0, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 1, []interface{}{5, 2, 5, 2, 6, 3, 2}},
-		{s1, 2, []interface{}{1, 5, 1, 5, 6, 3}},
-		{s1, 3, []interface{}{1, 5, 2, 1, 5, 2, 6, 2}},
-		{s1, 4, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s1, 5, []interface{}{1, 2, 1, 2, 6, 3, 2}},
-		{s1, 6, []interface{}{1, 5, 2, 1, 5, 2, 3, 2}},
-		{s1, 7, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, []interface{}{5, 2, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, []interface{}{1, 5, 1, 5, 6, 3}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, []interface{}{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, []interface{}{1, 2, 1, 2, 6, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, []interface{}{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteAll(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice1(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteAllSelf(tc.give, tc.giveValue)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToItfSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
+		d2 := DeleteAllSelfWith(give, giveValue, eq)
+		xtesting.Equal(t, testToItfSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 
 	for _, tc := range []struct {
@@ -952,19 +978,25 @@ func TestDeleteAll(t *testing.T) {
 		want      []int
 	}{
 		{[]int{}, 0, []int{}},
-		{s2, -1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 0, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 1, []int{5, 2, 5, 2, 6, 3, 2}},
-		{s2, 2, []int{1, 5, 1, 5, 6, 3}},
-		{s2, 3, []int{1, 5, 2, 1, 5, 2, 6, 2}},
-		{s2, 4, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
-		{s2, 5, []int{1, 2, 1, 2, 6, 3, 2}},
-		{s2, 6, []int{1, 5, 2, 1, 5, 2, 3, 2}},
-		{s2, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, -1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 0, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 1, []int{5, 2, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 2, []int{1, 5, 1, 5, 6, 3}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 3, []int{1, 5, 2, 1, 5, 2, 6, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 4, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 5, []int{1, 2, 1, 2, 6, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, []int{1, 5, 2, 1, 5, 2, 3, 2}},
+		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
 		xtesting.Equal(t, DeleteAllG(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice2(tc.give), newTestStruct(tc.giveValue)
+		d1 := DeleteAllSelfG(tc.give, tc.giveValue).([]int)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToIntSlice(DeleteAllWithG(give, giveValue, eq)), tc.want)
+		d2 := DeleteAllSelfWithG(give, giveValue, eq).([]testStruct)
+		xtesting.Equal(t, testToIntSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -1168,12 +1200,18 @@ func TestDeduplicate(t *testing.T) {
 		{[]interface{}{}, []interface{}{}},
 		{[]interface{}{1}, []interface{}{1}},
 		{[]interface{}{1, 1, 1}, []interface{}{1}},
-		{[]interface{}{2, 1, 1}, []interface{}{2, 1}},
+		{[]interface{}{1, 1, 2, 1}, []interface{}{1, 2}},
 		{[]interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2}, []interface{}{1, 5, 2, 6, 3}},
 	} {
 		xtesting.Equal(t, Deduplicate(tc.give), tc.want)
 		give := newTestSlice1(tc.give)
+		d1 := DeduplicateSelf(tc.give)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToItfSlice(DeduplicateWith(give, eq)), tc.want)
+		d2 := DeduplicateSelfWith(give, eq)
+		xtesting.Equal(t, testToItfSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 
 	for _, tc := range []struct {
@@ -1183,12 +1221,64 @@ func TestDeduplicate(t *testing.T) {
 		{[]int{}, []int{}},
 		{[]int{1}, []int{1}},
 		{[]int{1, 1, 1}, []int{1}},
-		{[]int{2, 1, 1}, []int{2, 1}},
+		{[]int{1, 1, 2, 1}, []int{1, 2}},
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, []int{1, 5, 2, 6, 3}},
 	} {
 		xtesting.Equal(t, DeduplicateG(tc.give), tc.want)
 		give := newTestSlice2(tc.give)
+		d1 := DeduplicateSelfG(tc.give).([]int)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
 		xtesting.Equal(t, testToIntSlice(DeduplicateWithG(give, eq)), tc.want)
+		d2 := DeduplicateSelfWithG(give, eq).([]testStruct)
+		xtesting.Equal(t, testToIntSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+	}
+}
+
+func TestCompact(t *testing.T) {
+	eq := func(i, j interface{}) bool { return i.(testStruct).value == j.(testStruct).value }
+
+	for _, tc := range []struct {
+		give []interface{}
+		want []interface{}
+	}{
+		{[]interface{}{}, []interface{}{}},
+		{[]interface{}{1}, []interface{}{1}},
+		{[]interface{}{1, 1, 1}, []interface{}{1}},
+		{[]interface{}{2, 2, 1, 1, 1, 2, 1, 3}, []interface{}{2, 1, 2, 1, 3}},
+		{[]interface{}{1, 5, 5, 2, 1, 5, 2, 2, 6, 6, 6, 3, 2, 1, 1}, []interface{}{1, 5, 2, 1, 5, 2, 6, 3, 2, 1}},
+	} {
+		xtesting.Equal(t, Compact(tc.give), tc.want)
+		give := newTestSlice1(tc.give)
+		d1 := CompactSelf(tc.give)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		xtesting.Equal(t, testToItfSlice(CompactWith(give, eq)), tc.want)
+		d2 := CompactSelfWith(give, eq)
+		xtesting.Equal(t, testToItfSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+	}
+
+	for _, tc := range []struct {
+		give []int
+		want []int
+	}{
+		{[]int{}, []int{}},
+		{[]int{1}, []int{1}},
+		{[]int{1, 1, 1}, []int{1}},
+		{[]int{2, 2, 1, 1, 1, 2, 1, 3}, []int{2, 1, 2, 1, 3}},
+		{[]int{1, 5, 5, 2, 1, 5, 2, 2, 6, 6, 6, 3, 2, 1, 1}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 1}},
+	} {
+		xtesting.Equal(t, CompactG(tc.give), tc.want)
+		give := newTestSlice2(tc.give)
+		d1 := CompactSelfG(tc.give).([]int)
+		xtesting.Equal(t, d1, tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		xtesting.Equal(t, testToIntSlice(CompactWithG(give, eq)), tc.want)
+		d2 := CompactSelfWithG(give, eq).([]testStruct)
+		xtesting.Equal(t, testToIntSlice(d2), tc.want)
+		xtesting.Equal(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 

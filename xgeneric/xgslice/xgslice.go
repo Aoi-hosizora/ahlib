@@ -50,7 +50,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// ShuffleSelf shuffles the []T slice directly.
+// ShuffleSelf shuffles the []T slice, by modifying given slice directly.
 func ShuffleSelf[T any](slice []T) {
 	for i := len(slice) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
@@ -59,14 +59,14 @@ func ShuffleSelf[T any](slice []T) {
 }
 
 // Shuffle shuffles the []T slice and returns the result.
-func Shuffle[T any, S ~[]T](slice S) S {
+func Shuffle[S ~[]T, T any](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	ShuffleSelf(out)
 	return out
 }
 
-// ReverseSelf reverses the []T slice directly.
+// ReverseSelf reverses the []T slice, by modifying given slice directly.
 func ReverseSelf[T any](slice []T) {
 	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
 		slice[i], slice[j] = slice[j], slice[i]
@@ -74,27 +74,27 @@ func ReverseSelf[T any](slice []T) {
 }
 
 // Reverse reverses the []T slice and returns the result.
-func Reverse[T any, S ~[]T](slice S) S {
+func Reverse[S ~[]T, T any](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	ReverseSelf(out)
 	return out
 }
 
-// SortSelf sorts the []T slice directly.
+// SortSelf sorts the []T slice, by modifying given slice directly.
 func SortSelf[T xsugar.Ordered](slice []T) {
 	SortSelfWith(slice, defaultLesser[T]())
 }
 
-// Sort sorts the []T slice directly and returns the result.
-func Sort[T xsugar.Ordered, S ~[]T](slice S) S {
+// Sort sorts the []T slice and returns the result.
+func Sort[S ~[]T, T xsugar.Ordered](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	SortSelf(out)
 	return out
 }
 
-// SortSelfWith sorts the []T slice with less function directly.
+// SortSelfWith sorts the []T slice with less function, by modifying given slice directly.
 func SortSelfWith[T any](slice []T, less Lesser[T]) {
 	sort.Slice(slice, func(i, j int) bool {
 		return less(slice[i], slice[j])
@@ -102,27 +102,27 @@ func SortSelfWith[T any](slice []T, less Lesser[T]) {
 }
 
 // SortWith sorts the []T slice with less function and returns the result.
-func SortWith[T any, S ~[]T](slice S, less Lesser[T]) S {
+func SortWith[S ~[]T, T any](slice S, less Lesser[T]) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	SortSelfWith(out, less)
 	return out
 }
 
-// StableSortSelf sorts the []T slice in stable directly.
+// StableSortSelf sorts the []T slice in stable, by modifying given slice directly.
 func StableSortSelf[T xsugar.Ordered](slice []T) {
 	StableSortSelfWith(slice, defaultLesser[T]())
 }
 
-// StableSort sorts the []T slice in stable directly and returns the result.
-func StableSort[T xsugar.Ordered, S ~[]T](slice S) S {
+// StableSort sorts the []T slice in stable and returns the result.
+func StableSort[S ~[]T, T xsugar.Ordered](slice S) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	StableSortSelf(out)
 	return out
 }
 
-// StableSortSelfWith sorts the []T slice in stable with less function directly.
+// StableSortSelfWith sorts the []T slice in stable with less function, by modifying given slice directly.
 func StableSortSelfWith[T any](slice []T, less Lesser[T]) {
 	sort.SliceStable(slice, func(i, j int) bool {
 		return less(slice[i], slice[j])
@@ -130,7 +130,7 @@ func StableSortSelfWith[T any](slice []T, less Lesser[T]) {
 }
 
 // StableSortWith sorts the []T slice in stable with less function and returns the result.
-func StableSortWith[T any, S ~[]T](slice S, less Lesser[T]) S {
+func StableSortWith[S ~[]T, T any](slice S, less Lesser[T]) S {
 	out := make([]T, len(slice))
 	copy(out, slice)
 	StableSortSelfWith(out, less)
@@ -199,14 +199,14 @@ func CountWith[T any](slice []T, value T, equaller Equaller[T]) int {
 }
 
 // Insert inserts values into []T slice at index position using a new slice space to store.
-func Insert[T any, S ~[]T](slice S, index int, values ...T) S {
+func Insert[S ~[]T, T any](slice S, index int, values ...T) S {
 	out := make([]T, len(slice), len(slice)+len(values))
 	copy(out, slice)
 	return InsertSelf(S(out), index, values...)
 }
 
 // InsertSelf inserts values into []T slice at index position using the space of given slice.
-func InsertSelf[T any, S ~[]T](slice S, index int, values ...T) S {
+func InsertSelf[S ~[]T, T any](slice S, index int, values ...T) S {
 	switch {
 	case len(values) == 0:
 		return slice
@@ -224,12 +224,12 @@ func InsertSelf[T any, S ~[]T](slice S, index int, values ...T) S {
 }
 
 // Delete deletes value from []T slice in n times.
-func Delete[T comparable, S ~[]T](slice S, value T, n int) S {
+func Delete[S ~[]T, T comparable](slice S, value T, n int) S {
 	return DeleteWith(slice, value, n, defaultEqualler[T]())
 }
 
 // DeleteWith deletes value from []T slice in n times with Equaller.
-func DeleteWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S {
+func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S {
 	if n <= 0 {
 		n = len(slice)
 	}
@@ -250,22 +250,22 @@ func DeleteWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S 
 }
 
 // DeleteAll deletes value from []T slice in all.
-func DeleteAll[T comparable, S ~[]T](slice S, value T) S {
+func DeleteAll[S ~[]T, T comparable](slice S, value T) S {
 	return DeleteWith(slice, value, -1, defaultEqualler[T]())
 }
 
 // DeleteAllWith deletes value from []T slice in all with Equaller.
-func DeleteAllWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
+func DeleteAllWith[S ~[]T, T any](slice S, value T, equaller Equaller[T]) S {
 	return DeleteWith(slice, value, -1, equaller)
 }
 
 // DeleteSelf deletes value from []T slice in n times, by modifying given slice directly.
-func DeleteSelf[T comparable, S ~[]T](slice S, value T, n int) S {
+func DeleteSelf[S ~[]T, T comparable](slice S, value T, n int) S {
 	return DeleteSelfWith(slice, value, n, defaultEqualler[T]())
 }
 
 // DeleteSelfWith deletes value from []T slice in n times with Equaller, by modifying given slice directly.
-func DeleteSelfWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]) S {
+func DeleteSelfWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S {
 	if n <= 0 {
 		n = len(slice)
 	}
@@ -284,12 +284,12 @@ func DeleteSelfWith[T any, S ~[]T](slice S, value T, n int, equaller Equaller[T]
 }
 
 // DeleteAllSelf deletes value from []T slice in all, by modifying given slice directly.
-func DeleteAllSelf[T comparable, S ~[]T](slice S, value T) S {
+func DeleteAllSelf[S ~[]T, T comparable](slice S, value T) S {
 	return DeleteSelfWith(slice, value, -1, defaultEqualler[T]())
 }
 
 // DeleteAllSelfWith deletes value from []T slice in all with Equaller, by modifying given slice directly.
-func DeleteAllSelfWith[T any, S ~[]T](slice S, value T, equaller Equaller[T]) S {
+func DeleteAllSelfWith[S ~[]T, T any](slice S, value T, equaller Equaller[T]) S {
 	return DeleteSelfWith(slice, value, -1, equaller)
 }
 
@@ -309,12 +309,12 @@ func ContainsAllWith[T any](list, subset []T, equaller Equaller[T]) bool {
 }
 
 // Diff returns the difference of two []T slices.
-func Diff[T comparable](slice1, slice2 []T) []T {
+func Diff[S ~[]T, T comparable](slice1, slice2 S) S {
 	return DiffWith(slice1, slice2, defaultEqualler[T]())
 }
 
 // DiffWith returns the difference of two []T slices with Equaller.
-func DiffWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
+func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 	result := make([]T, 0, 0)
 	for _, item1 := range slice1 {
 		if !ContainsWith(slice2, item1, equaller) {
@@ -325,12 +325,12 @@ func DiffWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
 }
 
 // Union returns the union of two []T slices.
-func Union[T comparable](slice1, slice2 []T) []T {
+func Union[S ~[]T, T comparable](slice1, slice2 S) S {
 	return UnionWith(slice1, slice2, defaultEqualler[T]())
 }
 
 // UnionWith returns the union of two []T slices with Equaller.
-func UnionWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
+func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 	result := make([]T, len(slice1))
 	copy(result, slice1)
 	for _, item2 := range slice2 {
@@ -342,12 +342,12 @@ func UnionWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
 }
 
 // Intersect returns the intersection of two []T slices.
-func Intersect[T comparable](slice1, slice2 []T) []T {
+func Intersect[S ~[]T, T comparable](slice1, slice2 S) S {
 	return IntersectWith(slice1, slice2, defaultEqualler[T]())
 }
 
 // IntersectWith returns the intersection of two []T slices with Equaller.
-func IntersectWith[T any](slice1, slice2 []T, equaller Equaller[T]) []T {
+func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 	result := make([]T, 0, 0)
 	for _, item1 := range slice1 {
 		if ContainsWith(slice2, item1, equaller) {
@@ -363,7 +363,7 @@ func Deduplicate[T comparable, S ~[]T](slice S) S {
 }
 
 // DeduplicateWith removes the duplicate items from []T slice as a set with Equaller.
-func DeduplicateWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+func DeduplicateWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
 	result := make([]T, 0, 0)
 	for _, item := range slice {
 		if !ContainsWith(result, item, equaller) { // O(n^2)
@@ -374,12 +374,12 @@ func DeduplicateWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 }
 
 // DeduplicateSelf removes the duplicate items from []T slice as a set, by modifying given slice directly.
-func DeduplicateSelf[T comparable, S ~[]T](slice S) S {
+func DeduplicateSelf[S ~[]T, T comparable](slice S) S {
 	return DeduplicateSelfWith(slice, defaultEqualler[T]())
 }
 
 // DeduplicateSelfWith removes the duplicate items from []T slice as a set with Equaller, by modifying given slice directly.
-func DeduplicateSelfWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+func DeduplicateSelfWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
 	if len(slice) <= 1 {
 		return slice
 	}
@@ -394,12 +394,12 @@ func DeduplicateSelfWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 }
 
 // Compact removes the duplicate items in neighbor from []T slice.
-func Compact[T comparable, S ~[]T](slice S) S {
+func Compact[S ~[]T, T comparable](slice S) S {
 	return CompactWith(slice, defaultEqualler[T]())
 }
 
 // CompactWith removes the duplicate items in neighbor from []T slice with Equaller.
-func CompactWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+func CompactWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
 	if len(slice) <= 1 {
 		return slice
 	}
@@ -416,12 +416,12 @@ func CompactWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
 }
 
 // CompactSelf removes the duplicate items in neighbor from []T slice, by modifying given slice directly.
-func CompactSelf[T comparable, S ~[]T](slice S) S {
+func CompactSelf[S ~[]T, T comparable](slice S) S {
 	return CompactSelfWith(slice, defaultEqualler[T]())
 }
 
 // CompactSelfWith removes the duplicate items in neighbor from []T slice with Equaller, by modifying given slice directly.
-func CompactSelfWith[T any, S ~[]T](slice S, equaller Equaller[T]) S {
+func CompactSelfWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
 	if len(slice) <= 1 {
 		return slice
 	}
@@ -554,7 +554,7 @@ func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U {
 }
 
 // Filter filters given slice and returns a new slice using given predicate function.
-func Filter[T any, S ~[]T](slice S, f func(T) bool) S {
+func Filter[S ~[]T, T any](slice S, f func(T) bool) S {
 	if f == nil {
 		panic(panicNilPredicateFunc)
 	}
