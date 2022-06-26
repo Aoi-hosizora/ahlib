@@ -261,11 +261,37 @@ func TestCloneAndMakeSlice(t *testing.T) {
 		{[]int{1}, []int{1}, false},
 		{[]int{1, 1, 1}, []int{1, 1, 1}, false},
 		{[]int{1, 3, 0, 2}, []int{1, 3, 0, 2}, false},
+		{[]interface{}{1, 3, nil, 2}, []interface{}{1, 3, nil, 2}, false},
 	} {
 		if tc.wantPanic {
 			xtesting.Panic(t, func() { cloneSliceInterface(tc.give) })
 		} else {
 			xtesting.Equal(t, cloneSliceInterface(tc.give), tc.want)
+		}
+	}
+
+	// cloneSliceInterfaceFromInterfaceSlice
+	for _, tc := range []struct {
+		give1     []interface{}
+		give2     interface{}
+		want      interface{}
+		wantPanic bool
+	}{
+		{nil, nil, nil, true},
+		{nil, 0, nil, true},
+		{nil, []int{}, []int{}, false},
+		{[]interface{}{nil}, []int{}, []int{0}, false},
+		{[]interface{}{1, 2}, []int{}, []int{1, 2}, false},
+		{[]interface{}{uint(1), "2"}, []uint{}, nil, true},
+		{[]interface{}{uint(1), uint(2)}, []uint32{}, nil, true},
+		{[]interface{}{uint(1), uint(2)}, []uint{}, []uint{1, 2}, false},
+		{[]interface{}{nil, nil, "x"}, []string{}, []string{"", "", "x"}, false},
+		{[]interface{}{nil, 1, "x", false}, []interface{}{}, []interface{}{nil, 1, "x", false}, false},
+	} {
+		if tc.wantPanic {
+			xtesting.Panic(t, func() { cloneSliceInterfaceFromInterfaceSlice(tc.give1, tc.give2) })
+		} else {
+			xtesting.Equal(t, cloneSliceInterfaceFromInterfaceSlice(tc.give1, tc.give2), tc.want)
 		}
 	}
 
@@ -823,33 +849,33 @@ func TestInsert(t *testing.T) {
 
 	for _, tc := range []struct {
 		give       []int
-		giveValues []int
+		giveValues []interface{} // <<<
 		giveIndex  int
 		want       []int
 	}{
-		{[]int{}, []int{}, -2, []int{}},
-		{[]int{}, []int{1, 2}, -1, []int{1, 2}},
-		{[]int{}, []int{0, 0, 0}, 0, []int{0, 0, 0}},
-		{[]int{}, []int{3}, 1, []int{3}},
-		{[]int{1}, []int{9}, -1, []int{9, 1}},
-		{[]int{1}, []int{9, 9, 9}, 0, []int{9, 9, 9, 1}},
-		{[]int{1}, []int{}, 1, []int{1}},
-		{[]int{1}, []int{0, 9}, 2, []int{1, 0, 9}},
-		{[]int{1, 2}, []int{-1}, -1, []int{-1, 1, 2}},
-		{[]int{1, 2}, []int{9, 9}, 0, []int{9, 9, 1, 2}},
-		{[]int{1, 2}, []int{3, 2, 1}, 1, []int{1, 3, 2, 1, 2}},
-		{[]int{1, 2}, []int{9, 9, 9}, 2, []int{1, 2, 9, 9, 9}},
-		{[]int{1, 2, 3}, []int{-9}, -1, []int{-9, 1, 2, 3}},
-		{[]int{1, 2, 3}, []int{9, 8, 7}, 0, []int{9, 8, 7, 1, 2, 3}},
-		{[]int{1, 2, 3}, []int{}, 1, []int{1, 2, 3}},
-		{[]int{1, 2, 3}, []int{-2, -1}, 2, []int{1, 2, -2, -1, 3}},
-		{[]int{1, 2, 3}, []int{0, 9999, 999, 99, 9}, 4, []int{1, 2, 3, 0, 9999, 999, 99, 9}},
+		{[]int{}, []interface{}{}, -2, []int{}},
+		{[]int{}, []interface{}{1, 2}, -1, []int{1, 2}},
+		{[]int{}, []interface{}{0, 0, 0}, 0, []int{0, 0, 0}},
+		{[]int{}, []interface{}{3}, 1, []int{3}},
+		{[]int{1}, []interface{}{9}, -1, []int{9, 1}},
+		{[]int{1}, []interface{}{9, 9, 9}, 0, []int{9, 9, 9, 1}},
+		{[]int{1}, []interface{}{}, 1, []int{1}},
+		{[]int{1}, []interface{}{0, 9}, 2, []int{1, 0, 9}},
+		{[]int{1, 2}, []interface{}{-1}, -1, []int{-1, 1, 2}},
+		{[]int{1, 2}, []interface{}{9, 9}, 0, []int{9, 9, 1, 2}},
+		{[]int{1, 2}, []interface{}{3, 2, 1}, 1, []int{1, 3, 2, 1, 2}},
+		{[]int{1, 2}, []interface{}{9, 9, 9}, 2, []int{1, 2, 9, 9, 9}},
+		{[]int{1, 2, 3}, []interface{}{-9}, -1, []int{-9, 1, 2, 3}},
+		{[]int{1, 2, 3}, []interface{}{9, 8, 7}, 0, []int{9, 8, 7, 1, 2, 3}},
+		{[]int{1, 2, 3}, []interface{}{}, 1, []int{1, 2, 3}},
+		{[]int{1, 2, 3}, []interface{}{-2, -1}, 2, []int{1, 2, -2, -1, 3}},
+		{[]int{1, 2, 3}, []interface{}{0, 9999, 999, 99, 9}, 4, []int{1, 2, 3, 0, 9999, 999, 99, 9}},
 	} {
-		xtesting.Equal(t, InsertG(tc.give, tc.giveIndex, tc.giveValues), tc.want)
-		xtesting.Equal(t, InsertSelfG(tc.give, tc.giveIndex, tc.giveValues), tc.want)
+		xtesting.Equal(t, InsertG(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
+		xtesting.Equal(t, InsertSelfG(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
 	}
 
-	xtesting.Panic(t, func() { InsertG([]int{}, 0, nil) })
+	xtesting.NotPanic(t, func() { InsertG([]int{}, 0, nil) })
 	xtesting.Panic(t, func() { InsertG([]int{}, 0, []uint{}) })
 	xtesting.Panic(t, func() { InsertG([]int{}, 0, []interface{}{1, 2, 3}) })
 
@@ -866,12 +892,12 @@ func TestInsert(t *testing.T) {
 
 	give2 := append(make([]int, 0, 6), 1, 2, 3)
 	addr2 := (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data
-	addr2_ := InsertG(give2, 0, []int{})
+	addr2_ := InsertG(give2, 0)
 	xtesting.NotEqual(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&addr2_)).Data)
-	give2 = InsertSelfG(give2, 1, []int{4, 5}).([]int)
+	give2 = InsertSelfG(give2, 1, 4, 5).([]int)
 	xtesting.Equal(t, cap(give2), 6)
 	xtesting.Equal(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data)
-	give2 = InsertSelfG(give2, 0, []int{4, 5}).([]int)
+	give2 = InsertSelfG(give2, 0, 4, 5).([]int)
 	xtesting.NotEqual(t, cap(give2), 6)
 	xtesting.NotEqual(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data)
 }

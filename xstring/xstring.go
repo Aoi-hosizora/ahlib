@@ -111,20 +111,51 @@ func TrimBlanks(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// RemoveBlanks replaces all blanks (including space, CR, LF, tabulation, ideographic space, etc.) to a single space " ", please see xstring.IsBlank and unicode.IsSpace
-// for more details.
-func RemoveBlanks(s string) string {
+// ReplaceExtraBlanks replaces extra blanks (including space, CR, LF, tabulation, ideographic space, etc.) to given repl string.
+func ReplaceExtraBlanks(s, repl string) string {
+	return ReplaceExtraCharacters(s, repl, IsBlank)
+}
+
+// RemoveExtraBlanks replaces extra blanks (including space, CR, LF, tabulation, ideographic space, etc.) to a single space " ".
+func RemoveExtraBlanks(s string) string {
+	return ReplaceExtraBlanks(s, " ")
+}
+
+// IsBreakLine returns true if given rune is a break line, that is "\r" (CR) and "\n" (LF).
+func IsBreakLine(ch rune) bool {
+	return ch == '\r' || ch == '\n'
+}
+
+// TrimBreakLines trims break lines left and right of the string.
+func TrimBreakLines(s string) string {
+	return strings.TrimFunc(s, IsBreakLine)
+}
+
+// ReplaceExtraBreakLines replaces extra break lines (that is CR, LF) to given repl string.
+func ReplaceExtraBreakLines(s, repl string) string {
+	return ReplaceExtraCharacters(s, repl, IsBreakLine)
+}
+
+// RemoveExtraBreakLines replaces extra break lines (that is CR, LF) to a single "\n" (LF).
+func RemoveExtraBreakLines(s string) string {
+	return ReplaceExtraBreakLines(s, "\n")
+}
+
+// ReplaceExtraCharacters replaces extra characters to given repl string, using given character checker function.
+func ReplaceExtraCharacters(s, repl string, f func(rune) bool) string {
 	sb := strings.Builder{}
 	sb.Grow(len(s) / 2)
-	space := false
+	extra := false
 	for _, r := range s {
 		switch {
-		case IsBlank(r):
-			space = true
+		case f(r):
+			extra = true
 		default:
-			if space == true && sb.Len() > 0 {
-				space = false
-				sb.WriteRune(' ')
+			if extra == true {
+				extra = false
+				if sb.Len() > 0 {
+					sb.WriteString(repl)
+				}
 			}
 			sb.WriteRune(r)
 		}

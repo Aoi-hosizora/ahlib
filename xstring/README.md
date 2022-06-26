@@ -27,7 +27,13 @@
 + `func IsArabicNumber(r rune) bool`
 + `func IsBlank(r rune) bool`
 + `func TrimBlanks(s string) string`
-+ `func RemoveBlanks(s string) string`
++ `func ReplaceExtraBlanks(s, repl string) string`
++ `func RemoveExtraBlanks(s string) string`
++ `func IsBreakLine(ch rune) bool`
++ `func TrimBreakLines(s string) string`
++ `func ReplaceExtraBreakLines(s, repl string) string`
++ `func RemoveExtraBreakLines(s string) string`
++ `func ReplaceExtraCharacters(s, repl string, f func(rune) bool) string`
 + `func SplitToWords(s string, seps ...string) []string`
 + `func PascalCase(s string, extraSeps ...string) string`
 + `func CamelCase(s string, extraSeps ...string) string`

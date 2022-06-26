@@ -294,14 +294,14 @@ func InsertSelf(slice []interface{}, index int, values ...interface{}) []interfa
 }
 
 // InsertG inserts values into []T slice at index position using a new slice space to store, is the generic function of Insert.
-func InsertG(slice interface{}, index int, values interface{}) interface{} {
-	s, v := checkTwoSliceInterfaceParam(slice, values)
+func InsertG(slice interface{}, index int, values ...interface{}) interface{} {
+	s, v := checkTwoSliceInterfaceParam(slice, cloneSliceInterfaceFromInterfaceSlice(values, slice))
 	return coreInsert(s, v, index, false).actual()
 }
 
 // InsertSelfG inserts values into []T slice at index position using the space of given slice, is the generic function of InsertSelf.
-func InsertSelfG(slice interface{}, index int, values interface{}) interface{} {
-	s, v := checkTwoSliceInterfaceParam(slice, values)
+func InsertSelfG(slice interface{}, index int, values ...interface{}) interface{} {
+	s, v := checkTwoSliceInterfaceParam(slice, cloneSliceInterfaceFromInterfaceSlice(values, slice))
 	return coreInsert(s, v, index, true).actual()
 }
 

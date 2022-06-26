@@ -289,6 +289,34 @@ func cloneSliceInterface(slice interface{}) interface{} {
 	return newSliceVal.Interface()
 }
 
+// cloneSliceInterface clones a []T slice from a []interface{} slice, using given fromSlice type.
+func cloneSliceInterfaceFromInterfaceSlice(slice []interface{}, fromSlice interface{}) interface{} {
+	if fromSlice == nil {
+		panic(panicNilSliceInterface)
+	}
+	sliceVal := reflect.ValueOf(fromSlice)
+	sliceTyp := sliceVal.Type()
+	if sliceTyp.Kind() != reflect.Slice {
+		panic(fmt.Sprintf(panicNonSliceInterface, sliceTyp.String()))
+	}
+	sliceElemTyp := sliceTyp.Elem()
+
+	newSliceVal := reflect.MakeSlice(sliceTyp, len(slice), cap(slice))
+	for idx, item := range slice {
+		itemVal := reflect.ValueOf(item)
+		if !itemVal.IsValid() {
+			itemVal = reflect.Zero(sliceElemTyp)
+		}
+		if !(sliceElemTyp.Kind() == reflect.Interface && sliceElemTyp.NumMethod() == 0) { // fromSlice is not []interface{}
+			if itemTyp := itemVal.Type(); itemTyp != sliceElemTyp {
+				panic(fmt.Sprintf(panicDifferentSliceElemType, sliceTyp.String(), itemTyp.String()))
+			}
+		}
+		newSliceVal.Index(idx).Set(itemVal)
+	}
+	return newSliceVal.Interface()
+}
+
 const (
 	panicNilTypeForCreation = "xslice: nil slice or item type for creation (internal)"
 )

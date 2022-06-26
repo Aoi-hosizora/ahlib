@@ -55,8 +55,8 @@
 + `func CountWithG(slice interface{}, value interface{}, equaller Equaller) int`
 + `func Insert(slice []interface{}, index int, values ...interface{}) []interface{}`
 + `func InsertSelf(slice []interface{}, index int, values ...interface{}) []interface{}`
-+ `func InsertG(slice interface{}, index int, values interface{}) interface{}`
-+ `func InsertSelfG(slice interface{}, index int, values interface{}) interface{}`
++ `func InsertG(slice interface{}, index int, values ...interface{}) interface{}`
++ `func InsertSelfG(slice interface{}, index int, values ...interface{}) interface{}`
 + `func Delete(slice []interface{}, value interface{}, n int) []interface{}`
 + `func DeleteWith(slice []interface{}, value interface{}, n int, equaller Equaller) []interface{}`
 + `func DeleteG(slice interface{}, value interface{}, n int) interface{}`

@@ -176,23 +176,85 @@ func TestTrimBlanks(t *testing.T) {
 	}
 }
 
-func TestRemoveBlanks(t *testing.T) {
+func TestReplaceAndRemoveExtraBlanks(t *testing.T) {
+	for _, tc := range []struct {
+		give  string
+		want1 string
+		want2 string
+	}{
+		{"", "", ""},
+		{" ", "", ""},
+		{" \n　", "", ""},
+		{"\t\v ", "", ""},
+		{"a b", "a|b", "a b"},
+		{"a  b", "a|b", "a b"},
+		{" a　b\tc\r\nd", "a|b|c|d", "a b c d"},
+		{"   ab cd　 ef\n\tgh\n", "ab|cd|ef|gh", "ab cd ef gh"},
+		{"\t\t\r\r\n\n", "", ""},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, ReplaceExtraBlanks(tc.give, "|"), tc.want1)
+			xtesting.Equal(t, RemoveExtraBlanks(tc.give), tc.want2)
+		})
+	}
+}
+
+func TestIsBreakLine(t *testing.T) {
+	for _, tc := range []struct {
+		give rune
+		want bool
+	}{
+		{' ', false},
+		{'\t', false},
+		{'\n', true},
+		{'\r', true},
+		{'\v', false},
+		{'\f', false},
+		{'a', false},
+		{'0', false},
+		{'测', false},
+	} {
+		xtesting.Equal(t, IsBreakLine(tc.give), tc.want)
+	}
+}
+
+func TestTrimBreakLines(t *testing.T) {
 	for _, tc := range []struct {
 		give string
 		want string
 	}{
 		{"", ""},
-		{" ", ""},
-		{" \n　", ""},
-		{"\t\v ", ""},
-		{"a b", "a b"},
-		{"a  b", "a b"},
-		{" a　b\tc\r\nd", "a b c d"},
-		{"ab cd　 ef\n\tgh\n", "ab cd ef gh"},
-		{"\t\t\r\r\n\n", ""},
+		{" ", " "},
+		{"\n", ""},
+		{"\n|\r", "|"},
+		{"\n\r\t\r\t\n", "\t\r\t"},
+		{" a　b\tc\r\nd\r\n", " a　b\tc\r\nd"},
 	} {
 		t.Run(tc.give, func(t *testing.T) {
-			xtesting.Equal(t, RemoveBlanks(tc.give), tc.want)
+			xtesting.Equal(t, TrimBreakLines(tc.give), tc.want)
+		})
+	}
+}
+
+func TestReplaceAndRemoveExtraBreakLines(t *testing.T) {
+	for _, tc := range []struct {
+		give  string
+		want1 string
+		want2 string
+	}{
+		{"", "", ""},
+		{" ", " ", " "},
+		{" \n\n　", " |　", " \n　"},
+		{"\t\r\n", "\t", "\t"},
+		{"a\nb", "a|b", "a\nb"},
+		{"a\n\rb", "a|b", "a\nb"},
+		{" a\rb\tc\n\nd", " a|b\tc|d", " a\nb\tc\nd"},
+		{"  \n ab\t cd　 ef\n\rgh\n", "  | ab\t cd　 ef|gh", "  \n ab\t cd　 ef\ngh"},
+		{"\n\r\t\r\t\n", "\t|\t", "\t\n\t"},
+	} {
+		t.Run(tc.give, func(t *testing.T) {
+			xtesting.Equal(t, ReplaceExtraBreakLines(tc.give, "|"), tc.want1)
+			xtesting.Equal(t, RemoveExtraBreakLines(tc.give), tc.want2)
 		})
 	}
 }
