@@ -19,7 +19,7 @@ xtime               (xtesting)
 $2 -- packages that depend on $0 and $1 libraries
 xmodule             (xcolor, xerror, xtesting)
 
----
+//////////////////////////////////////////////////////////
 
 $$ -- seperated module, does not depend on any $* packages
 xgeneric/...

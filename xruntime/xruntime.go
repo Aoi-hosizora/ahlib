@@ -6,11 +6,22 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
+	"unsafe"
 )
+
+// ================
+// function related
+// ================
+
+// NameOfFunction returns given function's name by searching runtime.Func by PC.
+func NameOfFunction(f interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+}
 
 // ===================
 // trace stack related
@@ -21,14 +32,14 @@ import (
 //
 // Returned value is just like:
 // 	goroutine 19 [running]:
-// 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
-// 		.../xruntime/xruntime.go:30 +0x9f
-// 	github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
-// 		.../xruntime/xruntime_test.go:20 +0x30
-// 	testing.tRunner(0xc0000851e0, 0x224440)
-// 		.../src/testing/testing.go:1259 +0x102
+// 	github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x7?)
+// 		.../xruntime/xruntime.go:46 +0x6a
+// 	github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0?)
+// 		.../xruntime/xruntime_test.go:65 +0x30
+// 	testing.tRunner(0xc000085380, 0xf682b0)
+// 		.../src/testing/testing.go:1439 +0x102
 // 	created by testing.(*T).Run
-// 		.../src/testing/testing.go:1306 +0x35a
+// 		.../src/testing/testing.go:1486 +0x35f
 func RawStack(all bool) []byte {
 	buf := make([]byte, 1024)
 	for {
@@ -67,7 +78,7 @@ type TraceFrame struct {
 // String returns the formatted TraceFrame.
 //
 // Returned value is just like:
-// 	File: .../xruntime/xruntime_test.go:100
+// 	File: .../xruntime/xruntime_test.go:145
 // 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
 func (t *TraceFrame) String() string {
@@ -80,16 +91,16 @@ type TraceStack []*TraceFrame
 // String returns the formatted TraceStack.
 //
 // Returned value is just like:
-// 	File: .../xruntime/xruntime_test.go:100
+// 	File: .../xruntime/xruntime_test.go:145
 // 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 // 		stack := RuntimeTraceStack(0)
-// 	File: .../xruntime/xruntime_test.go:102
+// 	File: .../xruntime/xruntime_test.go:147
 // 	Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 // 		}()
-// 	File: D:/Development/Go/src/testing/testing.go:1439
+// 	File: .../src/testing/testing.go:1439
 // 	Func: testing.tRunner
 // 		fn(t)
-// 	File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+// 	File: .../src/runtime/asm_amd64.s:1571
 // 	Func: runtime.goexit
 // 		BYTE	$0x90	// NOP
 func (t TraceStack) String() string {
@@ -145,6 +156,91 @@ func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, fu
 	}
 	top := stack[0]
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
+}
+
+// ==============
+// hack functions
+// ==============
+
+var (
+	// _magicBytes represents a slice of bytes, and are used in HideStringForHacking and ExtractHiddenStringForHacking.
+	_magicBytes = []byte{0, 'h', 'i', 0, 'd', 'e'}
+
+	_magicLength = len(_magicBytes)
+)
+
+// HackHideString hides given hidden string after given data address (in heap space) and returns the new data address. Note that this is an unsafe function.
+//
+// Example:
+// 	handler := func() {}
+// 	funcSize := int(reflect.TypeOf(func() {}).Size()) // which always equals to 8 in x86-64 machine
+// 	handlerFn := (*struct{fn uintptr})(unsafe.Pointer(&handler)).fn
+// 	hackedFn := HackHideString(handlerFn, funcSize, "handlerName")
+// 	hackedHandler := *(*func())(unsafe.Pointer(&struct{fn uintptr}{fn: hackedFn}))
+// 	realHandlerName := HackGetHiddenString(hackedFn, funcSize) // got "handlerName"
+// 	hackedHandler() // hackedHandler can be invoked normally
+//go:nosplit
+func HackHideString(given uintptr, givenLength int, hidden string) (dataAddr uintptr) {
+	hiddenHeader := (*reflect.StringHeader)(unsafe.Pointer(&hidden))
+	hiddenLen := int32(hiddenHeader.Len) // only store int32 length
+	hiddenBs := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{Data: hiddenHeader.Data, Len: int(hiddenLen), Cap: int(hiddenLen)}))
+	bs := bytes.Buffer{}
+	bs.Grow(givenLength + _magicLength + 4 + int(hiddenLen))
+
+	// given
+	for i := 0; i < givenLength; i++ {
+		bs.WriteByte(*(*byte)(unsafe.Pointer(given + uintptr(i))))
+	}
+	bs.Write(_magicBytes) // \x00, 'h', 'i', \x00, 'd', 'e', # = 6
+
+	// hidden
+	bs.Write([]byte{byte(hiddenLen), byte(hiddenLen >> 8), byte(hiddenLen >> 16), byte(hiddenLen >> 24)}) // lo -> hi, # = 4
+	bs.Write(hiddenBs)
+
+	fakeSlice := bs.Bytes() // its Data part will be used to interpret as other types
+	return (*reflect.SliceHeader)(unsafe.Pointer(&fakeSlice)).Data
+}
+
+// HackHideStringAfterString hides given hidden string after given string (in heap space) and returns the new string. Note that this is an unsafe function.
+//
+// Example:
+// 	httpMethod := "GET"
+// 	hackedMethod := xruntime.HackHideStringAfterString(httpMethod, "handlerName")
+// 	realHandlerName := xruntime.HackGetHiddenStringAfterString(hackedMethod) // got "handlerName"
+// 	fmt.Println(hackedMethod) // hackedMethod can be printed normally
+//go:nosplit
+func HackHideStringAfterString(given, hidden string) string {
+	givenHeader := (*reflect.StringHeader)(unsafe.Pointer(&given))
+	fakeData := HackHideString(givenHeader.Data, givenHeader.Len, hidden)
+	fakeHeader := &reflect.StringHeader{Data: fakeData, Len: givenHeader.Len}
+	return *(*string)(unsafe.Pointer(fakeHeader))
+}
+
+// HackGetHiddenString get the hidden string from given unsafe.Pointer, see HackHideString for example. Note that this is an unsafe function.
+//go:nosplit
+func HackGetHiddenString(given uintptr, givenLength int) (hidden string) {
+	// check magic
+	for i, ch := range _magicBytes {
+		if *(*byte)(unsafe.Pointer(given + uintptr(givenLength+i))) != ch {
+			return ""
+		}
+	}
+
+	// get hidden data
+	digits := *(*[4]byte)(unsafe.Pointer(given + uintptr(givenLength+_magicLength))) // lo -> hi
+	hiddenData := given + uintptr(givenLength+_magicLength+4)
+	hiddenLen := int32(digits[0]) + int32(digits[1])<<8 + int32(digits[2])<<16 + int32(digits[3])<<24
+
+	// construct string
+	fakeHeader := &reflect.StringHeader{Data: hiddenData, Len: int(hiddenLen)}
+	return *(*string)(unsafe.Pointer(fakeHeader))
+}
+
+// HackGetHiddenStringAfterString get the hidden string from given string, see HackHideStringAfterString for example. Note that this is an unsafe function.
+//go:nosplit
+func HackGetHiddenStringAfterString(given string) (hidden string) {
+	givenHeader := (*reflect.StringHeader)(unsafe.Pointer(&given))
+	return HackGetHiddenString(givenHeader.Data, givenHeader.Len)
 }
 
 // ============================
@@ -216,10 +312,11 @@ func SignalReadableName(sig syscall.Signal) string {
 	return "signal " + strconv.Itoa(int(sig))
 }
 
-// GetProxyEnv lookups and returns three proxy environments, including http_proxy, https_proxy and socks_proxy.
-func GetProxyEnv() (httpProxy string, httpsProxy string, socksProxy string) {
+// GetProxyEnv lookups and returns four proxy environments, including no_proxy, http_proxy, https_proxy and socks_proxy.
+func GetProxyEnv() (noProxy, httpProxy, httpsProxy, socksProxy string) {
+	np := strings.TrimSpace(os.Getenv("no_proxy"))
 	hp := strings.TrimSpace(os.Getenv("http_proxy"))
 	hsp := strings.TrimSpace(os.Getenv("https_proxy"))
 	ssp := strings.TrimSpace(os.Getenv("socks_proxy"))
-	return hp, hsp, ssp
+	return np, hp, hsp, ssp
 }

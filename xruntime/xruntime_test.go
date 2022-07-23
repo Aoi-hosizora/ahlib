@@ -4,11 +4,55 @@ import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"os"
+	"reflect"
 	"runtime/pprof"
 	"strings"
 	"syscall"
 	"testing"
+	"unsafe"
 )
+
+func testA() {}
+
+var testB = func() {} // glob..func1
+
+var testC = func() {} // glob..func2
+
+type testStruct struct{}
+
+func (t testStruct) testD() {}
+
+func (t *testStruct) testE() {}
+
+func TestNameOfFunction(t *testing.T) {
+	var testF = func() {} // TestNameOfFunction.func1
+	testG := func() {}    // TestNameOfFunction.func2
+	ts1 := testStruct{}
+	ts2 := &testStruct{}
+
+	for _, tc := range []struct {
+		give interface{}
+		want string
+	}{
+		{testA, "github.com/Aoi-hosizora/ahlib/xruntime.testA"},
+		{testB, "github.com/Aoi-hosizora/ahlib/xruntime.glob..func1"},
+		{testC, "github.com/Aoi-hosizora/ahlib/xruntime.glob..func2"},
+		{testStruct.testD, "github.com/Aoi-hosizora/ahlib/xruntime.testStruct.testD"},
+		{(*testStruct).testE, "github.com/Aoi-hosizora/ahlib/xruntime.(*testStruct).testE"},
+		{ts1.testD, "github.com/Aoi-hosizora/ahlib/xruntime.testStruct.testD-fm"},
+		{ts2.testD, "github.com/Aoi-hosizora/ahlib/xruntime.testStruct.testD-fm"},
+		{ts1.testE, "github.com/Aoi-hosizora/ahlib/xruntime.(*testStruct).testE-fm"},
+		{ts2.testE, "github.com/Aoi-hosizora/ahlib/xruntime.(*testStruct).testE-fm"},
+		{testF, "github.com/Aoi-hosizora/ahlib/xruntime.TestNameOfFunction.func1"},
+		{testG, "github.com/Aoi-hosizora/ahlib/xruntime.TestNameOfFunction.func2"},
+	} {
+		xtesting.Equal(t, NameOfFunction(tc.give), tc.want)
+	}
+
+	xtesting.Panic(t, func() { NameOfFunction(nil) })
+	xtesting.Panic(t, func() { NameOfFunction(0) })
+	xtesting.Panic(t, func() { NameOfFunction("x") })
+}
 
 func printSharp(s string) {
 	fmt.Printf("\n%s\n", strings.Repeat("#", len(s)+8))
@@ -22,14 +66,14 @@ func TestRawStack(t *testing.T) {
 
 	/*
 		goroutine 19 [running]:
-		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x47)
-			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x9f
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:20 +0x30
-		testing.tRunner(0xc0000851e0, 0x224440)
-			D:/Development/Go/src/testing/testing.go:1259 +0x102
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x7?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime.go:46 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:65 +0x30
+		testing.tRunner(0xc000085380, 0xf682b0)
+			C:/Developments/Go/src/testing/testing.go:1439 +0x102
 		created by testing.(*T).Run
-			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+			C:/Developments/Go/src/testing/testing.go:1486 +0x35f
 	*/
 
 	printSharp("RawStack(true)")
@@ -37,28 +81,28 @@ func TestRawStack(t *testing.T) {
 
 	/*
 		goroutine 19 [running]:
-		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x1d)
-			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x9f
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:35 +0x65
-		testing.tRunner(0xc0000851e0, 0x224440)
-			D:/Development/Go/src/testing/testing.go:1259 +0x102
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0xdd?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime.go:46 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:80 +0x65
+		testing.tRunner(0xc000085380, 0xf682b0)
+			C:/Developments/Go/src/testing/testing.go:1439 +0x102
 		created by testing.(*T).Run
-			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+			C:/Developments/Go/src/testing/testing.go:1486 +0x35f
 
 		goroutine 1 [chan receive]:
-		testing.(*T).Run(0xc000085040, {0x219d4e, 0x1589d3}, 0x224440)
-			D:/Development/Go/src/testing/testing.go:1307 +0x375
-		testing.runTests.func1(0xc0000b8600)
-			D:/Development/Go/src/testing/testing.go:1598 +0x6e
-		testing.tRunner(0xc000085040, 0xc0000c3ce0)
-			D:/Development/Go/src/testing/testing.go:1259 +0x102
-		testing.runTests(0xc0000d2080, {0x308ca0, 0x3, 0x3}, {0x17006d, 0x21a6eb, 0x0})
-			D:/Development/Go/src/testing/testing.go:1596 +0x43f
-		testing.(*M).Run(0xc0000d2080)
-			D:/Development/Go/src/testing/testing.go:1504 +0x51d
+		testing.(*T).Run(0xc0000851e0, {0xf5d0db?, 0xe87fd3?}, 0xf682b0)
+			C:/Developments/Go/src/testing/testing.go:1487 +0x37a
+		testing.runTests.func1(0xc0000b8720?)
+			C:/Developments/Go/src/testing/testing.go:1839 +0x6e
+		testing.tRunner(0xc0000851e0, 0xc0000c3cd8)
+			C:/Developments/Go/src/testing/testing.go:1439 +0x102
+		testing.runTests(0xc000094280?, {0x104a8a0, 0x8, 0x8}, {0x265fd440598?, 0x40?, 0x0?})
+			C:/Developments/Go/src/testing/testing.go:1837 +0x457
+		testing.(*M).Run(0xc000094280)
+			C:/Developments/Go/src/testing/testing.go:1719 +0x5d9
 		main.main()
-			_testmain.go:103 +0x20a
+			_testmain.go:61 +0x1aa
 	*/
 
 	printSharp("RawStack(false)_2")
@@ -75,20 +119,21 @@ func TestRawStack(t *testing.T) {
 
 	/*
 		goroutine 19 [running]:
-		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x0)
-			E:/Projects/ahlib/xruntime/xruntime.go:30 +0x6a
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:31 +0x26
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
+		github.com/Aoi-hosizora/ahlib/xruntime.RawStack(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime.go:46 +0x6a
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:114 +0x26
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:112 +0x53
 		......
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x71a51e)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
-		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0x1)
-			E:/Projects/ahlib/xruntime/xruntime_test.go:29 +0x53
-		...additional frames elided...
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack.func1(0xf5e51a?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:112 +0x53
+		github.com/Aoi-hosizora/ahlib/xruntime.TestRawStack(0x0?)
+			C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:118 +0xc9
+		testing.tRunner(0xc000085380, 0xf682b0)
+			C:/Developments/Go/src/testing/testing.go:1439 +0x102
 		created by testing.(*T).Run
-			D:/Development/Go/src/testing/testing.go:1306 +0x35a
+			C:/Developments/Go/src/testing/testing.go:1486 +0x35f
 	*/
 
 	printSharp("TestRawStack end")
@@ -102,16 +147,16 @@ func TestTraceStack(t *testing.T) {
 	}()
 
 	/*
-		File: E:/Projects/ahlib/xruntime/xruntime_test.go:100
+		File: C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:145
 		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack.func1
 			stack := RuntimeTraceStack(0)
-		File: E:/Projects/ahlib/xruntime/xruntime_test.go:102
+		File: C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:147
 		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			}()
-		File: D:/Development/Go/src/testing/testing.go:1439
+		File: C:/Developments/Go/src/testing/testing.go:1439
 		Func: testing.tRunner
 			fn(t)
-		File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+		File: C:/Developments/Go/src/runtime/asm_amd64.s:1571
 		Func: runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
@@ -121,10 +166,10 @@ func TestTraceStack(t *testing.T) {
 	fmt.Println(stack.String())
 
 	/*
-		File: D:/Development/Go/src/testing/testing.go:1439
+		File: C:/Developments/Go/src/testing/testing.go:1439
 		Func: testing.tRunner
 			fn(t)
-		File: D:/Development/Go/src/runtime/asm_amd64.s:1571
+		File: C:/Developments/Go/src/runtime/asm_amd64.s:1571
 		Func: runtime.goexit
 			BYTE	$0x90	// NOP
 	*/
@@ -140,15 +185,15 @@ func TestTraceStack(t *testing.T) {
 	fmt.Println(s[1].String())
 
 	/*
-		filename: E:/Projects/ahlib/xruntime/xruntime_test.go
+		filename: C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go
 		funcName: xruntime.TestTraceStack
-		lineIndex: 133
+		lineIndex: 178
 		lineText: s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
 		======
-		File: E:/Projects/ahlib/xruntime/xruntime_test.go:133
+		File: C:/Files/Codes/Projects/ahlib/xruntime/xruntime_test.go:178
 		Func: github.com/Aoi-hosizora/ahlib/xruntime.TestTraceStack
 			s, filename, funcName, lineIndex, lineText := RuntimeTraceStackWithInfo(0)
-		File: D:/Development/Go/src/testing/testing.go:1439
+		File: C:/Developments/Go/src/testing/testing.go:1439
 		Func: testing.tRunner
 			fn(t)
 	*/
@@ -161,6 +206,57 @@ func TestTraceStack(t *testing.T) {
 	xtesting.Equal(t, lineText, "")
 
 	printSharp("TestTraceStack end")
+}
+
+func TestHackHideAndGetString(t *testing.T) {
+	handler := func() {}
+	funcSize := int(reflect.TypeOf(func() {}).Size())
+	handlerFn := (*struct{ fn uintptr })(unsafe.Pointer(&handler)).fn
+	hackedFn := HackHideString(handlerFn, funcSize, "handlerName")
+	hackedHandler := *(*func())(unsafe.Pointer(&struct{ fn uintptr }{fn: hackedFn}))
+	xtesting.Equal(t, HackGetHiddenString(hackedFn, funcSize), "handlerName")
+	xtesting.NotPanic(t, func() { hackedHandler() })
+
+	handler2 := func(i int) int { return i + 1000 }
+	funcSize2 := int(reflect.TypeOf(func(int) int { return 0 }).Size())
+	handlerFn2 := (*struct{ fn uintptr })(unsafe.Pointer(&handler2)).fn
+	hackedFn2 := HackHideString(handlerFn2, funcSize2, "测试")
+	hackedHandler2 := *(*func(int) int)(unsafe.Pointer(&struct{ fn uintptr }{fn: hackedFn2}))
+	xtesting.Equal(t, HackGetHiddenString(hackedFn2, funcSize2), "测试")
+	xtesting.NotPanic(t, func() { xtesting.Equal(t, hackedHandler2(123), 1123) })
+
+	slice := []int{1, 2, 3}
+	sliceSize := int(reflect.TypeOf([3]int{}).Size())
+	sliceData := (*reflect.SliceHeader)(unsafe.Pointer(&slice)).Data
+	hackedData := HackHideString(sliceData, sliceSize, "handlerName")
+	hackedSlice := *(*[]int)(unsafe.Pointer(&reflect.SliceHeader{Data: hackedData, Len: 3, Cap: 3}))
+	xtesting.Equal(t, HackGetHiddenString(hackedData, sliceSize), "handlerName")
+	xtesting.Equal(t, hackedSlice, []int{1, 2, 3})
+
+	slice2 := []string{"AAA", "BBB", "CCC", "DDD"}
+	sliceSize2 := int(reflect.TypeOf([4]string{}).Size())
+	sliceData2 := (*reflect.SliceHeader)(unsafe.Pointer(&slice2)).Data
+	hackedData2 := HackHideString(sliceData2, sliceSize2, "テスト")
+	hackedSlice2 := *(*[]string)(unsafe.Pointer(&reflect.SliceHeader{Data: hackedData2, Len: 4, Cap: 4}))
+	xtesting.Equal(t, HackGetHiddenString(hackedData2, sliceSize2), "テスト")
+	xtesting.Equal(t, hackedSlice2, []string{"AAA", "BBB", "CCC", "DDD"})
+
+	httpMethod := "GET"
+	hackedMethod := HackHideStringAfterString(httpMethod, "handlerName")
+	xtesting.Equal(t, HackGetHiddenStringAfterString(hackedMethod), "handlerName")
+	xtesting.Equal(t, hackedMethod, "GET")
+
+	httpMethod2 := "中文测试"
+	hackedMethod2 := HackHideStringAfterString(httpMethod2, "日本語のテスト")
+	xtesting.Equal(t, HackGetHiddenStringAfterString(hackedMethod2), "日本語のテスト")
+	xtesting.Equal(t, hackedMethod2, "中文测试")
+
+	xtesting.Equal(t, HackGetHiddenString((*struct{ fn uintptr })(unsafe.Pointer(&handler)).fn, funcSize), "")
+	xtesting.Equal(t, HackGetHiddenString((*struct{ fn uintptr })(unsafe.Pointer(&handler2)).fn, funcSize2), "")
+	xtesting.Equal(t, HackGetHiddenString((*struct{ fn uintptr })(unsafe.Pointer(&slice)).fn, sliceSize), "")
+	xtesting.Equal(t, HackGetHiddenString((*struct{ fn uintptr })(unsafe.Pointer(&slice2)).fn, sliceSize2), "")
+	xtesting.Equal(t, HackGetHiddenStringAfterString(httpMethod), "")
+	xtesting.Equal(t, HackGetHiddenStringAfterString(httpMethod2), "")
 }
 
 func TestPprofProfile(t *testing.T) {
@@ -245,7 +341,7 @@ func TestSignalName(t *testing.T) {
 
 func TestGetProxyEnv(t *testing.T) {
 	for _, key := range []string{
-		"http_proxy", "https_proxy", "socks_proxy",
+		"no_proxy", "http_proxy", "https_proxy", "socks_proxy",
 	} {
 		e, ok := os.LookupEnv(key)
 		if ok {
@@ -254,26 +350,32 @@ func TestGetProxyEnv(t *testing.T) {
 		}
 	}
 
+	os.Setenv("no_proxy", "")
 	os.Setenv("http_proxy", "")
 	os.Setenv("https_proxy", "")
 	os.Setenv("socks_proxy", "")
-	hp, hsp, ssp := GetProxyEnv()
+	np, hp, hsp, ssp := GetProxyEnv()
+	xtesting.Equal(t, np, "")
 	xtesting.Equal(t, hp, "")
 	xtesting.Equal(t, hsp, "")
 	xtesting.Equal(t, ssp, "")
 
+	os.Setenv("no_proxy", "localhost,127.0.0.1,::1")
 	os.Setenv("http_proxy", "http://localhost:9000")
 	os.Setenv("https_proxy", "https://localhost:9000")
 	os.Setenv("socks_proxy", "socks://localhost:9000")
-	hp, hsp, ssp = GetProxyEnv()
+	np, hp, hsp, ssp = GetProxyEnv()
+	xtesting.Equal(t, np, "localhost,127.0.0.1,::1")
 	xtesting.Equal(t, hp, "http://localhost:9000")
 	xtesting.Equal(t, hsp, "https://localhost:9000")
 	xtesting.Equal(t, ssp, "socks://localhost:9000")
 
+	os.Setenv("no_proxy", "")
 	os.Setenv("http_proxy", "")
 	os.Setenv("https_proxy", "")
 	os.Setenv("socks_proxy", "")
-	hp, hsp, ssp = GetProxyEnv()
+	np, hp, hsp, ssp = GetProxyEnv()
+	xtesting.Equal(t, np, "")
 	xtesting.Equal(t, hp, "")
 	xtesting.Equal(t, hsp, "")
 	xtesting.Equal(t, ssp, "")

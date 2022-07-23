@@ -26,12 +26,17 @@
 
 ### Functions
 
++ `func NameOfFunction(f interface{}) string`
 + `func RawStack(all bool) []byte`
-+ `func RuntimeTraceStack(skip int) TraceStack`
-+ `func RuntimeTraceStackWithInfo(skip int) (stack TraceStack, filename string, funcName string, lineIndex int, lineText string)`
++ `func RuntimeTraceStack(skip uint) TraceStack`
++ `func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, funcName string, lineIndex int, lineText string)`
++ `func HackHideString(given unsafe.Pointer, givenLength int, hidden string) (dataAddr uintptr)`
++ `func HackHideStringAfterString(given, hidden string) string`
++ `func HackExtractHiddenString(given unsafe.Pointer, givenLength int) (hidden string)`
++ `func HackExtractHiddenStringAfterString(given string) (hidden string)`
 + `func SignalName(sig syscall.Signal) string`
 + `func SignalReadableName(sig syscall.Signal) string`
-+ `func GetProxyEnv() (httpProxy string, httpsProxy string, socksProxy string)`
++ `func GetProxyEnv() (noProxy, httpProxy, httpsProxy, socksProxy string)`
 
 ### Methods
 
