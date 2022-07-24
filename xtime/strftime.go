@@ -15,7 +15,7 @@ const (
 	fsmPercentMinus = 2
 )
 
-// StrftimeInBytes formats given time.Time and strftime pattern to byte arrays, returns error when using invalid pattern, such as trailing '%'
+// StrftimeInBytes formats given time.Time and strftime pattern to bytes, returns error when using invalid pattern, such as trailing '%'
 // or wrong character after '%' or '%-', please visit https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
 // and https://man7.org/linux/man-pages/man3/strftime.3.html#DESCRIPTION and https://github.com/lestrrat-go/strftime for more details.
 func StrftimeInBytes(pattern []byte, t time.Time) ([]byte, error) {
@@ -67,7 +67,7 @@ func StrftimeInString(pattern string, t time.Time) (string, error) {
 	return xstring.FastBtos(bs), nil
 }
 
-// strftimeFormatVerbatim formats given character to result byte array in verbatim.
+// strftimeFormatVerbatim formats given character to result string in verbatim.
 func strftimeFormatVerbatim(ch byte, t time.Time, nopad bool) (result string, err error) {
 	var formatted string
 	if !nopad {

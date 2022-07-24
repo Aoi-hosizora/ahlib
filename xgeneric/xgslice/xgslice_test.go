@@ -5,11 +5,9 @@ package xgslice
 
 import (
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xgeneric/internal"
 	"github.com/Aoi-hosizora/ahlib/xgeneric/xtuple"
-	"os"
-	"path"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -31,14 +29,14 @@ func TestShuffle(t *testing.T) {
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			result := Shuffle(tc.give)
-			xtestingEqual(t, tc.give, me)
-			xtestingEqual(t, ElementMatch(result, me), true)
+			internal.TestEqual(t, tc.give, me)
+			internal.TestEqual(t, ElementMatch(result, me), true)
 			fmt.Println(result)
 		}
 		for i := 0; i < 2; i++ {
 			time.Sleep(2 * time.Nanosecond)
 			ShuffleSelf(tc.give)
-			xtestingEqual(t, ElementMatch(tc.give, me), true)
+			internal.TestEqual(t, ElementMatch(tc.give, me), true)
 			fmt.Println(tc.give)
 		}
 	}
@@ -58,10 +56,10 @@ func TestReverse(t *testing.T) {
 			me = append(me, item)
 		}
 		result := Reverse(tc.give)
-		xtestingEqual(t, tc.give, me)
-		xtestingEqual(t, result, tc.want)
+		internal.TestEqual(t, tc.give, me)
+		internal.TestEqual(t, result, tc.want)
 		ReverseSelf(tc.give)
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 	}
 }
 
@@ -83,17 +81,17 @@ func TestSort(t *testing.T) {
 			me = append(me, item)
 		}
 		result := Sort(tc.give)
-		xtestingEqual(t, tc.give, me)
-		xtestingEqual(t, result, tc.want)
+		internal.TestEqual(t, tc.give, me)
+		internal.TestEqual(t, result, tc.want)
 		SortSelf(tc.give)
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 
 		tc.give = me
 		result = SortWith(tc.give, tc.giveLess)
-		xtestingEqual(t, tc.give, me)
-		xtestingEqual(t, result, tc.want)
+		internal.TestEqual(t, tc.give, me)
+		internal.TestEqual(t, result, tc.want)
 		SortSelfWith(tc.give, tc.giveLess)
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 	}
 }
 
@@ -115,10 +113,10 @@ func TestStableSort(t *testing.T) {
 			me = append(me, item)
 		}
 		result := StableSort(tc.give)
-		xtestingEqual(t, tc.give, me)
-		xtestingEqual(t, result, tc.want)
+		internal.TestEqual(t, tc.give, me)
+		internal.TestEqual(t, result, tc.want)
 		StableSortSelf(tc.give)
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 	}
 
 	type tuple = [2]int
@@ -144,10 +142,10 @@ func TestStableSort(t *testing.T) {
 			me = append(me, item)
 		}
 		result := StableSortWith(tc.give, tc.giveLess)
-		xtestingEqual(t, tc.give, me)
-		xtestingEqual(t, result, tc.want)
+		internal.TestEqual(t, tc.give, me)
+		internal.TestEqual(t, result, tc.want)
 		StableSortSelfWith(tc.give, tc.giveLess)
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 	}
 }
 
@@ -198,9 +196,9 @@ func TestIndexOf(t *testing.T) {
 		{s2, 5, 1},
 		{s2, 6, -1},
 	} {
-		xtestingEqual(t, IndexOf(tc.give, tc.giveValue), tc.want)
+		internal.TestEqual(t, IndexOf(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
-		xtestingEqual(t, IndexOfWith(give, giveValue, eq), tc.want)
+		internal.TestEqual(t, IndexOfWith(give, giveValue, eq), tc.want)
 	}
 }
 
@@ -223,9 +221,9 @@ func TestLastIndexOf(t *testing.T) {
 		{s2, 5, 1},
 		{s2, 6, -1},
 	} {
-		xtestingEqual(t, LastIndexOf(tc.give, tc.giveValue), tc.want)
+		internal.TestEqual(t, LastIndexOf(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
-		xtestingEqual(t, LastIndexOfWith(give, giveValue, eq), tc.want)
+		internal.TestEqual(t, LastIndexOfWith(give, giveValue, eq), tc.want)
 	}
 }
 
@@ -248,9 +246,9 @@ func TestContains(t *testing.T) {
 		{s2, 5, true},
 		{s2, 6, false},
 	} {
-		xtestingEqual(t, Contains(tc.give, tc.giveValue), tc.want)
+		internal.TestEqual(t, Contains(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
-		xtestingEqual(t, ContainsWith(give, giveValue, eq), tc.want)
+		internal.TestEqual(t, ContainsWith(give, giveValue, eq), tc.want)
 	}
 }
 
@@ -274,9 +272,9 @@ func TestCount(t *testing.T) {
 		{s2, 6, 1},
 		{s2, 7, 0},
 	} {
-		xtestingEqual(t, Count(tc.give, tc.giveValue), tc.want)
+		internal.TestEqual(t, Count(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
-		xtestingEqual(t, CountWith(give, giveValue, eq), tc.want)
+		internal.TestEqual(t, CountWith(give, giveValue, eq), tc.want)
 	}
 }
 
@@ -305,20 +303,20 @@ func TestInsert(t *testing.T) {
 		{[]int{1, 2, 3}, []int{-2, -1}, 2, []int{1, 2, -2, -1, 3}},
 		{[]int{1, 2, 3}, []int{0, 9999, 999, 99, 9}, 4, []int{1, 2, 3, 0, 9999, 999, 99, 9}},
 	} {
-		xtestingEqual(t, Insert(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
-		xtestingEqual(t, InsertSelf(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
+		internal.TestEqual(t, Insert(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
+		internal.TestEqual(t, InsertSelf(tc.give, tc.giveIndex, tc.giveValues...), tc.want)
 	}
 
 	give2 := append(make([]int, 0, 6), 1, 2, 3)
 	addr2 := (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data
 	addr2_ := Insert(give2, 0)
-	xtestingEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&addr2_)).Data, true)
+	internal.TestEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&addr2_)).Data, true)
 	give2 = InsertSelf(give2, 1, 4, 5)
-	xtestingEqual(t, cap(give2), 6)
-	xtestingEqual(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data)
+	internal.TestEqual(t, cap(give2), 6)
+	internal.TestEqual(t, addr2, (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data)
 	give2 = InsertSelf(give2, 0, 4, 5)
-	xtestingEqual(t, cap(give2) != 6, true)
-	xtestingEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data, true)
+	internal.TestEqual(t, cap(give2) != 6, true)
+	internal.TestEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data, true)
 }
 
 func TestDelete(t *testing.T) {
@@ -344,15 +342,15 @@ func TestDelete(t *testing.T) {
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, 1, []int{1, 5, 2, 1, 5, 2, 3, 2}},
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, 1, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
-		xtestingEqual(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
+		internal.TestEqual(t, Delete(tc.give, tc.giveValue, tc.giveN), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
 		d1 := DeleteSelf(tc.give, tc.giveValue, tc.giveN)
-		xtestingEqual(t, d1, tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
-		xtestingEqual(t, testToIntSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
+		internal.TestEqual(t, d1, tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		internal.TestEqual(t, testToIntSlice(DeleteWith(give, giveValue, tc.giveN, eq)), tc.want)
 		d2 := DeleteSelfWith(give, giveValue, tc.giveN, eq)
-		xtestingEqual(t, testToIntSlice(d2), tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+		internal.TestEqual(t, testToIntSlice(d2), tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -375,15 +373,15 @@ func TestDeleteAll(t *testing.T) {
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 6, []int{1, 5, 2, 1, 5, 2, 3, 2}},
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, 7, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
-		xtestingEqual(t, DeleteAll(tc.give, tc.giveValue), tc.want)
+		internal.TestEqual(t, DeleteAll(tc.give, tc.giveValue), tc.want)
 		give, giveValue := newTestSlice(tc.give), newTestStruct(tc.giveValue)
 		d1 := DeleteAllSelf(tc.give, tc.giveValue)
-		xtestingEqual(t, d1, tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
-		xtestingEqual(t, testToIntSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
+		internal.TestEqual(t, d1, tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		internal.TestEqual(t, testToIntSlice(DeleteAllWith(give, giveValue, eq)), tc.want)
 		d2 := DeleteAllSelfWith(give, giveValue, eq)
-		xtestingEqual(t, testToIntSlice(d2), tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+		internal.TestEqual(t, testToIntSlice(d2), tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -406,9 +404,9 @@ func TestContainsAll(t *testing.T) {
 		{s2, []int{2, 2, 2, 1, 5, 2, 1, 5, 2, 6, 3, 2}, true},
 		{s2, []int{1, 2, 3, 4, 5, 6}, false},
 	} {
-		xtestingEqual(t, ContainsAll(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, ContainsAll(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, ContainsAllWith(give1, give2, eq), tc.want)
+		internal.TestEqual(t, ContainsAllWith(give1, give2, eq), tc.want)
 	}
 }
 
@@ -436,9 +434,9 @@ func TestDiff(t *testing.T) {
 		{s2, []int{6, 5, 4, 3, 2}, []int{1, 1}},
 		{s2, []int{6, 5, 4, 3, 2, 1}, []int{}},
 	} {
-		xtestingEqual(t, Diff(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, Diff(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, testToIntSlice(DiffWith(give1, give2, eq)), tc.want)
+		internal.TestEqual(t, testToIntSlice(DiffWith(give1, give2, eq)), tc.want)
 	}
 }
 
@@ -460,9 +458,9 @@ func TestUnion(t *testing.T) {
 		{s2, []int{11, 2, 13, 14, 5}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 11, 13, 14}},
 		{s2, []int{11, 2, 13, 14, 5, 16}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 11, 13, 14, 16}},
 	} {
-		xtestingEqual(t, Union(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, Union(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, testToIntSlice(UnionWith(give1, give2, eq)), tc.want)
+		internal.TestEqual(t, testToIntSlice(UnionWith(give1, give2, eq)), tc.want)
 	}
 }
 
@@ -484,9 +482,9 @@ func TestIntersect(t *testing.T) {
 		{s2, []int{1, 2, 3, 4, 5}, []int{1, 5, 2, 1, 5, 2, 3, 2}},
 		{s2, []int{1, 2, 3, 4, 5, 6}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2}},
 	} {
-		xtestingEqual(t, Intersect(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, Intersect(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, testToIntSlice(IntersectWith(give1, give2, eq)), tc.want)
+		internal.TestEqual(t, testToIntSlice(IntersectWith(give1, give2, eq)), tc.want)
 	}
 }
 
@@ -503,15 +501,15 @@ func TestDeduplicate(t *testing.T) {
 		{[]int{2, 1, 1}, []int{2, 1}},
 		{[]int{1, 5, 2, 1, 5, 2, 6, 3, 2}, []int{1, 5, 2, 6, 3}},
 	} {
-		xtestingEqual(t, Deduplicate(tc.give), tc.want)
+		internal.TestEqual(t, Deduplicate(tc.give), tc.want)
 		give := newTestSlice(tc.give)
 		d1 := DeduplicateSelf(tc.give)
-		xtestingEqual(t, d1, tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
-		xtestingEqual(t, testToIntSlice(DeduplicateWith(give, eq)), tc.want)
+		internal.TestEqual(t, d1, tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		internal.TestEqual(t, testToIntSlice(DeduplicateWith(give, eq)), tc.want)
 		d2 := DeduplicateSelfWith(give, eq)
-		xtestingEqual(t, testToIntSlice(d2), tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+		internal.TestEqual(t, testToIntSlice(d2), tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -528,15 +526,15 @@ func TestCompact(t *testing.T) {
 		{[]int{2, 2, 1, 1, 1, 2, 1, 3}, []int{2, 1, 2, 1, 3}},
 		{[]int{1, 5, 5, 2, 1, 5, 2, 2, 6, 6, 6, 3, 2, 1, 1}, []int{1, 5, 2, 1, 5, 2, 6, 3, 2, 1}},
 	} {
-		xtestingEqual(t, Compact(tc.give), tc.want)
+		internal.TestEqual(t, Compact(tc.give), tc.want)
 		give := newTestSlice(tc.give)
 		d1 := CompactSelf(tc.give)
-		xtestingEqual(t, d1, tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
-		xtestingEqual(t, testToIntSlice(CompactWith(give, eq)), tc.want)
+		internal.TestEqual(t, d1, tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d1)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&tc.give)).Data)
+		internal.TestEqual(t, testToIntSlice(CompactWith(give, eq)), tc.want)
 		d2 := CompactSelfWith(give, eq)
-		xtestingEqual(t, testToIntSlice(d2), tc.want)
-		xtestingEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
+		internal.TestEqual(t, testToIntSlice(d2), tc.want)
+		internal.TestEqual(t, (*reflect.SliceHeader)(unsafe.Pointer(&d2)).Data, (*reflect.SliceHeader)(unsafe.Pointer(&give)).Data)
 	}
 }
 
@@ -560,9 +558,9 @@ func TestEqual(t *testing.T) {
 		{[]int{1, 1, 2, 2}, []int{1, 1, 2}, false},
 		{[]int{1, 1, 2, 3}, []int{1, 1, 2, 3}, true},
 	} {
-		xtestingEqual(t, Equal(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, Equal(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, EqualWith(give1, give2, eq), tc.want)
+		internal.TestEqual(t, EqualWith(give1, give2, eq), tc.want)
 	}
 }
 
@@ -585,9 +583,9 @@ func TestElementMatch(t *testing.T) {
 		{[]int{1, 2, 3}, []int{1, 2, 2}, false},
 		{[]int{1, 2, 2}, []int{1, 2, 3}, false},
 	} {
-		xtestingEqual(t, ElementMatch(tc.give1, tc.give2), tc.want)
+		internal.TestEqual(t, ElementMatch(tc.give1, tc.give2), tc.want)
 		give1, give2 := newTestSlice(tc.give1), newTestSlice(tc.give2)
-		xtestingEqual(t, ElementMatchWith(give1, give2, eq), tc.want)
+		internal.TestEqual(t, ElementMatchWith(give1, give2, eq), tc.want)
 	}
 }
 
@@ -613,56 +611,56 @@ func TestRepeat(t *testing.T) {
 		{Repeat((*testError)(nil), 2), []*testError{(*testError)(nil), (*testError)(nil)}},
 		{Repeat(&testError{"test"}, 2), []*testError{{"test"}, {"test"}}},
 	} {
-		xtestingEqual(t, tc.give, tc.want)
+		internal.TestEqual(t, tc.give, tc.want)
 	}
 }
 
 func TestForeach(t *testing.T) {
-	xtestingPanic(t, true, func() { Foreach([]bool{}, nil) })
-	xtestingPanic(t, false, func() { Foreach([]bool{}, func(t bool) {}) })
+	internal.TestPanic(t, true, func() { Foreach([]bool{}, nil) })
+	internal.TestPanic(t, false, func() { Foreach([]bool{}, func(t bool) {}) })
 
 	test1 := 0
 	Foreach([]int{1, 2, 3, 4}, func(t int) { test1 += t })
-	xtestingEqual(t, test1, 1+2+3+4)
+	internal.TestEqual(t, test1, 1+2+3+4)
 	test2 := uint(1)
 	Foreach([]uint{1, 2, 3, 4, 5}, func(t uint) { test2 *= t })
-	xtestingEqual(t, test2, uint(1*2*3*4*5))
+	internal.TestEqual(t, test2, uint(1*2*3*4*5))
 	test3 := float32(0)
 	Foreach([]float32{1.0, 2.0, 3.0}, func(t float32) { test3 -= t })
-	xtestingEqual(t, test3, float32(-1.0-2.0-3.0))
+	internal.TestEqual(t, test3, float32(-1.0-2.0-3.0))
 	test4 := ""
 	Foreach([]string{"1", "2", "3", "a", "b", "c"}, func(t string) { test4 += t })
-	xtestingEqual(t, test4, "123abc")
+	internal.TestEqual(t, test4, "123abc")
 }
 
 func TestMapExpand(t *testing.T) {
-	xtestingPanic(t, true, func() { Map[bool, bool]([]bool{}, nil) })
-	xtestingEqual(t, Map([]bool{}, func(t bool) bool { return false }), []bool{})
-	xtestingEqual(t, Map([]bool{true, true, true, true}, func(t bool) bool { return false }), []bool{false, false, false, false})
-	xtestingEqual(t, Map([]int{1, 2, 3}, func(t int) int32 { return int32(t) + 1 }), []int32{2, 3, 4})
-	xtestingEqual(t, Map([]float64{1., 2.}, func(t float64) string { return strconv.FormatFloat(t, 'f', 1, 64) }), []string{"1.0", "2.0"})
-	xtestingEqual(t, Map([]string{"1", "@", "3", "4"}, func(t string) int32 {
+	internal.TestPanic(t, true, func() { Map[bool, bool]([]bool{}, nil) })
+	internal.TestEqual(t, Map([]bool{}, func(t bool) bool { return false }), []bool{})
+	internal.TestEqual(t, Map([]bool{true, true, true, true}, func(t bool) bool { return false }), []bool{false, false, false, false})
+	internal.TestEqual(t, Map([]int{1, 2, 3}, func(t int) int32 { return int32(t) + 1 }), []int32{2, 3, 4})
+	internal.TestEqual(t, Map([]float64{1., 2.}, func(t float64) string { return strconv.FormatFloat(t, 'f', 1, 64) }), []string{"1.0", "2.0"})
+	internal.TestEqual(t, Map([]string{"1", "@", "3", "4"}, func(t string) int32 {
 		s, _ := strconv.Atoi(t)
 		return int32(s)
 	}), []int32{1, 0, 3, 4})
 
-	xtestingPanic(t, true, func() { Expand[bool, bool]([]bool{}, nil) })
-	xtestingEqual(t, Expand([]bool{}, func(t bool) []bool { return []bool{} }), []bool{})
-	xtestingEqual(t, Expand([]bool{true, false}, func(t bool) []bool { return []bool{t, !t} }), []bool{true, false, false, true})
-	xtestingEqual(t, Expand([]int{1, 2, 3}, func(t int) []int32 { return []int32{int32(t), int32(t) + 1} }), []int32{1, 2, 2, 3, 3, 4})
-	xtestingEqual(t, Expand([]float64{1., 2.}, func(t float64) []string { return []string{"", strconv.FormatFloat(t, 'f', 1, 64), "|"} }), []string{"", "1.0", "|", "", "2.0", "|"})
-	xtestingEqual(t, Expand([]string{"1", "@", "3", "4"}, func(t string) []int32 {
+	internal.TestPanic(t, true, func() { Expand[bool, bool]([]bool{}, nil) })
+	internal.TestEqual(t, Expand([]bool{}, func(t bool) []bool { return []bool{} }), []bool{})
+	internal.TestEqual(t, Expand([]bool{true, false}, func(t bool) []bool { return []bool{t, !t} }), []bool{true, false, false, true})
+	internal.TestEqual(t, Expand([]int{1, 2, 3}, func(t int) []int32 { return []int32{int32(t), int32(t) + 1} }), []int32{1, 2, 2, 3, 3, 4})
+	internal.TestEqual(t, Expand([]float64{1., 2.}, func(t float64) []string { return []string{"", strconv.FormatFloat(t, 'f', 1, 64), "|"} }), []string{"", "1.0", "|", "", "2.0", "|"})
+	internal.TestEqual(t, Expand([]string{"1", "@", "3", "4"}, func(t string) []int32 {
 		s, _ := strconv.Atoi(t)
 		return []int32{int32(s), int32(s) * 2}
 	}), []int32{1, 2, 0, 0, 3, 6, 4, 8})
 }
 
 func TestReduce(t *testing.T) {
-	xtestingPanic(t, true, func() { Reduce([]bool{}, true, nil) })
-	xtestingEqual(t, Reduce([]bool{}, true, func(k bool, t bool) bool { return false }), true)
-	xtestingEqual(t, Reduce([]int{1, 2, 3}, 0.0, func(k float64, t int) float64 { return k + float64(t) }), 1.+2.+3.)
-	xtestingEqual(t, Reduce([]string{"a", "b", "c", "d"}, "0", func(k string, t string) string { return k + t }), "0abcd")
-	xtestingEqual(t, Reduce([]string{"a", "b", "c", "d"}, []string{}, func(k []string, t string) []string { return append(k, string(t[0]+1)) }), []string{"b", "c", "d", "e"})
+	internal.TestPanic(t, true, func() { Reduce([]bool{}, true, nil) })
+	internal.TestEqual(t, Reduce([]bool{}, true, func(k bool, t bool) bool { return false }), true)
+	internal.TestEqual(t, Reduce([]int{1, 2, 3}, 0.0, func(k float64, t int) float64 { return k + float64(t) }), 1.+2.+3.)
+	internal.TestEqual(t, Reduce([]string{"a", "b", "c", "d"}, "0", func(k string, t string) string { return k + t }), "0abcd")
+	internal.TestEqual(t, Reduce([]string{"a", "b", "c", "d"}, []string{}, func(k []string, t string) []string { return append(k, string(t[0]+1)) }), []string{"b", "c", "d", "e"})
 
 	fractions := [][2]int{{5, 1}, {3, 6}, {2, 0}, {3, 1}}
 	results := Reduce(Map(fractions, func(t [2]int) *float64 {
@@ -677,95 +675,95 @@ func TestReduce(t *testing.T) {
 		}
 		return k + *t
 	})
-	xtestingEqual(t, results, 5./1.+3./6.+3./1.)
+	internal.TestEqual(t, results, 5./1.+3./6.+3./1.)
 }
 
 func TestFilterAnyAll(t *testing.T) {
-	xtestingPanic(t, true, func() { Filter([]bool{}, nil) })
-	xtestingEqual(t, Filter([]bool{}, func(t bool) bool { return t }), []bool{})
-	xtestingEqual(t, Filter([]bool{true, false, true, false}, func(t bool) bool { return t }), []bool{true, true})
-	xtestingEqual(t, Filter([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), []int32{9, 8, 7, 6})
-	xtestingEqual(t, Filter([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), []string{"1", "3"})
-	xtestingEqual(t, Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), []string{"aaa", "ccccc"})
+	internal.TestPanic(t, true, func() { Filter([]bool{}, nil) })
+	internal.TestEqual(t, Filter([]bool{}, func(t bool) bool { return t }), []bool{})
+	internal.TestEqual(t, Filter([]bool{true, false, true, false}, func(t bool) bool { return t }), []bool{true, true})
+	internal.TestEqual(t, Filter([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), []int32{9, 8, 7, 6})
+	internal.TestEqual(t, Filter([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), []string{"1", "3"})
+	internal.TestEqual(t, Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), []string{"aaa", "ccccc"})
 
-	xtestingPanic(t, true, func() { Any([]bool{}, nil) })
-	xtestingEqual(t, Any([]bool{}, func(t bool) bool { return t }), true)
-	xtestingEqual(t, Any([]bool{true, false, true, false}, func(t bool) bool { return t }), true)
-	xtestingEqual(t, Any([]bool{false, false}, func(t bool) bool { return t }), false)
-	xtestingEqual(t, Any([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), true)
-	xtestingEqual(t, Any([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 10 }), false)
-	xtestingEqual(t, Any([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), true)
-	xtestingEqual(t, Any([]string{"!", "@", "#"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), false)
+	internal.TestPanic(t, true, func() { Any([]bool{}, nil) })
+	internal.TestEqual(t, Any([]bool{}, func(t bool) bool { return t }), true)
+	internal.TestEqual(t, Any([]bool{true, false, true, false}, func(t bool) bool { return t }), true)
+	internal.TestEqual(t, Any([]bool{false, false}, func(t bool) bool { return t }), false)
+	internal.TestEqual(t, Any([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), true)
+	internal.TestEqual(t, Any([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 10 }), false)
+	internal.TestEqual(t, Any([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), true)
+	internal.TestEqual(t, Any([]string{"!", "@", "#"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), false)
 
-	xtestingPanic(t, true, func() { All([]bool{}, nil) })
-	xtestingEqual(t, All([]bool{}, func(t bool) bool { return t }), true)
-	xtestingEqual(t, All([]bool{true, false, true, false}, func(t bool) bool { return t }), false)
-	xtestingEqual(t, All([]bool{true, true}, func(t bool) bool { return t }), true)
-	xtestingEqual(t, All([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), false)
-	xtestingEqual(t, All([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 0 }), true)
-	xtestingEqual(t, All([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), false)
-	xtestingEqual(t, All([]string{"aaa", "bb", "ccccc", "dd"}, func(t string) bool { return len(t) >= 2 }), true)
+	internal.TestPanic(t, true, func() { All([]bool{}, nil) })
+	internal.TestEqual(t, All([]bool{}, func(t bool) bool { return t }), true)
+	internal.TestEqual(t, All([]bool{true, false, true, false}, func(t bool) bool { return t }), false)
+	internal.TestEqual(t, All([]bool{true, true}, func(t bool) bool { return t }), true)
+	internal.TestEqual(t, All([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), false)
+	internal.TestEqual(t, All([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 0 }), true)
+	internal.TestEqual(t, All([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), false)
+	internal.TestEqual(t, All([]string{"aaa", "bb", "ccccc", "dd"}, func(t string) bool { return len(t) >= 2 }), true)
 }
 
 func TestZipUnzip(t *testing.T) {
-	xtestingEqual(t, Zip[bool, bool](nil, nil), []xtuple.Tuple[bool, bool]{})
-	xtestingEqual(t, Zip([]bool{}, []bool{}), []xtuple.Tuple[bool, bool]{})
-	xtestingEqual(t, Zip([]bool{true}, []bool{}), []xtuple.Tuple[bool, bool]{})
-	xtestingEqual(t, Zip([]bool{true}, []bool{false, false}), []xtuple.Tuple[bool, bool]{{true, false}})
-	xtestingEqual(t, Zip([]int{1, 2, 3}, []string{"1", "2", "3"}), []xtuple.Tuple[int, string]{{1, "1"}, {2, "2"}, {3, "3"}})
-	xtestingEqual(t, Zip([]string{")", "(", "*", "&", "^"}, []uint32{0, 9, 8, 7, 6}), []xtuple.Tuple[string, uint32]{{")", 0}, {"(", 9}, {"*", 8}, {"&", 7}, {"^", 6}})
-	xtestingEqual(t, Zip([]float64{1 / 2, 3 / 4, 5 / 8, 6 / 3}, [][2]int{{1, 2}, {3, 4}, {5, 8}, {6, 3}}), []xtuple.Tuple[float64, [2]int]{{1 / 2, [2]int{1, 2}}, {3 / 4, [2]int{3, 4}}, {5 / 8, [2]int{5, 8}}, {6 / 3, [2]int{6, 3}}})
+	internal.TestEqual(t, Zip[bool, bool](nil, nil), []xtuple.Tuple[bool, bool]{})
+	internal.TestEqual(t, Zip([]bool{}, []bool{}), []xtuple.Tuple[bool, bool]{})
+	internal.TestEqual(t, Zip([]bool{true}, []bool{}), []xtuple.Tuple[bool, bool]{})
+	internal.TestEqual(t, Zip([]bool{true}, []bool{false, false}), []xtuple.Tuple[bool, bool]{{true, false}})
+	internal.TestEqual(t, Zip([]int{1, 2, 3}, []string{"1", "2", "3"}), []xtuple.Tuple[int, string]{{1, "1"}, {2, "2"}, {3, "3"}})
+	internal.TestEqual(t, Zip([]string{")", "(", "*", "&", "^"}, []uint32{0, 9, 8, 7, 6}), []xtuple.Tuple[string, uint32]{{")", 0}, {"(", 9}, {"*", 8}, {"&", 7}, {"^", 6}})
+	internal.TestEqual(t, Zip([]float64{1 / 2, 3 / 4, 5 / 8, 6 / 3}, [][2]int{{1, 2}, {3, 4}, {5, 8}, {6, 3}}), []xtuple.Tuple[float64, [2]int]{{1 / 2, [2]int{1, 2}}, {3 / 4, [2]int{3, 4}}, {5 / 8, [2]int{5, 8}}, {6 / 3, [2]int{6, 3}}})
 
-	xtestingEqual(t, xtuple.NewTuple(Unzip[bool, bool](nil)), xtuple.Tuple[[]bool, []bool]{Item1: []bool{}, Item2: []bool{}})
-	xtestingEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{}, Item2: []bool{}})
-	xtestingEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{{true, false}})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{true}, Item2: []bool{false}})
-	xtestingEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{{true, false}, {false, true}})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{true, false}, Item2: []bool{false, true}})
-	xtestingEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[int, string]{{1, "1"}, {2, "2"}, {3, "3"}})), xtuple.Tuple[[]int, []string]{Item1: []int{1, 2, 3}, Item2: []string{"1", "2", "3"}})
-	xtestingEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[string, uint32]{{")", 0}, {"(", 9}, {"*", 8}})), xtuple.Tuple[[]string, []uint32]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip[bool, bool](nil)), xtuple.Tuple[[]bool, []bool]{Item1: []bool{}, Item2: []bool{}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{}, Item2: []bool{}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{{true, false}})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{true}, Item2: []bool{false}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[bool, bool]{{true, false}, {false, true}})), xtuple.Tuple[[]bool, []bool]{Item1: []bool{true, false}, Item2: []bool{false, true}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[int, string]{{1, "1"}, {2, "2"}, {3, "3"}})), xtuple.Tuple[[]int, []string]{Item1: []int{1, 2, 3}, Item2: []string{"1", "2", "3"}})
+	internal.TestEqual(t, xtuple.NewTuple(Unzip([]xtuple.Tuple[string, uint32]{{")", 0}, {"(", 9}, {"*", 8}})), xtuple.Tuple[[]string, []uint32]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}})
 
-	xtestingEqual(t, Zip3[bool, bool, bool](nil, nil, nil), []xtuple.Triple[bool, bool, bool]{})
-	xtestingEqual(t, Zip3([]bool{}, []bool{}, []bool{}), []xtuple.Triple[bool, bool, bool]{})
-	xtestingEqual(t, Zip3([]bool{true, true, true}, []bool{true, true}, []bool{}), []xtuple.Triple[bool, bool, bool]{})
-	xtestingEqual(t, Zip3([]bool{true}, []bool{true, true}, []bool{false, false, true}), []xtuple.Triple[bool, bool, bool]{{true, true, false}})
-	xtestingEqual(t, Zip3([]int{1, 2, 3}, []string{"1", "2", "3"}, []uint32{2, 3, 4}), []xtuple.Triple[int, string, uint32]{{1, "1", 2}, {2, "2", 3}, {3, "3", 4}})
-	xtestingEqual(t, Zip3([]string{")", "(", "*"}, []uint32{0, 9, 8}, []byte{'0', '9', '8'}), []xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})
+	internal.TestEqual(t, Zip3[bool, bool, bool](nil, nil, nil), []xtuple.Triple[bool, bool, bool]{})
+	internal.TestEqual(t, Zip3([]bool{}, []bool{}, []bool{}), []xtuple.Triple[bool, bool, bool]{})
+	internal.TestEqual(t, Zip3([]bool{true, true, true}, []bool{true, true}, []bool{}), []xtuple.Triple[bool, bool, bool]{})
+	internal.TestEqual(t, Zip3([]bool{true}, []bool{true, true}, []bool{false, false, true}), []xtuple.Triple[bool, bool, bool]{{true, true, false}})
+	internal.TestEqual(t, Zip3([]int{1, 2, 3}, []string{"1", "2", "3"}, []uint32{2, 3, 4}), []xtuple.Triple[int, string, uint32]{{1, "1", 2}, {2, "2", 3}, {3, "3", 4}})
+	internal.TestEqual(t, Zip3([]string{")", "(", "*"}, []uint32{0, 9, 8}, []byte{'0', '9', '8'}), []xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})
 
-	xtestingEqual(t, xtuple.NewTriple(Unzip3[bool, bool, bool](nil)), xtuple.Triple[[]bool, []bool, []bool]{Item1: []bool{}, Item2: []bool{}, Item3: []bool{}})
-	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[bool, bool, bool]{})), xtuple.Triple[[]bool, []bool, []bool]{Item1: []bool{}, Item2: []bool{}, Item3: []bool{}})
-	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[bool, bool, int]{{true, false, 0}, {false, true, 1}})), xtuple.Triple[[]bool, []bool, []int]{Item1: []bool{true, false}, Item2: []bool{false, true}, Item3: []int{0, 1}})
-	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[int, string, uint32]{{1, "1", 2}, {2, "2", 3}, {3, "3", 4}})), xtuple.Triple[[]int, []string, []uint32]{Item1: []int{1, 2, 3}, Item2: []string{"1", "2", "3"}, Item3: []uint32{2, 3, 4}})
-	xtestingEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})), xtuple.Triple[[]string, []uint32, []byte]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}, Item3: []byte{'0', '9', '8'}})
+	internal.TestEqual(t, xtuple.NewTriple(Unzip3[bool, bool, bool](nil)), xtuple.Triple[[]bool, []bool, []bool]{Item1: []bool{}, Item2: []bool{}, Item3: []bool{}})
+	internal.TestEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[bool, bool, bool]{})), xtuple.Triple[[]bool, []bool, []bool]{Item1: []bool{}, Item2: []bool{}, Item3: []bool{}})
+	internal.TestEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[bool, bool, int]{{true, false, 0}, {false, true, 1}})), xtuple.Triple[[]bool, []bool, []int]{Item1: []bool{true, false}, Item2: []bool{false, true}, Item3: []int{0, 1}})
+	internal.TestEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[int, string, uint32]{{1, "1", 2}, {2, "2", 3}, {3, "3", 4}})), xtuple.Triple[[]int, []string, []uint32]{Item1: []int{1, 2, 3}, Item2: []string{"1", "2", "3"}, Item3: []uint32{2, 3, 4}})
+	internal.TestEqual(t, xtuple.NewTriple(Unzip3([]xtuple.Triple[string, uint32, byte]{{")", 0, '0'}, {"(", 9, '9'}, {"*", 8, '8'}})), xtuple.Triple[[]string, []uint32, []byte]{Item1: []string{")", "(", "*"}, Item2: []uint32{0, 9, 8}, Item3: []byte{'0', '9', '8'}})
 }
 
 func TestExpSlices(t *testing.T) {
 	// From https://cs.opensource.google/go/x/exp/+/master:slices/slices_test.go
 
 	t.Run("TestClone", func(t *testing.T) {
-		xtestingEqual(t, Clone([]int(nil)), []int{})
-		xtestingEqual(t, Clone([]int{}), []int{})
-		xtestingEqual(t, Clone([]int{0}), []int{0})
-		xtestingEqual(t, Clone([]int{1, 2, 3}), []int{1, 2, 3})
-		xtestingEqual(t, Clone([]byte{'a', 'a', 'b', 'c'}), []byte{'a', 'a', 'b', 'c'})
-		xtestingEqual(t, Clone([]int{1, 2, 3}[:0]), []int{})
+		internal.TestEqual(t, Clone([]int(nil)), []int{})
+		internal.TestEqual(t, Clone([]int{}), []int{})
+		internal.TestEqual(t, Clone([]int{0}), []int{0})
+		internal.TestEqual(t, Clone([]int{1, 2, 3}), []int{1, 2, 3})
+		internal.TestEqual(t, Clone([]byte{'a', 'a', 'b', 'c'}), []byte{'a', 'a', 'b', 'c'})
+		internal.TestEqual(t, Clone([]int{1, 2, 3}[:0]), []int{})
 	})
 
 	t.Run("TestClip", func(t *testing.T) {
 		s1 := []int{1, 2, 3, 4, 5, 6}[:3]
-		xtestingEqual(t, len(s1), 3)
-		xtestingEqual(t, cap(s1), 6)
+		internal.TestEqual(t, len(s1), 3)
+		internal.TestEqual(t, cap(s1), 6)
 		s2 := Clip(s1)
-		xtestingEqual(t, s2, []int{1, 2, 3})
-		xtestingEqual(t, cap(s2), 3)
+		internal.TestEqual(t, s2, []int{1, 2, 3})
+		internal.TestEqual(t, cap(s2), 3)
 	})
 
 	t.Run("TestGrow", func(t *testing.T) {
 		s1 := []int{1, 2, 3}
 		s2 := Grow(Clone(s1), -1)
-		xtestingEqual(t, s1, s2)
-		xtestingEqual(t, cap(s2), cap(s1))
+		internal.TestEqual(t, s1, s2)
+		internal.TestEqual(t, cap(s2), cap(s1))
 		s3 := Grow(Clone(s1), 1000)
-		xtestingEqual(t, s3, s1)
-		xtestingEqual(t, cap(s3) >= 1000+len(s1), true)
+		internal.TestEqual(t, s3, s1)
+		internal.TestEqual(t, cap(s3) >= 1000+len(s1), true)
 	})
 }
 
@@ -786,156 +784,120 @@ func TestTildeSignature(t *testing.T) {
 	i := func() IntSlice { return IntSlice{1, 2, 3} }
 	s := func() StringSlice { return StringSlice{"aaa", "b", "cc"} }
 
-	xtestingEqual(t, Shuffle(i()).typename(), "IntSlice")
-	xtestingEqual(t, Shuffle(s()).typename(), "StringSlice")
+	internal.TestEqual(t, Shuffle(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Shuffle(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Reverse(i()), IntSlice{3, 2, 1})
-	xtestingEqual(t, Reverse(s()), StringSlice{"cc", "b", "aaa"})
-	xtestingEqual(t, Reverse(i()).typename(), "IntSlice")
-	xtestingEqual(t, Reverse(s()).typename(), "StringSlice")
+	internal.TestEqual(t, Reverse(i()), IntSlice{3, 2, 1})
+	internal.TestEqual(t, Reverse(s()), StringSlice{"cc", "b", "aaa"})
+	internal.TestEqual(t, Reverse(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Reverse(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Sort(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Sort(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Sort(i()).typename(), "IntSlice")
-	xtestingEqual(t, Sort(s()).typename(), "StringSlice")
-	xtestingEqual(t, SortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
-	xtestingEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
-	xtestingEqual(t, SortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
-	xtestingEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+	internal.TestEqual(t, Sort(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Sort(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Sort(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Sort(s()).typename(), "StringSlice")
+	internal.TestEqual(t, SortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	internal.TestEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	internal.TestEqual(t, SortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	internal.TestEqual(t, SortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
 
-	xtestingEqual(t, StableSort(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, StableSort(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, StableSort(i()).typename(), "IntSlice")
-	xtestingEqual(t, StableSort(s()).typename(), "StringSlice")
-	xtestingEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
-	xtestingEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
-	xtestingEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
-	xtestingEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
+	internal.TestEqual(t, StableSort(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, StableSort(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, StableSort(i()).typename(), "IntSlice")
+	internal.TestEqual(t, StableSort(s()).typename(), "StringSlice")
+	internal.TestEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }), IntSlice{3, 2, 1})
+	internal.TestEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }), StringSlice{"b", "cc", "aaa"})
+	internal.TestEqual(t, StableSortWith(i(), func(i, j int) bool { return i > j }).typename(), "IntSlice")
+	internal.TestEqual(t, StableSortWith(s(), func(i, j string) bool { return len(i) < len(j) }).typename(), "StringSlice")
 
-	xtestingEqual(t, Insert(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
-	xtestingEqual(t, Insert(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
-	xtestingEqual(t, Insert(i(), 0, 4, 0).typename(), "IntSlice")
-	xtestingEqual(t, Insert(s(), 0, "zzzz", "x").typename(), "StringSlice")
-	xtestingEqual(t, InsertSelf(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
-	xtestingEqual(t, InsertSelf(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
-	xtestingEqual(t, InsertSelf(i(), 0, 4, 0).typename(), "IntSlice")
-	xtestingEqual(t, InsertSelf(s(), 0, "zzzz", "x").typename(), "StringSlice")
+	internal.TestEqual(t, Insert(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
+	internal.TestEqual(t, Insert(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
+	internal.TestEqual(t, Insert(i(), 0, 4, 0).typename(), "IntSlice")
+	internal.TestEqual(t, Insert(s(), 0, "zzzz", "x").typename(), "StringSlice")
+	internal.TestEqual(t, InsertSelf(i(), 0, 4, 0), IntSlice{4, 0, 1, 2, 3})
+	internal.TestEqual(t, InsertSelf(s(), 0, "zzzz", "x"), StringSlice{"zzzz", "x", "aaa", "b", "cc"})
+	internal.TestEqual(t, InsertSelf(i(), 0, 4, 0).typename(), "IntSlice")
+	internal.TestEqual(t, InsertSelf(s(), 0, "zzzz", "x").typename(), "StringSlice")
 
-	xtestingEqual(t, Delete(i(), 1, 1), IntSlice{2, 3})
-	xtestingEqual(t, Delete(s(), "aaa", 1), StringSlice{"b", "cc"})
-	xtestingEqual(t, Delete(i(), 1, 1).typename(), "IntSlice")
-	xtestingEqual(t, Delete(s(), "aaa", 1).typename(), "StringSlice")
-	xtestingEqual(t, DeleteAll(i(), 1), IntSlice{2, 3})
-	xtestingEqual(t, DeleteAll(s(), "aaa"), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteAll(i(), 1).typename(), "IntSlice")
-	xtestingEqual(t, DeleteAll(s(), "aaa").typename(), "StringSlice")
-	xtestingEqual(t, DeleteSelf(i(), 1, 1), IntSlice{2, 3})
-	xtestingEqual(t, DeleteSelf(s(), "aaa", 1), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteSelf(i(), 1, 1).typename(), "IntSlice")
-	xtestingEqual(t, DeleteSelf(s(), "aaa", 1).typename(), "StringSlice")
-	xtestingEqual(t, DeleteAllSelf(i(), 1), IntSlice{2, 3})
-	xtestingEqual(t, DeleteAllSelf(s(), "aaa"), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteAllSelf(i(), 1).typename(), "IntSlice")
-	xtestingEqual(t, DeleteAllSelf(s(), "aaa").typename(), "StringSlice")
-	xtestingEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
-	xtestingEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
-	xtestingEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
-	xtestingEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
-	xtestingEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
-	xtestingEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
-	xtestingEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
-	xtestingEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
-	xtestingEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
-	xtestingEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
-	xtestingEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
-	xtestingEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
-	xtestingEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
+	internal.TestEqual(t, Delete(i(), 1, 1), IntSlice{2, 3})
+	internal.TestEqual(t, Delete(s(), "aaa", 1), StringSlice{"b", "cc"})
+	internal.TestEqual(t, Delete(i(), 1, 1).typename(), "IntSlice")
+	internal.TestEqual(t, Delete(s(), "aaa", 1).typename(), "StringSlice")
+	internal.TestEqual(t, DeleteAll(i(), 1), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteAll(s(), "aaa"), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteAll(i(), 1).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteAll(s(), "aaa").typename(), "StringSlice")
+	internal.TestEqual(t, DeleteSelf(i(), 1, 1), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteSelf(s(), "aaa", 1), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteSelf(i(), 1, 1).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteSelf(s(), "aaa", 1).typename(), "StringSlice")
+	internal.TestEqual(t, DeleteAllSelf(i(), 1), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteAllSelf(s(), "aaa"), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteAllSelf(i(), 1).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteAllSelf(s(), "aaa").typename(), "StringSlice")
+	internal.TestEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
+	internal.TestEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteAllWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteAllWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
+	internal.TestEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteSelfWith(i(), 1, 1, defaultEqualler[int]()).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteSelfWith(s(), "aaa", 1, defaultEqualler[string]()).typename(), "StringSlice")
+	internal.TestEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()), IntSlice{2, 3})
+	internal.TestEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()), StringSlice{"b", "cc"})
+	internal.TestEqual(t, DeleteAllSelfWith(i(), 1, defaultEqualler[int]()).typename(), "IntSlice")
+	internal.TestEqual(t, DeleteAllSelfWith(s(), "aaa", defaultEqualler[string]()).typename(), "StringSlice")
 
-	xtestingEqual(t, Diff(i(), i()), IntSlice{})
-	xtestingEqual(t, Diff(s(), s()), StringSlice{})
-	xtestingEqual(t, Diff(i(), i()).typename(), "IntSlice")
-	xtestingEqual(t, Diff(s(), s()).typename(), "StringSlice")
-	xtestingEqual(t, Union(i(), i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Union(s(), s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Union(i(), i()).typename(), "IntSlice")
-	xtestingEqual(t, Union(s(), s()).typename(), "StringSlice")
-	xtestingEqual(t, Intersect(i(), i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Intersect(s(), s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Intersect(i(), i()).typename(), "IntSlice")
-	xtestingEqual(t, Intersect(s(), s()).typename(), "StringSlice")
+	internal.TestEqual(t, Diff(i(), i()), IntSlice{})
+	internal.TestEqual(t, Diff(s(), s()), StringSlice{})
+	internal.TestEqual(t, Diff(i(), i()).typename(), "IntSlice")
+	internal.TestEqual(t, Diff(s(), s()).typename(), "StringSlice")
+	internal.TestEqual(t, Union(i(), i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Union(s(), s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Union(i(), i()).typename(), "IntSlice")
+	internal.TestEqual(t, Union(s(), s()).typename(), "StringSlice")
+	internal.TestEqual(t, Intersect(i(), i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Intersect(s(), s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Intersect(i(), i()).typename(), "IntSlice")
+	internal.TestEqual(t, Intersect(s(), s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Deduplicate(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Deduplicate(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Deduplicate(i()).typename(), "IntSlice")
-	xtestingEqual(t, Deduplicate(s()).typename(), "StringSlice")
-	xtestingEqual(t, DeduplicateSelf(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, DeduplicateSelf(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, DeduplicateSelf(i()).typename(), "IntSlice")
-	xtestingEqual(t, DeduplicateSelf(s()).typename(), "StringSlice")
+	internal.TestEqual(t, Deduplicate(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Deduplicate(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Deduplicate(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Deduplicate(s()).typename(), "StringSlice")
+	internal.TestEqual(t, DeduplicateSelf(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, DeduplicateSelf(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, DeduplicateSelf(i()).typename(), "IntSlice")
+	internal.TestEqual(t, DeduplicateSelf(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Compact(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Compact(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Compact(i()).typename(), "IntSlice")
-	xtestingEqual(t, Compact(s()).typename(), "StringSlice")
-	xtestingEqual(t, CompactSelf(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, CompactSelf(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, CompactSelf(i()).typename(), "IntSlice")
-	xtestingEqual(t, CompactSelf(s()).typename(), "StringSlice")
+	internal.TestEqual(t, Compact(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Compact(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Compact(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Compact(s()).typename(), "StringSlice")
+	internal.TestEqual(t, CompactSelf(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, CompactSelf(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, CompactSelf(i()).typename(), "IntSlice")
+	internal.TestEqual(t, CompactSelf(s()).typename(), "StringSlice")
 
-	xtestingEqual(t, Filter(i(), func(i int) bool { return i <= 2 }), IntSlice{1, 2})
-	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
-	xtestingEqual(t, Filter(i(), func(i int) bool { return i <= 2 }).typename(), "IntSlice")
-	xtestingEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
+	internal.TestEqual(t, Filter(i(), func(i int) bool { return i <= 2 }), IntSlice{1, 2})
+	internal.TestEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }), StringSlice{"aaa", "cc"})
+	internal.TestEqual(t, Filter(i(), func(i int) bool { return i <= 2 }).typename(), "IntSlice")
+	internal.TestEqual(t, Filter(s(), func(i string) bool { return len(i) >= 2 }).typename(), "StringSlice")
 
-	xtestingEqual(t, Clone(i()), IntSlice{1, 2, 3})
-	xtestingEqual(t, Clone(s()), StringSlice{"aaa", "b", "cc"})
-	xtestingEqual(t, Clone(i()).typename(), "IntSlice")
-	xtestingEqual(t, Clone(s()).typename(), "StringSlice")
-	xtestingEqual(t, cap(Clip(Grow(i(), 10))), 3)
-	xtestingEqual(t, cap(Clip(Grow(s(), 10))), 3)
-	xtestingEqual(t, Clip(i()).typename(), "IntSlice")
-	xtestingEqual(t, Clip(s()).typename(), "StringSlice")
-	xtestingEqual(t, cap(Grow(i(), 10)) >= 10+3, true)
-	xtestingEqual(t, cap(Grow(s(), 10)) >= 10+3, true)
-	xtestingEqual(t, Grow(i(), 10).typename(), "IntSlice")
-	xtestingEqual(t, Grow(s(), 10).typename(), "StringSlice")
-}
-
-// =============================
-// simplified xtesting functions
-// =============================
-
-func failTest(t testing.TB, failureMessage string) bool {
-	_, file, line, _ := runtime.Caller(2)
-	_, _ = fmt.Fprintf(os.Stderr, "%s:%d %s\n", path.Base(file), line, failureMessage)
-	t.Fail()
-	return false
-}
-
-func xtestingEqual(t testing.TB, give, want interface{}) bool {
-	if give != nil && want != nil && (reflect.TypeOf(give).Kind() == reflect.Func || reflect.TypeOf(want).Kind() == reflect.Func) {
-		return failTest(t, fmt.Sprintf("Equal: invalid operation `%#v` == `%#v` (cannot take func type as argument)", give, want))
-	}
-	if !reflect.DeepEqual(give, want) {
-		return failTest(t, fmt.Sprintf("Equal: expect to be `%#v`, but actually was `%#v`", want, give))
-	}
-	return true
-}
-
-func xtestingPanic(t *testing.T, want bool, f func(), v ...any) bool {
-	isPanic, value := false, interface{}(nil)
-	func() { defer func() { value = recover(); isPanic = value != nil }(); f() }()
-	if want && !isPanic {
-		return failTest(t, fmt.Sprintf("Panic: expect function `%#v` to panic, but actually did not panic", interface{}(f)))
-	}
-	if want && isPanic && len(v) > 0 && v[0] != nil && !reflect.DeepEqual(value, v[0]) {
-		return failTest(t, fmt.Sprintf("PanicWithValue: expect function `%#v` to panic with `%#v`, but actually with `%#v`", interface{}(f), want, value))
-	}
-	if !want && isPanic {
-		return failTest(t, fmt.Sprintf("NotPanic: expect function `%#v` not to panic, but actually panicked with `%v`", interface{}(f), value))
-	}
-	return true
+	internal.TestEqual(t, Clone(i()), IntSlice{1, 2, 3})
+	internal.TestEqual(t, Clone(s()), StringSlice{"aaa", "b", "cc"})
+	internal.TestEqual(t, Clone(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Clone(s()).typename(), "StringSlice")
+	internal.TestEqual(t, cap(Clip(Grow(i(), 10))), 3)
+	internal.TestEqual(t, cap(Clip(Grow(s(), 10))), 3)
+	internal.TestEqual(t, Clip(i()).typename(), "IntSlice")
+	internal.TestEqual(t, Clip(s()).typename(), "StringSlice")
+	internal.TestEqual(t, cap(Grow(i(), 10)) >= 10+3, true)
+	internal.TestEqual(t, cap(Grow(s(), 10)) >= 10+3, true)
+	internal.TestEqual(t, Grow(i(), 10).typename(), "IntSlice")
+	internal.TestEqual(t, Grow(s(), 10).typename(), "StringSlice")
 }

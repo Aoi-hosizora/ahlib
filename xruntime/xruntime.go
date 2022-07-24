@@ -158,12 +158,12 @@ func RuntimeTraceStackWithInfo(skip uint) (stack TraceStack, filename string, fu
 	return stack, top.Filename, top.FuncName, top.LineIndex, top.LineText
 }
 
-// ==============
-// hack functions
-// ==============
+// ========================
+// hack hide string related
+// ========================
 
 var (
-	// _magicBytes represents a slice of bytes, and are used in HideStringForHacking and ExtractHiddenStringForHacking.
+	// _magicBytes represents a slice of bytes, and are used in HackHideString and HackGetHiddenString.
 	_magicBytes = []byte{0, 'h', 'i', 0, 'd', 'e'}
 
 	_magicLength = len(_magicBytes)

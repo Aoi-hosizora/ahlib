@@ -149,7 +149,7 @@ func RDecr[T Real](n *T) T {
 	return v
 }
 
-// UnmarshalJson unmarshals given byte array to T, just like json.Unmarshal.
+// UnmarshalJson unmarshals given bytes to T, just like json.Unmarshal.
 func UnmarshalJson[T any](bs []byte, t T) (T, error) {
 	err := json.Unmarshal(bs, t)
 	if err != nil {
