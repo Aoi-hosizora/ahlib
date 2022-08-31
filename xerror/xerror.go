@@ -149,9 +149,10 @@ type ErrorGroup struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	wg      sync.WaitGroup
-	err     error
-	errOnce sync.Once
+	wg       sync.WaitGroup
+	err      error
+	errMutex sync.RWMutex
+	errOnce  sync.Once
 
 	mu         sync.RWMutex
 	goExecutor func(f func())
@@ -259,12 +260,21 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 	executor(func() {
 		defer eg.wg.Done()
 
+		eg.errMutex.RLock()
+		can := eg.err == nil // check whether error is nil
+		eg.errMutex.RUnlock()
+		if !can {
+			return // err has already been recorded, reject to call function
+		}
+
 		err := f(ctx) // call given function
 		if err != nil {
 			eg.errOnce.Do(func() {
+				eg.errMutex.Lock()
 				eg.err = err // record the first error
+				eg.errMutex.Unlock()
 				if eg.cancel != nil {
-					eg.cancel() // cancel the context also
+					eg.cancel() // also to cancel the context
 				}
 			})
 		}
