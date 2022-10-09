@@ -144,7 +144,7 @@ func Separate(err error) []error {
 // ErrorGroup is a sync.WaitGroup wrapper that can used to synchronization, error propagation, and context cancellation for
 // groups of goroutines, refers to https://pkg.go.dev/golang.org/x/sync/errgroup for more details.
 //
-// A zero ErrorGroup is valid and does not cancel on error.
+// A zero ErrorGroup is also valid, which will create a cancelable context automatically for context cancellation when error.
 type ErrorGroup struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -194,13 +194,11 @@ var defaultExecutor = func(f func()) {
 //
 // 	// use xgopool goroutine pool
 // 	eg := NewErrorGroup(context.Background())
-// 	gp := xgopool.New(runtime.NumCPU() * 10)
+// 	gp := xgopool.New(int32(runtime.NumCPU() * 10))
 // 	gp.SetPanicHandler(func(_ context.Context, v interface{}) {
 // 		log.Printf("Warning: Panic with %v", v)
 // 	})
-// 	eg.SetGoExecutor(func(f func()) {
-// 		gp.Go(f)
-// 	})
+// 	eg.SetGoExecutor(gp.Go)
 func (eg *ErrorGroup) SetGoExecutor(executor func(f func())) {
 	if executor != nil {
 		eg.mu.Lock()
@@ -252,7 +250,15 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 		eg.mu.Unlock()
 	}
 	if ctx == nil {
-		ctx = context.Background()
+		eg.mu.Lock()
+		if eg.ctx == nil {
+			ctx_ := context.Background()
+			ctx_, cancel := context.WithCancel(ctx_)
+			eg.ctx = ctx_
+			eg.cancel = cancel
+		}
+		ctx = eg.ctx
+		eg.mu.Unlock()
 	}
 
 	// execute with goroutine
@@ -281,8 +287,21 @@ func (eg *ErrorGroup) Go(f func(ctx context.Context) error) {
 	})
 }
 
+// Reset resets states of ErrorGroup, including context and error. This method must be called if you want to reuse ErrorGroup
+// after Wait, when non-nil error is returned by Wait.
+func (eg *ErrorGroup) Reset(ctx context.Context) {
+	eg.mu.Lock()
+	defer eg.mu.Unlock()
+
+	ctx, cancel := context.WithCancel(ctx)
+	eg.ctx = ctx // reset
+	eg.cancel = cancel
+	eg.err = nil
+	eg.errOnce = sync.Once{}
+}
+
 // Wait blocks until all function calls from the Go method have returned, then returns the first non-nil error (if any)
-// from them.
+// from them. Note that if any error is returned, the current ErrorGroup can not be used again before calling Reset.
 func (eg *ErrorGroup) Wait() error {
 	eg.wg.Wait()
 	if eg.cancel != nil {

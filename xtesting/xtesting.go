@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"unicode"
 )
 
 // =================
@@ -131,6 +132,43 @@ func Zero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
 func NotZero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
 	if xreflect.IsZeroValue(value) {
 		return failTest(t, 1, fmt.Sprintf("NotZero: expect not to be zero value, but actually was `%#v`", value), msgAndArgs...)
+	}
+
+	return true
+}
+
+// BlankString asserts that the specified object is an empty or black string.
+func BlankString(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	s, ok := value.(string)
+	if !ok {
+		return failTest(t, 1, fmt.Sprintf("BlankString: expect string, got `%#v` (%T)", value, value), msgAndArgs...)
+	}
+
+	for _, r := range s {
+		if !unicode.IsSpace(r) {
+			return failTest(t, 1, fmt.Sprintf("BlankString: expect to be blank string, but actually was `%#v`", value), msgAndArgs...)
+		}
+	}
+
+	return true
+}
+
+// NotBlankString asserts that the specified object is not an empty or black string.
+func NotBlankString(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool {
+	s, ok := value.(string)
+	if !ok {
+		return failTest(t, 1, fmt.Sprintf("NotBlankString: expect string, got `%#v` (%T)", value, value), msgAndArgs...)
+	}
+
+	hasNotBlank := false
+	for _, r := range s {
+		if !unicode.IsSpace(r) {
+			hasNotBlank = true
+			break
+		}
+	}
+	if !hasNotBlank {
+		return failTest(t, 1, fmt.Sprintf("NotBlankString: expect not to be blank string, but actually was `%#v`", value), msgAndArgs...)
 	}
 
 	return true

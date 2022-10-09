@@ -257,6 +257,54 @@ func TestZeroNotZero(t *testing.T) {
 	}
 }
 
+func TestBlankNotBlankString(t *testing.T) {
+	mockT := &testing.T{}
+
+	errs := []interface{}{
+		nil, 1, uint64(0), 0.01, false, [0]interface{}{}, []interface{}(nil),
+		struct{}{}, struct{ x int }{}, [0]string{}, []string{""}, map[string]string{"": ""},
+	}
+
+	blanks := []interface{}{
+		"", " ", "\t", "\n", "\r", "\v", "\f", "　", string([]rune{0x85}), string([]rune{0xA0}), "  ", "\t 　", "\r\n", "\v\f",
+		"\u2000", "\u2001", "\u2002", "\u2003", "\u2004", "\u2005", "\u2006", "\u2007",
+		"\u2008", "\u2009", "\u200A", "\u2028", "\u2029", "\u202F", "\u205F", "\u3000",
+	}
+
+	nonBlanks := []interface{}{
+		"1", "\n \t1", "测试", "テスト", "test", "　　　　1", "\u2000@\u205F",
+	}
+
+	// expect to error
+	for _, err := range errs {
+		if BlankString(mockT, err) {
+			fail(t)
+		}
+		if NotBlankString(mockT, err) {
+			fail(t)
+		}
+	}
+
+	for _, zero := range blanks {
+		if !BlankString(mockT, zero) {
+			fail(t)
+		}
+		if NotBlankString(mockT, zero) {
+			fail(t)
+		}
+	}
+
+	// expect to NotBlankString
+	for _, nonBlank := range nonBlanks {
+		if !NotBlankString(mockT, nonBlank) {
+			fail(t)
+		}
+		if BlankString(mockT, nonBlank) {
+			fail(t)
+		}
+	}
+}
+
 func TestEmptyCollectionNotEmptyCollection(t *testing.T) {
 	mockT := &testing.T{}
 

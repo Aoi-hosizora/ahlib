@@ -13,13 +13,13 @@ type GoPool struct {
 	workersCap   int32 // atomic
 	panicHandler func(context.Context, interface{})
 
-	workerPool  *sync.Pool
+	workerPool  sync.Pool
 	numWorkers  int32 // atomic
-	workerMutex *sync.Mutex
+	workerMutex sync.Mutex
 
-	taskPool  *sync.Pool
+	taskPool  sync.Pool
 	numTasks  int32 // atomic
-	taskMutex *sync.Mutex
+	taskMutex sync.Mutex
 	taskHead  *task
 	taskTail  *task
 }
@@ -38,10 +38,10 @@ func New(cap int32) *GoPool {
 		panicHandler: func(ctx context.Context, i interface{}) {
 			log.Printf("xgopool warning: Goroutine panicked with `%v`", i)
 		},
-		workerPool:  &sync.Pool{New: func() interface{} { return &worker{} }},
-		workerMutex: &sync.Mutex{},
-		taskPool:    &sync.Pool{New: func() interface{} { return &task{} }},
-		taskMutex:   &sync.Mutex{},
+		workerPool:  sync.Pool{New: func() interface{} { return &worker{} }}, // make GoPool must not be copied
+		workerMutex: sync.Mutex{},
+		taskPool:    sync.Pool{New: func() interface{} { return &task{} }},
+		taskMutex:   sync.Mutex{},
 	}
 }
 

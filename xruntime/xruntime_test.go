@@ -340,15 +340,17 @@ func TestSignalName(t *testing.T) {
 }
 
 func TestGetProxyEnv(t *testing.T) {
-	for _, key := range []string{
-		"no_proxy", "http_proxy", "https_proxy", "socks_proxy",
-	} {
-		e, ok := os.LookupEnv(key)
-		if ok {
-			//goland:noinspection GoDeferInLoop
-			defer os.Setenv(key, e)
+	envs := map[string]string{}
+	for _, key := range []string{"no_proxy", "http_proxy", "https_proxy", "socks_proxy"} {
+		if env, ok := os.LookupEnv(key); ok {
+			envs[key] = env
 		}
 	}
+	defer func() {
+		for key, env := range envs {
+			os.Setenv(key, env)
+		}
+	}()
 
 	os.Setenv("no_proxy", "")
 	os.Setenv("http_proxy", "")

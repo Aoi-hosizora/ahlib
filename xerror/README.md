@@ -32,4 +32,5 @@
 
 + `func (eg *ErrorGroup) SetGoExecutor(executor func(f func()))`
 + `func (eg *ErrorGroup) Go(f func(ctx context.Context) error)`
++ `func (eg *ErrorGroup) Reset(ctx context.Context)`
 + `func (eg *ErrorGroup) Wait() error`

@@ -15,12 +15,12 @@ type Tuple[T1, T2 any] struct {
 
 // NewTuple creates a Tuple structure from given parameters.
 func NewTuple[T1, T2 any](item1 T1, item2 T2) Tuple[T1, T2] {
-	return Tuple[T1, T2]{item1, item2}
+	return Tuple[T1, T2]{Item1: item1, Item2: item2}
 }
 
 // NewTuplePtr creates a Tuple pointer from given parameters.
 func NewTuplePtr[T1, T2 any](item1 T1, item2 T2) *Tuple[T1, T2] {
-	return &Tuple[T1, T2]{item1, item2}
+	return &Tuple[T1, T2]{Item1: item1, Item2: item2}
 }
 
 // String implements fmt.Stringer for Tuple.
@@ -37,12 +37,12 @@ type Triple[T1, T2, T3 any] struct {
 
 // NewTriple creates a Triple structure from given parameters.
 func NewTriple[T1, T2, T3 any](item1 T1, item2 T2, item3 T3) Triple[T1, T2, T3] {
-	return Triple[T1, T2, T3]{item1, item2, item3}
+	return Triple[T1, T2, T3]{Item1: item1, Item2: item2, Item3: item3}
 }
 
 // NewTriplePtr creates a Triple pointer from given parameters.
 func NewTriplePtr[T1, T2, T3 any](item1 T1, item2 T2, item3 T3) *Triple[T1, T2, T3] {
-	return &Triple[T1, T2, T3]{item1, item2, item3}
+	return &Triple[T1, T2, T3]{Item1: item1, Item2: item2, Item3: item3}
 }
 
 // String implements fmt.Stringer for Triple.
@@ -60,12 +60,12 @@ type Quadruple[T1, T2, T3, T4 any] struct {
 
 // NewQuadruple creates a Quadruple structure from given parameters.
 func NewQuadruple[T1, T2, T3, T4 any](item1 T1, item2 T2, item3 T3, item4 T4) Quadruple[T1, T2, T3, T4] {
-	return Quadruple[T1, T2, T3, T4]{item1, item2, item3, item4}
+	return Quadruple[T1, T2, T3, T4]{Item1: item1, Item2: item2, Item3: item3, Item4: item4}
 }
 
 // NewQuadruplePtr creates a Quadruple pointer from given parameters.
 func NewQuadruplePtr[T1, T2, T3, T4 any](item1 T1, item2 T2, item3 T3, item4 T4) *Quadruple[T1, T2, T3, T4] {
-	return &Quadruple[T1, T2, T3, T4]{item1, item2, item3, item4}
+	return &Quadruple[T1, T2, T3, T4]{Item1: item1, Item2: item2, Item3: item3, Item4: item4}
 }
 
 // String implements fmt.Stringer for Quadruple.
@@ -84,12 +84,12 @@ type Quintuple[T1, T2, T3, T4, T5 any] struct {
 
 // NewQuintuple creates a Quintuple structure from given parameters.
 func NewQuintuple[T1, T2, T3, T4, T5 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5) Quintuple[T1, T2, T3, T4, T5] {
-	return Quintuple[T1, T2, T3, T4, T5]{item1, item2, item3, item4, item5}
+	return Quintuple[T1, T2, T3, T4, T5]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5}
 }
 
 // NewQuintuplePtr creates a Quintuple pointer from given parameters.
 func NewQuintuplePtr[T1, T2, T3, T4, T5 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5) *Quintuple[T1, T2, T3, T4, T5] {
-	return &Quintuple[T1, T2, T3, T4, T5]{item1, item2, item3, item4, item5}
+	return &Quintuple[T1, T2, T3, T4, T5]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5}
 }
 
 // String implements fmt.Stringer for Quintuple.
@@ -109,12 +109,12 @@ type Sextuple[T1, T2, T3, T4, T5, T6 any] struct {
 
 // NewSextuple creates a Sextuple structure from given parameters.
 func NewSextuple[T1, T2, T3, T4, T5, T6 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6) Sextuple[T1, T2, T3, T4, T5, T6] {
-	return Sextuple[T1, T2, T3, T4, T5, T6]{item1, item2, item3, item4, item5, item6}
+	return Sextuple[T1, T2, T3, T4, T5, T6]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5, Item6: item6}
 }
 
 // NewSextuplePtr creates a Sextuple pointer from given parameters.
 func NewSextuplePtr[T1, T2, T3, T4, T5, T6 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6) *Sextuple[T1, T2, T3, T4, T5, T6] {
-	return &Sextuple[T1, T2, T3, T4, T5, T6]{item1, item2, item3, item4, item5, item6}
+	return &Sextuple[T1, T2, T3, T4, T5, T6]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5, Item6: item6}
 }
 
 // String implements fmt.Stringer for Sextuple.
@@ -135,12 +135,12 @@ type Septuple[T1, T2, T3, T4, T5, T6, T7 any] struct {
 
 // NewSeptuple creates a Septuple structure from given parameters.
 func NewSeptuple[T1, T2, T3, T4, T5, T6, T7 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6, item7 T7) Septuple[T1, T2, T3, T4, T5, T6, T7] {
-	return Septuple[T1, T2, T3, T4, T5, T6, T7]{item1, item2, item3, item4, item5, item6, item7}
+	return Septuple[T1, T2, T3, T4, T5, T6, T7]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5, Item6: item6, Item7: item7}
 }
 
 // NewSeptuplePtr creates a Septuple pointer from given parameters.
 func NewSeptuplePtr[T1, T2, T3, T4, T5, T6, T7 any](item1 T1, item2 T2, item3 T3, item4 T4, item5 T5, item6 T6, item7 T7) *Septuple[T1, T2, T3, T4, T5, T6, T7] {
-	return &Septuple[T1, T2, T3, T4, T5, T6, T7]{item1, item2, item3, item4, item5, item6, item7}
+	return &Septuple[T1, T2, T3, T4, T5, T6, T7]{Item1: item1, Item2: item2, Item3: item3, Item4: item4, Item5: item5, Item6: item6, Item7: item7}
 }
 
 // String implements fmt.Stringer for Septuple.

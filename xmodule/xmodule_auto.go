@@ -101,7 +101,7 @@ func injectToStructFields(mc *ModuleContainer, structType reflect.Type, structVa
 		injectedCount++
 	}
 
-	if injectedCount > 0 {
+	if totalCount > 0 {
 		mc.logger.InjFinish(injecteeTypeName, injectedCount, totalCount)
 	}
 	return errs
@@ -214,7 +214,7 @@ func (m *ModuleContainer) MustAutoProvide(providers ...*ModuleProvider) {
 // coreAutoProvide is the core implementation for AutoProvide and MustAutoProvide.
 func coreAutoProvide(mc *ModuleContainer, providers []*ModuleProvider) error {
 	indeps, depGraph := analyseDependency(providers)
-	mc.mu.Lock()
+	mc.mu.Lock() // modifying container is safe
 	defer mc.mu.Unlock()
 
 	// 1. independent providers

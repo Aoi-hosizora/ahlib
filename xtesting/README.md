@@ -34,6 +34,8 @@
 + `func NotNil(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
 + `func Zero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
 + `func NotZero(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
++ `func BlankString(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
++ `func NotBlankString(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
 + `func EmptyCollection(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
 + `func NotEmptyCollection(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`
 + `func Error(t testing.TB, err error, msgAndArgs ...interface{}) bool`

@@ -30,11 +30,16 @@ func TestMultiError(t *testing.T) {
 	xtesting.Equal(t, me.Error(), "test")
 	xtesting.Equal(t, errors.Is(me, test), true)
 	xtesting.Equal(t, errors.Is(me, errors.New("test")), false)
-	e1 := new(error)
-	xtesting.Equal(t, errors.As(me, e1), true)
-	xtesting.Equal(t, *e1, me) // <<<
+	e1 := &multiError{}
+	xtesting.Equal(t, errors.As(me, &e1), true)
+	xtesting.Equal(t, errors.Is(me, e1), true)
+	xtesting.Equal(t, e1, me) // <<<
 	e2 := &strconv.NumError{}
 	xtesting.Equal(t, errors.As(me, &e2), false)
+	me.errs = append(me.errs, &strconv.NumError{Func: "xxx"})
+	xtesting.Equal(t, errors.As(me, &e2), true)
+	xtesting.Equal(t, errors.Is(me, e2), true)
+	xtesting.Equal(t, e2.Func, "xxx") // <<<
 
 	test1, test2 := errors.New("test1"), stringError("test2")
 	me = &multiError{errs: []error{test1, test2}}
@@ -43,9 +48,10 @@ func TestMultiError(t *testing.T) {
 	xtesting.Equal(t, errors.Is(me, test1), true)
 	xtesting.Equal(t, errors.Is(me, test2), true)
 	xtesting.Equal(t, errors.Is(me, errors.New("test2")), false)
-	e3 := new(error)
-	xtesting.Equal(t, errors.As(me, e3), true)
-	xtesting.Equal(t, *e3, me) // <<<
+	e3 := &multiError{}
+	xtesting.Equal(t, errors.As(me, &e3), true)
+	xtesting.Equal(t, errors.Is(me, e3), true)
+	xtesting.Equal(t, e3, me) // <<<
 	e4 := new(stringError)
 	xtesting.Equal(t, errors.As(me, e4), true)
 	xtesting.Equal(t, *e4, test2)
@@ -117,7 +123,7 @@ func TestErrorGroup(t *testing.T) {
 		eg.SetGoExecutor(defaultExecutor)
 		// 1. test context and panic
 		eg.Go(func(ctx context.Context) error {
-			xtesting.Equal(t, ctx, context.Background())
+			xtesting.NotEqual(t, ctx, context.Background()) // wrap cancel automatically
 			return nil
 		})
 		eg.Go(func(ctx context.Context) error {
@@ -129,9 +135,9 @@ func TestErrorGroup(t *testing.T) {
 			return errors.New("test")
 		})
 		eg.Go(func(ctx context.Context) error {
-			// select {
-			// case <-ctx.Done(): // cannot done context => deadlock
-			// }
+			select {
+			case <-ctx.Done(): // no deadlock report
+			}
 			return nil
 		})
 		xtesting.Equal(t, eg.Wait(), errors.New("test"))
@@ -156,21 +162,37 @@ func TestErrorGroup(t *testing.T) {
 			panic("test") // will be recovered
 		})
 		xtesting.Nil(t, eg.Wait())
-		// 2. test error and cancelation
+		// 2. test error and cancellation
 		eg.Go(func(ctx context.Context) error {
+			time.Sleep(time.Second) // wait for the second eg.Go
 			return errors.New("test")
 		})
 		var outErr error
 		eg.Go(func(ctx context.Context) error {
 			select {
-			case <-ctx.Done(): // deadlock
-				outErr = ctx.Err()
+			case <-ctx.Done():
+				outErr = ctx.Err() // canceled by the first eg.Go
 			}
 			return nil
 		})
 		xtesting.Equal(t, eg.Wait(), errors.New("test"))
-		xtesting.Equal(t, outErr, errors.New("context canceled"))
-		// 3. test timeout
+		xtesting.Equal(t, outErr, errors.New("context canceled")) // xxx
+		outVal := 1
+		eg.Go(func(ctx context.Context) error {
+			outVal = 2 // will not be executed after eg.Wait
+			return nil
+		})
+		xtesting.Equal(t, eg.Wait(), errors.New("test"))
+		xtesting.Equal(t, outVal, 1)
+		// 3. test reset
+		eg.Reset(context.Background())
+		eg.Go(func(ctx context.Context) error {
+			outVal = 2 // will not be executed after eg.Wait
+			return nil
+		})
+		xtesting.Equal(t, eg.Wait(), nil)
+		xtesting.Equal(t, outVal, 2)
+		// 4. test timeout
 		f := func(ctx context.Context) error {
 			select {
 			case <-ctx.Done():

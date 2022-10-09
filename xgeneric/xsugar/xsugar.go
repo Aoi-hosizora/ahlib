@@ -159,28 +159,28 @@ func UnmarshalJson[T any](bs []byte, t T) (T, error) {
 	return t, err
 }
 
-// FastStoa casts slice to array pointer that has the same underlying data, here the first type parameter represents the array type.
+// FastStoa casts slice to array pointer that has the same underlying data.
 // Note that this is an unsafe function, and this function won't check any parameter type.
 //
 // Example:
-// 	var _ *[2]int32 = FastStoa[[2]int32]([]int32{3, 2, 1}) -> normal usage, got a 2-len array
-// 	var _ *[12]int8 = FastStoa[[12]int8]([]int32{3, 2, 1}) -> using with different types is also allowed
-// 	var _ *[3]int64 = FastStoa[[3]int64]([]int32{3, 2, 1}) -> out of length is also allowed, but in undefined behavior
-func FastStoa[TArray, TItem any](slice []TItem) *TArray {
+// 	var _ *[2]int32 = FastStoa[[]int32, [2]int32]([]int32{3, 2, 1}) -> normal usage, got a 2-len array
+// 	var _ *[12]int8 = FastStoa[[]int32, [12]int8]([]int32{3, 2, 1}) -> using with different types is also allowed
+// 	var _ *[3]int64 = FastStoa[[]int32, [3]int64]([]int32{3, 2, 1}) -> out of length is also allowed, but in undefined behavior
+func FastStoa[TSlice ~[]TItem, TArray, TItem any](slice TSlice) *TArray {
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
 	return (*TArray)(unsafe.Pointer(sh.Data))
 }
 
-// FastAtos casts array pointer to slice that has the same underlying data but with given length, here the first type parameter represents the slice item type.
+// FastAtos casts array pointer to slice that has the same underlying data but with given length.
 // Note that this is an unsafe function, and this function won't check any parameter type.
 //
 // Example:
-// 	var _ []int32 = FastAtos[int32](&[...]int32{3, 2, 1}, 2) -> normal usage, got a 2-len and 2-cap slice
-// 	var _ []int8  = FastAtos[int8](&[...]int32{3, 2, 1}, 12) -> using with different types is also allowed
-// 	var _ []int64 = FastAtos[int64](&[...]int32{3, 2, 1}, 3) -> out of length is also allowed, but in undefined behavior
-func FastAtos[TItem, TArray any](array *TArray, length int) []TItem {
+// 	var _ []int32 = FastAtos[[3]int32, []int32](&[...]int32{3, 2, 1}, 2) -> normal usage, got a 2-len and 2-cap slice
+// 	var _ []int8  = FastAtos[[3]int32, []int8](&[...]int32{3, 2, 1}, 12) -> using with different types is also allowed
+// 	var _ []int64 = FastAtos[[3]int32, []int64](&[...]int32{3, 2, 1}, 3) -> out of length is also allowed, but in undefined behavior
+func FastAtos[TArray any, TSlice ~[]TItem, TItem any](array *TArray, length int) TSlice {
 	sh := reflect.SliceHeader{Len: length, Cap: length, Data: uintptr(unsafe.Pointer(array))}
-	return *(*[]TItem)(unsafe.Pointer(&sh))
+	return *(*TSlice)(unsafe.Pointer(&sh))
 }
 
 // isNilValue keeps the same as xreflect.IsNilValue, checks whether given value is nil in its type or not.
