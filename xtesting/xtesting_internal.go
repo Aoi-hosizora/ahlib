@@ -30,6 +30,24 @@ func validateArgsAreNotFunc(give, want interface{}) error {
 	return nil
 }
 
+// validateArgsAreSameKind checks whether provided arguments are all non-nil, and have the same reflect.Kind.
+func validateArgsAreSameKind(give, want interface{}, kind reflect.Kind) error {
+	if give == nil || want == nil {
+		return errors.New("cannot take nil value as argument")
+	}
+
+	giveType := reflect.TypeOf(give)
+	wantType := reflect.TypeOf(want)
+	if giveType.Kind() != kind {
+		return fmt.Errorf("cannot take non-%s type (%T) as argument", kind.String(), give)
+	}
+	if wantType.Kind() != kind {
+		return fmt.Errorf("cannot take non-%s type (%T) as argument", kind.String(), want)
+	}
+
+	return nil
+}
+
 // matchRegexp returns true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str string) (matched bool, re *regexp.Regexp, err error) {
 	var r *regexp.Regexp

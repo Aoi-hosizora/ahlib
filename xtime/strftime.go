@@ -250,9 +250,9 @@ func _weekDayOffset(t time.Time, offset int) int {
 }
 
 func _weekNumberOffset(t time.Time, mondayFirst bool) int {
-	// https://github.com/lestrrat-go/strftime/blob/master/appenders.go#L248
+	// https://github.com/lestrrat-go/strftime/blob/547681d557/appenders.go#L248
 	// https://opensource.apple.com/source/Libc/Libc-167/string.subproj/strftime.c.auto.html
-	// https://github.com/arnoldrobbins/strftime/blob/master/strftime.c
+	// https://github.com/arnoldrobbins/strftime/blob/03825f7dbd/strftime.c
 	yd := t.YearDay()
 	wd := int(t.Weekday())
 	if !mondayFirst {

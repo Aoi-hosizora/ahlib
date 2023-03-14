@@ -27,6 +27,8 @@
 + `func IsNumericKind(kind reflect.Kind) bool`
 + `func IsCollectionKind(kind reflect.Kind) bool`
 + `func IsNillableKind(kind reflect.Kind) bool`
++ `func IsSlicableKind(kind reflect.Kind) bool`
++ `func IsPointerableKind(kind reflect.Kind) bool`
 + `func IsNilValue(v interface{}) bool`
 + `func IsZeroValue(v interface{}) bool`
 + `func IsEmptyCollection(v interface{}) bool`
@@ -38,7 +40,9 @@
 + `func FieldValueOf(v interface{}, name string) reflect.Value`
 + `func HasZeroEface(v interface{}) bool`
 + `func DeepEqualInValue(v1, v2 interface{}) bool`
-+ `func IsSamePointer(p1, p2 interface{}) bool`
++ `func SameUnderlyingPointer(p1, p2 interface{}) bool`
++ `func SameUnderlyingPointerWithType(p1, p2 interface{}) bool`
++ `func SameUnderlyingPointerWithTypeAndKind(p1, p2 interface{}, kind reflect.Kind) bool`
 + `func GetMapB(m interface{}) (b uint8)`
 + `func GetMapBuckets(m interface{}) (b uint8, buckets uint64)`
 + `func FillDefaultFields(s interface{}) (allFilled bool, err error)`

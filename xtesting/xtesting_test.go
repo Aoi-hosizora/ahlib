@@ -8,10 +8,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 func fail(t *testing.T) {
@@ -129,34 +131,104 @@ func TestEqualValueNotEqualValue(t *testing.T) {
 func TestSamePointer(t *testing.T) {
 	mockT := &testing.T{}
 
-	ptr := func(i int) *int { return &i }
-	ptr2 := func(i int32) *int32 { return &i }
-	p := ptr(2)
-	p2 := ptr2(2)
+	i := 2
+	u32 := 2
+	f64 := 2.0
+	str := "2"
+	p1 := &i
+	p2 := &u32
+	p3 := &f64
+	p4 := &str
 
 	for _, tc := range []struct {
 		giveG, giveW interface{}
 		want         testFlag
 	}{
 		// expect to SamePointer
-		{p, p, positive},
+		{p1, p1, positive},
 		{p2, p2, positive},
+		{p3, p3, positive},
+		{p4, p4, positive},
+		{(*int)(nil), (*int)(nil), positive},
 
 		// expect to NotSamePointer
-		{ptr(1), ptr(1), negative},
+		{p1, p2, negative},
+		{p1, p3, negative},
+		{p1, p4, negative},
+		{p2, p3, negative},
+		{p2, p4, negative},
 		{new(uint), new(uint), negative},
-		{1, 1, negative},
-		{p, *p, negative},
-		{p2, *p2, negative},
-		{p, nil, negative},
-		{nil, p2, negative},
-		{p, p2, negative},
+		{new(uint), new(float32), negative},
+		{new(*int), new(int), negative},
+		{(*int)(nil), (*uint64)(nil), negative},
+		{p1, &p1, negative},
+		{p2, &p2, negative},
+		{p3, &p3, negative},
+		{p4, &p4, negative},
+
+		// expect to fail in all cases
+		{1, 1, abnormal},
+		{nil, nil, abnormal},
+		{p1, nil, abnormal},
+		{nil, p2, abnormal},
+		{p3, *p3, abnormal},
+		{*p4, p4, abnormal},
 	} {
 		pos := SamePointer(mockT, tc.giveG, tc.giveW)
 		if (tc.want == positive && !pos) || (tc.want != positive && pos) {
 			fail(t)
 		}
 		neg := NotSamePointer(mockT, tc.giveG, tc.giveW)
+		if (tc.want == negative && !neg) || (tc.want != negative && neg) {
+			fail(t)
+		}
+	}
+}
+
+func TestSameFunction(t *testing.T) {
+	mockT := &testing.T{}
+
+	f1 := func() {}
+	f11 := *(*func() int)(unsafe.Pointer(&f1))
+	f111 := *(*func() int)(unsafe.Pointer(&f11))
+	f2 := func() {}
+	f22 := *(*func() int)(unsafe.Pointer(&f2))
+	f222 := *(*func() int)(unsafe.Pointer(&f22))
+
+	for _, tc := range []struct {
+		giveG, giveW interface{}
+		want         testFlag
+	}{
+		// expect to SameFunction
+		{f1, f1, positive},
+		{f2, f2, positive},
+		{f11, f111, positive},
+		{f222, f22, positive},
+		{SameFunction, SameFunction, positive},
+		{reflect.Value.Kind, reflect.Value.Kind, positive},
+
+		// expect to NotSameFunction
+		{SameFunction, NotSameFunction, negative},
+		{reflect.Value.Kind, reflect.Value.String, negative},
+		{f1, f2, negative},
+		{f11, f22, negative},
+		{f1, f222, negative},
+		{f1, f111, negative},
+		{f222, f1, negative},
+		{f222, f2, negative},
+
+		// expect to fail in all cases
+		{1, 1, abnormal},
+		{nil, nil, abnormal},
+		{nil, func() {}, abnormal},
+		{false, "func", abnormal},
+		{new(func()), &f1, abnormal},
+	} {
+		pos := SameFunction(mockT, tc.giveG, tc.giveW)
+		if (tc.want == positive && !pos) || (tc.want != positive && pos) {
+			fail(t)
+		}
+		neg := NotSameFunction(mockT, tc.giveG, tc.giveW)
 		if (tc.want == negative && !neg) || (tc.want != negative && neg) {
 			fail(t)
 		}

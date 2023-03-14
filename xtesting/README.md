@@ -28,6 +28,8 @@
 + `func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool`
 + `func SamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool`
 + `func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool`
++ `func SameFunction(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool`
++ `func NotSameFunction(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool`
 + `func True(t testing.TB, value bool, msgAndArgs ...interface{}) bool`
 + `func False(t testing.TB, value bool, msgAndArgs ...interface{}) bool`
 + `func Nil(t testing.TB, value interface{}, msgAndArgs ...interface{}) bool`

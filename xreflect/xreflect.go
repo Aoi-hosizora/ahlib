@@ -54,6 +54,22 @@ func IsNillableKind(kind reflect.Kind) bool {
 		kind == reflect.Slice || kind == reflect.Map || kind == reflect.Chan
 }
 
+// IsSlicableKind checks whether given reflect.Kind represents slice invokable types or not, whose related reflect.Value's ``Slice()'' and ``Index()'' methods are invokable.
+//
+// Slicable types: slice, array, string.
+func IsSlicableKind(kind reflect.Kind) bool {
+	return kind == reflect.Slice || kind == reflect.Array || kind == reflect.String
+}
+
+// IsPointerableKind checks whether given reflect.Kind represents pointer gettable types or not, whose related reflect.Value's ``Pointer()'' and ``UnsafePointer()'' methods are invokable.
+// Note that these two methods can not be called on string and interface reflect.Value.
+//
+// Pointerable types: ptr, func, unsafePtr, slice, map, chan.
+func IsPointerableKind(kind reflect.Kind) bool {
+	return kind == reflect.Ptr || kind == reflect.Func || kind == reflect.UnsafePointer ||
+		kind == reflect.Slice || kind == reflect.Map || kind == reflect.Chan
+}
+
 // =====================
 // value checker related
 // =====================
@@ -256,7 +272,7 @@ func FieldValueOf(v interface{}, name string) reflect.Value {
 // 1. For searching function by name, please refer to https://github.com/alangpierce/go-forceexport/blob/8f1d6941cd/forceexport.go#L10-L22
 // and http://www.alangpierce.com/blog/2016/03/17/adventures-in-go-accessing-unexported-functions.
 //
-// 2. For calling unexported struct methods, please refer to https://github.com/spance/go-callprivate/blob/master/examples.go#L20-L22.
+// 2. For calling unexported struct methods, please refer to https://github.com/spance/go-callprivate/blob/d8b9b55236/examples.go#L20-L22.
 
 // ==============
 // mass functions
@@ -274,8 +290,8 @@ func HasZeroEface(v interface{}) bool {
 	return e._type == 0 || uintptr(e.data) == 0
 }
 
-// DeepEqualInValue checks whether given two values are deeply equal without considering their types. Note that it checks by checking type convertable
-// and comparing after type conversion.
+// DeepEqualInValue checks whether given two values are deeply equal without considering their types. Note that the only different between this function and
+// reflect.DeepEqual is: this function checks by checking type convertable and comparing after type conversion.
 func DeepEqualInValue(v1, v2 interface{}) bool {
 	if reflect.DeepEqual(v1, v2) {
 		return true
@@ -296,15 +312,40 @@ func DeepEqualInValue(v1, v2 interface{}) bool {
 	return false // not equal
 }
 
-// IsSamePointer checks whether given two values are the same pointer types, and whether they point to the same address.
-func IsSamePointer(p1, p2 interface{}) bool {
+// SameUnderlyingPointer checks whether given two values can get underlying pointer, and whether their underlying pointers point to the same address.
+func SameUnderlyingPointer(p1, p2 interface{}) bool {
 	val1, val2 := reflect.ValueOf(p1), reflect.ValueOf(p2)
-	if val1.Kind() != reflect.Ptr || val2.Kind() != reflect.Ptr || val1.Type() != val2.Type() {
+	if !IsPointerableKind(val1.Kind()) || !IsPointerableKind(val2.Kind()) {
 		return false
 	}
 
-	// compare addresses which two pointers point to
-	return p1 == p2
+	// compare the underlying pointers of two values
+	return val1.Pointer() == val2.Pointer()
+}
+
+// SameUnderlyingPointerWithType checks whether given two values can get underlying pointer, and whether they have the same typ, and their underlying pointers
+// point to the same address.
+func SameUnderlyingPointerWithType(p1, p2 interface{}) bool {
+	return SameUnderlyingPointerWithTypeAndKind(p1, p2, 999)
+}
+
+// SameUnderlyingPointerWithTypeAndKind checks whether given two values can get underlying pointer, and whether they have the same type and match given kind,
+// and their underlying pointers point to the same address.
+func SameUnderlyingPointerWithTypeAndKind(p1, p2 interface{}, kind reflect.Kind) bool {
+	val1, val2 := reflect.ValueOf(p1), reflect.ValueOf(p2)
+	if !IsPointerableKind(val1.Kind()) || !IsPointerableKind(val2.Kind()) {
+		return false
+	}
+
+	if val1.Type() != val2.Type() {
+		return false
+	}
+	if kind <= reflect.UnsafePointer /* `> 26` => DO check kind */ && (val1.Kind() != kind || val2.Kind() != kind) {
+		return false
+	}
+
+	// compare the underlying pointers of two values
+	return val1.Pointer() == val2.Pointer()
 }
 
 const (

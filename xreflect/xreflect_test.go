@@ -15,42 +15,44 @@ import (
 
 func TestKindChecker(t *testing.T) {
 	for _, tc := range []struct {
-		giveKind         reflect.Kind
-		wantIsInt        bool
-		wantIsUint       bool
-		wantIsFloat      bool
-		wantIsComplex    bool
-		wantIsNumeric    bool
-		wantIsCollection bool
-		wantIsNillable   bool
+		giveKind          reflect.Kind
+		wantIsInt         bool
+		wantIsUint        bool
+		wantIsFloat       bool
+		wantIsComplex     bool
+		wantIsNumeric     bool
+		wantIsCollection  bool
+		wantIsNillable    bool
+		wantIsSlicable    bool
+		wantIsPointerable bool
 	}{
-		{reflect.Invalid, false, false, false, false, false, false, false},
-		{reflect.Bool, false, false, false, false, false, false, false},
-		{reflect.Int, true, false, false, false, true, false, false},
-		{reflect.Int8, true, false, false, false, true, false, false},
-		{reflect.Int16, true, false, false, false, true, false, false},
-		{reflect.Int32, true, false, false, false, true, false, false},
-		{reflect.Int64, true, false, false, false, true, false, false},
-		{reflect.Uint, false, true, false, false, true, false, false},
-		{reflect.Uint8, false, true, false, false, true, false, false},
-		{reflect.Uint16, false, true, false, false, true, false, false},
-		{reflect.Uint32, false, true, false, false, true, false, false},
-		{reflect.Uint64, false, true, false, false, true, false, false},
-		{reflect.Uintptr, false, true, false, false, true, false, false},
-		{reflect.Float32, false, false, true, false, true, false, false},
-		{reflect.Float64, false, false, true, false, true, false, false},
-		{reflect.Complex64, false, false, false, true, true, false, false},
-		{reflect.Complex128, false, false, false, true, true, false, false},
-		{reflect.Array, false, false, false, false, false, true, false},
-		{reflect.Chan, false, false, false, false, false, true, true},
-		{reflect.Func, false, false, false, false, false, false, true},
-		{reflect.Interface, false, false, false, false, false, false, true},
-		{reflect.Map, false, false, false, false, false, true, true},
-		{reflect.Ptr, false, false, false, false, false, false, true},
-		{reflect.Slice, false, false, false, false, false, true, true},
-		{reflect.String, false, false, false, false, false, true, false},
-		{reflect.Struct, false, false, false, false, false, false, false},
-		{reflect.UnsafePointer, false, false, false, false, false, false, true},
+		{reflect.Invalid, false, false, false, false, false, false, false, false, false},
+		{reflect.Bool, false, false, false, false, false, false, false, false, false},
+		{reflect.Int, true, false, false, false, true, false, false, false, false},
+		{reflect.Int8, true, false, false, false, true, false, false, false, false},
+		{reflect.Int16, true, false, false, false, true, false, false, false, false},
+		{reflect.Int32, true, false, false, false, true, false, false, false, false},
+		{reflect.Int64, true, false, false, false, true, false, false, false, false},
+		{reflect.Uint, false, true, false, false, true, false, false, false, false},
+		{reflect.Uint8, false, true, false, false, true, false, false, false, false},
+		{reflect.Uint16, false, true, false, false, true, false, false, false, false},
+		{reflect.Uint32, false, true, false, false, true, false, false, false, false},
+		{reflect.Uint64, false, true, false, false, true, false, false, false, false},
+		{reflect.Uintptr, false, true, false, false, true, false, false, false, false},
+		{reflect.Float32, false, false, true, false, true, false, false, false, false},
+		{reflect.Float64, false, false, true, false, true, false, false, false, false},
+		{reflect.Complex64, false, false, false, true, true, false, false, false, false},
+		{reflect.Complex128, false, false, false, true, true, false, false, false, false},
+		{reflect.Array, false, false, false, false, false, true, false, true, false},
+		{reflect.Chan, false, false, false, false, false, true, true, false, true},
+		{reflect.Func, false, false, false, false, false, false, true, false, true},
+		{reflect.Interface, false, false, false, false, false, false, true, false, false},
+		{reflect.Map, false, false, false, false, false, true, true, false, true},
+		{reflect.Ptr, false, false, false, false, false, false, true, false, true},
+		{reflect.Slice, false, false, false, false, false, true, true, true, true},
+		{reflect.String, false, false, false, false, false, true, false, true, false},
+		{reflect.Struct, false, false, false, false, false, false, false, false, false},
+		{reflect.UnsafePointer, false, false, false, false, false, false, true, false, true},
 	} {
 		t.Run(tc.giveKind.String(), func(t *testing.T) {
 			xtestingEqual(t, IsIntKind(tc.giveKind), tc.wantIsInt)
@@ -60,6 +62,8 @@ func TestKindChecker(t *testing.T) {
 			xtestingEqual(t, IsNumericKind(tc.giveKind), tc.wantIsNumeric)
 			xtestingEqual(t, IsCollectionKind(tc.giveKind), tc.wantIsCollection)
 			xtestingEqual(t, IsNillableKind(tc.giveKind), tc.wantIsNillable)
+			xtestingEqual(t, IsSlicableKind(tc.giveKind), tc.wantIsSlicable)
+			xtestingEqual(t, IsPointerableKind(tc.giveKind), tc.wantIsPointerable)
 		})
 	}
 }
@@ -520,38 +524,68 @@ func TestDeepEqualWithoutType(t *testing.T) {
 	}
 }
 
-func TestIsSamePointer(t *testing.T) {
-	xtestingEqual(t, IsSamePointer((*int)(nil), 0), false)
-	xtestingEqual(t, IsSamePointer(0, (*uint)(nil)), false)
-	xtestingEqual(t, IsSamePointer("1", uint(1)), false)
-	xtestingEqual(t, IsSamePointer(uintptr(1), 1.1), false)
-	xtestingEqual(t, IsSamePointer(new(int), new(uint)), false)
-	xtestingEqual(t, IsSamePointer(new(*int), new(int)), false)
+func TestSameUnderlyingPointer(t *testing.T) {
+	p := new(int)
+	f := func() {}
+	u := unsafe.Pointer(new(bool))
+	s := make([]string, 0)
+	m := map[string]interface{}{}
+	c := make(chan struct{})
 
-	xtestingEqual(t, IsSamePointer(new(int), new(int)), false)
-	xtestingEqual(t, IsSamePointer(new(uint), new(uint)), false)
-	xtestingEqual(t, IsSamePointer((*int)(nil), (*uint)(nil)), false)
-	xtestingEqual(t, IsSamePointer((**int)(nil), (*uint)(nil)), false)
-	xtestingEqual(t, IsSamePointer((*int)(nil), (*int)(nil)), true)
-	xtestingEqual(t, IsSamePointer((**uint)(nil), (**uint)(nil)), true)
+	p2 := (*uint64)(unsafe.Pointer(p))
+	p3 := (*int)((*struct{ data unsafe.Pointer })(unsafe.Pointer(&s)).data)
+	u2 := unsafe.Pointer(p)
+	u3 := (*struct{ data unsafe.Pointer })(unsafe.Pointer(&s)).data
+	s3 := *(*[]int)(unsafe.Pointer(&reflect.SliceHeader{Data: (*reflect.SliceHeader)(unsafe.Pointer(&s)).Data}))
+	f3 := *(*func() int)(unsafe.Pointer(&f))
 
-	i := 1
-	i32 := int32(1)
-	u := uint(1)
-	u32 := uint32(1)
-	f64 := 1.1
-	f32 := float32(1.1)
-	xtestingEqual(t, IsSamePointer(&i, &i32), false)
-	xtestingEqual(t, IsSamePointer(&i, &u), false)
-	xtestingEqual(t, IsSamePointer(&u32, &f64), false)
-	xtestingEqual(t, IsSamePointer(&u, &u32), false)
-	xtestingEqual(t, IsSamePointer(&f32, &f64), false)
-	xtestingEqual(t, IsSamePointer(&i, &i), true)
-	xtestingEqual(t, IsSamePointer(&i32, &i32), true)
-	xtestingEqual(t, IsSamePointer(&u, &u), true)
-	xtestingEqual(t, IsSamePointer(&u32, &u32), true)
-	xtestingEqual(t, IsSamePointer(&f64, &f64), true)
-	xtestingEqual(t, IsSamePointer(&f32, &f32), true)
+	f2 := func() {}
+	s2 := make([]string, 1)
+	m2 := map[string]interface{}{"": nil}
+	c2 := make(chan struct{})
+
+	for _, tc := range []struct {
+		give1               interface{}
+		give2               interface{}
+		giveKind            reflect.Kind
+		wantSamePtr         bool
+		wantSamePtrType     bool
+		wantSamePtrTypeKind bool
+	}{
+		{p, p, reflect.Ptr, true, true, true},
+		{f, f, reflect.Func, true, true, true},
+		{u, u, reflect.UnsafePointer, true, true, true},
+		{s, s, reflect.Slice, true, true, true},
+		{m, m, reflect.Map, true, true, true},
+		{c, c, reflect.Chan, true, true, true},
+
+		{1, 2, reflect.Int, false, false, false},
+		{"1", 3.4, reflect.String, false, false, false},
+		{nil, []string{}, reflect.Slice, false, false, false},
+		{map[string]interface{}{}, nil, reflect.Map, false, false, false},
+		{f, f2, reflect.Func, false, false, false},
+		{s, s2, reflect.Slice, false, false, false},
+		{m, m2, reflect.Map, false, false, false},
+		{c, c2, reflect.Chan, false, false, false},
+
+		{p, p, reflect.Int, true, true, false},
+		{f, f, reflect.Ptr, true, true, false},
+		{m, m, reflect.Slice, true, true, false},
+		{c, c, reflect.Func, true, true, false},
+
+		{p, p2, reflect.Ptr, true, false, false},
+		{s, p3, reflect.Slice, true, false, false},
+		{p, u2, reflect.Ptr, true, false, false},
+		{s, u3, reflect.Slice, true, false, false},
+		{s3, s, reflect.Slice, true, false, false},
+		{f3, f, reflect.Func, true, false, false},
+	} {
+		t.Run(fmt.Sprintf("%v<->%v", tc.give1, tc.give2), func(t *testing.T) {
+			xtestingEqual(t, SameUnderlyingPointer(tc.give1, tc.give2), tc.wantSamePtr)
+			xtestingEqual(t, SameUnderlyingPointerWithType(tc.give1, tc.give2), tc.wantSamePtrType)
+			xtestingEqual(t, SameUnderlyingPointerWithTypeAndKind(tc.give1, tc.give2, tc.giveKind), tc.wantSamePtrTypeKind)
+		})
+	}
 }
 
 func TestGetMapBuckets(t *testing.T) {

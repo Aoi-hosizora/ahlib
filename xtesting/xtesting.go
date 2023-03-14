@@ -65,19 +65,58 @@ func NotEqualValue(t testing.TB, give, want interface{}, msgAndArgs ...interface
 	return true
 }
 
-// SamePointer asserts that two pointers reference the same object.
+// SamePointer asserts that two pointers have the same pointer type, and point to the same address.
 func SamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if !xreflect.IsSamePointer(give, want) {
+	if err := validateArgsAreSameKind(give, want, reflect.Ptr); err != nil {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: invalid operation `%#v` == `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	giveType, wantType := reflect.TypeOf(give), reflect.TypeOf(want)
+	if giveType != wantType {
+		return failTest(t, 1, fmt.Sprintf("SamePointer: expect to have the same pointer type, but actually differ (%T and %T)", want, give), msgAndArgs...)
+	}
+	if give != want {
 		return failTest(t, 1, fmt.Sprintf("SamePointer: expect to point to `%#v`, but actually pointed to `%#v`", want, give), msgAndArgs...)
 	}
 
 	return true
 }
 
-// NotSamePointer asserts that two pointers do not reference the same object.
+// NotSamePointer asserts that two pointers have different pointer types, or do not point to the same address.
 func NotSamePointer(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
-	if xreflect.IsSamePointer(give, want) {
-		return failTest(t, 1, fmt.Sprintf("SamePointer: expect not to point to `%#v`, but actually pointed", want), msgAndArgs...)
+	if err := validateArgsAreSameKind(give, want, reflect.Ptr); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotSamePointer: invalid operation `%#v` != `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	giveType, wantType := reflect.TypeOf(give), reflect.TypeOf(want)
+	if giveType == wantType && give == want {
+		return failTest(t, 1, fmt.Sprintf("NotSamePointer: expect not to point to `%#v` with `%T` type, but actually pointed", want, want), msgAndArgs...)
+	}
+
+	return true
+}
+
+// SameFunction asserts that types and underlying pointers of two functions are the same.
+func SameFunction(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateArgsAreSameKind(give, want, reflect.Func); err != nil {
+		return failTest(t, 1, fmt.Sprintf("SameFunction: invalid operation `%#v` == `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	if !xreflect.SameUnderlyingPointerWithTypeAndKind(give, want, reflect.Func) {
+		return failTest(t, 1, fmt.Sprintf("SameFunction: expect to be `%p` (%T), but actually `%p` (%T)", want, want, give, give), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotSameFunction asserts that types and underlying pointers of two functions are not the same.
+func NotSameFunction(t testing.TB, give, want interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateArgsAreSameKind(give, want, reflect.Func); err != nil {
+		return failTest(t, 1, fmt.Sprintf("NotSameFunction: invalid operation `%#v` != `%#v` (%+v)", give, want, err), msgAndArgs...)
+	}
+
+	if xreflect.SameUnderlyingPointerWithTypeAndKind(give, want, reflect.Func) {
+		return failTest(t, 1, fmt.Sprintf("NotSameFunction: expect not to be `%p` (%T), but actually the same", want, want), msgAndArgs...)
 	}
 
 	return true
