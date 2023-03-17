@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-+ (xtesting)
++ None
 
 ## Documents
 
@@ -45,7 +45,6 @@
 + `func SameUnderlyingPointerWithTypeAndKind(p1, p2 interface{}, kind reflect.Kind) bool`
 + `func GetMapB(m interface{}) (b uint8)`
 + `func GetMapBuckets(m interface{}) (b uint8, buckets uint64)`
-+ `func FillDefaultFields(s interface{}) (allFilled bool, err error)`
 
 ### Methods
 

@@ -5,6 +5,7 @@ xtesting            (xreflect) <<<
 $1 -- packages that depend on $0 libraries
 xcolor              (xtesting) <<<
 xcondition          (xreflect, xtesting)
+xdefault            (xreflect, xtesting)
 xerror              (xtesting) <<<
 xgopool             (xtesting)
 xnumber             (xtesting)

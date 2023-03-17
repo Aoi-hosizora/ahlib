@@ -312,11 +312,19 @@ func SignalReadableName(sig syscall.Signal) string {
 	return "signal " + strconv.Itoa(int(sig))
 }
 
+// ProxyEnv represents some proxy environment variables, returned by GetProxyEnv.
+type ProxyEnv struct {
+	NoProxy    string
+	HttpProxy  string
+	HttpsProxy string
+	SocksProxy string
+}
+
 // GetProxyEnv lookups and returns four proxy environments, including no_proxy, http_proxy, https_proxy and socks_proxy.
-func GetProxyEnv() (noProxy, httpProxy, httpsProxy, socksProxy string) {
+func GetProxyEnv() *ProxyEnv {
 	np := strings.TrimSpace(os.Getenv("no_proxy"))
 	hp := strings.TrimSpace(os.Getenv("http_proxy"))
 	hsp := strings.TrimSpace(os.Getenv("https_proxy"))
 	ssp := strings.TrimSpace(os.Getenv("socks_proxy"))
-	return np, hp, hsp, ssp
+	return &ProxyEnv{NoProxy: np, HttpProxy: hp, HttpsProxy: hsp, SocksProxy: ssp}
 }

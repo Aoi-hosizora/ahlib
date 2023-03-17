@@ -10,6 +10,7 @@
 
 + `type TraceFrame struct`
 + `type TraceStack []*TraceFrame`
++ `type ProxyEnv struct`
 
 ### Variables
 
@@ -36,7 +37,7 @@
 + `func HackExtractHiddenStringAfterString(given string) (hidden string)`
 + `func SignalName(sig syscall.Signal) string`
 + `func SignalReadableName(sig syscall.Signal) string`
-+ `func GetProxyEnv() (noProxy, httpProxy, httpsProxy, socksProxy string)`
++ `func GetProxyEnv() *ProxyEnv`
 
 ### Methods
 

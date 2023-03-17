@@ -1,6 +1,7 @@
-package xreflect
+package xdefault
 
 import (
+	"github.com/Aoi-hosizora/ahlib/xtesting"
 	"math"
 	"reflect"
 	"testing"
@@ -10,51 +11,51 @@ func TestFillDefaultFields_MassCases(t *testing.T) {
 	// 1. errors
 	t.Run("errors", func(t *testing.T) {
 		_, err := FillDefaultFields(nil)
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(0)
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(new(uint32))
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(struct{}{})
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(struct{ I int }{})
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(new(*struct{}))
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields([]struct{}{})
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 		_, err = FillDefaultFields(map[string]struct{}{})
-		xtestingEqual(t, err != nil, true)
+		xtesting.Equal(t, err != nil, true)
 
 		filled, err := FillDefaultFields(&struct{}{})
-		xtestingEqual(t, err == nil, true)
-		xtestingEqual(t, filled, false)
+		xtesting.Equal(t, err == nil, true)
+		xtesting.Equal(t, filled, false)
 		filled, err = FillDefaultFields(&struct{ I int }{})
-		xtestingEqual(t, err == nil, true)
-		xtestingEqual(t, filled, false)
-		xtestingEqual(t, filled, false)
+		xtesting.Equal(t, err == nil, true)
+		xtesting.Equal(t, filled, false)
+		xtesting.Equal(t, filled, false)
 		filled, err = FillDefaultFields(new(struct{}))
-		xtestingEqual(t, err == nil, true)
-		xtestingEqual(t, filled, false)
+		xtesting.Equal(t, err == nil, true)
+		xtesting.Equal(t, filled, false)
 
-		xtestingPanic(t, true, func() {
+		xtesting.Panic(t, func() {
 			_, _ = FillDefaultFields(&struct {
 				I int `default:"a"`
 			}{})
 		})
-		xtestingPanic(t, false, func() {
+		xtesting.NotPanic(t, func() {
 			filled, err = FillDefaultFields(&struct {
 				I int `default:"1"`
 			}{})
-			xtestingEqual(t, err == nil, true)
-			xtestingEqual(t, filled, true)
+			xtesting.Equal(t, err == nil, true)
+			xtesting.Equal(t, filled, true)
 		})
 	})
 
 	// 2. coverage for unreachable cases
 	t.Run("unreachable", func(t *testing.T) {
-		xtestingEqual(t, fillComplexField(reflect.Invalid, nil, reflect.Value{}, "", "", nil), false)
-		xtestingEqual(t, fillSimpleField(reflect.Invalid, nil, reflect.Value{}, "", "", nil), false)
+		xtesting.Equal(t, fillComplexField(reflect.Invalid, nil, reflect.Value{}, "", "", nil), false)
+		xtesting.Equal(t, fillSimpleField(reflect.Invalid, nil, reflect.Value{}, "", "", nil), false)
 	})
 }
 
@@ -163,13 +164,13 @@ func TestFillDefaultFields_SimpleTypes(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.wantPanic {
-				xtestingPanic(t, true, func() { _, _ = FillDefaultFields(tc.giveStruct) })
+				xtesting.Panic(t, func() { _, _ = FillDefaultFields(tc.giveStruct) })
 			} else {
 				filled, err := FillDefaultFields(tc.giveStruct)
-				xtestingEqual(t, err == nil, true)
-				xtestingEqual(t, filled, tc.wantFilled)
+				xtesting.Equal(t, err == nil, true)
+				xtesting.Equal(t, filled, tc.wantFilled)
 				if tc.checkFunc != nil {
-					xtestingEqual(t, reflect.ValueOf(tc.checkFunc).Call([]reflect.Value{reflect.ValueOf(tc.giveStruct)})[0].Bool(), true)
+					xtesting.Equal(t, reflect.ValueOf(tc.checkFunc).Call([]reflect.Value{reflect.ValueOf(tc.giveStruct)})[0].Bool(), true)
 				}
 			}
 		})
@@ -337,13 +338,13 @@ func TestFillDefaultFields_ComplexTypes(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.wantPanic {
-				xtestingPanic(t, true, func() { _, _ = FillDefaultFields(tc.giveStruct) })
+				xtesting.Panic(t, func() { _, _ = FillDefaultFields(tc.giveStruct) })
 			} else {
 				filled, err := FillDefaultFields(tc.giveStruct)
-				xtestingEqual(t, err == nil, true)
-				xtestingEqual(t, filled, tc.wantFilled)
+				xtesting.Equal(t, err == nil, true)
+				xtesting.Equal(t, filled, tc.wantFilled)
 				if tc.checkFunc != nil {
-					xtestingEqual(t, reflect.ValueOf(tc.checkFunc).Call([]reflect.Value{reflect.ValueOf(tc.giveStruct)})[0].Bool(), true)
+					xtesting.Equal(t, reflect.ValueOf(tc.checkFunc).Call([]reflect.Value{reflect.ValueOf(tc.giveStruct)})[0].Bool(), true)
 				}
 			}
 		})

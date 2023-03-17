@@ -1,27 +1,31 @@
-package xreflect
+package xdefault
 
 import (
 	"errors"
 	"fmt"
+	"github.com/Aoi-hosizora/ahlib/xreflect"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
+// TODO refactor and improve FillDefaultFields
+
 // _defaultTag is the "default" tag name which is used in FillDefaultFields.
 const _defaultTag = "default"
 
 var (
-	errNotStructPtr = errors.New("xreflect: not a pointer of a structure type")
+	errNilValue     = errors.New("xdefault: nil value")
+	errNotStructPtr = errors.New("xdefault: not a pointer of a structure type")
 )
 
 const (
-	panicInvalidDefaultType = "xreflect: parsing '%s' as the default value of field '%s' failed: %v"
+	panicInvalidDefaultType = "xdefault: parsing '%s' as the default value of field '%s' failed: %v"
 )
 
-// FillDefaultFields fills struct fields with "default" tag recursively, returns true if any value is set or filled, returns error only when given parameter
-// is not a pointer of struct, panics when using mismatched default value type and field type.
+// FillDefaultFields fills struct fields with "default" tag recursively, returns true if all fields are set or filled, returns error only when given parameter
+// is nil or is not a pointer of struct, panics when using mismatched default value type and field type.
 //
 // Note that:
 // 1. values inside arrays, non-bytes-slices, maps, structs will be filled when these kinds of collections or wrappers are not empty.
@@ -47,8 +51,12 @@ const (
 // 	cfg := &Config{}
 // 	// unmarshal cfg...
 // 	_, err = FillDefaultFields(cfg)
-func FillDefaultFields(s interface{}) (allFilled bool, err error) {
-	val := reflect.ValueOf(s)
+func FillDefaultFields(value interface{}) (allFilled bool, err error) {
+	if value == nil {
+		return false, errNilValue
+	}
+
+	val := reflect.ValueOf(value)
 	if val.Kind() != reflect.Ptr {
 		return false, errNotStructPtr
 	}
@@ -76,7 +84,7 @@ func coreFillField(ftyp reflect.Type, fval reflect.Value, ftag reflect.StructTag
 	case k == reflect.Struct && ftyp.NumField() == 0,
 		(k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8 /* byte */) || k == reflect.Map) && fval.Len() == 0,
 		k == reflect.Invalid || k == reflect.Func || k == reflect.Chan || k == reflect.Interface || k == reflect.UnsafePointer:
-		return false
+		return false // this field is not filled
 
 	case k == reflect.Struct || k == reflect.Array || (k == reflect.Slice && ftyp.Elem().Kind() != reflect.Uint8 /* byte */) || k == reflect.Map || k == reflect.Ptr:
 		// set default value to array / non-bytes-slice / map / pointer / struct
@@ -183,7 +191,7 @@ func fillComplexField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, fta
 // fillSimpleField is the core implementation of coreFillField for simple field types.
 func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defaul string, fname string, setMapItem func(v reflect.Value)) bool {
 	switch {
-	case IsIntKind(k) && fval.Int() == 0:
+	case xreflect.IsIntKind(k) && fval.Int() == 0:
 		i, err := strconv.ParseInt(defaul, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf(panicInvalidDefaultType, defaul, fname, err))
@@ -195,7 +203,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		return true
 
-	case IsUintKind(k) && fval.Uint() == 0:
+	case xreflect.IsUintKind(k) && fval.Uint() == 0:
 		u, err := strconv.ParseUint(defaul, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf(panicInvalidDefaultType, defaul, fname, err))
@@ -207,7 +215,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		return true
 
-	case IsFloatKind(k) && math.Float64bits(fval.Float()) == 0:
+	case xreflect.IsFloatKind(k) && math.Float64bits(fval.Float()) == 0:
 		f, err := strconv.ParseFloat(defaul, 64)
 		if err != nil {
 			panic(fmt.Sprintf(panicInvalidDefaultType, defaul, fname, err))
@@ -219,7 +227,7 @@ func fillSimpleField(k reflect.Kind, ftyp reflect.Type, fval reflect.Value, defa
 		}
 		return true
 
-	case IsComplexKind(k) && math.Float64bits(real(fval.Complex())) == 0 && math.Float64bits(imag(fval.Complex())) == 0:
+	case xreflect.IsComplexKind(k) && math.Float64bits(real(fval.Complex())) == 0 && math.Float64bits(imag(fval.Complex())) == 0:
 		c, err := strconv.ParseComplex(defaul, 128)
 		if err != nil {
 			panic(fmt.Sprintf(panicInvalidDefaultType, defaul, fname, err))
