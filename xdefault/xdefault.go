@@ -12,6 +12,8 @@ import (
 
 // TODO refactor and improve FillDefaultFields
 
+// TODO https://github.com/creasty/defaults/blob/master/defaults.go
+
 // _defaultTag is the "default" tag name which is used in FillDefaultFields.
 const _defaultTag = "default"
 

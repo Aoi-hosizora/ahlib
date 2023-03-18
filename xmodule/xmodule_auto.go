@@ -155,7 +155,7 @@ type ModuleProvider struct {
 	byType  bool
 	byIntf  bool
 
-	depKeys []mkey // late
+	depKeys []mkey // late, update by analyseDependency
 }
 
 // NameProvider creates a ModuleProvider, it can be used to provide a module using given ModuleName.

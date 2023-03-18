@@ -44,28 +44,28 @@
 + `func CountWith[T any](slice []T, value T, equaller Equaller[T]) int`
 + `func Insert[S ~[]T, T any](slice S, index int, values ...T) S`
 + `func InsertSelf[S ~[]T, T any](slice S, index int, values ...T) S`
-+ `func Delete[S ~[]T, T comparable](slice S, value T, n int) S`
-+ `func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S`
-+ `func DeleteAll[S ~[]T, T comparable](slice S, value T) S`
-+ `func DeleteAllWith[S ~[]T, T any](slice S, value T, equaller Equaller[T]) S`
++ `func Delete[S ~[]T, T comparable](slice S, value T, n int, capArg ...int) S`
++ `func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T], capArg ...int) S`
++ `func DeleteAll[S ~[]T, T comparable](slice S, value T, capArg ...int) S`
++ `func DeleteAllWith[S ~[]T, T any](slice S, value T, equaller Equaller[T], capArg ...int) S`
 + `func DeleteSelf[S ~[]T, T comparable](slice S, value T, n int) S`
 + `func DeleteSelfWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S`
 + `func DeleteAllSelf[S ~[]T, T comparable](slice S, value T) S`
 + `func DeleteAllSelfWith[S ~[]T, T any](slice S, value T, equaller Equaller[T]) S`
 + `func ContainsAll[T comparable](list, subset []T) bool`
 + `func ContainsAllWith[T any](list, subset []T, equaller Equaller[T]) bool`
-+ `func Diff[S ~[]T, T comparable](slice1, slice2 S) S`
-+ `func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S`
-+ `func Union[S ~[]T, T comparable](slice1, slice2 S) S`
-+ `func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S`
-+ `func Intersect[S ~[]T, T comparable](slice1, slice2 S) S`
-+ `func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S`
-+ `func Deduplicate[T comparable, S ~[]T](slice S) S`
-+ `func DeduplicateWith[S ~[]T, T any](slice S, equaller Equaller[T]) S`
++ `func Diff[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S`
++ `func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S`
++ `func Union[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S`
++ `func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S`
++ `func Intersect[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S`
++ `func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S`
++ `func Deduplicate[T comparable, S ~[]T](slice S, capArg ...int) S`
++ `func DeduplicateWith[S ~[]T, T any](slice S, equaller Equaller[T], capArg ...int) S`
 + `func DeduplicateSelf[S ~[]T, T comparable](slice S) S`
 + `func DeduplicateSelfWith[S ~[]T, T any](slice S, equaller Equaller[T]) S`
-+ `func Compact[S ~[]T, T comparable](slice S) S`
-+ `func CompactWith[S ~[]T, T any](slice S, equaller Equaller[T]) S`
++ `func Compact[S ~[]T, T comparable](slice S, capArg ...int) S`
++ `func CompactWith[S ~[]T, T any](slice S, equaller Equaller[T], capArg ...int) S`
 + `func CompactSelf[S ~[]T, T comparable](slice S) S`
 + `func CompactSelfWith[S ~[]T, T any](slice S, equaller Equaller[T]) S`
 + `func Equal[T comparable](slice1, slice2 []T) bool`
@@ -75,9 +75,9 @@
 + `func Repeat[T any](value T, count uint) []T`
 + `func Foreach[T any](slice []T, f func(T))`
 + `func Map[T1, T2 any](slice []T1, f func(T1) T2) []T2`
-+ `func Expand[T1, T2 any](slice []T1, f func(T1) []T2) []T2`
++ `func Expand[T1, T2 any](slice []T1, f func(T1) []T2, capArg ...int) []T2`
 + `func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U`
-+ `func Filter[S ~[]T, T any](slice S, f func(T) bool) S`
++ `func Filter[S ~[]T, T any](slice S, f func(T) bool, capArg ...int) S`
 + `func Any[T any](slice []T, f func(T) bool) bool`
 + `func All[T any](slice []T, f func(T) bool) bool`
 + `func Zip[T1, T2 any](slice1 []T1, slice2 []T2) []xtuple.Tuple[T1, T2]`

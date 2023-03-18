@@ -223,17 +223,32 @@ func InsertSelf[S ~[]T, T any](slice S, index int, values ...T) S {
 	}
 }
 
+// getCap returns the capacity from given capArg and minimum capacity, used by functions which have `capArg ...int` argument.
+func getCap(capArg []int, minimum int) int {
+	capacity := 0
+	if capArg != nil && len(capArg) > 0 {
+		capacity = capArg[0]
+	}
+	if minimum < 0 {
+		minimum = 0
+	}
+	if capacity < minimum {
+		capacity = minimum
+	}
+	return capacity
+}
+
 // Delete deletes value from []T slice in n times.
-func Delete[S ~[]T, T comparable](slice S, value T, n int) S {
-	return DeleteWith(slice, value, n, defaultEqualler[T]())
+func Delete[S ~[]T, T comparable](slice S, value T, n int, capArg ...int) S {
+	return DeleteWith(slice, value, n, defaultEqualler[T](), capArg...)
 }
 
 // DeleteWith deletes value from []T slice in n times with Equaller.
-func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S {
+func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T], capArg ...int) S {
 	if n <= 0 {
 		n = len(slice)
 	}
-	out := make([]T, 0)
+	out := make([]T, 0, getCap(capArg, 0))
 	cnt := 0
 	for idx, item := range slice { // O(n)
 		if cnt >= n {
@@ -250,13 +265,13 @@ func DeleteWith[S ~[]T, T any](slice S, value T, n int, equaller Equaller[T]) S 
 }
 
 // DeleteAll deletes value from []T slice in all.
-func DeleteAll[S ~[]T, T comparable](slice S, value T) S {
-	return DeleteWith(slice, value, -1, defaultEqualler[T]())
+func DeleteAll[S ~[]T, T comparable](slice S, value T, capArg ...int) S {
+	return DeleteWith(slice, value, -1, defaultEqualler[T](), capArg...)
 }
 
 // DeleteAllWith deletes value from []T slice in all with Equaller.
-func DeleteAllWith[S ~[]T, T any](slice S, value T, equaller Equaller[T]) S {
-	return DeleteWith(slice, value, -1, equaller)
+func DeleteAllWith[S ~[]T, T any](slice S, value T, equaller Equaller[T], capArg ...int) S {
+	return DeleteWith(slice, value, -1, equaller, capArg...)
 }
 
 // DeleteSelf deletes value from []T slice in n times, by modifying given slice directly.
@@ -309,13 +324,13 @@ func ContainsAllWith[T any](list, subset []T, equaller Equaller[T]) bool {
 }
 
 // Diff returns the difference of two []T slices.
-func Diff[S ~[]T, T comparable](slice1, slice2 S) S {
-	return DiffWith(slice1, slice2, defaultEqualler[T]())
+func Diff[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S {
+	return DiffWith(slice1, slice2, defaultEqualler[T](), capArg...)
 }
 
 // DiffWith returns the difference of two []T slices with Equaller.
-func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
-	result := make([]T, 0, 0)
+func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S {
+	result := make([]T, 0, getCap(capArg, 0))
 	for _, item1 := range slice1 {
 		if !ContainsWith(slice2, item1, equaller) {
 			result = append(result, item1)
@@ -325,13 +340,13 @@ func DiffWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 }
 
 // Union returns the union of two []T slices.
-func Union[S ~[]T, T comparable](slice1, slice2 S) S {
-	return UnionWith(slice1, slice2, defaultEqualler[T]())
+func Union[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S {
+	return UnionWith(slice1, slice2, defaultEqualler[T](), capArg...)
 }
 
 // UnionWith returns the union of two []T slices with Equaller.
-func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
-	result := make([]T, len(slice1))
+func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S {
+	result := make([]T, len(slice1), getCap(capArg, len(slice1)))
 	copy(result, slice1)
 	for _, item2 := range slice2 {
 		if !ContainsWith(slice1, item2, equaller) {
@@ -342,13 +357,13 @@ func UnionWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 }
 
 // Intersect returns the intersection of two []T slices.
-func Intersect[S ~[]T, T comparable](slice1, slice2 S) S {
-	return IntersectWith(slice1, slice2, defaultEqualler[T]())
+func Intersect[S ~[]T, T comparable](slice1, slice2 S, capArg ...int) S {
+	return IntersectWith(slice1, slice2, defaultEqualler[T](), capArg...)
 }
 
 // IntersectWith returns the intersection of two []T slices with Equaller.
-func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
-	result := make([]T, 0, 0)
+func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T], capArg ...int) S {
+	result := make([]T, 0, getCap(capArg, 0))
 	for _, item1 := range slice1 {
 		if ContainsWith(slice2, item1, equaller) {
 			result = append(result, item1)
@@ -358,13 +373,13 @@ func IntersectWith[S ~[]T, T any](slice1, slice2 S, equaller Equaller[T]) S {
 }
 
 // Deduplicate removes the duplicate items from []T slice as a set.
-func Deduplicate[T comparable, S ~[]T](slice S) S {
-	return DeduplicateWith(slice, defaultEqualler[T]())
+func Deduplicate[T comparable, S ~[]T](slice S, capArg ...int) S {
+	return DeduplicateWith(slice, defaultEqualler[T](), capArg...)
 }
 
 // DeduplicateWith removes the duplicate items from []T slice as a set with Equaller.
-func DeduplicateWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
-	result := make([]T, 0, 0)
+func DeduplicateWith[S ~[]T, T any](slice S, equaller Equaller[T], capArg ...int) S {
+	result := make([]T, 0, getCap(capArg, 0))
 	for _, item := range slice {
 		if !ContainsWith(result, item, equaller) { // O(n^2)
 			result = append(result, item)
@@ -394,16 +409,16 @@ func DeduplicateSelfWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
 }
 
 // Compact removes the duplicate items in neighbor from []T slice.
-func Compact[S ~[]T, T comparable](slice S) S {
-	return CompactWith(slice, defaultEqualler[T]())
+func Compact[S ~[]T, T comparable](slice S, capArg ...int) S {
+	return CompactWith(slice, defaultEqualler[T](), capArg...)
 }
 
 // CompactWith removes the duplicate items in neighbor from []T slice with Equaller.
-func CompactWith[S ~[]T, T any](slice S, equaller Equaller[T]) S {
+func CompactWith[S ~[]T, T any](slice S, equaller Equaller[T], capArg ...int) S {
 	if len(slice) <= 1 {
 		return slice
 	}
-	result := make([]T, 1, 1)
+	result := make([]T, 1, getCap(capArg, 1))
 	last := slice[0]
 	result[0] = last
 	for _, item := range slice[1:] { // O(n)
@@ -531,11 +546,11 @@ func Map[T1, T2 any](slice []T1, f func(T1) T2) []T2 {
 }
 
 // Expand maps and expands given slice to another slice using expand function.
-func Expand[T1, T2 any](slice []T1, f func(T1) []T2) []T2 {
+func Expand[T1, T2 any](slice []T1, f func(T1) []T2, capArg ...int) []T2 {
 	if f == nil {
 		panic(panicNilExpandFunc)
 	}
-	out := make([]T2, 0, len(slice))
+	out := make([]T2, 0, getCap(capArg, 0))
 	for _, item := range slice {
 		out = append(out, f(item)...)
 	}
@@ -554,11 +569,11 @@ func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U {
 }
 
 // Filter filters given slice and returns a new slice using given predicate function.
-func Filter[S ~[]T, T any](slice S, f func(T) bool) S {
+func Filter[S ~[]T, T any](slice S, f func(T) bool, capArg ...int) S {
 	if f == nil {
 		panic(panicNilPredicateFunc)
 	}
-	out := make([]T, 0)
+	out := make([]T, 0, getCap(capArg, 0))
 	for _, item := range slice {
 		if f(item) {
 			out = append(out, item)

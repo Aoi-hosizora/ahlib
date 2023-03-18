@@ -119,6 +119,27 @@ func TestPanicIfErr(t *testing.T) {
 	xtesting.SameType(t, &v3, new(interface{}))
 }
 
+func TestLet(t *testing.T) {
+	xtesting.Equal(t, Let(0, nil), nil) // 0
+
+	visited := false
+	xtesting.Equal(t, Let(0, func(t interface{}) interface{} { visited = true; return t.(int) + 1 }), 1)
+	xtesting.Equal(t, visited, true)
+
+	visited = false
+	xtesting.Equal(t, Let(nil, func(t interface{}) interface{} { visited = true; return *(t.(*uint64)) + 1 }), nil) // uint64(0)
+	xtesting.Equal(t, visited, false)
+
+	visited = false
+	v := 3.0
+	xtesting.Equal(t, Let(&v, func(t interface{}) interface{} { visited = true; return *(t.(*float64)) + 1 }), 4.0)
+	xtesting.Equal(t, visited, true)
+
+	visited = false
+	xtesting.Equal(t, Let(visited, func(t interface{}) interface{} { visited = true; return !(t.(bool)) }), true)
+	xtesting.Equal(t, visited, true)
+}
+
 var (
 	f1 = func() int { return 1 }
 	f2 = func() (int, int) { return 1, 2 }

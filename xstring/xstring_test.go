@@ -421,6 +421,10 @@ func TestRandString(t *testing.T) {
 		{RandLowercaseLetterNumberString, 0},
 		{RandLowercaseLetterNumberString, 5},
 		{RandLowercaseLetterNumberString, 20},
+
+		{RandLetterNumberString, 0},
+		{RandLetterNumberString, 5},
+		{RandLetterNumberString, 20},
 	} {
 		r := tc.giveFn(tc.giveCount)
 		if tc.giveCount == 0 {

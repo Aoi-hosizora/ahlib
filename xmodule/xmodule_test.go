@@ -602,6 +602,7 @@ func TestLogger(t *testing.T) {
 	xtesting.EqualValue(t, LogInjField, 8)   // 01000
 	xtesting.EqualValue(t, LogInjFinish, 16) // 10000
 	xtesting.EqualValue(t, LogSilent, 0)     // 00000
+	xtesting.EqualValue(t, LogPrv, 7)        // 00111
 	xtesting.EqualValue(t, LogAll, 31)       // 11111
 
 	type testStruct struct {
@@ -632,6 +633,7 @@ func TestLogger(t *testing.T) {
 		{"LogPrvName | LogPrvType", LogPrvName | LogPrvType, false, false, false},
 		{"LogPrvType | LogPrvIntf", LogPrvType | LogPrvIntf, false, false, false},
 		{"LogPrvName | LogPrvIntf", LogPrvIntf | LogPrvName, false, false, false},
+		{"LogPrv", LogPrv, false, false, false},
 		{"LogInjField", LogInjField, false, false, false},
 		{"LogInjFinish with module not found", LogInjFinish, true, false, false},
 		{"LogInjFinish with cannot assign", LogInjFinish, false, true, false},

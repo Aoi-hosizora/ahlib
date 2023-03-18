@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -327,4 +329,95 @@ func GetProxyEnv() *ProxyEnv {
 	hsp := strings.TrimSpace(os.Getenv("https_proxy"))
 	ssp := strings.TrimSpace(os.Getenv("socks_proxy"))
 	return &ProxyEnv{NoProxy: np, HttpProxy: hp, HttpsProxy: hsp, SocksProxy: ssp}
+}
+
+// PrintLog prints each proxy variables if it is not empty, using given logFunc (default to log.Println) and prefix (default to empty).
+//
+// Example:
+// 	proxyEnv := xruntime.GetProxyEnv()
+// 	proxyEnv.PrintLog(nil, "[Gin] ")
+func (p *ProxyEnv) PrintLog(logFunc func(string), prefix string) {
+	if logFunc == nil {
+		logFunc = func(s string) {
+			log.Println(s)
+		}
+	}
+
+	if p.NoProxy != "" {
+		logFunc(fmt.Sprintf("%sUsing no_proxy: %s", prefix, p.NoProxy))
+	}
+	if p.HttpProxy != "" {
+		logFunc(fmt.Sprintf("%sUsing http_proxy: %s", prefix, p.HttpProxy))
+	}
+	if p.HttpsProxy != "" {
+		logFunc(fmt.Sprintf("%sUsing https_proxy: %s", prefix, p.HttpsProxy))
+	}
+	if p.SocksProxy != "" {
+		logFunc(fmt.Sprintf("%sUsing socks_proxy: %s", prefix, p.SocksProxy))
+	}
+}
+
+// NetAddrType describes a concrete address type, including TCPAddrType, UDPAddrType, IPAddrType and UnixAddrType.
+type NetAddrType string
+
+const (
+	// TCPAddrType represents a net.TCPAddr concrete address type.
+	TCPAddrType NetAddrType = "TCPAddr"
+
+	// UDPAddrType represents a net.UDPAddr concrete address type.
+	UDPAddrType NetAddrType = "UDPAddr"
+
+	// IPAddrType represents a net.IPAddr concrete address type.
+	IPAddrType NetAddrType = "IPAddr"
+
+	// UnixAddrType represents a net.UnixAddr concrete address type.
+	UnixAddrType NetAddrType = "UnixAddr"
+)
+
+// String returns the string value of NetAddrType.
+func (n NetAddrType) String() string {
+	return string(n)
+}
+
+// ConcreteNetAddr represents a concrete net.Addr type, which includes implementation of net.TCPAddr, net.UDPAddr, net.IPAddr and net.UnixAddr.
+type ConcreteNetAddr struct {
+	Type NetAddrType
+
+	TCPAddr  *net.TCPAddr
+	UDPAddr  *net.UDPAddr
+	IPAddr   *net.IPAddr
+	UnixAddr *net.UnixAddr
+
+	// for TCP, UDP, IP
+	IP   net.IP
+	Zone string
+
+	// for TCP, UDP
+	Port int
+
+	// for Unix
+	Name string
+	Net  string
+}
+
+// ParseNetAddr parses given net.Addr value to ConcreteNetAddr, returns error if given address is not TCP, UDP, IP, Unix address.
+func ParseNetAddr(addr net.Addr) (*ConcreteNetAddr, bool) {
+	if addr == nil {
+		return nil, false
+	}
+
+	var out *ConcreteNetAddr
+	switch addr := addr.(type) {
+	case *net.TCPAddr:
+		out = &ConcreteNetAddr{Type: TCPAddrType, TCPAddr: addr, IP: addr.IP, Zone: addr.Zone, Port: addr.Port}
+	case *net.UDPAddr:
+		out = &ConcreteNetAddr{Type: UDPAddrType, UDPAddr: addr, IP: addr.IP, Zone: addr.Zone, Port: addr.Port}
+	case *net.IPAddr:
+		out = &ConcreteNetAddr{Type: IPAddrType, IPAddr: addr, IP: addr.IP, Zone: addr.Zone}
+	case *net.UnixAddr:
+		out = &ConcreteNetAddr{Type: UnixAddrType, UnixAddr: addr, Name: addr.Name, Net: addr.Net}
+	default:
+		return nil, false
+	}
+	return out, true
 }

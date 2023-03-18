@@ -319,6 +319,25 @@ func TestInsert(t *testing.T) {
 	internal.TestEqual(t, addr2 != (*reflect.SliceHeader)(unsafe.Pointer(&give2)).Data, true)
 }
 
+func TestGetCap(t *testing.T) {
+	internal.TestEqual(t, getCap(nil, 0), 0)
+	internal.TestEqual(t, getCap(nil, 12), 12)
+	internal.TestEqual(t, getCap([]int{}, -1), 0)
+	internal.TestEqual(t, getCap([]int{-1}, -1), 0)
+	internal.TestEqual(t, getCap([]int{-10, -2}, 10), 10)
+	internal.TestEqual(t, getCap([]int{1}, 0), 1)
+	internal.TestEqual(t, getCap([]int{1}, 2), 2)
+	internal.TestEqual(t, getCap([]int{2, -1}, 10), 10)
+	internal.TestEqual(t, getCap([]int{2, -1}, -10), 2)
+
+	internal.TestPanic(t, false, func() {
+		internal.TestEqual(t, cap(make([]int, 0, getCap([]int{}, 0))), 0)
+		internal.TestEqual(t, cap(make([]int, 0, getCap([]int{1}, 0))), 1)
+		internal.TestEqual(t, cap(make([]int, 12, getCap([]int{}, 12))), 12)
+		internal.TestEqual(t, cap(make([]int, 12, getCap([]int{24}, 12))), 24)
+	})
+}
+
 func TestDelete(t *testing.T) {
 	eq := func(i, j testStruct) bool { return i.value == j.value }
 
@@ -684,7 +703,12 @@ func TestFilterAnyAll(t *testing.T) {
 	internal.TestEqual(t, Filter([]bool{true, false, true, false}, func(t bool) bool { return t }), []bool{true, true})
 	internal.TestEqual(t, Filter([]int32{9, 1, 8, 2, 7, 3, 6, 4, 5}, func(t int32) bool { return t > 5 }), []int32{9, 8, 7, 6})
 	internal.TestEqual(t, Filter([]string{"1", "@", "3"}, func(t string) bool { _, err := strconv.Atoi(t); return err == nil }), []string{"1", "3"})
-	internal.TestEqual(t, Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }), []string{"aaa", "ccccc"})
+	s := Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 })
+	internal.TestEqual(t, s, []string{"aaa", "ccccc"})
+	internal.TestEqual(t, cap(s), 2)
+	s = Filter([]string{"aaa", "b", "ccccc", "dd"}, func(t string) bool { return len(t) > 2 }, 3) // just test getCap
+	internal.TestEqual(t, s, []string{"aaa", "ccccc"})
+	internal.TestEqual(t, cap(s), 3)
 
 	internal.TestPanic(t, true, func() { Any([]bool{}, nil) })
 	internal.TestEqual(t, Any([]bool{}, func(t bool) bool { return t }), true)

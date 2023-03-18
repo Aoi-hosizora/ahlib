@@ -25,6 +25,7 @@
 + `const LogPrvName LogLevel`
 + `const LogPrvType LogLevel`
 + `const LogPrvIntf LogLevel`
++ `const LogPrv LogLevel`
 + `const LogInjField LogLevel`
 + `const LogInjFinish LogLevel`
 + `const LogAll LogLevel`

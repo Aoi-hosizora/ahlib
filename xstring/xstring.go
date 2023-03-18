@@ -296,6 +296,7 @@ var (
 	numberRunes                = []rune("0123456789")
 	capitalLetterNumberRunes   = append(capitalLetterRunes, numberRunes...)
 	lowercaseLetterNumberRunes = append(lowercaseLetterRunes, numberRunes...)
+	allcaseLetterNumberRunes   = append(allcaseLetterRunes, numberRunes...)
 )
 
 // RandCapitalLetterString generates a random string combined by capital letters, that is ABCDEFGHIJKLMNOPQRSTUVWXYZ.
@@ -326,6 +327,11 @@ func RandCapitalLetterNumberString(count int) string {
 // RandLowercaseLetterNumberString generates a random string combined by lowercase letters and numbers, that is abcdefghijklmnopqrstuvwxyz + 0123456789.
 func RandLowercaseLetterNumberString(count int) string {
 	return RandString(count, lowercaseLetterNumberRunes)
+}
+
+// RandLetterNumberString generates a random string combined by allcase letters and numbers, that is ABCDEFGHIJKLMNOPQRSTUVWXYZ + abcdefghijklmnopqrstuvwxyz + 0123456789.
+func RandLetterNumberString(count int) string {
+	return RandString(count, allcaseLetterNumberRunes)
 }
 
 // ============

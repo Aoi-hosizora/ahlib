@@ -3,6 +3,7 @@ package xruntime
 import (
 	"fmt"
 	"github.com/Aoi-hosizora/ahlib/xtesting"
+	"net"
 	"os"
 	"reflect"
 	"runtime/pprof"
@@ -356,29 +357,113 @@ func TestGetProxyEnv(t *testing.T) {
 	os.Setenv("http_proxy", "")
 	os.Setenv("https_proxy", "")
 	os.Setenv("socks_proxy", "")
-	np, hp, hsp, ssp := GetProxyEnv()
-	xtesting.Equal(t, np, "")
-	xtesting.Equal(t, hp, "")
-	xtesting.Equal(t, hsp, "")
-	xtesting.Equal(t, ssp, "")
+	env := GetProxyEnv()
+	xtesting.Equal(t, env.NoProxy, "")
+	xtesting.Equal(t, env.HttpProxy, "")
+	xtesting.Equal(t, env.HttpsProxy, "")
+	xtesting.Equal(t, env.SocksProxy, "")
+	sb := &strings.Builder{}
+	env.PrintLog(func(s string) { sb.WriteString(s + "\n") }, "[XXX] ")
+	xtesting.Equal(t, sb.String(), "")
 
 	os.Setenv("no_proxy", "localhost,127.0.0.1,::1")
 	os.Setenv("http_proxy", "http://localhost:9000")
 	os.Setenv("https_proxy", "https://localhost:9000")
 	os.Setenv("socks_proxy", "socks://localhost:9000")
-	np, hp, hsp, ssp = GetProxyEnv()
-	xtesting.Equal(t, np, "localhost,127.0.0.1,::1")
-	xtesting.Equal(t, hp, "http://localhost:9000")
-	xtesting.Equal(t, hsp, "https://localhost:9000")
-	xtesting.Equal(t, ssp, "socks://localhost:9000")
+	env = GetProxyEnv()
+	xtesting.Equal(t, env.NoProxy, "localhost,127.0.0.1,::1")
+	xtesting.Equal(t, env.HttpProxy, "http://localhost:9000")
+	xtesting.Equal(t, env.HttpsProxy, "https://localhost:9000")
+	xtesting.Equal(t, env.SocksProxy, "socks://localhost:9000")
+	sb.Reset()
+	env.PrintLog(func(s string) { sb.WriteString(s) }, "[XXX] ")
+	lines := []string{
+		"[XXX] Using no_proxy: localhost,127.0.0.1,::1",
+		"[XXX] Using http_proxy: http://localhost:9000",
+		"[XXX] Using https_proxy: https://localhost:9000",
+		"[XXX] Using socks_proxy: socks://localhost:9000",
+	}
+	xtesting.Equal(t, sb.String(), strings.Join(lines, ""))
+	env.PrintLog(nil, "") // log
 
 	os.Setenv("no_proxy", "")
 	os.Setenv("http_proxy", "")
 	os.Setenv("https_proxy", "")
 	os.Setenv("socks_proxy", "")
-	np, hp, hsp, ssp = GetProxyEnv()
-	xtesting.Equal(t, np, "")
-	xtesting.Equal(t, hp, "")
-	xtesting.Equal(t, hsp, "")
-	xtesting.Equal(t, ssp, "")
+	env = GetProxyEnv()
+	xtesting.Equal(t, env.NoProxy, "")
+	xtesting.Equal(t, env.HttpProxy, "")
+	xtesting.Equal(t, env.HttpsProxy, "")
+	xtesting.Equal(t, env.SocksProxy, "")
+	sb.Reset()
+	env.PrintLog(func(s string) { sb.WriteString(s + "\n") }, "[XXX] ")
+	xtesting.Equal(t, sb.String(), "")
+}
+
+func TestParseNetAddr(t *testing.T) {
+	for _, tc := range []struct {
+		give NetAddrType
+		want string
+	}{
+		{TCPAddrType, "TCPAddr"},
+		{UDPAddrType, "UDPAddr"},
+		{IPAddrType, "IPAddr"},
+		{UnixAddrType, "UnixAddr"},
+	} {
+		xtesting.Equal(t, tc.give.String(), tc.want)
+	}
+
+	tcpAddr := &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 12345, Zone: "test ipv6 zone"}
+	udpAddr := &net.UDPAddr{IP: net.ParseIP("::1"), Port: 12, Zone: "test zone"}
+	ipAddr := &net.IPAddr{IP: net.ParseIP("192.168.3.255"), Zone: ""}
+	ipAddr2 := &net.IPAddr{IP: net.ParseIP("192.168.1.999"), Zone: "123"}
+	unixAddr := &net.UnixAddr{Name: "test.socks", Net: "net"}
+	unsupportedAddr := &net.IPNet{}
+	for _, tc := range []struct {
+		giveAddr net.Addr
+		wantOk   bool
+		wantType NetAddrType
+		wantIP   string
+		wantPort int
+		wantZone string
+		wantName string
+		wantNet  string
+	}{
+		{nil, false, "", "", 0, "", "", ""},
+		{tcpAddr, true, TCPAddrType, "127.0.0.1", 12345, "test ipv6 zone", "", ""},
+		{udpAddr, true, UDPAddrType, "::1", 12, "test zone", "", ""},
+		{ipAddr, true, IPAddrType, "192.168.3.255", 0, "", "", ""},
+		{ipAddr2, true, IPAddrType, "", 0, "123", "", ""},
+		{unixAddr, true, UnixAddrType, "", 0, "", "test.socks", "net"},
+		{unsupportedAddr, false, "", "", 0, "", "", ""},
+	} {
+		t.Run(tc.wantType.String(), func(t *testing.T) {
+			addr, ok := ParseNetAddr(tc.giveAddr)
+			xtesting.Equal(t, ok, tc.wantOk)
+			if !tc.wantOk {
+				xtesting.Nil(t, addr)
+			} else {
+				xtesting.Equal(t, addr.Type, tc.wantType)
+				switch tc.wantType {
+				case TCPAddrType:
+					xtesting.Equal(t, addr.TCPAddr, tc.giveAddr.(*net.TCPAddr))
+				case UDPAddrType:
+					xtesting.Equal(t, addr.UDPAddr, tc.giveAddr.(*net.UDPAddr))
+				case IPAddrType:
+					xtesting.Equal(t, addr.IPAddr, tc.giveAddr.(*net.IPAddr))
+				case UnixAddrType:
+					xtesting.Equal(t, addr.UnixAddr, tc.giveAddr.(*net.UnixAddr))
+				}
+				if tc.wantIP != "" {
+					xtesting.Equal(t, addr.IP.String(), tc.wantIP)
+				} else {
+					xtesting.Equal(t, addr.IP, (net.IP)(nil))
+				}
+				xtesting.Equal(t, addr.Port, tc.wantPort)
+				xtesting.Equal(t, addr.Zone, tc.wantZone)
+				xtesting.Equal(t, addr.Name, tc.wantName)
+				xtesting.Equal(t, addr.Net, tc.wantNet)
+			}
+		})
+	}
 }

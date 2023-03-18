@@ -34,6 +34,7 @@
 + `func Ue(v interface{}, err error) interface{}`
 + `func Ue2(v1, v2 interface{}, err error) (interface{}, interface{})`
 + `func Ue3(v1, v2, v3 interface{}, err error) (interface{}, interface{}, interface{})`
++ `func Let(t interface{}, f func(interface{}) interface{}) interface{}`
 + `func First(args ...interface{}) interface{}`
 + `func Second(args ...interface{}) interface{}`
 + `func Third(args ...interface{}) interface{}`

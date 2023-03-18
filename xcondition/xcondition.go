@@ -94,6 +94,14 @@ func Ue3(v1, v2, v3 interface{}, err error) (interface{}, interface{}, interface
 	return PanicIfErr3(v1, v2, v3, err)
 }
 
+// Let calls given function on given value if it is not nil, otherwise returns nil, just like kotlin `let` scope function.
+func Let(value interface{}, f func(interface{}) interface{}) interface{} {
+	if xreflect.IsNilValue(value) || f == nil {
+		return nil
+	}
+	return f(value)
+}
+
 const (
 	panicIndexOutOfRange = "xcondition: index out of range"
 )

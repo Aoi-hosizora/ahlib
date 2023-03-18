@@ -106,6 +106,15 @@ func Ue3[T1, T2, T3 any](v1 T1, v2 T2, v3 T3, err error) (T1, T2, T3) {
 	return PanicIfErr3(v1, v2, v3, err)
 }
 
+// Let calls given function on given t value if it is not nil, otherwise returns the zero value of U type, just like kotlin `let` scope function.
+func Let[T, U any](t T, f func(T) U) U {
+	if isNilValue(t) || f == nil {
+		var zero U
+		return zero
+	}
+	return f(t)
+}
+
 // ==============
 // mass functions
 // ==============
@@ -184,7 +193,7 @@ func FastAtos[TArray any, TSlice ~[]TItem, TItem any](array *TArray, length int)
 }
 
 // isNilValue keeps the same as xreflect.IsNilValue, checks whether given value is nil in its type or not.
-func isNilValue(v interface{}) bool {
+func isNilValue(v any) bool {
 	if v == nil {
 		return true
 	}

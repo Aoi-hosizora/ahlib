@@ -46,6 +46,7 @@
 + `func Decr[T Real](n *T) T`
 + `func RIncr[T Real](n *T) T`
 + `func RDecr[T Real](n *T) T`
++ `func Let[T, U any](t T, f func(T) U) U`
 + `func UnmarshalJson[T any](bs []byte, t T) (T, error)`
 + `func FastStoa[TArray, TItem any](slice []TItem) *TArray`
 + `func FastAtos[TItem, TArray any](array *TArray, length int) []TItem`

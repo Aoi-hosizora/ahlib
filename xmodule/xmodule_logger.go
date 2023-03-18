@@ -24,6 +24,9 @@ const (
 	// LogInjFinish logs when ModuleContainer.Inject invoked and injecting is finished.
 	LogInjFinish
 
+	// LogPrv logs when ModuleContainer.ProvideByName, ModuleContainer.ProvideByType and ModuleContainer.ProvideByIntf invoked.
+	LogPrv = LogPrvName | LogPrvType | LogPrvIntf
+
 	// LogAll logs when ModuleContainer.ProvideByName, ModuleContainer.ProvideByType, ModuleContainer.ProvideByIntf and ModuleContainer.Inject invoked.
 	LogAll = LogPrvName | LogPrvType | LogPrvIntf | LogInjField | LogInjFinish
 
@@ -79,12 +82,18 @@ func DefaultLogger(level LogLevel, logPrvFunc func(moduleName, moduleType string
 	xcolor.ForceColor()
 	if logPrvFunc == nil {
 		logPrvFunc = func(moduleName, moduleType string) {
-			fmt.Printf("[Xmodule] Prv: %s <-- %s\n", xcolor.Red.ASprint(-20, moduleName), xcolor.Yellow.Sprint(moduleType))
+			fmt.Printf(
+				"[Xmodule] Prv: %s <-- %s\n",
+				xcolor.Red.ASprint(-20, moduleName), xcolor.Yellow.Sprint(moduleType),
+			)
 		}
 	}
 	if logInjFunc == nil {
 		logInjFunc = func(moduleName, injecteeType, addition string) {
-			fmt.Printf("[Xmodule] Inj: %s --> %s %s\n", xcolor.Red.ASprint(-20, moduleName), xcolor.Blue.Sprint(injecteeType), xcolor.Yellow.Sprintf("(%s)", addition))
+			fmt.Printf(
+				"[Xmodule] Inj: %s --> %s %s\n",
+				xcolor.Red.ASprint(-20, moduleName), xcolor.Blue.Sprint(injecteeType), xcolor.Yellow.Sprintf("(%s)", addition),
+			)
 		}
 	}
 	return &defaultLogger{level: level, logPrvFunc: logPrvFunc, logInjFunc: logInjFunc}

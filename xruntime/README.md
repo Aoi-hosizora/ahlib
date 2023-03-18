@@ -11,6 +11,8 @@
 + `type TraceFrame struct`
 + `type TraceStack []*TraceFrame`
 + `type ProxyEnv struct`
++ `type NetAddrType string`
++ `type ConcreteNetAddr struct`
 
 ### Variables
 
@@ -24,6 +26,10 @@
 + `const PprofAllocsProfile string`
 + `const PprofBlockProfle string`
 + `const PprofMutexProfile string`
++ `const TCPAddrType NetAddrType`
++ `const UDPAddrType NetAddrType`
++ `const IPAddrType NetAddrType`
++ `const UnixAddrType NetAddrType`
 
 ### Functions
 
@@ -38,8 +44,10 @@
 + `func SignalName(sig syscall.Signal) string`
 + `func SignalReadableName(sig syscall.Signal) string`
 + `func GetProxyEnv() *ProxyEnv`
++ `func ParseNetAddr(addr net.Addr) (*ConcreteNetAddr, bool)`
 
 ### Methods
 
 + `func (t *TraceFrame) String() string`
 + `func (t *TraceStack) String() string`
++ `func (p *ProxyEnv) PrintLog(logFunc func(string), prefix string)`

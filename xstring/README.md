@@ -47,6 +47,7 @@
 + `func RandNumberString(count int) string`
 + `func RandCapitalLetterNumberString(count int) string`
 + `func RandLowercaseLetterNumberString(count int) string`
++ `func RandLetterNumberString(count int) string`
 + `func FastStob(s string) []byte`
 + `func FastBtos(bs []byte) string`
 + `func TrimUTF8Bom(s string) string`
