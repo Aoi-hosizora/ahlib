@@ -19,6 +19,9 @@
 
 + xcolor
 + xcondition
++ xconstant/headers
++ xconstant/regexps
++ xconstant/zones
 + xdefault
 + xerror
 + xgopool
@@ -33,7 +36,6 @@
 + xstring
 + xtesting
 + xtime
-+ xtime/zones
 + xgeneric (separated package with `go >= 1.18` required)
 + xgeneric/xgmap
 + xgeneric/xgslice
