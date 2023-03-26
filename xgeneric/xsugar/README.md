@@ -40,13 +40,14 @@
 + `func Ue[T any](v T, err error) T`
 + `func Ue2[T1, T2 any](v1 T1, v2 T2, err error) (T1, T2)`
 + `func Ue3[T1, T2, T3 any](v1 T1, v2 T2, v3 T3, err error) (T1, T2, T3)`
++ `func Let[T, U any](t T, f func(T) U) U`
++ `func NillableLet[T, U any](value T, f func(T) U) U`
 + `func ValPtr[T any](t T) *T`
 + `func PtrVal[T any](t *T, o T) T`
 + `func Incr[T Real](n *T) T`
 + `func Decr[T Real](n *T) T`
 + `func RIncr[T Real](n *T) T`
 + `func RDecr[T Real](n *T) T`
-+ `func Let[T, U any](t T, f func(T) U) U`
 + `func UnmarshalJson[T any](bs []byte, t T) (T, error)`
 + `func FastStoa[TArray, TItem any](slice []TItem) *TArray`
 + `func FastAtos[TItem, TArray any](array *TArray, length int) []TItem`

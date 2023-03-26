@@ -249,22 +249,38 @@ func TestIncrDecr(t *testing.T) {
 
 func TestLet(t *testing.T) {
 	internal.TestEqual(t, Let[int, int](0, nil), 0)
+	internal.TestEqual(t, NillableLet[int, int](0, nil), 0)
+	internal.TestEqual(t, Let[*int, string](nil, nil), "")
+	internal.TestEqual(t, NillableLet[*int, string](nil, nil), "")
 
 	visited := false
 	internal.TestEqual(t, Let(0, func(t int) int { visited = true; return t + 1 }), 1)
+	internal.TestEqual(t, visited, true)
+	visited = false
+	internal.TestEqual(t, NillableLet(0, func(t int) int { visited = true; return t + 1 }), 1)
 	internal.TestEqual(t, visited, true)
 
 	visited = false
 	internal.TestEqual(t, Let(nil, func(t *uint64) uint64 { visited = true; return *t + 1 }), uint64(0))
 	internal.TestEqual(t, visited, false)
+	visited = false
+	internal.TestEqual(t, NillableLet(nil, func(t *uint64) uint64 { visited = true; return 1 }), uint64(1))
+	internal.TestEqual(t, visited, true)
 
 	visited = false
-	internal.TestEqual(t, Let(ValPtr(3.0), func(t *float64) float64 { visited = true; return *t + 1 }), 4.0)
+	internal.TestEqual(t, Let(ValPtr(3.0), func(t *float64) float64 { visited = true; return *t + 1.0 }), 4.0)
+	internal.TestEqual(t, visited, true)
+	visited = false
+	internal.TestEqual(t, NillableLet(nil, func(t *float64) float64 { visited = true; return 1.0 }), 1.0)
 	internal.TestEqual(t, visited, true)
 
 	visited = false
 	internal.TestEqual(t, Let(visited, func(t bool) bool { visited = true; return !t }), true)
 	internal.TestEqual(t, visited, true)
+	visited = false
+	internal.TestEqual(t, NillableLet(visited, func(t bool) bool { visited = true; return !t }), true)
+	internal.TestEqual(t, visited, true)
+
 }
 
 func TestUnmarshalJson(t *testing.T) {

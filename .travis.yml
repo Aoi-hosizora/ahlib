@@ -4,12 +4,17 @@ go:
   - 1.15
   - 1.16
   - 1.17
+  - 1.18
+  - 1.19
+  - 1.20
+  # TODO go versions
 
 branches:
   only:
     - master
-    - /^dev.*$/
-    # feat -> dev -> master
+    - /^dev.*$/ # TODO /^testonly.*$/
+    # dev -> master
+    # TODO rename feat.xxx to dev.xxx
 
 script:
   - bash ./go.test.sh

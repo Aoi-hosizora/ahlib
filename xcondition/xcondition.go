@@ -94,9 +94,19 @@ func Ue3(v1, v2, v3 interface{}, err error) (interface{}, interface{}, interface
 	return PanicIfErr3(v1, v2, v3, err)
 }
 
-// Let calls given function on given value if it is not nil, otherwise returns nil, just like kotlin `let` scope function.
+// Let calls given function on given value and returns the value returned by given function, if given value and function are both not nil,
+// otherwise returns the zero value of U type, just like kotlin `let` scope function.
 func Let(value interface{}, f func(interface{}) interface{}) interface{} {
 	if xreflect.IsNilValue(value) || f == nil {
+		return nil
+	}
+	return f(value)
+}
+
+// NillableLet calls given function on given value and returns the value returned by given function, if given function is not nil, otherwise returns the zero value of U type.
+// The only difference between NillableLet and Let is that, as for NillableLet, given function will also be called even if given value is nil.
+func NillableLet(value interface{}, f func(interface{}) interface{}) interface{} {
+	if f == nil {
 		return nil
 	}
 	return f(value)

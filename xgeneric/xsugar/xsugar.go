@@ -106,13 +106,24 @@ func Ue3[T1, T2, T3 any](v1 T1, v2 T2, v3 T3, err error) (T1, T2, T3) {
 	return PanicIfErr3(v1, v2, v3, err)
 }
 
-// Let calls given function on given t value if it is not nil, otherwise returns the zero value of U type, just like kotlin `let` scope function.
-func Let[T, U any](t T, f func(T) U) U {
-	if isNilValue(t) || f == nil {
+// Let calls given function on given value and returns the value returned by given function, if given value and function are both not nil,
+// otherwise returns the zero value of U type, just like kotlin `let` scope function.
+func Let[T, U any](value T, f func(T) U) U {
+	if isNilValue(value) || f == nil {
 		var zero U
 		return zero
 	}
-	return f(t)
+	return f(value)
+}
+
+// NillableLet calls given function on given value and returns the value returned by given function, if given function is not nil, otherwise returns the zero value of U type.
+// The only difference between NillableLet and Let is that, as for NillableLet, given function will also be called even if given value is nil.
+func NillableLet[T, U any](value T, f func(T) U) U {
+	if f == nil {
+		var zero U
+		return zero
+	}
+	return f(value) // TODO
 }
 
 // ==============

@@ -120,23 +120,38 @@ func TestPanicIfErr(t *testing.T) {
 }
 
 func TestLet(t *testing.T) {
-	xtesting.Equal(t, Let(0, nil), nil) // 0
+	xtesting.Equal(t, Let(nil, nil), nil)
+	xtesting.Equal(t, NillableLet(nil, nil), nil)
+	xtesting.Equal(t, Let(0, nil), nil)
+	xtesting.Equal(t, NillableLet(0, nil), nil)
 
 	visited := false
 	xtesting.Equal(t, Let(0, func(t interface{}) interface{} { visited = true; return t.(int) + 1 }), 1)
+	xtesting.Equal(t, visited, true)
+	visited = false
+	xtesting.Equal(t, NillableLet(0, func(t interface{}) interface{} { visited = true; return t.(int) + 1 }), 1)
 	xtesting.Equal(t, visited, true)
 
 	visited = false
 	xtesting.Equal(t, Let(nil, func(t interface{}) interface{} { visited = true; return *(t.(*uint64)) + 1 }), nil) // uint64(0)
 	xtesting.Equal(t, visited, false)
+	visited = false
+	xtesting.Equal(t, NillableLet(nil, func(t interface{}) interface{} { visited = true; return uint64(1) }), uint64(1))
+	xtesting.Equal(t, visited, true)
 
 	visited = false
 	v := 3.0
-	xtesting.Equal(t, Let(&v, func(t interface{}) interface{} { visited = true; return *(t.(*float64)) + 1 }), 4.0)
+	xtesting.Equal(t, Let(&v, func(t interface{}) interface{} { visited = true; return *(t.(*float64)) + 1.0 }), 4.0)
+	xtesting.Equal(t, visited, true)
+	visited = false
+	xtesting.Equal(t, NillableLet(nil, func(t interface{}) interface{} { visited = true; return 1.0 }), 1.0)
 	xtesting.Equal(t, visited, true)
 
 	visited = false
 	xtesting.Equal(t, Let(visited, func(t interface{}) interface{} { visited = true; return !(t.(bool)) }), true)
+	xtesting.Equal(t, visited, true)
+	visited = false
+	xtesting.Equal(t, NillableLet(visited, func(t interface{}) interface{} { visited = true; return !(t.(bool)) }), true)
 	xtesting.Equal(t, visited, true)
 }
 
