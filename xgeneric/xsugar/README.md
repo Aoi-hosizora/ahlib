@@ -44,6 +44,7 @@
 + `func NillableLet[T, U any](value T, f func(T) U) U`
 + `func ValPtr[T any](t T) *T`
 + `func PtrVal[T any](t *T, o T) T`
++ `func NumericPtrVal[T, TWant Real](t *T, o TWant) TWant`
 + `func Incr[T Real](n *T) T`
 + `func Decr[T Real](n *T) T`
 + `func RIncr[T Real](n *T) T`

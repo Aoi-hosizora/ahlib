@@ -9,7 +9,6 @@ import (
 	"go/format"
 	"io"
 	"io/ioutil"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -20,11 +19,11 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	// _ = generate
-	err := generate()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	_ = generate
+	// err := generate()
+	// if err != nil {
+	//	log.Fatalln(err)
+	// }
 }
 
 func generate() error {

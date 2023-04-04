@@ -130,6 +130,7 @@ func TestPanicIfErr(t *testing.T) {
 func TestValPtr(t *testing.T) {
 	i := 1
 	u := uint(1)
+	f := 1.0
 	a := [2]float64{1, 2}
 	m := map[string]any{"1": uint(1)}
 	s := []string{"1", "1"}
@@ -137,6 +138,7 @@ func TestValPtr(t *testing.T) {
 	// ValPtr
 	internal.TestEqual(t, *ValPtr(i), i)
 	internal.TestEqual(t, *ValPtr(u), u)
+	internal.TestEqual(t, *ValPtr(f), f)
 	internal.TestEqual(t, *ValPtr(a), a)
 	internal.TestEqual(t, *ValPtr(m), m)
 	internal.TestEqual(t, *ValPtr(s), s)
@@ -152,23 +154,40 @@ func TestValPtr(t *testing.T) {
 	internal.TestEqual(t, **ValPtr(ValPtr(&s)), &s)
 
 	// PtrVal
-	internal.TestEqual(t, PtrVal[int](nil, i), i)
-	internal.TestEqual(t, PtrVal[uint](nil, u), u)
-	internal.TestEqual(t, PtrVal[[2]float64](nil, a), a)
-	internal.TestEqual(t, PtrVal[map[string]any](nil, m), m)
-	internal.TestEqual(t, PtrVal[[]string](nil, s), s)
+	internal.TestEqual(t, PtrVal(nil, i), i)
+	internal.TestEqual(t, PtrVal(nil, u), u)
+	internal.TestEqual(t, PtrVal(nil, f), f)
+	internal.TestEqual(t, PtrVal(nil, a), a)
+	internal.TestEqual(t, PtrVal(nil, m), m)
+	internal.TestEqual(t, PtrVal(nil, s), s)
 	internal.TestEqual(t, PtrVal(&i, i), i)
 	internal.TestEqual(t, PtrVal(&u, u), u)
+	internal.TestEqual(t, PtrVal(&f, f), f)
 	internal.TestEqual(t, PtrVal(&a, a), a)
 	internal.TestEqual(t, PtrVal(&m, m), m)
 	internal.TestEqual(t, PtrVal(&s, s), s)
 	internal.TestEqual(t, PtrVal(ValPtr(&i), nil), &i)
 	internal.TestEqual(t, PtrVal(ValPtr(&u), nil), &u)
+	internal.TestEqual(t, PtrVal(ValPtr(&f), nil), &f)
 	internal.TestEqual(t, PtrVal(ValPtr(&a), nil), &a)
 	internal.TestEqual(t, PtrVal(ValPtr(&m), nil), &m)
 	internal.TestEqual(t, PtrVal(ValPtr(&s), nil), &s)
-}
 
+	// NumericPtrVal
+	internal.TestEqual(t, NumericPtrVal[int](nil, i), i)
+	internal.TestEqual(t, NumericPtrVal[uint](nil, u), u)
+	internal.TestEqual(t, NumericPtrVal[float64](nil, f), f)
+	internal.TestEqual(t, NumericPtrVal(&i, i), i)
+	internal.TestEqual(t, NumericPtrVal(&u, u), u)
+	internal.TestEqual(t, NumericPtrVal(&f, f), f)
+	internal.TestEqual(t, NumericPtrVal(&i, int32(i)), int32(i))
+	internal.TestEqual(t, NumericPtrVal(&u, uint32(u)), uint32(u))
+	internal.TestEqual(t, NumericPtrVal(&f, float32(f)), float32(f))
+	internal.TestEqual(t, NumericPtrVal[int](ValPtr(-1), 0), -1)
+	internal.TestEqual(t, NumericPtrVal[uint](nil, int64(-1)), int64(-1))
+	internal.TestEqual(t, NumericPtrVal[float64](ValPtr(0.5), float32(0.5)), float32(0.5))
+}
+ni'l'la
 func TestIncrDecr(t *testing.T) {
 	i := 0
 	i32 := int32(1)

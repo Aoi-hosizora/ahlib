@@ -123,7 +123,7 @@ func NillableLet[T, U any](value T, f func(T) U) U {
 		var zero U
 		return zero
 	}
-	return f(value) // TODO
+	return f(value)
 }
 
 // ==============
@@ -141,6 +141,14 @@ func PtrVal[T any](t *T, o T) T {
 		return o
 	}
 	return *t
+}
+
+// NumericPtrVal is only used on Real types, returns a value from given pointer with fallback type, returns the fallback value when pointer is nil.
+func NumericPtrVal[T, TWant Real](t *T, o TWant) TWant {
+	if t == nil {
+		return o
+	}
+	return TWant(*t)
 }
 
 // Incr increments the value of given Real first, and then returns it, this is the same as C "++n" expression.
